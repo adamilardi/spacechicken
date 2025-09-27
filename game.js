@@ -151,6 +151,58 @@ class SpaceChicken extends Phaser.Scene {
         ctx.arc(16, 16, 8, 0, Math.PI * 2);
         ctx.fill();
         this.textures.addCanvas('bomb', bombCanvas);
+
+        // Virtual controller buttons for mobile
+        let btnWidth = 64, btnHeight = 64;
+
+        // Left button (arrow left)
+        let leftBtnCanvas = document.createElement('canvas');
+        leftBtnCanvas.width = btnWidth;
+        leftBtnCanvas.height = btnHeight;
+        ctx = leftBtnCanvas.getContext('2d');
+        // Semi-transparent background
+        ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
+        ctx.fillRect(0, 0, btnWidth, btnHeight);
+        // Arrow
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(btnWidth * 0.6, btnHeight * 0.2);
+        ctx.lineTo(btnWidth * 0.6, btnHeight * 0.8);
+        ctx.lineTo(btnWidth * 0.2, btnHeight * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        this.textures.addCanvas('leftBtn', leftBtnCanvas);
+
+        // Right button (arrow right)
+        let rightBtnCanvas = document.createElement('canvas');
+        rightBtnCanvas.width = btnWidth;
+        rightBtnCanvas.height = btnHeight;
+        ctx = rightBtnCanvas.getContext('2d');
+        ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
+        ctx.fillRect(0, 0, btnWidth, btnHeight);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(btnWidth * 0.4, btnHeight * 0.2);
+        ctx.lineTo(btnWidth * 0.4, btnHeight * 0.8);
+        ctx.lineTo(btnWidth * 0.8, btnHeight * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        this.textures.addCanvas('rightBtn', rightBtnCanvas);
+
+        // Jump button (circle with "JUMP")
+        let jumpBtnCanvas = document.createElement('canvas');
+        jumpBtnCanvas.width = btnWidth;
+        jumpBtnCanvas.height = btnHeight;
+        ctx = jumpBtnCanvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0, 128, 0, 0.7)';
+        ctx.beginPath();
+        ctx.arc(btnWidth/2, btnHeight/2, btnWidth/2 - 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('JUMP', btnWidth/2, btnHeight/2 + 5);
+        this.textures.addCanvas('jumpBtn', jumpBtnCanvas);
     }
 
     createChickenFrames() {
@@ -269,6 +321,10 @@ class SpaceChicken extends Phaser.Scene {
         // Game over flag for win state
         this.gameOver = false;
 
+        // Mobile touch control states
+        this.leftPressed = false;
+        this.rightPressed = false;
+
         // Timer display at top-left
         this.timerText = this.add.text(16, 16, 'Time: 00:00.00', { fontSize: '36px', fontFamily: 'monospace', fill: '#ffff00' });
         this.timerText.setScrollFactor(0); // Fixed UI
@@ -376,6 +432,16 @@ class SpaceChicken extends Phaser.Scene {
         let crownX = this.level === 2 ? 2800 : 1800;
         this.crown = this.physics.add.staticSprite(crownX, 350, 'crown');
 
+        // Mobile controls - virtual buttons
+        this.mobileLeftBtn = null;
+        this.mobileRightBtn = null;
+        this.mobileJumpBtn = null;
+
+        // Only add mobile controls for touch devices
+        if (this.sys.game.device.input.touch) {
+            this.addMobileControls();
+        }
+
         // Bombs
         this.bombs = this.physics.add.group();
 
@@ -442,13 +508,14 @@ class SpaceChicken extends Phaser.Scene {
         }
 
         // Movement
-        if (this.cursors.left.isDown || this.wasd.A.isDown) {
-            this.player.setVelocityX(-160);
-        } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
-            this.player.setVelocityX(160);
-        } else {
-            this.player.setVelocityX(0);
+        let velocityX = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown || this.leftPressed) {
+            velocityX -= 160;
         }
+        if (this.cursors.right.isDown || this.wasd.D.isDown || this.rightPressed) {
+            velocityX += 160;
+        }
+        this.player.setVelocityX(velocityX);
 
         const halfWidth = this.player.displayWidth * 0.5;
         const minX = halfWidth;
@@ -576,12 +643,54 @@ class SpaceChicken extends Phaser.Scene {
         let delay = Phaser.Math.Between(delayMin, delayMax);
         this.time.delayedCall(delay, this.spawnBomb, [], this);
     }
+
+    addMobileControls() {
+        let camW = this.cameras.main.width;
+        let camH = this.cameras.main.height;
+
+        // Left button
+        this.mobileLeftBtn = this.add.sprite(80, camH - 80, 'leftBtn')
+            .setScrollFactor(0)
+            .setInteractive()
+            .setDepth(10001);
+        this.mobileLeftBtn.on('pointerdown', () => {
+            this.leftPressed = true;
+        });
+        this.mobileLeftBtn.on('pointerup', () => {
+            this.leftPressed = false;
+        });
+
+        // Right button
+        this.mobileRightBtn = this.add.sprite(160, camH - 80, 'rightBtn')
+            .setScrollFactor(0)
+            .setInteractive()
+            .setDepth(10001);
+        this.mobileRightBtn.on('pointerdown', () => {
+            this.rightPressed = true;
+        });
+        this.mobileRightBtn.on('pointerup', () => {
+            this.rightPressed = false;
+        });
+
+        // Jump button
+        this.mobileJumpBtn = this.add.sprite(camW - 80, camH - 80, 'jumpBtn')
+            .setScrollFactor(0)
+            .setInteractive()
+            .setDepth(10001);
+        this.mobileJumpBtn.on('pointerdown', () => {
+            if (this.player.body.touching.down) {
+                this.player.setVelocityY(-330);
+            }
+        });
+    }
 }
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
     parent: 'phaser-game',
     physics: {
         default: 'arcade',
