@@ -1,0 +1,6 @@
+{
+  "sandbox_mode": "workspace-write",
+  "approval_policy": "on-failure",
+  "network_access": "restricted",
+  "shell": ["powershell.exe", "-NoProfile", "-Command"]
+}
