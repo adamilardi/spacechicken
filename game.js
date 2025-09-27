@@ -432,14 +432,12 @@ class SpaceChicken extends Phaser.Scene {
         let crownX = this.level === 2 ? 2800 : 1800;
         this.crown = this.physics.add.staticSprite(crownX, 350, 'crown');
 
-        // Mobile controls - virtual buttons
-        this.mobileLeftBtn = null;
-        this.mobileRightBtn = null;
-        this.mobileJumpBtn = null;
-
-        // Only add mobile controls for touch devices
+        // Mobile/touch controls setup
         if (this.sys.game.device.input.touch) {
-            this.addMobileControls();
+            // Enable multi-touch
+            this.input.addPointer(2);
+            // Update instructions for mobile
+            this.text.setText('Space Chicken - Touch left half for left, right half for right\nTap anywhere to jump - Collect the golden crown!');
         }
 
         // Bombs
@@ -505,6 +503,30 @@ class SpaceChicken extends Phaser.Scene {
             let seconds = Math.floor((elapsed % 60000) / 1000);
             let milliseconds = Math.floor((elapsed % 1000) / 10); // for 2 decimal places in ms
             this.timerText.setText(`Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`);
+        }
+
+        // Mobile touch controls
+        this.leftPressed = false;
+        this.rightPressed = false;
+        let camW = this.cameras.main.width;
+        if (this.input.pointers) {
+            this.input.pointers.forEach(pointer => {
+                if (pointer.isDown) {
+                    if (pointer.x < camW / 2) {
+                        this.leftPressed = true;
+                    } else {
+                        this.rightPressed = true;
+                    }
+                }
+            });
+        }
+
+        // Jump detection: quick taps anywhere
+        let jumpTriggered = this.input.pointers && this.input.pointers.some(pointer => {
+            return pointer.justUp && (pointer.upTime - pointer.downTime) < 200;
+        });
+        if (jumpTriggered && this.player.body.touching.down) {
+            this.player.setVelocityY(-330);
         }
 
         // Movement
@@ -644,45 +666,7 @@ class SpaceChicken extends Phaser.Scene {
         this.time.delayedCall(delay, this.spawnBomb, [], this);
     }
 
-    addMobileControls() {
-        let camW = this.cameras.main.width;
-        let camH = this.cameras.main.height;
 
-        // Left button
-        this.mobileLeftBtn = this.add.sprite(80, camH - 80, 'leftBtn')
-            .setScrollFactor(0)
-            .setInteractive()
-            .setDepth(10001);
-        this.mobileLeftBtn.on('pointerdown', () => {
-            this.leftPressed = true;
-        });
-        this.mobileLeftBtn.on('pointerup', () => {
-            this.leftPressed = false;
-        });
-
-        // Right button
-        this.mobileRightBtn = this.add.sprite(160, camH - 80, 'rightBtn')
-            .setScrollFactor(0)
-            .setInteractive()
-            .setDepth(10001);
-        this.mobileRightBtn.on('pointerdown', () => {
-            this.rightPressed = true;
-        });
-        this.mobileRightBtn.on('pointerup', () => {
-            this.rightPressed = false;
-        });
-
-        // Jump button
-        this.mobileJumpBtn = this.add.sprite(camW - 80, camH - 80, 'jumpBtn')
-            .setScrollFactor(0)
-            .setInteractive()
-            .setDepth(10001);
-        this.mobileJumpBtn.on('pointerdown', () => {
-            if (this.player.body.touching.down) {
-                this.player.setVelocityY(-330);
-            }
-        });
-    }
 }
 
 const config = {
