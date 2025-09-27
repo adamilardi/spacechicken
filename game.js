@@ -309,6 +309,83 @@ class SpaceChicken extends Phaser.Scene {
         let ctx_jump = chicken_jump.getContext('2d');
         drawChicken(ctx_jump, 0, 0, 0, true);
         this.textures.addCanvas('chicken_jump', chicken_jump);
+        // Jetpack frame 1: compact exhaust
+        let chicken_jetpack1 = document.createElement('canvas');
+        chicken_jetpack1.width = 32;
+        chicken_jetpack1.height = 32;
+        let ctx_jetpack1 = chicken_jetpack1.getContext('2d');
+        drawChicken(ctx_jetpack1, 0, 0, 0, true);
+        ctx_jetpack1.fillStyle = '#555555';
+        ctx_jetpack1.fillRect(8, 16, 4, 10);
+        ctx_jetpack1.fillRect(20, 16, 4, 10);
+        ctx_jetpack1.fillStyle = '#999999';
+        ctx_jetpack1.fillRect(12, 16, 8, 8);
+        ctx_jetpack1.fillStyle = '#ffcc00';
+        ctx_jetpack1.beginPath();
+        ctx_jetpack1.moveTo(10, 26);
+        ctx_jetpack1.lineTo(12, 32);
+        ctx_jetpack1.lineTo(14, 26);
+        ctx_jetpack1.closePath();
+        ctx_jetpack1.fill();
+        ctx_jetpack1.beginPath();
+        ctx_jetpack1.moveTo(18, 26);
+        ctx_jetpack1.lineTo(20, 32);
+        ctx_jetpack1.lineTo(22, 26);
+        ctx_jetpack1.closePath();
+        ctx_jetpack1.fill();
+        ctx_jetpack1.fillStyle = '#ff6600';
+        ctx_jetpack1.beginPath();
+        ctx_jetpack1.moveTo(11, 26);
+        ctx_jetpack1.lineTo(12, 30);
+        ctx_jetpack1.lineTo(13, 26);
+        ctx_jetpack1.closePath();
+        ctx_jetpack1.fill();
+        ctx_jetpack1.beginPath();
+        ctx_jetpack1.moveTo(19, 26);
+        ctx_jetpack1.lineTo(20, 30);
+        ctx_jetpack1.lineTo(21, 26);
+        ctx_jetpack1.closePath();
+        ctx_jetpack1.fill();
+        this.textures.addCanvas('chicken_jetpack1', chicken_jetpack1);
+
+        // Jetpack frame 2: stretched exhaust
+        let chicken_jetpack2 = document.createElement('canvas');
+        chicken_jetpack2.width = 32;
+        chicken_jetpack2.height = 32;
+        let ctx_jetpack2 = chicken_jetpack2.getContext('2d');
+        drawChicken(ctx_jetpack2, 0, 0, 0, true);
+        ctx_jetpack2.fillStyle = '#555555';
+        ctx_jetpack2.fillRect(8, 16, 4, 10);
+        ctx_jetpack2.fillRect(20, 16, 4, 10);
+        ctx_jetpack2.fillStyle = '#999999';
+        ctx_jetpack2.fillRect(12, 16, 8, 8);
+        ctx_jetpack2.fillStyle = '#ffcc00';
+        ctx_jetpack2.beginPath();
+        ctx_jetpack2.moveTo(10, 26);
+        ctx_jetpack2.lineTo(12, 34);
+        ctx_jetpack2.lineTo(14, 26);
+        ctx_jetpack2.closePath();
+        ctx_jetpack2.fill();
+        ctx_jetpack2.beginPath();
+        ctx_jetpack2.moveTo(18, 26);
+        ctx_jetpack2.lineTo(20, 34);
+        ctx_jetpack2.lineTo(22, 26);
+        ctx_jetpack2.closePath();
+        ctx_jetpack2.fill();
+        ctx_jetpack2.fillStyle = '#ff2200';
+        ctx_jetpack2.beginPath();
+        ctx_jetpack2.moveTo(11, 26);
+        ctx_jetpack2.lineTo(12, 31);
+        ctx_jetpack2.lineTo(13, 26);
+        ctx_jetpack2.closePath();
+        ctx_jetpack2.fill();
+        ctx_jetpack2.beginPath();
+        ctx_jetpack2.moveTo(19, 26);
+        ctx_jetpack2.lineTo(20, 31);
+        ctx_jetpack2.lineTo(21, 26);
+        ctx_jetpack2.closePath();
+        ctx_jetpack2.fill();
+        this.textures.addCanvas('chicken_jetpack2', chicken_jetpack2);
     }
 
     create() {
@@ -320,6 +397,10 @@ class SpaceChicken extends Phaser.Scene {
 
         // Game over flag for win state
         this.gameOver = false;
+        this.maxJumps = 2;
+        this.jumpCount = 0;
+        this.isJetpacking = false;
+        this.restartDelayDone = true;
 
         // Mobile touch control states
         this.leftPressed = false;
@@ -481,6 +562,17 @@ class SpaceChicken extends Phaser.Scene {
                 repeat: 0
             });
         }
+        if (!this.anims.exists('chicken-jetpack')) {
+            this.anims.create({
+                key: 'chicken-jetpack',
+                frames: [
+                    { key: 'chicken_jetpack1' },
+                    { key: 'chicken_jetpack2' }
+                ],
+                frameRate: 12,
+                repeat: -1
+            });
+        }
         this.player.play('chicken-walk');
 
         // Controls
@@ -521,12 +613,33 @@ class SpaceChicken extends Phaser.Scene {
             });
         }
 
+        const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
+        if (isGrounded) {
+            this.jumpCount = 0;
+            this.isJetpacking = false;
+        }
+
+        const spaceJustPressed = Phaser.Input.Keyboard.JustDown(this.space);
+        const upJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const wJustPressed = Phaser.Input.Keyboard.JustDown(this.wasd.W);
+
         // Jump detection: quick taps anywhere
-        let jumpTriggered = this.input.pointers && this.input.pointers.some(pointer => {
+        const pointerJumpTriggered = this.input.pointers && this.input.pointers.some(pointer => {
             return pointer.justUp && (pointer.upTime - pointer.downTime) < 200;
         });
-        if (jumpTriggered && this.player.body.touching.down) {
+
+        const keyboardJumpTriggered = upJustPressed || spaceJustPressed || wJustPressed;
+
+        if (!this.gameOver && (pointerJumpTriggered || keyboardJumpTriggered) && this.jumpCount < this.maxJumps) {
             this.player.setVelocityY(-330);
+            this.jumpCount += 1;
+            if (this.jumpCount === 2) {
+                this.isJetpacking = true;
+                this.player.play('chicken-jetpack', true);
+            } else {
+                this.isJetpacking = false;
+                this.player.play('chicken-jump', true);
+            }
         }
 
         // Movement
@@ -548,15 +661,17 @@ class SpaceChicken extends Phaser.Scene {
             this.player.setVelocityX(0);
         }
 
-        // Jump
-        if ((this.cursors.up.isDown || this.space.isDown || this.wasd.W.isDown) && this.player.body.touching.down) {
-            this.player.setVelocityY(-330);
-        }
-
-        // Switch animation based on grounded state
-        if (this.player.body.touching.down && this.player.anims.currentAnim.key !== 'chicken-walk') {
-            this.player.play('chicken-walk');
-        } else if (!this.player.body.touching.down && this.player.anims.currentAnim.key !== 'chicken-jump') {
+        // Animation state
+        const currentAnimKey = this.player.anims.currentAnim ? this.player.anims.currentAnim.key : null;
+        if (isGrounded && this.jumpCount === 0) {
+            if (currentAnimKey !== 'chicken-walk') {
+                this.player.play('chicken-walk');
+            }
+        } else if (this.isJetpacking) {
+            if (currentAnimKey !== 'chicken-jetpack') {
+                this.player.play('chicken-jetpack');
+            }
+        } else if (currentAnimKey !== 'chicken-jump') {
             this.player.play('chicken-jump');
         }
 
@@ -573,7 +688,7 @@ class SpaceChicken extends Phaser.Scene {
         });
 
         // Restart game when over and space pressed
-        if (this.gameOver && Phaser.Input.Keyboard.JustDown(this.space)) {
+        if (this.gameOver && this.restartDelayDone && spaceJustPressed) {
             this.scene.restart({ level: 1 });
         }
     }
@@ -626,6 +741,8 @@ class SpaceChicken extends Phaser.Scene {
             let milliseconds = Math.floor((this.finalTime % 1000) / 10);
             this.timerText.setText(`Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`);
             this.gameOver = true;
+            this.restartDelayDone = false;
+            this.time.delayedCall(500, () => { this.restartDelayDone = true; });
             this.physics.pause();
             this.player.setTint(0x00ff00);
             this.crown.disableBody(true, true);
@@ -655,7 +772,7 @@ class SpaceChicken extends Phaser.Scene {
         bomb.setGravityY(0);  // No gravity, so they fly straight at angle
         // Calculate direction to player with random offset
         let angle = Phaser.Math.Angle.Between(x, -50, this.player.x, this.player.y);
-        let randomOffset = Phaser.Math.FloatBetween(-Math.PI / 6, Math.PI / 6);  // ±30 degrees random
+        let randomOffset = Phaser.Math.FloatBetween(-Math.PI / 6, Math.PI / 6);  // +/- 30 degrees random
         angle += randomOffset;
         let speed = this.level === 2 ? 200 : 150;
         bomb.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
