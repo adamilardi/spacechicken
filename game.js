@@ -281,8 +281,15 @@ class SpaceChicken extends Phaser.Scene {
         // World width
         let worldWidth = this.level === 2 ? 3000 : 2000;
 
-        // Background for space
-        this.add.graphics().fillStyle(0x000000).fillRect(0, 0, worldWidth, 600);
+        // Reuse a single graphics layer for background space
+        if (!this.backgroundGraphics) {
+            this.backgroundGraphics = this.add.graphics();
+            this.backgroundGraphics.setDepth(-10);
+        } else {
+            this.backgroundGraphics.clear();
+        }
+
+        this.backgroundGraphics.fillStyle(0x000000).fillRect(0, 0, worldWidth, 600);
 
         // Add stars for outer space effect (bigger and brighter)
         let starCount = this.level === 2 ? 150 : 100;
@@ -290,7 +297,7 @@ class SpaceChicken extends Phaser.Scene {
             let x = Phaser.Math.Between(0, worldWidth);
             let y = Phaser.Math.Between(0, 600);
             let size = Phaser.Math.Between(1, 3);
-            this.add.graphics().fillStyle(0xffffff).fillCircle(x, y, size);
+            this.backgroundGraphics.fillStyle(0xffffff).fillCircle(x, y, size);
         }
 
         // Add planets (randomly placed with varying sizes)
@@ -309,7 +316,7 @@ class SpaceChicken extends Phaser.Scene {
             let planet = planets[i % planets.length];
             let x = Phaser.Math.Between(300, worldWidth - 300);
             let y = Phaser.Math.Between(50, 400);
-            this.add.graphics().fillStyle(planet.color).fillCircle(x, y, planet.size);
+            this.backgroundGraphics.fillStyle(planet.color).fillCircle(x, y, planet.size);
         }
 
         // Player chicken
@@ -376,6 +383,8 @@ class SpaceChicken extends Phaser.Scene {
         let killZone = this.add.zone(0, 620, worldWidth, 20).setOrigin(0);
         this.physics.world.enable(killZone);
         killZone.body.setImmovable(true);
+        killZone.body.setAllowGravity(false);
+        killZone.body.moves = false;
 
         // Collisions
         this.physics.add.collider(this.player, this.platforms);
@@ -438,6 +447,15 @@ class SpaceChicken extends Phaser.Scene {
         } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
             this.player.setVelocityX(160);
         } else {
+            this.player.setVelocityX(0);
+        }
+
+        const halfWidth = this.player.displayWidth * 0.5;
+        const minX = halfWidth;
+        const maxX = worldWidth - halfWidth;
+        const clampedX = Phaser.Math.Clamp(this.player.x, minX, maxX);
+        if (clampedX !== this.player.x) {
+            this.player.x = clampedX;
             this.player.setVelocityX(0);
         }
 
