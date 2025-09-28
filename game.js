@@ -419,7 +419,7 @@ class SpaceChicken extends Phaser.Scene {
         let worldWidth = this.level === 2 ? 3000 : 2000;
 
         // Reuse a single graphics layer for background space
-        if (!this.backgroundGraphics) {
+        if (!this.backgroundGraphics || !this.backgroundGraphics.scene) {
             this.backgroundGraphics = this.add.graphics();
             this.backgroundGraphics.setDepth(-10);
         } else {
