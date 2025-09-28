@@ -1,6 +1,7 @@
 class SpaceChicken extends Phaser.Scene {
-    init(data) {
+    init(data = {}) {
         this.level = data.level || 1;
+        this.deathCount = data.deathCount || 0;
     }
 
     constructor() {
@@ -708,12 +709,12 @@ class SpaceChicken extends Phaser.Scene {
 
         // Restart game when over and space pressed
         if (this.gameOver && this.restartDelayDone && spaceJustPressed) {
-            this.scene.restart({ level: 1 });
+            this.scene.restart({ level: 1, deathCount: 0 });
         }
     }
 
     hitHazard() {
-        this.scene.restart({ level: this.level });
+        this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
     saveTime(level, newTime) {
@@ -739,7 +740,7 @@ class SpaceChicken extends Phaser.Scene {
             }).join('\n');
         }
 
-        let leaderboardText = 'Leaderboard\n\nLevel 1 Times:\n' + (level1.length ? formatTimes(level1) : 'No times yet') + '\n\nLevel 2 Times:\n' + (level2.length ? formatTimes(level2) : 'No times yet') + '\n\nPress SPACEBAR to restart';
+        let leaderboardText = 'Leaderboard\n\nLevel 1 Times:\n' + (level1.length ? formatTimes(level1) : 'No times yet') + '\n\nLevel 2 Times:\n' + (level2.length ? formatTimes(level2) : 'No times yet') + `\n\nDeaths this run: ${this.deathCount}\n\nPress SPACEBAR to restart`;
         this.add.text(400, 120, leaderboardText, { fontSize: '16px', fill: '#ffff00', align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0);
     }
 
@@ -748,7 +749,7 @@ class SpaceChicken extends Phaser.Scene {
             // Save time for level 1 completion
             let time = performance.now() - this.startTime;
             this.saveTime(1, time);
-            this.scene.restart({ level: 2 });
+            this.scene.restart({ level: 2, deathCount: this.deathCount });
         } else {
             // Calculate final time
             this.finalTime = performance.now() - this.startTime;
@@ -771,16 +772,16 @@ class SpaceChicken extends Phaser.Scene {
             // Display leaderboard
             this.displayLeaderboard();
             // Update message
-            this.text.setText('You Win!');
+            this.text.setText(`You Win!\nDeaths this run: ${this.deathCount}`);
         }
     }
 
     hitKillZone() {
-        this.scene.restart({ level: this.level });
+        this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
     hitBomb(bomb, player) {
-        this.scene.restart({ level: this.level });
+        this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
     spawnBomb() {
