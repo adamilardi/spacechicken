@@ -426,35 +426,54 @@ class SpaceChicken extends Phaser.Scene {
             this.backgroundGraphics.clear();
         }
 
+        // Cache generated background layout per level so restarts reuse the same scenery
+        let layoutCache = this.constructor.backgroundLayouts;
+        if (!layoutCache) {
+            layoutCache = this.constructor.backgroundLayouts = new Map();
+        }
+        let backgroundLayout = layoutCache.get(this.level);
+        if (!backgroundLayout) {
+            let starCount = this.level === 2 ? 150 : 100;
+            let stars = [];
+            for (let i = 0; i < starCount; i++) {
+                let x = Phaser.Math.Between(0, worldWidth);
+                let y = Phaser.Math.Between(0, 600);
+                let size = Phaser.Math.Between(1, 3);
+                stars.push({ x, y, size });
+            }
+
+            let planetTemplates = [
+                { color: 0x004488, size: 50 },
+                { color: 0x884400, size: 40 },
+                { color: 0x440088, size: 30 },
+                { color: 0x448800, size: 60 },
+                { color: 0x888844, size: 45 },
+                { color: 0x880044, size: 55 },
+                { color: 0x008844, size: 35 },
+                { color: 0x444488, size: 70 }
+            ];
+            let planetCount = this.level === 2 ? 8 : 5;
+            let planets = [];
+            for (let i = 0; i < planetCount; i++) {
+                let template = planetTemplates[i % planetTemplates.length];
+                let x = Phaser.Math.Between(300, worldWidth - 300);
+                let y = Phaser.Math.Between(50, 400);
+                planets.push({ x, y, color: template.color, size: template.size });
+            }
+
+            backgroundLayout = { stars, planets };
+            layoutCache.set(this.level, backgroundLayout);
+        }
+
         this.backgroundGraphics.fillStyle(0x000000).fillRect(0, 0, worldWidth, 600);
 
-        // Add stars for outer space effect (bigger and brighter)
-        let starCount = this.level === 2 ? 150 : 100;
-        for (let i = 0; i < starCount; i++) {
-            let x = Phaser.Math.Between(0, worldWidth);
-            let y = Phaser.Math.Between(0, 600);
-            let size = Phaser.Math.Between(1, 3);
-            this.backgroundGraphics.fillStyle(0xffffff).fillCircle(x, y, size);
-        }
+        backgroundLayout.stars.forEach(star => {
+            this.backgroundGraphics.fillStyle(0xffffff).fillCircle(star.x, star.y, star.size);
+        });
 
-        // Add planets (randomly placed with varying sizes)
-        let planetCount = this.level === 2 ? 8 : 5;
-        let planets = [
-            { color: 0x004488, size: 50 },
-            { color: 0x884400, size: 40 },
-            { color: 0x440088, size: 30 },
-            { color: 0x448800, size: 60 },
-            { color: 0x888844, size: 45 },
-            { color: 0x880044, size: 55 },
-            { color: 0x008844, size: 35 },
-            { color: 0x444488, size: 70 }
-        ];
-        for (let i = 0; i < planetCount; i++) {
-            let planet = planets[i % planets.length];
-            let x = Phaser.Math.Between(300, worldWidth - 300);
-            let y = Phaser.Math.Between(50, 400);
-            this.backgroundGraphics.fillStyle(planet.color).fillCircle(x, y, planet.size);
-        }
+        backgroundLayout.planets.forEach(planet => {
+            this.backgroundGraphics.fillStyle(planet.color).fillCircle(planet.x, planet.y, planet.size);
+        });
 
         // Player chicken
         this.player = this.physics.add.sprite(100, 450, 'chicken1');
