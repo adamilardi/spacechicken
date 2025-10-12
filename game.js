@@ -29,6 +29,20 @@ class SpaceChicken extends Phaser.Scene {
         this.touchControlsEnabled = false;
         this.jumpButton = null;
         this.touchMovementMidpoint = 0;
+        this.audioUnlocked = false;
+        this.audioUnlockHandler = null;
+        this.musicGainNode = null;
+        this.effectsGainNode = null;
+        this.backgroundLoopEvent = null;
+        this.backgroundPattern = null;
+        this.backgroundPatternDuration = 0;
+        this.backgroundSources = new Set();
+        this.activeEffects = new Set();
+        this.musicMuted = false;
+        this.musicVolume = 0.18;
+        this.musicToggleButton = null;
+        this.muteKey = null;
+        this.levelMusicId = null;
     }
 
     constructor() {
@@ -345,6 +359,75 @@ class SpaceChicken extends Phaser.Scene {
             this.textures.addCanvas('jumpBtn', jumpBtnCanvas);
         }
 
+        if (!this.textures.exists('musicToggleOn')) {
+                let musicSize = 48;
+        let musicOnCanvas = document.createElement('canvas');
+        musicOnCanvas.width = musicSize;
+        musicOnCanvas.height = musicSize;
+            ctx = musicOnCanvas.getContext('2d');
+            ctx.clearRect(0, 0, musicSize, musicSize);
+            ctx.fillStyle = 'rgba(40, 40, 60, 0.85)';
+            ctx.fillRect(0, 0, musicSize, musicSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(musicSize * 0.28, musicSize * 0.68);
+            ctx.lineTo(musicSize * 0.28, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.44, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.60, musicSize * 0.18);
+            ctx.lineTo(musicSize * 0.60, musicSize * 0.82);
+            ctx.lineTo(musicSize * 0.44, musicSize * 0.68);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(musicSize * 0.60, musicSize * 0.5, musicSize * 0.16, -Math.PI / 3, Math.PI / 3);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(musicSize * 0.60, musicSize * 0.5, musicSize * 0.26, -Math.PI / 3, Math.PI / 3);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(musicSize * 0.60, musicSize * 0.5, musicSize * 0.36, -Math.PI / 3, Math.PI / 3);
+            ctx.stroke();
+            this.textures.addCanvas('musicToggleOn', musicOnCanvas);
+        }
+
+        if (!this.textures.exists('musicToggleOff')) {
+                let musicSize = 48;
+        let musicOffCanvas = document.createElement('canvas');
+        musicOffCanvas.width = musicSize;
+        musicOffCanvas.height = musicSize;
+            ctx = musicOffCanvas.getContext('2d');
+            ctx.clearRect(0, 0, musicSize, musicSize);
+            ctx.fillStyle = 'rgba(40, 40, 60, 0.85)';
+            ctx.fillRect(0, 0, musicSize, musicSize);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(musicSize * 0.28, musicSize * 0.68);
+            ctx.lineTo(musicSize * 0.28, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.44, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.60, musicSize * 0.18);
+            ctx.lineTo(musicSize * 0.60, musicSize * 0.48);
+            ctx.lineTo(musicSize * 0.44, musicSize * 0.48);
+            ctx.lineTo(musicSize * 0.44, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.28, musicSize * 0.32);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#ff6666';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(musicSize * 0.62, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.82, musicSize * 0.68);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(musicSize * 0.82, musicSize * 0.32);
+            ctx.lineTo(musicSize * 0.62, musicSize * 0.68);
+            ctx.stroke();
+            this.textures.addCanvas('musicToggleOff', musicOffCanvas);
+        }
+
     }
 
     createChickenFrames() {
@@ -548,6 +631,465 @@ class SpaceChicken extends Phaser.Scene {
         return (current === undefined || current === null) ? fallback : current;
     }
 
+    canUseWebAudio() {
+        return this.sound && this.sound.context && typeof this.sound.context.createOscillator === 'function';
+    }
+
+    setupAudioPipeline(options = {}) {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+
+        const skipAutoStart = options.skipAutoStart === true;
+        const context = this.sound.context;
+        const destination = this.sound.masterGainNode || context.destination;
+
+        if (!this.musicGainNode) {
+            this.musicGainNode = context.createGain();
+            const initialGain = this.musicMuted ? 0 : this.musicVolume;
+            this.musicGainNode.gain.setValueAtTime(initialGain, context.currentTime);
+            this.musicGainNode.connect(destination);
+        } else {
+            const targetGain = this.musicMuted ? 0 : this.musicVolume;
+            try {
+                this.musicGainNode.gain.cancelScheduledValues(context.currentTime);
+            } catch (err) {
+                // ignore
+            }
+            this.musicGainNode.gain.setTargetAtTime(targetGain, context.currentTime, 0.05);
+        }
+
+        if (!this.effectsGainNode) {
+            this.effectsGainNode = context.createGain();
+            this.effectsGainNode.gain.setValueAtTime(0.4, context.currentTime);
+            this.effectsGainNode.connect(destination);
+        }
+
+        if (!this.backgroundPattern || !this.backgroundPattern.length) {
+            this.configureLevelMusic();
+        }
+
+        if (context.state === 'running') {
+            this.audioUnlocked = true;
+            if (!skipAutoStart) {
+                this.startBackgroundMusic();
+            }
+            return;
+        }
+
+        if (this.audioUnlockHandler) {
+            return;
+        }
+
+        const unlock = () => {
+            if (this.audioUnlocked) {
+                return;
+            }
+            this.audioUnlocked = true;
+            if (context.state === 'suspended') {
+                context.resume().catch(() => {});
+            }
+            this.startBackgroundMusic();
+            if (this.input) {
+                this.input.off('pointerdown', unlock, this);
+            }
+            if (this.input && this.input.keyboard) {
+                this.input.keyboard.off('keydown', unlock, this);
+            }
+            this.audioUnlockHandler = null;
+        };
+
+        this.audioUnlockHandler = unlock;
+        if (this.input) {
+            this.input.once('pointerdown', unlock, this);
+        }
+        if (this.input && this.input.keyboard) {
+            this.input.keyboard.once('keydown', unlock, this);
+        }
+    }
+
+    startBackgroundMusic() {
+        if (!this.canUseWebAudio() || !this.audioUnlocked) {
+            return;
+        }
+        if (!this.musicGainNode) {
+            this.setupAudioPipeline({ skipAutoStart: true });
+        }
+        if (!this.musicGainNode || this.backgroundLoopEvent || !this.backgroundPattern || !this.backgroundPattern.length) {
+            return;
+        }
+        const context = this.sound.context;
+        const offsetTime = context.currentTime + 0.05;
+        this.scheduleBackgroundPattern(offsetTime);
+        const delay = Math.max(1000, this.backgroundPatternDuration * 1000);
+        this.backgroundLoopEvent = this.time.addEvent({
+            delay,
+            loop: true,
+            callback: () => this.scheduleBackgroundPattern(context.currentTime + 0.05)
+        });
+    }
+
+    scheduleBackgroundPattern(baseTime) {
+        if (!this.backgroundPattern || !this.canUseWebAudio()) {
+            return;
+        }
+        this.backgroundPattern.forEach(note => {
+            this.playTone({
+                freqStart: note.freqStart,
+                freqEnd: note.freqEnd,
+                duration: note.duration,
+                type: note.type,
+                volume: note.volume,
+                startTime: baseTime + note.offset,
+                destination: this.musicGainNode,
+                trackSet: this.backgroundSources
+            });
+        });
+    }
+
+    stopBackgroundMusic() {
+        if (this.backgroundLoopEvent) {
+            this.backgroundLoopEvent.remove();
+            this.backgroundLoopEvent = null;
+        }
+        if (this.backgroundSources) {
+            this.backgroundSources.forEach(source => {
+                try {
+                    source.stop();
+                } catch (err) {
+                    // ignore
+                }
+            });
+            this.backgroundSources.clear();
+        }
+    }
+
+    stopAllEffects() {
+        if (!this.activeEffects) {
+            return;
+        }
+        this.activeEffects.forEach(source => {
+            try {
+                source.stop();
+            } catch (err) {
+                // ignore
+            }
+        });
+        this.activeEffects.clear();
+    }
+
+    cleanupAudio() {
+        if (!this.sound) {
+            return;
+        }
+        this.stopBackgroundMusic();
+        this.stopAllEffects();
+        if (this.musicGainNode) {
+            try {
+                this.musicGainNode.disconnect();
+            } catch (err) {
+                // ignore
+            }
+            this.musicGainNode = null;
+        }
+        if (this.effectsGainNode) {
+            try {
+                this.effectsGainNode.disconnect();
+            } catch (err) {
+                // ignore
+            }
+            this.effectsGainNode = null;
+        }
+        if (this.audioUnlockHandler) {
+            if (this.input) {
+                this.input.off('pointerdown', this.audioUnlockHandler, this);
+            }
+            if (this.input && this.input.keyboard) {
+            this.input.keyboard.off('keydown', this.audioUnlockHandler, this);
+            }
+            this.audioUnlockHandler = null;
+        }
+        this.audioUnlocked = false;
+        if (this.musicToggleButton) {
+            this.musicToggleButton.destroy();
+            this.musicToggleButton = null;
+        }
+    }
+
+    playTone(options = {}) {
+        if (!this.canUseWebAudio()) {
+            return null;
+        }
+        const context = this.sound.context;
+        const startTime = options.startTime !== undefined ? options.startTime : context.currentTime;
+        const duration = Math.max(0.05, options.duration || 0.2);
+        const stopTime = startTime + duration + 0.05;
+
+        const oscillator = context.createOscillator();
+        oscillator.type = options.type || 'sine';
+        const freqStart = options.freqStart || options.freqEnd || 440;
+        oscillator.frequency.setValueAtTime(freqStart, startTime);
+        if (options.freqEnd && options.freqEnd !== freqStart) {
+            oscillator.frequency.linearRampToValueAtTime(options.freqEnd, startTime + duration);
+        }
+
+        const gainNode = context.createGain();
+        const targetVolume = options.volume !== undefined ? options.volume : 0.4;
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(targetVolume, startTime + 0.01);
+        gainNode.gain.linearRampToValueAtTime(targetVolume * 0.6, startTime + duration * 0.6);
+        gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+        gainNode.gain.setValueAtTime(0, stopTime);
+
+        oscillator.connect(gainNode);
+        const destination = options.destination || this.effectsGainNode || this.sound.masterGainNode || context.destination;
+        gainNode.connect(destination);
+
+        const trackingSet = options.trackSet || this.activeEffects;
+
+        oscillator.start(startTime);
+        oscillator.stop(stopTime);
+
+        const cleanup = () => {
+            oscillator.disconnect();
+            gainNode.disconnect();
+            if (trackingSet) {
+                trackingSet.delete(oscillator);
+            }
+        };
+        oscillator.onended = cleanup;
+
+        if (trackingSet) {
+            trackingSet.add(oscillator);
+        }
+
+        return oscillator;
+    }
+
+    playJumpSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.sound.context.currentTime;
+        this.playTone({
+            freqStart: 560,
+            freqEnd: 720,
+            duration: 0.18,
+            type: 'square',
+            volume: 0.34,
+            startTime: now
+        });
+    }
+
+    playJetpackSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.sound.context.currentTime;
+        this.playTone({
+            freqStart: 820,
+            freqEnd: 540,
+            duration: 0.35,
+            type: 'sawtooth',
+            volume: 0.28,
+            startTime: now
+        });
+    }
+
+    playCollectSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.sound.context.currentTime;
+        this.playTone({ freqStart: 660, duration: 0.18, type: 'triangle', volume: 0.28, startTime: now });
+        this.playTone({ freqStart: 784, duration: 0.18, type: 'triangle', volume: 0.26, startTime: now + 0.2 });
+        this.playTone({ freqStart: 988, duration: 0.32, type: 'triangle', volume: 0.24, startTime: now + 0.4 });
+    }
+
+    playHazardHitSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.sound.context.currentTime;
+        this.playTone({
+            freqStart: 320,
+            freqEnd: 120,
+            duration: 0.28,
+            type: 'sawtooth',
+            volume: 0.32,
+            startTime: now
+        });
+        this.playTone({
+            freqStart: 180,
+            freqEnd: 80,
+            duration: 0.4,
+            type: 'square',
+            volume: 0.25,
+            startTime: now + 0.02
+        });
+    }
+
+    getMusicDefinitionForLevel(level) {
+        const commonPad = (baseFreq, startOffset = 0, duration = 1.6, volume = 0.1) => ([
+            { offset: startOffset, duration, freqStart: baseFreq, type: 'sawtooth', volume }
+        ]);
+
+        const level1Pattern = [
+            { offset: 0, duration: 0.32, freqStart: 392, type: 'triangle', volume: 0.22 },
+            { offset: 0.36, duration: 0.32, freqStart: 440, type: 'triangle', volume: 0.22 },
+            { offset: 0.72, duration: 0.32, freqStart: 494, type: 'triangle', volume: 0.22 },
+            { offset: 1.08, duration: 0.32, freqStart: 523, type: 'triangle', volume: 0.22 },
+            { offset: 1.44, duration: 0.32, freqStart: 494, type: 'triangle', volume: 0.22 },
+            { offset: 1.8, duration: 0.32, freqStart: 440, type: 'triangle', volume: 0.22 },
+            { offset: 2.16, duration: 0.32, freqStart: 392, type: 'triangle', volume: 0.22 },
+            { offset: 2.52, duration: 0.48, freqStart: 330, type: 'triangle', volume: 0.2 },
+            ...commonPad(196, 0, 1.6, 0.12),
+            ...commonPad(220, 1.68, 1.6, 0.12)
+        ];
+
+        const level2Pattern = [
+            { offset: 0, duration: 0.24, freqStart: 523, freqEnd: 554, type: 'square', volume: 0.24 },
+            { offset: 0.26, duration: 0.24, freqStart: 494, freqEnd: 523, type: 'square', volume: 0.24 },
+            { offset: 0.52, duration: 0.24, freqStart: 440, freqEnd: 466, type: 'square', volume: 0.24 },
+            { offset: 0.78, duration: 0.24, freqStart: 392, freqEnd: 415, type: 'triangle', volume: 0.23 },
+            { offset: 1.04, duration: 0.28, freqStart: 440, freqEnd: 494, type: 'triangle', volume: 0.24 },
+            { offset: 1.34, duration: 0.3, freqStart: 587, type: 'square', volume: 0.25 },
+            { offset: 1.68, duration: 0.24, freqStart: 659, freqEnd: 698, type: 'triangle', volume: 0.22 },
+            { offset: 1.94, duration: 0.24, freqStart: 622, freqEnd: 659, type: 'triangle', volume: 0.22 },
+            { offset: 2.2, duration: 0.24, freqStart: 587, freqEnd: 622, type: 'triangle', volume: 0.22 },
+            { offset: 2.46, duration: 0.36, freqStart: 494, freqEnd: 440, type: 'triangle', volume: 0.22 },
+            ...commonPad(220, 0, 1.8, 0.14),
+            ...commonPad(247, 1.9, 1.6, 0.14),
+            { offset: 0, duration: 1.6, freqStart: 110, freqEnd: 82, type: 'sine', volume: 0.08 }
+        ];
+
+        const level3Pattern = [
+            { offset: 0, duration: 0.18, freqStart: 659, freqEnd: 698, type: 'sawtooth', volume: 0.26 },
+            { offset: 0.2, duration: 0.18, freqStart: 698, freqEnd: 740, type: 'sawtooth', volume: 0.26 },
+            { offset: 0.4, duration: 0.18, freqStart: 740, freqEnd: 784, type: 'sawtooth', volume: 0.26 },
+            { offset: 0.6, duration: 0.24, freqStart: 831, type: 'triangle', volume: 0.25 },
+            { offset: 0.9, duration: 0.24, freqStart: 880, freqEnd: 932, type: 'square', volume: 0.27 },
+            { offset: 1.2, duration: 0.24, freqStart: 988, freqEnd: 1046, type: 'square', volume: 0.27 },
+            { offset: 1.52, duration: 0.24, freqStart: 1174, type: 'triangle', volume: 0.25 },
+            { offset: 1.86, duration: 0.24, freqStart: 1109, freqEnd: 1046, type: 'triangle', volume: 0.24 },
+            { offset: 2.1, duration: 0.24, freqStart: 988, freqEnd: 932, type: 'triangle', volume: 0.24 },
+            { offset: 2.34, duration: 0.42, freqStart: 880, freqEnd: 784, type: 'triangle', volume: 0.24 },
+            ...commonPad(262, 0, 1.2, 0.16),
+            ...commonPad(330, 1.1, 1.2, 0.16),
+            ...commonPad(196, 2.2, 0.9, 0.12),
+            { offset: 0, duration: 2.4, freqStart: 98, freqEnd: 73, type: 'sine', volume: 0.09 }
+        ];
+
+        const definitions = {
+            1: { id: 'level-1', pattern: level1Pattern, loopPadding: 0.4, musicVolume: 0.18 },
+            2: { id: 'level-2', pattern: level2Pattern, loopPadding: 0.5, musicVolume: 0.2 },
+            3: { id: 'level-3', pattern: level3Pattern, loopPadding: 0.55, musicVolume: 0.22 }
+        };
+
+        return definitions[level] || definitions[1];
+    }
+
+    computePatternDuration(pattern) {
+        if (!pattern || !pattern.length) {
+            return 0;
+        }
+        return pattern.reduce((max, note) => {
+            const duration = this.valueOrDefault(note.duration, 0);
+            const end = this.valueOrDefault(note.offset, 0) + duration;
+            return end > max ? end : max;
+        }, 0);
+    }
+
+    configureLevelMusic() {
+        const definition = this.getMusicDefinitionForLevel(this.level) || {};
+        const pattern = Array.isArray(definition.pattern) ? definition.pattern : [];
+        this.levelMusicId = definition.id || `level-${this.level}`;
+        this.backgroundPattern = pattern.slice();
+        const baseDuration = this.computePatternDuration(this.backgroundPattern);
+        const padding = this.valueOrDefault(definition.loopPadding, 0.4);
+        this.backgroundPatternDuration = baseDuration + padding;
+        this.musicVolume = this.valueOrDefault(definition.musicVolume, 0.18);
+
+        if (this.musicGainNode) {
+            try {
+                const context = this.sound.context;
+                this.musicGainNode.gain.cancelScheduledValues(context.currentTime);
+                const target = this.musicMuted ? 0 : this.musicVolume;
+                this.musicGainNode.gain.setTargetAtTime(target, context.currentTime, 0.05);
+            } catch (err) {
+                // ignore
+            }
+        }
+
+        this.stopBackgroundMusic();
+        this.updateMusicToggleVisual();
+    }
+
+    loadMusicPreference() {
+        if (!this.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return false;
+        }
+        try {
+            const raw = window.localStorage.getItem('spaceChickenMusicMuted');
+            if (raw === null || raw === undefined) {
+                return false;
+            }
+            return raw === 'true';
+        } catch (err) {
+            return false;
+        }
+    }
+
+    saveMusicPreference(muted) {
+        if (!this.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem('spaceChickenMusicMuted', muted ? 'true' : 'false');
+        } catch (err) {
+            this.storageAvailable = false;
+        }
+    }
+
+    setMusicMuted(muted, options = {}) {
+        const desired = !!muted;
+        const changed = desired !== this.musicMuted;
+        this.musicMuted = desired;
+        if (this.canUseWebAudio()) {
+            if (!this.musicGainNode) {
+                this.setupAudioPipeline({ skipAutoStart: true });
+            }
+            if (this.musicGainNode) {
+                const context = this.sound.context;
+                const target = this.musicMuted ? 0 : (this.musicVolume || 0.18);
+                try {
+                    this.musicGainNode.gain.cancelScheduledValues(context.currentTime);
+                } catch (err) {
+                    // ignore
+                }
+                this.musicGainNode.gain.setTargetAtTime(target, context.currentTime, 0.05);
+            }
+        }
+        this.updateMusicToggleVisual();
+        if (!options.skipSave) {
+            this.saveMusicPreference(this.musicMuted);
+        }
+        return changed;
+    }
+
+    toggleMusicMute() {
+        this.setMusicMuted(!this.musicMuted);
+    }
+
+    updateMusicToggleVisual() {
+        if (!this.musicToggleButton) {
+            return;
+        }
+        const textureKey = this.musicMuted ? 'musicToggleOff' : 'musicToggleOn';
+        this.musicToggleButton.setTexture(textureKey);
+        this.musicToggleButton.setAlpha(this.musicMuted ? 0.75 : 0.95);
+    }
+
     create() {
         this.levelConfig = this.getLevelConfig(this.level);
 
@@ -568,6 +1110,8 @@ class SpaceChicken extends Phaser.Scene {
         this.touchControlsEnabled = false;
 
         this.storageAvailable = this.checkStorageAvailability();
+        this.musicMuted = this.loadMusicPreference();
+        this.configureLevelMusic();
 
         this.leaderboardTextContent = '';
         if (this.leaderboardTextObject) {
@@ -606,8 +1150,8 @@ class SpaceChicken extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
-        const defaultDesktopInstructions = 'Space Chicken - WASD to move, Space to jump\nCollect the golden crown!';
-        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap the jump button to leap - Collect the golden crown!';
+        const defaultDesktopInstructions = 'Space Chicken - WASD to move, Space to jump, M toggles music\nCollect the golden crown!';
+        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
         this.baseInstructions = this.levelConfig.instructions || defaultDesktopInstructions;
         this.touchInstructions = this.levelConfig.touchInstructions || defaultTouchInstructions;
         const referenceWidth = (this.scale && this.scale.width) ? this.scale.width : (this.sys.game.config.width || 800);
@@ -615,6 +1159,32 @@ class SpaceChicken extends Phaser.Scene {
         this.text = this.add.text(0, 0, '', { fontSize: '16px', fill: '#fff', wordWrap: { width: initialWrapWidth, useAdvancedWrap: true } });
         this.text.setScrollFactor(0);
         this.text.setDepth(10000);
+
+        if (!this.musicToggleButton) {
+            const toggleTexture = this.musicMuted ? 'musicToggleOff' : 'musicToggleOn';
+            this.musicToggleButton = this.add.image(0, 0, toggleTexture);
+            this.musicToggleButton.setScrollFactor(0);
+            this.musicToggleButton.setDepth(10002);
+            this.musicToggleButton.setAlpha(0.95);
+            this.musicToggleButton.setInteractive({ useHandCursor: true });
+            this.musicToggleButton.on('pointerdown', () => {
+                if (this.musicToggleButton) {
+                    this.musicToggleButton.setTint(0xcde6ff);
+                }
+            });
+            this.musicToggleButton.on('pointerup', () => {
+                if (this.musicToggleButton) {
+                    this.musicToggleButton.clearTint();
+                }
+                this.toggleMusicMute();
+            });
+            this.musicToggleButton.on('pointerout', () => {
+                if (this.musicToggleButton) {
+                    this.musicToggleButton.clearTint();
+                }
+            });
+        }
+        this.updateMusicToggleVisual();
 
         this.platforms = this.physics.add.staticGroup();
         this.buildStaticPlatforms(this.getNested(this.levelConfig, ['platforms', 'static'], []));
@@ -699,13 +1269,19 @@ class SpaceChicken extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,S,A,D');
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.muteKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
 
         this.spawnBomb();
+
+        this.setupAudioPipeline();
+        this.setMusicMuted(this.musicMuted, { skipSave: true });
 
         this.scale.on('resize', this.handleResize, this);
         this.events.once('shutdown', () => {
             this.scale.off('resize', this.handleResize, this);
+            this.cleanupAudio();
         });
+        this.events.once('destroy', this.cleanupAudio, this);
         const initialWidth = this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
         const initialHeight = this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
         this.handleResize({ width: initialWidth, height: initialHeight });
@@ -802,6 +1378,13 @@ class SpaceChicken extends Phaser.Scene {
         this.levelText.setPosition(insets.left + padding, this.timerText.y + this.timerText.height + 8);
         this.text.setWordWrapWidth(availableWidth, true);
         this.text.setPosition(insets.left + padding, this.levelText.y + this.levelText.height + 8);
+        if (this.musicToggleButton) {
+            const buttonPadding = 16;
+            const buttonHalfWidth = this.musicToggleButton.displayWidth * 0.5;
+            const buttonX = width - insets.right - buttonPadding - buttonHalfWidth;
+            const buttonY = insets.top + buttonPadding + buttonHalfWidth;
+            this.musicToggleButton.setPosition(buttonX, buttonY);
+        }
     }
 
     layoutTouchControls() {
@@ -884,9 +1467,11 @@ class SpaceChicken extends Phaser.Scene {
         if (this.jumpCount === 2) {
             this.isJetpacking = true;
             this.player.play('chicken-jetpack', true);
+            this.playJetpackSound();
         } else {
             this.isJetpacking = false;
             this.player.play('chicken-jump', true);
+            this.playJumpSound();
         }
     }
 
@@ -1342,8 +1927,8 @@ class SpaceChicken extends Phaser.Scene {
 
 
     getLevelConfig(level) {
-        const defaultInstructions = 'Space Chicken - WASD to move, Space to jump\nCollect the golden crown!';
-        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap the jump button to leap - Collect the golden crown!';
+        const defaultInstructions = 'Space Chicken - WASD to move, Space to jump, M toggles music\nCollect the golden crown!';
+        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
 
             let config;
         switch (level) {
@@ -1451,8 +2036,8 @@ class SpaceChicken extends Phaser.Scene {
                     killZoneY: 860,
                     killZoneHeight: 40,
                     playerStart: { x: 200, y: 760 },
-                    instructions: 'Orbital Gauntlet - Ride the lifts, dodge lasers, claim the crown!',
-                    touchInstructions: 'Orbital Gauntlet - Tap left/right halves to move, use the jump button to leap.',
+                    instructions: 'Orbital Gauntlet - Ride the lifts, dodge lasers, claim the crown! (Press M to toggle music)',
+                    touchInstructions: 'Orbital Gauntlet - Tap left/right halves to move, use the jump button to leap. Tap the speaker to toggle music.',
                     background: { type: 'station', starCount: 110, planetCount: 1, color: 0x050914 },
                     platforms: {
                         static: [
@@ -1518,6 +2103,10 @@ class SpaceChicken extends Phaser.Scene {
         const upJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
         const wJustPressed = Phaser.Input.Keyboard.JustDown(this.wasd.W);
         const keyboardJumpTriggered = upJustPressed || spaceJustPressed || wJustPressed;
+
+        if (this.muteKey && Phaser.Input.Keyboard.JustDown(this.muteKey)) {
+            this.toggleMusicMute();
+        }
 
         if (this.gameOver) {
             if (this.restartDelayDone && (spaceJustPressed || this.jumpRequested)) {
@@ -1625,6 +2214,7 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     hitHazard() {
+        this.playHazardHitSound();
         this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
@@ -1675,6 +2265,7 @@ class SpaceChicken extends Phaser.Scene {
 
     collectGem() {
         const levelTime = performance.now() - this.startTime;
+        this.playCollectSound();
         this.saveTime(this.level, levelTime);
 
         if (this.levelConfig.nextLevel) {
@@ -1703,10 +2294,12 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     hitKillZone() {
+        this.playHazardHitSound();
         this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
     hitBomb(bomb, player) {
+        this.playHazardHitSound();
         this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
