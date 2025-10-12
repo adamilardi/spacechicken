@@ -389,6 +389,131 @@ class SpaceChicken extends Phaser.Scene {
         this.textures.addCanvas('chicken_jetpack2', chicken_jetpack2);
     }
 
+    createTouchControls() {
+        // Track button state and associated pointer ids so we can ignore them for other gestures
+        this.leftButtonHeld = false;
+        this.rightButtonHeld = false;
+        this.jumpButtonHeld = false;
+        this.jumpButtonPressed = false;
+        this.leftButtonPointerId = null;
+        this.rightButtonPointerId = null;
+        this.jumpButtonPointerId = null;
+        this.ignoreJumpPointerIds = new Set();
+
+        const uiDepth = 10001;
+
+        this.leftButton = this.add.image(0, 0, 'leftBtn').setAlpha(0.75);
+        this.rightButton = this.add.image(0, 0, 'rightBtn').setAlpha(0.75);
+        this.jumpButton = this.add.image(0, 0, 'jumpBtn').setAlpha(0.85);
+
+        [this.leftButton, this.rightButton, this.jumpButton].forEach(button => {
+            button.setScrollFactor(0);
+            button.setDepth(uiDepth);
+            button.setInteractive({ useHandCursor: false });
+        });
+
+        const handlePointerUp = button => pointer => {
+            if (button === this.leftButton) {
+                this.leftButtonHeld = false;
+                this.leftButtonPointerId = null;
+            } else if (button === this.rightButton) {
+                this.rightButtonHeld = false;
+                this.rightButtonPointerId = null;
+            } else if (button === this.jumpButton) {
+                this.jumpButtonHeld = false;
+                this.jumpButtonPointerId = null;
+            }
+            if (pointer && !pointer.isDown && typeof pointer.id === 'number') {
+                this.ignoreJumpPointerIds.add(pointer.id);
+                this.time.delayedCall(100, () => {
+                    this.ignoreJumpPointerIds.delete(pointer.id);
+                });
+            }
+            button.setAlpha(button === this.jumpButton ? 0.85 : 0.75);
+        };
+
+        this.leftButton.on('pointerdown', pointer => {
+            this.leftButtonHeld = true;
+            this.leftButtonPointerId = pointer.id;
+            this.leftButton.setAlpha(1);
+        });
+        this.leftButton.on('pointerup', handlePointerUp(this.leftButton));
+        this.leftButton.on('pointerout', handlePointerUp(this.leftButton));
+        this.leftButton.on('pointerupoutside', handlePointerUp(this.leftButton));
+
+        this.rightButton.on('pointerdown', pointer => {
+            this.rightButtonHeld = true;
+            this.rightButtonPointerId = pointer.id;
+            this.rightButton.setAlpha(1);
+        });
+        this.rightButton.on('pointerup', handlePointerUp(this.rightButton));
+        this.rightButton.on('pointerout', handlePointerUp(this.rightButton));
+        this.rightButton.on('pointerupoutside', handlePointerUp(this.rightButton));
+
+        this.jumpButton.on('pointerdown', pointer => {
+            this.jumpButtonHeld = true;
+            this.jumpButtonPressed = true;
+            this.jumpButtonPointerId = pointer.id;
+            this.jumpButton.setAlpha(1);
+        });
+        this.jumpButton.on('pointerup', handlePointerUp(this.jumpButton));
+        this.jumpButton.on('pointerout', handlePointerUp(this.jumpButton));
+        this.jumpButton.on('pointerupoutside', handlePointerUp(this.jumpButton));
+
+        this.updateTouchControlPositions();
+        this.scale.on('resize', this.updateTouchControlPositions, this);
+        this.events.once('shutdown', () => {
+            this.scale.off('resize', this.updateTouchControlPositions, this);
+        });
+
+        this.toggleTouchControls(true);
+    }
+
+    updateTouchControlPositions(gameSize = this.scale.gameSize) {
+        if (!this.leftButton || !this.rightButton || !this.jumpButton) {
+            return;
+        }
+
+        const width = gameSize.width;
+        const height = gameSize.height;
+        const margin = 24;
+        const spacing = 16;
+
+        const buttonY = height - margin - this.leftButton.height / 2;
+        this.leftButton.setPosition(margin + this.leftButton.width / 2, buttonY);
+        this.rightButton.setPosition(this.leftButton.x + this.leftButton.width + spacing, buttonY);
+        this.jumpButton.setPosition(width - margin - this.jumpButton.width / 2, buttonY);
+    }
+
+    toggleTouchControls(enabled) {
+        const buttons = [this.leftButton, this.rightButton, this.jumpButton];
+        buttons.forEach(button => {
+            if (!button) {
+                return;
+            }
+            button.setVisible(enabled);
+            button.setActive(enabled);
+            if (enabled) {
+                button.setInteractive({ useHandCursor: false });
+            } else {
+                button.disableInteractive();
+            }
+        });
+
+        if (!enabled) {
+            this.leftButtonHeld = false;
+            this.rightButtonHeld = false;
+            this.jumpButtonHeld = false;
+            this.jumpButtonPressed = false;
+            this.leftButtonPointerId = null;
+            this.rightButtonPointerId = null;
+            this.jumpButtonPointerId = null;
+            if (this.ignoreJumpPointerIds) {
+                this.ignoreJumpPointerIds.clear();
+            }
+        }
+    }
+
     create() {
         // Adjust gravity based on level
         this.physics.world.gravity.y = this.level === 2 ? 400 : 300;
@@ -406,6 +531,7 @@ class SpaceChicken extends Phaser.Scene {
         // Mobile touch control states
         this.leftPressed = false;
         this.rightPressed = false;
+        this.createTouchControls();
 
         // Timer display at top-left
         this.timerText = this.add.text(16, 16, 'Time: 00:00.00', { fontSize: '36px', fontFamily: 'monospace', fill: '#ffff00' });
@@ -538,7 +664,9 @@ class SpaceChicken extends Phaser.Scene {
             // Enable multi-touch
             this.input.addPointer(2);
             // Update instructions for mobile
-            this.text.setText('Space Chicken - Touch left half for left, right half for right\nTap anywhere to jump - Collect the golden crown!');
+            this.text.setText('Space Chicken - Use the on-screen arrows to move\nTap the jump button to fly to the golden crown!');
+        } else {
+            this.toggleTouchControls(false);
         }
 
         // Bombs
@@ -618,20 +746,30 @@ class SpaceChicken extends Phaser.Scene {
         }
 
         // Mobile touch controls
-        this.leftPressed = false;
-        this.rightPressed = false;
         let camW = this.cameras.main.width;
+        let leftActive = this.leftButtonHeld;
+        let rightActive = this.rightButtonHeld;
         if (this.input.pointers) {
             this.input.pointers.forEach(pointer => {
-                if (pointer.isDown) {
-                    if (pointer.x < camW / 2) {
-                        this.leftPressed = true;
-                    } else {
-                        this.rightPressed = true;
-                    }
+                if (!pointer.isDown) {
+                    return;
+                }
+                const shouldIgnore = pointer.id === this.leftButtonPointerId ||
+                    pointer.id === this.rightButtonPointerId ||
+                    pointer.id === this.jumpButtonPointerId ||
+                    (this.ignoreJumpPointerIds && this.ignoreJumpPointerIds.has(pointer.id));
+                if (shouldIgnore) {
+                    return;
+                }
+                if (pointer.x < camW / 2) {
+                    leftActive = true;
+                } else {
+                    rightActive = true;
                 }
             });
         }
+        this.leftPressed = leftActive;
+        this.rightPressed = rightActive;
 
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
         if (isGrounded) {
@@ -645,21 +783,21 @@ class SpaceChicken extends Phaser.Scene {
 
         // Jump detection: quick taps anywhere
         const pointerJumpTriggered = this.input.pointers && this.input.pointers.some(pointer => {
+            const shouldIgnore = pointer.id === this.leftButtonPointerId ||
+                pointer.id === this.rightButtonPointerId ||
+                pointer.id === this.jumpButtonPointerId ||
+                (this.ignoreJumpPointerIds && this.ignoreJumpPointerIds.has(pointer.id));
+            if (shouldIgnore) {
+                return false;
+            }
             return pointer.justUp && (pointer.upTime - pointer.downTime) < 200;
         });
 
         const keyboardJumpTriggered = upJustPressed || spaceJustPressed || wJustPressed;
 
-        if (!this.gameOver && (pointerJumpTriggered || keyboardJumpTriggered) && this.jumpCount < this.maxJumps) {
-            this.player.setVelocityY(-330);
-            this.jumpCount += 1;
-            if (this.jumpCount === 2) {
-                this.isJetpacking = true;
-                this.player.play('chicken-jetpack', true);
-            } else {
-                this.isJetpacking = false;
-                this.player.play('chicken-jump', true);
-            }
+        if (!this.gameOver && (pointerJumpTriggered || keyboardJumpTriggered || this.jumpButtonPressed)) {
+            this.attemptJump();
+            this.jumpButtonPressed = false;
         }
 
         // Movement
@@ -710,6 +848,21 @@ class SpaceChicken extends Phaser.Scene {
         // Restart game when over and space pressed
         if (this.gameOver && this.restartDelayDone && spaceJustPressed) {
             this.scene.restart({ level: 1, deathCount: 0 });
+        }
+    }
+
+    attemptJump() {
+        if (this.jumpCount >= this.maxJumps) {
+            return;
+        }
+        this.player.setVelocityY(-330);
+        this.jumpCount += 1;
+        if (this.jumpCount === 2) {
+            this.isJetpacking = true;
+            this.player.play('chicken-jetpack', true);
+        } else {
+            this.isJetpacking = false;
+            this.player.play('chicken-jump', true);
         }
     }
 
