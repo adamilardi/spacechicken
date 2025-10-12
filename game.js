@@ -1,7 +1,34 @@
+if (!String.prototype.padStart) {
+    String.prototype.padStart = function padStart(targetLength, padString) {
+        const str = String(this);
+        const length = targetLength >>> 0;
+        let filler = padString !== undefined ? String(padString) : ' ';
+        if (str.length >= length || filler.length === 0) {
+            return str;
+        }
+        const fillLength = length - str.length;
+        while (filler.length < fillLength) {
+            filler += filler;
+        }
+        return filler.slice(0, fillLength) + str;
+    };
+}
+
 class SpaceChicken extends Phaser.Scene {
     init(data = {}) {
         this.level = data.level || 1;
         this.deathCount = data.deathCount || 0;
+        this.storageAvailable = true;
+        this.safeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+        this.viewportWidth = 0;
+        this.viewportHeight = 0;
+        this.leaderboardTextObject = null;
+        this.leaderboardTextContent = '';
+        this.jumpPointerId = null;
+        this.jumpRequested = false;
+        this.touchControlsEnabled = false;
+        this.jumpButton = null;
+        this.touchMovementMidpoint = 0;
     }
 
     constructor() {
@@ -536,13 +563,25 @@ class SpaceChicken extends Phaser.Scene {
 
         this.leftPressed = false;
         this.rightPressed = false;
+        this.jumpRequested = false;
+        this.jumpPointerId = null;
+        this.touchControlsEnabled = false;
 
-        this.timerText = this.add.text(16, 16, 'Time: 00:00.00', { fontSize: '36px', fontFamily: 'monospace', fill: '#ffff00' });
+        this.storageAvailable = this.checkStorageAvailability();
+
+        this.leaderboardTextContent = '';
+        if (this.leaderboardTextObject) {
+            this.leaderboardTextObject.destroy();
+        }
+        this.leaderboardTextObject = null;
+
+        this.timerText = this.add.text(0, 0, 'Time: 00:00.00', { fontSize: '36px', fontFamily: 'monospace', fill: '#ffff00' });
         this.timerText.setScrollFactor(0);
         this.timerText.setDepth(10000);
 
-        this.levelText = this.add.text(16, 50, `Level: ${this.level}`, { fontSize: '24px', fill: '#fff' });
+        this.levelText = this.add.text(0, 0, `Level: ${this.level}`, { fontSize: '24px', fill: '#fff' });
         this.levelText.setScrollFactor(0);
+        this.levelText.setDepth(10000);
 
         const worldWidth = this.getNested(this.levelConfig, ['world', 'width'], 2000);
         const worldHeight = this.getNested(this.levelConfig, ['world', 'height'], 700);
@@ -567,9 +606,15 @@ class SpaceChicken extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 
-        const baseInstructions = this.levelConfig.instructions || 'Space Chicken - WASD to move, Space to jump\nCollect the golden crown!';
-        this.text = this.add.text(16, 80, baseInstructions, { fontSize: '16px', fill: '#fff' });
+        const defaultDesktopInstructions = 'Space Chicken - WASD to move, Space to jump\nCollect the golden crown!';
+        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap the jump button to leap - Collect the golden crown!';
+        this.baseInstructions = this.levelConfig.instructions || defaultDesktopInstructions;
+        this.touchInstructions = this.levelConfig.touchInstructions || defaultTouchInstructions;
+        const referenceWidth = (this.scale && this.scale.width) ? this.scale.width : (this.sys.game.config.width || 800);
+        const initialWrapWidth = Math.max(200, referenceWidth - 32);
+        this.text = this.add.text(0, 0, '', { fontSize: '16px', fill: '#fff', wordWrap: { width: initialWrapWidth, useAdvancedWrap: true } });
         this.text.setScrollFactor(0);
+        this.text.setDepth(10000);
 
         this.platforms = this.physics.add.staticGroup();
         this.buildStaticPlatforms(this.getNested(this.levelConfig, ['platforms', 'static'], []));
@@ -586,10 +631,9 @@ class SpaceChicken extends Phaser.Scene {
         this.crown = this.physics.add.staticSprite(crownPosition.x, crownPosition.y, 'crown');
 
         if (this.sys.game.device.input.touch) {
-            this.input.addPointer(2);
-            const touchInstructions = this.levelConfig.touchInstructions || 'Space Chicken - Touch left half for left, right half for right\nTap anywhere to jump - Collect the golden crown!';
-            this.text.setText(touchInstructions);
+            this.enableTouchControls();
         }
+        this.updateInstructionText();
 
         this.bombs = this.physics.add.group();
         this.bombSettings = this.levelConfig.bombs || {};
@@ -657,6 +701,193 @@ class SpaceChicken extends Phaser.Scene {
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         this.spawnBomb();
+
+        this.scale.on('resize', this.handleResize, this);
+        this.events.once('shutdown', () => {
+            this.scale.off('resize', this.handleResize, this);
+        });
+        const initialWidth = this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const initialHeight = this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
+        this.handleResize({ width: initialWidth, height: initialHeight });
+    }
+
+    enableTouchControls() {
+        if (this.touchControlsEnabled) {
+            return;
+        }
+        this.touchControlsEnabled = true;
+        this.input.addPointer(2);
+
+        if (!this.jumpButton) {
+            this.jumpButton = this.add.image(0, 0, 'jumpBtn');
+            this.jumpButton.setScrollFactor(0);
+            this.jumpButton.setDepth(10001);
+            this.jumpButton.setAlpha(0.85);
+            this.jumpButton.setInteractive({ useHandCursor: false });
+            this.jumpButton.on('pointerdown', this.onJumpButtonDown, this);
+            this.jumpButton.on('pointerup', this.onJumpButtonUp, this);
+            this.jumpButton.on('pointerout', this.onJumpButtonUp, this);
+        }
+        this.layoutTouchControls();
+    }
+
+    onJumpButtonDown(pointer) {
+        this.jumpPointerId = pointer.id;
+        this.jumpRequested = true;
+        if (this.jumpButton) {
+            this.jumpButton.setTint(0x99ff99);
+        }
+    }
+
+    onJumpButtonUp(pointer) {
+        if (!pointer || pointer.id === this.jumpPointerId) {
+            this.jumpPointerId = null;
+        }
+        if (this.jumpButton) {
+            this.jumpButton.clearTint();
+        }
+    }
+
+    updateInstructionText() {
+        if (!this.text) {
+            return;
+        }
+        const instructions = this.touchControlsEnabled ? this.touchInstructions : this.baseInstructions;
+        this.text.setText(instructions);
+        this.layoutOverlay();
+    }
+
+    handleResize(gameSize) {
+        const fallbackWidth = this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const fallbackHeight = this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
+        const width = (gameSize && gameSize.width) ? gameSize.width : fallbackWidth;
+        const height = (gameSize && gameSize.height) ? gameSize.height : fallbackHeight;
+
+        this.viewportWidth = width;
+        this.viewportHeight = height;
+        this.safeAreaInsets = this.getSafeAreaInsets();
+
+        this.layoutOverlay();
+        this.layoutTouchControls();
+        this.layoutLeaderboard();
+    }
+
+    getSafeAreaInsets() {
+        if (typeof window === 'undefined' || !window.getComputedStyle) {
+            return { top: 0, right: 0, bottom: 0, left: 0 };
+        }
+        const styles = getComputedStyle(document.documentElement);
+        const parseInset = (prop) => {
+            const value = styles.getPropertyValue(prop);
+            const parsed = parseFloat(value);
+            return Number.isFinite(parsed) ? parsed : 0;
+        };
+        return {
+            top: parseInset('--safe-area-top'),
+            right: parseInset('--safe-area-right'),
+            bottom: parseInset('--safe-area-bottom'),
+            left: parseInset('--safe-area-left')
+        };
+    }
+
+    layoutOverlay() {
+        if (!this.timerText || !this.levelText || !this.text) {
+            return;
+        }
+        const insets = this.safeAreaInsets || { top: 0, right: 0, bottom: 0, left: 0 };
+        const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const padding = 16;
+        const availableWidth = Math.max(160, width - insets.left - insets.right - padding * 2);
+        this.timerText.setPosition(insets.left + padding, insets.top + padding);
+        this.levelText.setPosition(insets.left + padding, this.timerText.y + this.timerText.height + 8);
+        this.text.setWordWrapWidth(availableWidth, true);
+        this.text.setPosition(insets.left + padding, this.levelText.y + this.levelText.height + 8);
+    }
+
+    layoutTouchControls() {
+        if (!this.jumpButton) {
+            const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+            this.touchMovementMidpoint = width / 2;
+            return;
+        }
+        const insets = this.safeAreaInsets || { top: 0, right: 0, bottom: 0, left: 0 };
+        const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const height = this.viewportHeight || this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
+        const margin = 24;
+        const buttonX = width - insets.right - (this.jumpButton.displayWidth / 2) - margin;
+        const buttonY = height - insets.bottom - (this.jumpButton.displayHeight / 2) - margin;
+        this.jumpButton.setPosition(buttonX, buttonY);
+        this.touchMovementMidpoint = insets.left + (width - insets.left - insets.right) / 2;
+    }
+
+    layoutLeaderboard() {
+        if (!this.leaderboardTextObject) {
+            return;
+        }
+        const insets = this.safeAreaInsets || { top: 0, right: 0, bottom: 0, left: 0 };
+        const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const availableWidth = Math.max(220, width - insets.left - insets.right - 32);
+        this.leaderboardTextObject.setWordWrapWidth(availableWidth, true);
+        const centerX = insets.left + (width - insets.left - insets.right) / 2;
+        const top = Math.max(insets.top + 80, this.text ? this.text.y + this.text.height + 24 : insets.top + 80);
+        this.leaderboardTextObject.setPosition(centerX, top);
+    }
+
+    checkStorageAvailability() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return false;
+        }
+        const testKey = '__space_chicken_storage_test__';
+        try {
+            window.localStorage.setItem(testKey, '1');
+            window.localStorage.removeItem(testKey);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    readLeaderboard(key) {
+        if (!this.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return [];
+        }
+        try {
+            const raw = window.localStorage.getItem(key);
+            if (!raw) {
+                return [];
+            }
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            this.storageAvailable = false;
+            return [];
+        }
+    }
+
+    writeLeaderboard(key, data) {
+        if (!this.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(key, JSON.stringify(data));
+        } catch (err) {
+            this.storageAvailable = false;
+        }
+    }
+
+    attemptJump() {
+        if (this.gameOver || this.jumpCount >= this.maxJumps) {
+            return;
+        }
+        this.player.setVelocityY(-330);
+        this.jumpCount += 1;
+        if (this.jumpCount === 2) {
+            this.isJetpacking = true;
+            this.player.play('chicken-jetpack', true);
+        } else {
+            this.isJetpacking = false;
+            this.player.play('chicken-jump', true);
+        }
     }
 
 
@@ -1112,7 +1343,7 @@ class SpaceChicken extends Phaser.Scene {
 
     getLevelConfig(level) {
         const defaultInstructions = 'Space Chicken - WASD to move, Space to jump\nCollect the golden crown!';
-        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap anywhere to jump - Collect the golden crown!';
+        const defaultTouchInstructions = 'Space Chicken - Touch left half for left, right half for right\nTap the jump button to leap - Collect the golden crown!';
 
             let config;
         switch (level) {
@@ -1221,7 +1452,7 @@ class SpaceChicken extends Phaser.Scene {
                     killZoneHeight: 40,
                     playerStart: { x: 200, y: 760 },
                     instructions: 'Orbital Gauntlet - Ride the lifts, dodge lasers, claim the crown!',
-                    touchInstructions: 'Orbital Gauntlet - Tap left/right halves to move, tap quickly to jump.',
+                    touchInstructions: 'Orbital Gauntlet - Tap left/right halves to move, use the jump button to leap.',
                     background: { type: 'station', starCount: 110, planetCount: 1, color: 0x050914 },
                     platforms: {
                         static: [
@@ -1283,18 +1514,37 @@ class SpaceChicken extends Phaser.Scene {
             this.timerText.setText(`Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`);
         }
 
+        const spaceJustPressed = Phaser.Input.Keyboard.JustDown(this.space);
+        const upJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const wJustPressed = Phaser.Input.Keyboard.JustDown(this.wasd.W);
+        const keyboardJumpTriggered = upJustPressed || spaceJustPressed || wJustPressed;
+
+        if (this.gameOver) {
+            if (this.restartDelayDone && (spaceJustPressed || this.jumpRequested)) {
+                this.jumpRequested = false;
+                this.scene.restart({ level: 1, deathCount: 0 });
+            } else {
+                this.jumpRequested = false;
+            }
+            return;
+        }
+
             // Mobile touch controls
         this.leftPressed = false;
         this.rightPressed = false;
-            let camW = this.cameras.main.width;
+        const movementMidpoint = this.touchMovementMidpoint || (this.viewportWidth ? this.viewportWidth / 2 : this.cameras.main.width / 2);
         if (this.input.pointers) {
             this.input.pointers.forEach(pointer => {
-                if (pointer.isDown) {
-                    if (pointer.x < camW / 2) {
-                        this.leftPressed = true;
-                    } else {
-                        this.rightPressed = true;
-                    }
+                if (!pointer.isDown) {
+                    return;
+                }
+                if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
+                    return;
+                }
+                if (pointer.x < movementMidpoint) {
+                    this.leftPressed = true;
+                } else {
+                    this.rightPressed = true;
                 }
             });
         }
@@ -1305,27 +1555,25 @@ class SpaceChicken extends Phaser.Scene {
             this.isJetpacking = false;
         }
 
-        const spaceJustPressed = Phaser.Input.Keyboard.JustDown(this.space);
-        const upJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-        const wJustPressed = Phaser.Input.Keyboard.JustDown(this.wasd.W);
-
-            // Jump detection: quick taps anywhere
-        const pointerJumpTriggered = this.input.pointers && this.input.pointers.some(pointer => {
+            // Jump detection fallback for pointer taps when no jump button
+        const pointerJumpTriggered = !this.jumpButton && this.input.pointers && this.input.pointers.some(pointer => {
+            if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
+                return false;
+            }
             return pointer.justUp && (pointer.upTime - pointer.downTime) < 200;
         });
 
-        const keyboardJumpTriggered = upJustPressed || spaceJustPressed || wJustPressed;
+        if (keyboardJumpTriggered) {
+            this.attemptJump();
+        }
 
-        if (!this.gameOver && (pointerJumpTriggered || keyboardJumpTriggered) && this.jumpCount < this.maxJumps) {
-            this.player.setVelocityY(-330);
-            this.jumpCount += 1;
-            if (this.jumpCount === 2) {
-                this.isJetpacking = true;
-                this.player.play('chicken-jetpack', true);
-            } else {
-                this.isJetpacking = false;
-                this.player.play('chicken-jump', true);
-            }
+        if (pointerJumpTriggered) {
+            this.attemptJump();
+        }
+
+        if (this.jumpRequested) {
+            this.attemptJump();
+            this.jumpRequested = false;
         }
 
             // Movement
@@ -1374,11 +1622,6 @@ class SpaceChicken extends Phaser.Scene {
                 bomb.destroy();
             }
         });
-
-            // Restart game when over and space pressed
-        if (this.gameOver && this.restartDelayDone && spaceJustPressed) {
-            this.scene.restart({ level: 1, deathCount: 0 });
-        }
     }
 
     hitHazard() {
@@ -1386,13 +1629,16 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     saveTime(level, newTime) {
+        if (!this.storageAvailable) {
+            return;
+        }
         const normalizedLevel = Math.max(1, Math.min(3, Number(level) || 1));
         const key = `spaceChickenLevel${normalizedLevel}`;
-            let leaderboard = JSON.parse(localStorage.getItem(key) || '[]');
+        const leaderboard = this.readLeaderboard(key);
         leaderboard.push(newTime);
         leaderboard.sort((a, b) => a - b);
-        leaderboard = leaderboard.slice(0, 5);
-        localStorage.setItem(key, JSON.stringify(leaderboard));
+        const trimmed = leaderboard.slice(0, 5);
+        this.writeLeaderboard(key, trimmed);
     }
 
     displayLeaderboard() {
@@ -1403,15 +1649,28 @@ class SpaceChicken extends Phaser.Scene {
             return `${index + 1}. ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
         }).join('\n');
 
-        const sections = [1, 2, 3].map(level => {
-            const times = JSON.parse(localStorage.getItem(`spaceChickenLevel${level}`) || '[]');
-            const header = `Level ${level} Times:`;
-            const body = times.length ? formatTimes(times) : 'No times yet';
-            return `${header}\n${body}`;
-        });
+        let sectionsText;
+        if (this.storageAvailable) {
+            const sections = [1, 2, 3].map(level => {
+                const times = this.readLeaderboard(`spaceChickenLevel${level}`);
+                const header = `Level ${level} Times:`;
+                const body = times.length ? formatTimes(times) : 'No times yet';
+                return `${header}\n${body}`;
+            });
+            sectionsText = sections.join('\n\n');
+        } else {
+            sectionsText = 'Saved times unavailable (local storage disabled).';
+        }
 
-        const leaderboardText = 'Leaderboard\n\n' + sections.join('\n\n') + `\n\nDeaths this run: ${this.deathCount}\n\nPress SPACEBAR to restart`;
-        this.add.text(400, 120, leaderboardText, { fontSize: '16px', fill: '#ffff00', align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0);
+        const restartPrompt = this.touchControlsEnabled ? 'Press SPACEBAR or tap the jump button to restart' : 'Press SPACEBAR to restart';
+        const leaderboardText = 'Leaderboard\n\n' + sectionsText + `\n\nDeaths this run: ${this.deathCount}\n\n${restartPrompt}`;
+        this.leaderboardTextContent = leaderboardText;
+        if (this.leaderboardTextObject) {
+            this.leaderboardTextObject.destroy();
+        }
+        this.leaderboardTextObject = this.add.text(0, 0, leaderboardText, { fontSize: '16px', fill: '#ffff00', align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0);
+        this.leaderboardTextObject.setDepth(10001);
+        this.layoutLeaderboard();
     }
 
     collectGem() {
@@ -1439,6 +1698,8 @@ class SpaceChicken extends Phaser.Scene {
         this.cameras.main.scrollX = 0;
         this.displayLeaderboard();
         this.text.setText(`You Win!\nDeaths this run: ${this.deathCount}`);
+        this.layoutOverlay();
+        this.layoutLeaderboard();
     }
 
     hitKillZone() {

@@ -6,6 +6,20 @@
     <title>Space Chicken Game</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
     <style>
+        :root {
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-right: env(safe-area-inset-right);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+            --safe-area-left: env(safe-area-inset-left);
+        }
+        @supports (padding: constant(safe-area-inset-top)) {
+            :root {
+                --safe-area-top: constant(safe-area-inset-top);
+                --safe-area-right: constant(safe-area-inset-right);
+                --safe-area-bottom: constant(safe-area-inset-bottom);
+                --safe-area-left: constant(safe-area-inset-left);
+            }
+        }
         body {
             margin: 0;
             padding: 0;
