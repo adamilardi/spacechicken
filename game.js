@@ -41,8 +41,17 @@ class SpaceChicken extends Phaser.Scene {
         this.musicMuted = false;
         this.musicVolume = 0.18;
         this.musicToggleButton = null;
+        this.leaderboardButton = null;
+        this.leaderboardVisible = false;
+        this.leaderboardRequestId = 0;
         this.muteKey = null;
         this.levelMusicId = null;
+        this.playerName = null;
+        this.firebaseEndpoint = null;
+        if (typeof window !== 'undefined' && window.SPACE_CHICKEN_CONFIG && window.SPACE_CHICKEN_CONFIG.firebaseEndpoint) {
+            const trimmed = window.SPACE_CHICKEN_CONFIG.firebaseEndpoint.replace(/\/+$/, '');
+            this.firebaseEndpoint = trimmed.length ? trimmed : null;
+        }
     }
 
     constructor() {
@@ -1110,6 +1119,7 @@ class SpaceChicken extends Phaser.Scene {
         this.touchControlsEnabled = false;
 
         this.storageAvailable = this.checkStorageAvailability();
+        this.playerName = this.loadPlayerName();
         this.musicMuted = this.loadMusicPreference();
         this.configureLevelMusic();
 
@@ -1118,6 +1128,8 @@ class SpaceChicken extends Phaser.Scene {
             this.leaderboardTextObject.destroy();
         }
         this.leaderboardTextObject = null;
+        this.leaderboardVisible = false;
+        this.leaderboardRequestId = 0;
 
         this.timerText = this.add.text(0, 0, 'Time: 00:00.00', { fontSize: '36px', fontFamily: 'monospace', fill: '#ffff00' });
         this.timerText.setScrollFactor(0);
@@ -1185,6 +1197,35 @@ class SpaceChicken extends Phaser.Scene {
             });
         }
         this.updateMusicToggleVisual();
+
+        if (!this.leaderboardButton) {
+            this.leaderboardButton = this.add.text(0, 0, 'LB', {
+                fontSize: '20px',
+                fontFamily: 'monospace',
+                fill: '#ffff00',
+                backgroundColor: '#222222',
+                align: 'center'
+            });
+            this.leaderboardButton.setOrigin(0.5, 0.5);
+            this.leaderboardButton.setPadding(8, 4, 8, 4);
+            this.leaderboardButton.setScrollFactor(0);
+            this.leaderboardButton.setDepth(10002);
+            this.leaderboardButton.setAlpha(0.95);
+            this.leaderboardButton.setInteractive({ useHandCursor: true });
+            this.leaderboardButton.on('pointerdown', () => {
+                if (this.leaderboardButton) {
+                    this.leaderboardButton.setStyle({ backgroundColor: '#555555' });
+                }
+            });
+            this.leaderboardButton.on('pointerup', () => {
+                this.toggleLeaderboardOverlay();
+                this.refreshLeaderboardButtonStyle();
+            });
+            this.leaderboardButton.on('pointerout', () => {
+                this.refreshLeaderboardButtonStyle();
+            });
+        }
+        this.refreshLeaderboardButtonStyle();
 
         this.platforms = this.physics.add.staticGroup();
         this.buildStaticPlatforms(this.getNested(this.levelConfig, ['platforms', 'static'], []));
@@ -1385,6 +1426,18 @@ class SpaceChicken extends Phaser.Scene {
             const buttonY = insets.top + buttonPadding + buttonHalfWidth;
             this.musicToggleButton.setPosition(buttonX, buttonY);
         }
+        if (this.leaderboardButton) {
+            const buttonPadding = 16;
+            const buttonHalfWidth = this.leaderboardButton.displayWidth * 0.5;
+            const buttonHalfHeight = this.leaderboardButton.displayHeight * 0.5;
+            let buttonX = width - insets.right - buttonPadding - buttonHalfWidth;
+            if (this.musicToggleButton) {
+                const musicHalfWidth = this.musicToggleButton.displayWidth * 0.5;
+                buttonX = this.musicToggleButton.x - musicHalfWidth - buttonPadding - buttonHalfWidth;
+            }
+            const buttonY = insets.top + buttonPadding + buttonHalfHeight;
+            this.leaderboardButton.setPosition(buttonX, buttonY);
+        }
     }
 
     layoutTouchControls() {
@@ -1440,7 +1493,22 @@ class SpaceChicken extends Phaser.Scene {
                 return [];
             }
             const parsed = JSON.parse(raw);
-            return Array.isArray(parsed) ? parsed : [];
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+            return parsed.map(entry => {
+                if (typeof entry === 'number') {
+                    return { time: entry, name: 'Anonymous' };
+                }
+                if (entry && typeof entry.time === 'number') {
+                    const name = typeof entry.name === 'string' ? entry.name.trim() : '';
+                    return {
+                        time: entry.time,
+                        name: name.length ? name : 'Anonymous'
+                    };
+                }
+                return null;
+            }).filter(Boolean);
         } catch (err) {
             this.storageAvailable = false;
             return [];
@@ -1452,10 +1520,74 @@ class SpaceChicken extends Phaser.Scene {
             return;
         }
         try {
-            window.localStorage.setItem(key, JSON.stringify(data));
+            const payload = Array.isArray(data) ? data.map(entry => {
+                if (!entry || typeof entry.time !== 'number') {
+                    return null;
+                }
+                const name = typeof entry.name === 'string' ? entry.name.trim() : '';
+                return {
+                    time: entry.time,
+                    name: name.length ? name : 'Anonymous'
+                };
+            }).filter(Boolean) : [];
+            window.localStorage.setItem(key, JSON.stringify(payload));
         } catch (err) {
             this.storageAvailable = false;
         }
+    }
+
+    loadPlayerName() {
+        if (!this.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return null;
+        }
+        try {
+            const stored = window.localStorage.getItem('spaceChickenPlayerName');
+            if (!stored) {
+                return null;
+            }
+            const trimmed = stored.trim();
+            return trimmed.length ? trimmed : null;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    savePlayerName(name) {
+        if (!this.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem('spaceChickenPlayerName', name);
+        } catch (err) {
+            // Ignore persistence errors for player name
+        }
+    }
+
+    ensurePlayerName(forcePrompt = false) {
+        let current = this.playerName;
+        if (!forcePrompt && current) {
+            return current;
+        }
+        const currentTrimmed = typeof current === 'string' ? current.trim() : '';
+        if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
+            const fallback = currentTrimmed || 'Anonymous';
+            this.playerName = fallback;
+            return fallback;
+        }
+        const defaultValue = currentTrimmed;
+        const response = window.prompt('Enter your name for the leaderboard:', defaultValue);
+        let finalName;
+        if (response === null) {
+            finalName = currentTrimmed;
+        } else {
+            finalName = response.trim();
+        }
+        if (!finalName) {
+            finalName = currentTrimmed || 'Anonymous';
+        }
+        this.playerName = finalName;
+        this.savePlayerName(finalName);
+        return finalName;
     }
 
     attemptJump() {
@@ -2218,55 +2350,305 @@ class SpaceChicken extends Phaser.Scene {
         this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
-    saveTime(level, newTime) {
+    saveTime(level, newTime, playerName) {
+        const normalizedLevel = Math.max(1, Math.min(3, Number(level) || 1));
+        const trimmedName = typeof playerName === 'string' ? playerName.trim() : '';
+        const safeName = trimmedName.length ? trimmedName : 'Anonymous';
+        this.saveTimeToFirebase(normalizedLevel, newTime, safeName);
         if (!this.storageAvailable) {
             return;
         }
-        const normalizedLevel = Math.max(1, Math.min(3, Number(level) || 1));
         const key = `spaceChickenLevel${normalizedLevel}`;
         const leaderboard = this.readLeaderboard(key);
-        leaderboard.push(newTime);
-        leaderboard.sort((a, b) => a - b);
+        leaderboard.push({ time: newTime, name: safeName });
+        leaderboard.sort((a, b) => a.time - b.time);
         const trimmed = leaderboard.slice(0, 5);
         this.writeLeaderboard(key, trimmed);
     }
 
-    displayLeaderboard() {
-        const formatTimes = (times) => times.map((time, index) => {
-            const minutes = Math.floor(time / 60000);
-            const seconds = Math.floor((time % 60000) / 1000);
-            const milliseconds = Math.floor((time % 1000) / 10);
-            return `${index + 1}. ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
-        }).join('\n');
-
-        let sectionsText;
-        if (this.storageAvailable) {
-            const sections = [1, 2, 3].map(level => {
-                const times = this.readLeaderboard(`spaceChickenLevel${level}`);
-                const header = `Level ${level} Times:`;
-                const body = times.length ? formatTimes(times) : 'No times yet';
-                return `${header}\n${body}`;
-            });
-            sectionsText = sections.join('\n\n');
-        } else {
-            sectionsText = 'Saved times unavailable (local storage disabled).';
+    saveTimeToFirebase(level, newTime, playerName) {
+        if (!this.firebaseEndpoint || typeof fetch !== 'function') {
+            return;
         }
+        const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
+        const payload = {
+            time: newTime,
+            name: playerName,
+            createdAt: Date.now()
+        };
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to save time: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(() => {
+                this.trimFirebaseLeaderboard(level);
+            })
+            .catch(err => {
+                console.error('Firebase save failed', err);
+            });
+    }
 
-        const restartPrompt = this.touchControlsEnabled ? 'Press SPACEBAR or tap the jump button to restart' : 'Press SPACEBAR to restart';
-        const leaderboardText = 'Leaderboard\n\n' + sectionsText + `\n\nDeaths this run: ${this.deathCount}\n\n${restartPrompt}`;
-        this.leaderboardTextContent = leaderboardText;
+    trimFirebaseLeaderboard(level) {
+        if (!this.firebaseEndpoint || typeof fetch !== 'function') {
+            return;
+        }
+        const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch leaderboard: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data || typeof data !== 'object') {
+                    return null;
+                }
+                const entries = Object.entries(data)
+                    .map(([key, value]) => {
+                        if (typeof value === 'number') {
+                            return { key, time: value };
+                        }
+                        if (value && typeof value.time === 'number') {
+                            return { key, time: value.time };
+                        }
+                        return null;
+                    })
+                    .filter(Boolean);
+                if (entries.length <= 5) {
+                    return null;
+                }
+                entries.sort((a, b) => a.time - b.time);
+                const extras = entries.slice(5);
+                if (!extras.length) {
+                    return null;
+                }
+                const updates = {};
+                extras.forEach(entry => {
+                    updates[entry.key] = null;
+                });
+                return fetch(url, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+            })
+            .catch(err => {
+                console.error('Firebase trim failed', err);
+            });
+    }
+
+    fetchFirebaseLeaderboards() {
+        if (!this.firebaseEndpoint || typeof fetch !== 'function') {
+            return Promise.resolve(null);
+        }
+        const levels = [1, 2, 3];
+        const normalizeEntry = (value) => {
+            if (value && typeof value === 'object') {
+                const time = typeof value.time === 'number' ? value.time : null;
+                if (time === null) {
+                    return null;
+                }
+                const name = typeof value.name === 'string' ? value.name.trim() : '';
+                return {
+                    time,
+                    name: name.length ? name : 'Anonymous'
+                };
+            }
+            if (typeof value === 'number') {
+                return { time: value, name: 'Anonymous' };
+            }
+            return null;
+        };
+        const requests = levels.map(level => {
+            const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
+            return fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to load leaderboard: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) {
+                        return [];
+                    }
+                    if (Array.isArray(data)) {
+                        const entries = data.map(normalizeEntry).filter(Boolean);
+                        entries.sort((a, b) => a.time - b.time);
+                        return entries.slice(0, 5);
+                    }
+                    if (typeof data === 'object') {
+                        const times = Object.values(data)
+                            .map(normalizeEntry)
+                            .filter(Boolean);
+                        times.sort((a, b) => a.time - b.time);
+                        return times.slice(0, 5);
+                    }
+                    return [];
+                })
+                .catch(err => {
+                    console.error(`Firebase load failed for level ${level}`, err);
+                    return null;
+                });
+        });
+        return Promise.all(requests)
+            .then(results => {
+                if (!results || !results.length) {
+                    return null;
+                }
+                const data = {};
+                results.forEach((times, index) => {
+                    if (Array.isArray(times)) {
+                        data[levels[index]] = times;
+                    }
+                });
+                return data;
+            })
+            .catch(err => {
+                console.error('Firebase leaderboard fetch failed', err);
+                return null;
+            });
+    }
+
+    formatTimes(times) {
+        return times.map((entry, index) => {
+            const timeValue = entry && typeof entry === 'object' ? entry.time : entry;
+            const nameValue = entry && typeof entry === 'object' && typeof entry.name === 'string' ? entry.name : 'Anonymous';
+            if (typeof timeValue !== 'number') {
+                return null;
+            }
+            const minutes = Math.floor(timeValue / 60000);
+            const seconds = Math.floor((timeValue % 60000) / 1000);
+            const milliseconds = Math.floor((timeValue % 1000) / 10);
+            const paddedName = nameValue && nameValue.length ? nameValue : 'Anonymous';
+            return `${index + 1}. ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')} - ${paddedName}`;
+        }).filter(Boolean).join('\n');
+    }
+
+    refreshLeaderboardButtonStyle() {
+        if (!this.leaderboardButton) {
+            return;
+        }
+        const backgroundColor = this.leaderboardVisible ? '#444444' : '#222222';
+        this.leaderboardButton.setStyle({ backgroundColor });
+    }
+
+    hideLeaderboard() {
         if (this.leaderboardTextObject) {
             this.leaderboardTextObject.destroy();
         }
-        this.leaderboardTextObject = this.add.text(0, 0, leaderboardText, { fontSize: '16px', fill: '#ffff00', align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0);
-        this.leaderboardTextObject.setDepth(10001);
-        this.layoutLeaderboard();
+        this.leaderboardTextObject = null;
+        this.leaderboardTextContent = '';
+        this.leaderboardVisible = false;
+        this.leaderboardRequestId = 0;
+        this.refreshLeaderboardButtonStyle();
+    }
+
+    toggleLeaderboardOverlay() {
+        if (this.leaderboardVisible) {
+            this.hideLeaderboard();
+        } else {
+            this.displayLeaderboard();
+        }
+    }
+
+    displayLeaderboard() {
+        const requestId = Date.now() + Math.random();
+        this.leaderboardRequestId = requestId;
+        const restartPrompt = this.gameOver
+            ? (this.touchControlsEnabled ? 'Press SPACEBAR or tap the jump button to restart' : 'Press SPACEBAR to restart')
+            : 'Select the LB button again to close this leaderboard';
+        const updateTextObject = (sectionsText) => {
+            if (this.leaderboardRequestId !== requestId) {
+                return;
+            }
+            const leaderboardText = 'Leaderboard\n\n' + sectionsText + `\n\nDeaths this run: ${this.deathCount}\n\n${restartPrompt}`;
+            this.leaderboardTextContent = leaderboardText;
+            if (this.leaderboardTextObject) {
+                this.leaderboardTextObject.destroy();
+            }
+            this.leaderboardTextObject = this.add.text(0, 0, leaderboardText, { fontSize: '16px', fill: '#ffff00', align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0);
+            this.leaderboardTextObject.setDepth(10001);
+            this.layoutLeaderboard();
+            this.leaderboardVisible = true;
+            this.refreshLeaderboardButtonStyle();
+        };
+
+        const buildSections = (remoteData) => {
+            const sections = [1, 2, 3].map(level => {
+                const remoteTimes = remoteData && remoteData[level] ? remoteData[level] : null;
+                const localTimes = this.storageAvailable ? this.readLeaderboard(`spaceChickenLevel${level}`) : [];
+                const combined = remoteTimes && remoteTimes.length ? remoteTimes : localTimes;
+                const normalized = Array.isArray(combined) ? combined.slice() : [];
+                normalized.sort((a, b) => {
+                    const timeA = a && typeof a === 'object' ? a.time : a;
+                    const timeB = b && typeof b === 'object' ? b.time : b;
+                    if (typeof timeA !== 'number' && typeof timeB !== 'number') {
+                        return 0;
+                    }
+                    if (typeof timeA !== 'number') {
+                        return 1;
+                    }
+                    if (typeof timeB !== 'number') {
+                        return -1;
+                    }
+                    return timeA - timeB;
+                });
+                const header = `Level ${level} Times:`;
+                const body = normalized.length ? this.formatTimes(normalized) : 'No times yet';
+                return `${header}\n${body}`;
+            });
+            if (!this.storageAvailable && (!remoteData || Object.keys(remoteData).length === 0)) {
+                return 'Saved times unavailable (local storage disabled).';
+            }
+            return sections.join('\n\n');
+        };
+
+        updateTextObject('Loading leaderboard…');
+
+        this.fetchFirebaseLeaderboards()
+            .then(remoteData => {
+                if (this.leaderboardRequestId !== requestId) {
+                    return;
+                }
+                const sectionsText = buildSections(remoteData);
+                updateTextObject(sectionsText);
+            })
+            .catch(() => {
+                if (this.leaderboardRequestId !== requestId) {
+                    return;
+                }
+                const fallback = this.storageAvailable ? buildSections(null) : 'Saved times unavailable (local storage disabled).';
+                updateTextObject(fallback);
+            });
     }
 
     collectGem() {
         const levelTime = performance.now() - this.startTime;
         this.playCollectSound();
-        this.saveTime(this.level, levelTime);
+        let playerName = this.playerName;
+        if (!playerName) {
+            playerName = this.ensurePlayerName(true);
+        }
+        if (typeof playerName === 'string') {
+            playerName = playerName.trim();
+        }
+        if (!playerName) {
+            playerName = 'Anonymous';
+        }
+        if (!this.playerName || this.playerName !== playerName) {
+            this.playerName = playerName;
+            this.savePlayerName(this.playerName);
+        }
+        this.saveTime(this.level, levelTime, this.playerName);
 
         if (this.levelConfig.nextLevel) {
             this.scene.restart({ level: this.levelConfig.nextLevel, deathCount: this.deathCount });
