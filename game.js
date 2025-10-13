@@ -48,6 +48,8 @@ class SpaceChicken extends Phaser.Scene {
         this.levelMusicId = null;
         this.playerName = null;
         this.firebaseEndpoint = null;
+        this.pointerTapTimes = new Map();
+        this.doubleTapThreshold = 350;
         if (typeof window !== 'undefined' && window.SPACE_CHICKEN_CONFIG && window.SPACE_CHICKEN_CONFIG.firebaseEndpoint) {
             const trimmed = window.SPACE_CHICKEN_CONFIG.firebaseEndpoint.replace(/\/+$/, '');
             this.firebaseEndpoint = trimmed.length ? trimmed : null;
@@ -763,6 +765,21 @@ class SpaceChicken extends Phaser.Scene {
         return uniquePointers;
     }
 
+    isPointerOverGameObject(pointerX, pointerY, gameObject) {
+        if (!gameObject || typeof pointerX !== 'number' || typeof pointerY !== 'number' || typeof gameObject.getBounds !== 'function') {
+            return false;
+        }
+        const bounds = gameObject.getBounds();
+        if (bounds && typeof bounds.contains === 'function') {
+            return bounds.contains(pointerX, pointerY);
+        }
+        if (!bounds) {
+            return false;
+        }
+        return pointerX >= bounds.x && pointerX <= bounds.x + bounds.width &&
+            pointerY >= bounds.y && pointerY <= bounds.y + bounds.height;
+    }
+
     canUseWebAudio() {
         return this.sound && this.sound.context && typeof this.sound.context.createOscillator === 'function';
     }
@@ -1456,6 +1473,9 @@ class SpaceChicken extends Phaser.Scene {
             return;
         }
         this.touchControlsEnabled = true;
+        if (this.pointerTapTimes && typeof this.pointerTapTimes.clear === 'function') {
+            this.pointerTapTimes.clear();
+        }
         this.input.addPointer(2);
 
         if (!this.jumpButton) {
@@ -2387,16 +2407,41 @@ class SpaceChicken extends Phaser.Scene {
 
         this.leftPressed = false;
         this.rightPressed = false;
+        let doubleTapJumpTriggered = false;
         const movementMidpoint = this.touchMovementMidpoint || (this.viewportWidth ? this.viewportWidth / 2 : this.cameras.main.width / 2);
         activePointers.forEach(pointer => {
+            const pointerX = (typeof pointer.x === 'number') ? pointer.x : pointer.worldX;
+            const pointerY = (typeof pointer.y === 'number') ? pointer.y : pointer.worldY;
+            const hasCoordinates = typeof pointerX === 'number' && typeof pointerY === 'number';
+            const isOnJumpButton = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, this.jumpButton);
+            const isOnMusicToggle = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, this.musicToggleButton);
+            const isOnLeaderboardButton = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, this.leaderboardButton);
+            const pointerEligibleForDoubleTap = !isOnJumpButton && !isOnMusicToggle && !isOnLeaderboardButton;
+
+            if (pointer.justUp) {
+                const upTime = (typeof pointer.upTime === 'number' && pointer.upTime > 0) ? pointer.upTime : performance.now();
+                if (this.touchControlsEnabled && hasCoordinates && pointerEligibleForDoubleTap) {
+                    const lastTapTime = this.pointerTapTimes.has(pointer.id) ? this.pointerTapTimes.get(pointer.id) : 0;
+                    if (lastTapTime > 0 && (upTime - lastTapTime) <= this.doubleTapThreshold) {
+                        doubleTapJumpTriggered = true;
+                    }
+                }
+                if (this.pointerTapTimes) {
+                    if (pointerEligibleForDoubleTap) {
+                        this.pointerTapTimes.set(pointer.id, upTime);
+                    } else {
+                        this.pointerTapTimes.delete(pointer.id);
+                    }
+                }
+            }
+
             if (!pointer.isDown) {
                 return;
             }
             if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
                 return;
             }
-            const pointerX = (typeof pointer.x === 'number') ? pointer.x : pointer.worldX;
-            if (typeof pointerX !== 'number') {
+            if (!hasCoordinates) {
                 return;
             }
             if (pointerX < movementMidpoint) {
@@ -2430,6 +2475,10 @@ class SpaceChicken extends Phaser.Scene {
         }
 
         if (pointerJumpTriggered) {
+            this.attemptJump();
+        }
+
+        if (doubleTapJumpTriggered) {
             this.attemptJump();
         }
 
