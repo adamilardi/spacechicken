@@ -706,6 +706,63 @@ class SpaceChicken extends Phaser.Scene {
         return this.getBaseHeight();
     }
 
+    shouldEnableTouchControls() {
+        if (this.sys && this.sys.game && this.sys.game.device && this.sys.game.device.input && this.sys.game.device.input.touch) {
+            return true;
+        }
+        if (typeof navigator !== 'undefined') {
+            if ((typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0) ||
+                (typeof navigator.msMaxTouchPoints === 'number' && navigator.msMaxTouchPoints > 0)) {
+                return true;
+            }
+            const userAgent = navigator.userAgent || '';
+            if (userAgent.indexOf('Macintosh') !== -1 && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0) {
+                return true;
+            }
+        }
+        if (typeof window !== 'undefined') {
+            if ('ontouchstart' in window) {
+                return true;
+            }
+            if (typeof window.matchMedia === 'function') {
+                try {
+                    if (window.matchMedia('(any-pointer: coarse)').matches) {
+                        return true;
+                    }
+                } catch (error) {
+                    // Ignore matchMedia errors (some browsers throw when the query is unsupported)
+                }
+            }
+        }
+        if (typeof window !== 'undefined' && typeof document !== 'undefined' && window.DocumentTouch && document instanceof window.DocumentTouch) {
+            return true;
+        }
+        return false;
+    }
+
+    getActivePointers() {
+        if (!this.input) {
+            return [];
+        }
+        const pointers = [];
+        if (Array.isArray(this.input.pointers)) {
+            pointers.push(...this.input.pointers);
+        }
+        if (this.input.activePointer) {
+            pointers.push(this.input.activePointer);
+        }
+        const uniquePointers = [];
+        const seen = new Set();
+        pointers.forEach(pointer => {
+            if (!pointer || seen.has(pointer)) {
+                return;
+            }
+            seen.add(pointer);
+            uniquePointers.push(pointer);
+        });
+        return uniquePointers;
+    }
+
     canUseWebAudio() {
         return this.sound && this.sound.context && typeof this.sound.context.createOscillator === 'function';
     }
@@ -1307,7 +1364,7 @@ class SpaceChicken extends Phaser.Scene {
         const crownPosition = this.levelConfig.crown;
         this.crown = this.physics.add.staticSprite(crownPosition.x, crownPosition.y, 'crown');
 
-        if (this.sys.game.device.input.touch) {
+        if (this.shouldEnableTouchControls()) {
             this.enableTouchControls();
         }
         this.updateInstructionText();
@@ -1410,6 +1467,8 @@ class SpaceChicken extends Phaser.Scene {
             this.jumpButton.on('pointerdown', this.onJumpButtonDown, this);
             this.jumpButton.on('pointerup', this.onJumpButtonUp, this);
             this.jumpButton.on('pointerout', this.onJumpButtonUp, this);
+            this.jumpButton.on('pointerupoutside', this.onJumpButtonUp, this);
+            this.jumpButton.on('pointercancel', this.onJumpButtonUp, this);
         }
         this.layoutTouchControls();
     }
@@ -2317,24 +2376,35 @@ class SpaceChicken extends Phaser.Scene {
         }
 
             // Mobile touch controls
+        const activePointers = this.getActivePointers();
+
+        if (this.jumpPointerId !== null) {
+            const jumpPointer = activePointers.find(pointer => pointer.id === this.jumpPointerId);
+            if (!jumpPointer || !jumpPointer.isDown) {
+                this.jumpPointerId = null;
+            }
+        }
+
         this.leftPressed = false;
         this.rightPressed = false;
         const movementMidpoint = this.touchMovementMidpoint || (this.viewportWidth ? this.viewportWidth / 2 : this.cameras.main.width / 2);
-        if (this.input.pointers) {
-            this.input.pointers.forEach(pointer => {
-                if (!pointer.isDown) {
-                    return;
-                }
-                if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
-                    return;
-                }
-                if (pointer.x < movementMidpoint) {
-                    this.leftPressed = true;
-                } else {
-                    this.rightPressed = true;
-                }
-            });
-        }
+        activePointers.forEach(pointer => {
+            if (!pointer.isDown) {
+                return;
+            }
+            if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
+                return;
+            }
+            const pointerX = (typeof pointer.x === 'number') ? pointer.x : pointer.worldX;
+            if (typeof pointerX !== 'number') {
+                return;
+            }
+            if (pointerX < movementMidpoint) {
+                this.leftPressed = true;
+            } else {
+                this.rightPressed = true;
+            }
+        });
 
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
         if (isGrounded) {
@@ -2343,11 +2413,16 @@ class SpaceChicken extends Phaser.Scene {
         }
 
             // Jump detection fallback for pointer taps when no jump button
-        const pointerJumpTriggered = !this.jumpButton && this.input.pointers && this.input.pointers.some(pointer => {
+        const pointerJumpTriggered = !this.jumpButton && activePointers.some(pointer => {
             if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
                 return false;
             }
-            return pointer.justUp && (pointer.upTime - pointer.downTime) < 200;
+            if (!pointer.justUp) {
+                return false;
+            }
+            const downTime = (typeof pointer.downTime === 'number') ? pointer.downTime : 0;
+            const upTime = (typeof pointer.upTime === 'number') ? pointer.upTime : downTime + 201;
+            return (upTime - downTime) < 200;
         });
 
         if (keyboardJumpTriggered) {
