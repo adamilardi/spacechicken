@@ -640,6 +640,72 @@ class SpaceChicken extends Phaser.Scene {
         return (current === undefined || current === null) ? fallback : current;
     }
 
+    getScaleDimension(dimension) {
+        const scale = this.scale;
+        if (!scale) {
+            return null;
+        }
+        const gameSize = scale.gameSize;
+        if (gameSize && typeof gameSize[dimension] === 'number') {
+            return gameSize[dimension];
+        }
+        if (typeof scale[dimension] === 'number') {
+            return scale[dimension];
+        }
+        return null;
+    }
+
+    getConfigDimension(dimension) {
+        const sys = this.sys;
+        if (!sys || !sys.game || !sys.game.config) {
+            return null;
+        }
+        const value = sys.game.config[dimension];
+        return (typeof value === 'number') ? value : null;
+    }
+
+    getBaseDimension(dimension) {
+        const scaleValue = this.getScaleDimension(dimension);
+        if (typeof scaleValue === 'number' && scaleValue > 0) {
+            return scaleValue;
+        }
+        const configValue = this.getConfigDimension(dimension);
+        if (typeof configValue === 'number' && configValue > 0) {
+            return configValue;
+        }
+        if (typeof window !== 'undefined') {
+            if (dimension === 'width') {
+                return window.innerWidth;
+            }
+            if (dimension === 'height') {
+                return window.innerHeight;
+            }
+        }
+        return dimension === 'width' ? 800 : 600;
+    }
+
+    getBaseWidth() {
+        return this.getBaseDimension('width');
+    }
+
+    getBaseHeight() {
+        return this.getBaseDimension('height');
+    }
+
+    getViewportWidth() {
+        if (typeof this.viewportWidth === 'number' && this.viewportWidth > 0) {
+            return this.viewportWidth;
+        }
+        return this.getBaseWidth();
+    }
+
+    getViewportHeight() {
+        if (typeof this.viewportHeight === 'number' && this.viewportHeight > 0) {
+            return this.viewportHeight;
+        }
+        return this.getBaseHeight();
+    }
+
     canUseWebAudio() {
         return this.sound && this.sound.context && typeof this.sound.context.createOscillator === 'function';
     }
@@ -1323,8 +1389,8 @@ class SpaceChicken extends Phaser.Scene {
             this.cleanupAudio();
         });
         this.events.once('destroy', this.cleanupAudio, this);
-        const initialWidth = this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
-        const initialHeight = this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
+        const initialWidth = this.getBaseWidth();
+        const initialHeight = this.getBaseHeight();
         this.handleResize({ width: initialWidth, height: initialHeight });
     }
 
@@ -1375,8 +1441,8 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     handleResize(gameSize) {
-        const fallbackWidth = this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
-        const fallbackHeight = this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
+        const fallbackWidth = this.getBaseWidth();
+        const fallbackHeight = this.getBaseHeight();
         const width = (gameSize && gameSize.width) ? gameSize.width : fallbackWidth;
         const height = (gameSize && gameSize.height) ? gameSize.height : fallbackHeight;
 
@@ -1412,7 +1478,7 @@ class SpaceChicken extends Phaser.Scene {
             return;
         }
         const insets = this.safeAreaInsets || { top: 0, right: 0, bottom: 0, left: 0 };
-        const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const width = this.getViewportWidth();
         const padding = 16;
         const availableWidth = Math.max(160, width - insets.left - insets.right - padding * 2);
         this.timerText.setPosition(insets.left + padding, insets.top + padding);
@@ -1442,13 +1508,13 @@ class SpaceChicken extends Phaser.Scene {
 
     layoutTouchControls() {
         if (!this.jumpButton) {
-            const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+            const width = this.getViewportWidth();
             this.touchMovementMidpoint = width / 2;
             return;
         }
         const insets = this.safeAreaInsets || { top: 0, right: 0, bottom: 0, left: 0 };
-        const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
-        const height = this.viewportHeight || this.scale?.gameSize?.height || this.scale?.height || this.sys.game.config.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
+        const width = this.getViewportWidth();
+        const height = this.getViewportHeight();
         const margin = 24;
         const buttonX = width - insets.right - (this.jumpButton.displayWidth / 2) - margin;
         const buttonY = height - insets.bottom - (this.jumpButton.displayHeight / 2) - margin;
@@ -1461,7 +1527,7 @@ class SpaceChicken extends Phaser.Scene {
             return;
         }
         const insets = this.safeAreaInsets || { top: 0, right: 0, bottom: 0, left: 0 };
-        const width = this.viewportWidth || this.scale?.gameSize?.width || this.scale?.width || this.sys.game.config.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        const width = this.getViewportWidth();
         const availableWidth = Math.max(220, width - insets.left - insets.right - 32);
         this.leaderboardTextObject.setWordWrapWidth(availableWidth, true);
         const centerX = insets.left + (width - insets.left - insets.right) / 2;
