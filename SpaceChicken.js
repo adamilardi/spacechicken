@@ -791,7 +791,7 @@ class SpaceChicken extends Phaser.Scene {
 
     collectGem() {
         const levelTime = performance.now() - this.startTime;
-        const playerName = this.leaderboardManager.ensurePlayerName(true);
+        const playerName = this.leaderboardManager.ensurePlayerName(false);
         this.leaderboardManager.saveTime(this.level, levelTime, playerName);
         this.audioManager.playCollectSound();
 

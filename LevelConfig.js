@@ -90,7 +90,21 @@ export class LevelConfig {
         if (!def) {
             throw new Error(`Level ${level} configuration not found`);
         }
-        return def;
+        const normalized = {
+            gravity: def.gravity !== undefined ? def.gravity : def.GRAVITY,
+            worldWidth: def.worldWidth !== undefined ? def.worldWidth : def.WORLD_WIDTH,
+            worldHeight: def.worldHeight !== undefined ? def.worldHeight : def.WORLD_HEIGHT,
+            killZoneY: def.killZoneY !== undefined ? def.killZoneY : def.KILLZONE_Y,
+            killZoneHeight: def.killZoneHeight !== undefined ? def.killZoneHeight : def.KILLZONE_HEIGHT,
+            playerStartX: def.playerStartX !== undefined ? def.playerStartX : def.PLAYER_START_X,
+            playerStartY: def.playerStartY !== undefined ? def.playerStartY : def.PLAYER_START_Y,
+            crownX: def.crownX !== undefined ? def.crownX : def.CROWN_X,
+            crownY: def.crownY !== undefined ? def.crownY : def.CROWN_Y,
+            floorY: def.floorY !== undefined ? def.floorY : def.FLOOR_Y,
+            bombSpeed: def.bombSpeed !== undefined ? def.bombSpeed : def.BOMB_SPEED,
+            nextLevel: def.nextLevel !== undefined ? def.nextLevel : def.NEXT_LEVEL
+        };
+        return Object.assign({}, def, normalized);
     }
 
     getDefaultInstructions() {

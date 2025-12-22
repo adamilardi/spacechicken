@@ -292,17 +292,23 @@ export class LeaderboardManager {
     }
 
     ensurePlayerName(forcePrompt = false) {
-        let current = this.playerName;
-        if (!forcePrompt && (current = this.loadPlayerName())) {
-            return current;
+        const storedName = this.loadPlayerName();
+        const currentTrimmed = typeof this.playerName === 'string' ? this.playerName.trim() : '';
+        if (!forcePrompt) {
+            if (storedName) {
+                this.playerName = storedName;
+                return storedName;
+            }
+            if (currentTrimmed) {
+                return currentTrimmed;
+            }
         }
-        const currentTrimmed = typeof current === 'string' ? current.trim() : '';
         if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
             const fallback = currentTrimmed || 'Anonymous';
             this.playerName = fallback;
             return fallback;
         }
-        const defaultValue = currentTrimmed;
+        const defaultValue = storedName || currentTrimmed;
         const response = window.prompt('Enter your name for the leaderboard:', defaultValue);
         let finalName;
         if (response === null) {

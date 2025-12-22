@@ -103,6 +103,7 @@ export const LEVEL_DEFINITIONS = {
         CROWN_Y: 350,
         FLOOR_Y: 580,
         BOMB_SPEED: 150,
+        NEXT_LEVEL: 2,
     },
     2: {
         GRAVITY: 400,
@@ -115,6 +116,7 @@ export const LEVEL_DEFINITIONS = {
         CROWN_Y: 350,
         FLOOR_Y: 580,
         BOMB_SPEED: 200,
+        NEXT_LEVEL: 3,
     },
     3: {
         GRAVITY: 260,
@@ -128,5 +130,6 @@ export const LEVEL_DEFINITIONS = {
         FLOOR_Y: null, // No floor, uses static platforms
         BOMB_SPEED: 260,
         KILLZONE_HEIGHT: 40,
+        NEXT_LEVEL: null,
     },
 };
