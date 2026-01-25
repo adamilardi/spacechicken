@@ -1,69 +1,21 @@
-if (!String.prototype.padStart) {
-    String.prototype.padStart = function padStart(targetLength, padString) {
-        const str = String(this);
-        const length = targetLength >>> 0;
-        let filler = padString !== undefined ? String(padString) : ' ';
-        if (str.length >= length || filler.length === 0) {
-            return str;
-        }
-        const fillLength = length - str.length;
-        while (filler.length < fillLength) {
-            filler += filler;
-        }
-        return filler.slice(0, fillLength) + str;
-    };
-}
+import { SpaceChicken } from './SpaceChicken.js';
 
-class SpaceChicken extends Phaser.Scene {
-    init(data = {}) {
-        this.level = data.level || 1;
-        this.deathCount = data.deathCount || 0;
-        this.storageAvailable = true;
-        this.safeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
-        this.viewportWidth = 0;
-        this.viewportHeight = 0;
-        this.leaderboardTextObject = null;
-        this.leaderboardTextContent = '';
-        this.jumpPointerId = null;
-        this.jumpRequested = false;
-        this.touchControlsEnabled = false;
-        this.jumpButton = null;
-        this.touchMovementMidpoint = 0;
-        this.audioUnlocked = false;
-        this.audioUnlockHandler = null;
-        this.musicGainNode = null;
-        this.effectsGainNode = null;
-        this.backgroundLoopEvent = null;
-        this.backgroundPattern = null;
-        this.backgroundPatternDuration = 0;
-        this.backgroundSources = new Set();
-        this.activeEffects = new Set();
-        this.musicMuted = false;
-        this.musicVolume = 0.18;
-        this.musicToggleButton = null;
-        this.leaderboardButton = null;
-        this.leaderboardVisible = false;
-        this.leaderboardRequestId = 0;
-        this.muteKey = null;
-        this.levelMusicId = null;
-        this.playerName = null;
-        this.firebaseEndpoint = null;
-        this.pointerTapTimes = new Map();
-        this.doubleTapThreshold = 350;
-        if (typeof window !== 'undefined' && window.SPACE_CHICKEN_CONFIG && window.SPACE_CHICKEN_CONFIG.firebaseEndpoint) {
-            const trimmed = window.SPACE_CHICKEN_CONFIG.firebaseEndpoint.replace(/\/+$/, '');
-            this.firebaseEndpoint = trimmed.length ? trimmed : null;
-        }
-    }
-
-    constructor() {
-        super();
-    }
+const gameConfig = {
     preload() {
-            // Create animated chicken sprites
-        this.createChickenFrames();
+        this.spriteFactory = new SpriteFactory(this);
+        this.spriteFactory.createChickenFrames();
+        this.spriteFactory.createCrown();
+        this.spriteFactory.createCliff();
+        this.spriteFactory.createRock();
+        this.spriteFactory.createBomb();
+        this.spriteFactory.createStationPanel();
+        this.spriteFactory.createLiftPlatform();
+        this.spriteFactory.createLaserBeam();
+        this.spriteFactory.createLaserEmitter();
+        this.spriteFactory.createDrone();
+        this.spriteFactory.createVirtualButtons();
 
-            let ctx;
+        let ctx;
         if (!this.textures.exists('crown')) {
                 let crownCanvas = document.createElement('canvas');
             crownCanvas.width = 32;
