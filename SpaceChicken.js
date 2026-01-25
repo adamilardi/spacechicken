@@ -19,6 +19,7 @@ class SpaceChicken extends Phaser.Scene {
         this.jumpCount = 0;
         this.isJetpacking = false;
         this.restartDelayDone = true;
+        this.bombSpawnEvent = null;
 
         // Input state
         this.leftPressed = false;
@@ -31,6 +32,10 @@ class SpaceChicken extends Phaser.Scene {
 
         // Pointer tracking
         this.pointerTapTimes = new Map();
+
+        if (SpaceChicken.backgroundLayouts instanceof Map && SpaceChicken.backgroundLayouts.size > 12) {
+            SpaceChicken.backgroundLayouts.clear();
+        }
     }
 
     getScaleDimension(dimension) {
@@ -818,11 +823,15 @@ class SpaceChicken extends Phaser.Scene {
 
     hitHazard() {
         this.audioManager.playHazardHitSound();
-        this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
+        this.restartLevel();
     }
 
     hitKillZone() {
         this.audioManager.playHazardHitSound();
+        this.restartLevel();
+    }
+
+    restartLevel() {
         this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
     }
 
@@ -841,7 +850,10 @@ class SpaceChicken extends Phaser.Scene {
         bomb.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
 
         const delay = Phaser.Math.Between(bombSettings.delayMin, bombSettings.delayMax);
-        this.time.delayedCall(delay, () => this.spawnBomb(), [], this);
+        if (this.bombSpawnEvent) {
+            this.bombSpawnEvent.remove(false);
+        }
+        this.bombSpawnEvent = this.time.delayedCall(delay, () => this.spawnBomb(), [], this);
     }
 
     update() {
@@ -853,10 +865,14 @@ class SpaceChicken extends Phaser.Scene {
         // Update timer in UI
         this.uiManager.updateTimer(performance.now() - this.startTime);
 
-        // Handle input
-        const spaceJustPressed = Phaser.Input.Keyboard.JustDown(this.space);
-        const upJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-        const wJustPressed = Phaser.Input.Keyboard.JustDown(this.wasd.W);
+        const inputState = this.handleInput();
+        const {
+            spaceJustPressed,
+            upJustPressed,
+            wJustPressed,
+            doubleTapJumpTriggered,
+            pointerJumpTriggered
+        } = inputState;
 
         // Music mute toggle
         if (this.muteKey && Phaser.Input.Keyboard.JustDown(this.muteKey)) {
@@ -874,72 +890,6 @@ class SpaceChicken extends Phaser.Scene {
             return;
         }
 
-        // Handle touch controls
-        const activePointers = this.getActivePointers();
-
-        if (this.jumpPointerId !== null) {
-            const jumpPointer = activePointers.find(pointer => pointer.id === this.jumpPointerId);
-            if (!jumpPointer || !jumpPointer.isDown) {
-                this.jumpPointerId = null;
-            }
-        }
-
-        this.leftPressed = false;
-        this.rightPressed = false;
-        let doubleTapJumpTriggered = false;
-
-        const jumpButton = this.uiManager ? this.uiManager.jumpButton : null;
-        const musicToggleButton = this.uiManager ? this.uiManager.musicToggleButton : null;
-        const leaderboardButton = this.uiManager ? this.uiManager.leaderboardButton : null;
-
-        const movementMidpoint = this.uiManager && this.uiManager.touchMovementMidpoint
-            ? this.uiManager.touchMovementMidpoint
-            : this.getViewportWidth() / 2;
-        activePointers.forEach(pointer => {
-            const pointerX = (typeof pointer.x === 'number') ? pointer.x : pointer.worldX;
-            const pointerY = (typeof pointer.y === 'number') ? pointer.y : pointer.worldY;
-            const hasCoordinates = typeof pointerX === 'number' && typeof pointerY === 'number';
-            const isOnJumpButton = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, jumpButton);
-            const isOnMusicToggle = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, musicToggleButton);
-            const isOnLeaderboardButton = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, leaderboardButton);
-            const pointerEligibleForDoubleTap = !isOnJumpButton && !isOnMusicToggle && !isOnLeaderboardButton;
-
-            if (pointer.justUp) {
-                const upTime = (typeof pointer.upTime === 'number' && pointer.upTime > 0) ? pointer.upTime : performance.now();
-                if (this.uiManager.touchControlsEnabled && hasCoordinates && pointerEligibleForDoubleTap) {
-                    const lastTapTime = this.pointerTapTimes.has(pointer.id) ? this.pointerTapTimes.get(pointer.id) : 0;
-                    if (lastTapTime > 0 && (upTime - lastTapTime) <= GAME_CONSTANTS.DOUBLE_TAP_THRESHOLD) {
-                        doubleTapJumpTriggered = true;
-                    }
-                }
-                if (this.pointerTapTimes) {
-                    if (pointerEligibleForDoubleTap) {
-                        this.pointerTapTimes.set(pointer.id, upTime);
-                    } else {
-                        this.pointerTapTimes.delete(pointer.id);
-                    }
-                }
-            }
-
-            if (!pointer.isDown) {
-                return;
-            }
-
-            if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
-                return;
-            }
-
-            if (!hasCoordinates) {
-                return;
-            }
-
-            if (pointerX < movementMidpoint) {
-                this.leftPressed = true;
-            } else {
-                this.rightPressed = true;
-            }
-        });
-
         // Jump handling
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
         if (isGrounded) {
@@ -948,17 +898,6 @@ class SpaceChicken extends Phaser.Scene {
         }
 
         const keyboardJumpTriggered = upJustPressed || spaceJustPressed || wJustPressed;
-        const pointerJumpTriggered = !this.uiManager.jumpButton && activePointers.some(pointer => {
-            if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
-                return false;
-            }
-            if (!pointer.justUp) {
-                return false;
-            }
-            const downTime = (typeof pointer.downTime === 'number') ? pointer.downTime : 0;
-            const upTime = (typeof pointer.upTime === 'number') ? pointer.upTime : downTime + 201;
-            return (upTime - downTime) < GAME_CONSTANTS.JUMP_BUTTON_TOUCH_TOLERANCE;
-        });
 
         if (keyboardJumpTriggered) {
             this.attemptJump();
@@ -1066,7 +1005,7 @@ class SpaceChicken extends Phaser.Scene {
 
     hitBomb(bomb, player) {
         this.audioManager.playHazardHitSound();
-        this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
+        this.restartLevel();
     }
 
     handleResize(gameSize) {
@@ -1082,16 +1021,119 @@ class SpaceChicken extends Phaser.Scene {
             this.audioManager.cleanupAudio();
         }
 
+        if (this.bombSpawnEvent) {
+            this.bombSpawnEvent.remove(false);
+            this.bombSpawnEvent = null;
+        }
+
         // Clean up dynamic hazard events
         if (this.dynamicHazardEvents) {
             this.dynamicHazardEvents.forEach(event => event.remove());
             this.dynamicHazardEvents = [];
         }
 
+        if (this.dynamicHazardsGroup) {
+            this.dynamicHazardsGroup.clear(true, true);
+            this.dynamicHazardsGroup = null;
+        }
+        if (this.bombs) {
+            this.bombs.clear(true, true);
+        }
+
         // Clean up pointer tracking
         if (this.pointerTapTimes) {
             this.pointerTapTimes.clear();
         }
+    }
+
+    handleInput() {
+        const spaceJustPressed = Phaser.Input.Keyboard.JustDown(this.space);
+        const upJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const wJustPressed = Phaser.Input.Keyboard.JustDown(this.wasd.W);
+
+        const activePointers = this.getActivePointers();
+        if (this.jumpPointerId !== null) {
+            const jumpPointer = activePointers.find(pointer => pointer.id === this.jumpPointerId);
+            if (!jumpPointer || !jumpPointer.isDown) {
+                this.jumpPointerId = null;
+            }
+        }
+
+        this.leftPressed = false;
+        this.rightPressed = false;
+        let doubleTapJumpTriggered = false;
+
+        const jumpButton = this.uiManager ? this.uiManager.jumpButton : null;
+        const musicToggleButton = this.uiManager ? this.uiManager.musicToggleButton : null;
+        const leaderboardButton = this.uiManager ? this.uiManager.leaderboardButton : null;
+
+        const movementMidpoint = this.uiManager && this.uiManager.touchMovementMidpoint
+            ? this.uiManager.touchMovementMidpoint
+            : this.getViewportWidth() / 2;
+        activePointers.forEach(pointer => {
+            const pointerX = (typeof pointer.x === 'number') ? pointer.x : pointer.worldX;
+            const pointerY = (typeof pointer.y === 'number') ? pointer.y : pointer.worldY;
+            const hasCoordinates = typeof pointerX === 'number' && typeof pointerY === 'number';
+            const isOnJumpButton = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, jumpButton);
+            const isOnMusicToggle = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, musicToggleButton);
+            const isOnLeaderboardButton = hasCoordinates && this.isPointerOverGameObject(pointerX, pointerY, leaderboardButton);
+            const pointerEligibleForDoubleTap = !isOnJumpButton && !isOnMusicToggle && !isOnLeaderboardButton;
+
+            if (pointer.justUp) {
+                const upTime = (typeof pointer.upTime === 'number' && pointer.upTime > 0) ? pointer.upTime : performance.now();
+                if (this.uiManager.touchControlsEnabled && hasCoordinates && pointerEligibleForDoubleTap) {
+                    const lastTapTime = this.pointerTapTimes.has(pointer.id) ? this.pointerTapTimes.get(pointer.id) : 0;
+                    if (lastTapTime > 0 && (upTime - lastTapTime) <= GAME_CONSTANTS.DOUBLE_TAP_THRESHOLD) {
+                        doubleTapJumpTriggered = true;
+                    }
+                }
+                if (this.pointerTapTimes) {
+                    if (pointerEligibleForDoubleTap) {
+                        this.pointerTapTimes.set(pointer.id, upTime);
+                    } else {
+                        this.pointerTapTimes.delete(pointer.id);
+                    }
+                }
+            }
+
+            if (!pointer.isDown) {
+                return;
+            }
+
+            if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
+                return;
+            }
+
+            if (!hasCoordinates) {
+                return;
+            }
+
+            if (pointerX < movementMidpoint) {
+                this.leftPressed = true;
+            } else {
+                this.rightPressed = true;
+            }
+        });
+
+        const pointerJumpTriggered = !this.uiManager.jumpButton && activePointers.some(pointer => {
+            if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
+                return false;
+            }
+            if (!pointer.justUp) {
+                return false;
+            }
+            const downTime = (typeof pointer.downTime === 'number') ? pointer.downTime : 0;
+            const upTime = (typeof pointer.upTime === 'number') ? pointer.upTime : downTime + 201;
+            return (upTime - downTime) < GAME_CONSTANTS.JUMP_BUTTON_TOUCH_TOLERANCE;
+        });
+
+        return {
+            spaceJustPressed,
+            upJustPressed,
+            wJustPressed,
+            doubleTapJumpTriggered,
+            pointerJumpTriggered
+        };
     }
 }
 
