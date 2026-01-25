@@ -140,7 +140,7 @@ class SpaceChicken extends Phaser.Scene {
         this.startTime = performance.now();
 
         // Create UI
-        this.uiManager.createUI(this.levelConfig, this.level);
+        this.uiManager.createUI(this.levelConfig, this.level, this.playerName);
 
         // Setup world
         this.worldWidth = this.levelConfig.world.width;
@@ -792,6 +792,10 @@ class SpaceChicken extends Phaser.Scene {
     collectGem() {
         const levelTime = performance.now() - this.startTime;
         const playerName = this.leaderboardManager.ensurePlayerName(false);
+        this.playerName = playerName;
+        if (this.uiManager) {
+            this.uiManager.updatePlayerName(playerName);
+        }
         this.leaderboardManager.saveTime(this.level, levelTime, playerName);
         this.audioManager.playCollectSound();
 

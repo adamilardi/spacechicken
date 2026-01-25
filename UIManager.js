@@ -6,6 +6,7 @@ export class UIManager {
         this.timerText = null;
         this.levelText = null;
         this.text = null;
+        this.playerNameText = null;
         this.musicToggleButton = null;
         this.leaderboardButton = null;
         this.leaderboardTextObject = null;
@@ -17,7 +18,7 @@ export class UIManager {
         this.touchMovementMidpoint = 0;
     }
 
-    createUI(levelConfig, level) {
+    createUI(levelConfig, level, playerName) {
         // Timer text
         this.timerText = this.scene.add.text(0, 0, 'Time: 00:00.00', {
             fontSize: '36px',
@@ -45,6 +46,18 @@ export class UIManager {
         });
         this.text.setScrollFactor(0);
         this.text.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+
+        // Player name text
+        this.playerNameText = this.scene.add.text(0, 0, '', {
+            fontSize: '18px',
+            fontFamily: 'monospace',
+            fill: '#ffff00',
+            align: 'right'
+        });
+        this.playerNameText.setOrigin(1, 0.5);
+        this.playerNameText.setScrollFactor(0);
+        this.playerNameText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.updatePlayerName(playerName);
 
         // Music toggle button
         this.createMusicToggleButton();
@@ -259,6 +272,27 @@ export class UIManager {
             const buttonY = insets.top + buttonPadding + buttonHalfHeight;
             this.leaderboardButton.setPosition(buttonX, buttonY);
         }
+
+        // Position player name text below the top-right buttons
+        if (this.playerNameText) {
+            const namePadding = 16;
+            let topRightBottom = insets.top + namePadding;
+            if (this.musicToggleButton) {
+                topRightBottom = Math.max(
+                    topRightBottom,
+                    this.musicToggleButton.y + this.musicToggleButton.displayHeight * 0.5
+                );
+            }
+            if (this.leaderboardButton) {
+                topRightBottom = Math.max(
+                    topRightBottom,
+                    this.leaderboardButton.y + this.leaderboardButton.displayHeight * 0.5
+                );
+            }
+            const nameX = width - insets.right - namePadding;
+            const nameY = topRightBottom + 8 + (this.playerNameText.displayHeight * 0.5);
+            this.playerNameText.setPosition(nameX, nameY);
+        }
     }
 
     layoutTouchControls() {
@@ -306,6 +340,15 @@ export class UIManager {
         if (this.levelText) {
             this.levelText.setText(`Level: ${level}`);
         }
+    }
+
+    updatePlayerName(playerName) {
+        if (!this.playerNameText) {
+            return;
+        }
+        const trimmedName = typeof playerName === 'string' ? playerName.trim() : '';
+        const displayName = trimmedName.length ? trimmedName : 'Anonymous';
+        this.playerNameText.setText(`Player: ${displayName}`);
     }
 
     toggleLeaderboardOverlay() {
@@ -416,6 +459,7 @@ export class UIManager {
             this.timerText,
             this.levelText,
             this.text,
+            this.playerNameText,
             this.musicToggleButton,
             this.leaderboardButton,
             this.leaderboardTextObject,
