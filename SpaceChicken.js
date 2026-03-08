@@ -813,6 +813,13 @@ class SpaceChicken extends Phaser.Scene {
         this.gameOver = true;
         this.restartDelayDone = false;
         this.time.delayedCall(GAME_CONSTANTS.RESTART_DELAY, () => { this.restartDelayDone = true; });
+        if (this.bombSpawnEvent) {
+            this.bombSpawnEvent.remove(false);
+            this.bombSpawnEvent = null;
+        }
+        if (this.bombs) {
+            this.bombs.clear(true, true);
+        }
         this.physics.pause();
         this.player.setTint(0x00ff00);
         this.crown.disableBody(true, true);
@@ -857,14 +864,6 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     update() {
-        // Skip updates if game is paused
-        if (this.physics.world.isPaused) {
-            return;
-        }
-
-        // Update timer in UI
-        this.uiManager.updateTimer(performance.now() - this.startTime);
-
         const inputState = this.handleInput();
         const {
             spaceJustPressed,
@@ -889,6 +888,15 @@ class SpaceChicken extends Phaser.Scene {
             }
             return;
         }
+
+        // Skip gameplay updates if physics is paused for non-game-over states
+        if (this.physics.world.isPaused) {
+            this.jumpRequested = false;
+            return;
+        }
+
+        // Update timer in UI
+        this.uiManager.updateTimer(performance.now() - this.startTime);
 
         // Jump handling
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
@@ -1115,12 +1123,22 @@ class SpaceChicken extends Phaser.Scene {
             }
         });
 
-        const pointerJumpTriggered = !this.uiManager.jumpButton && activePointers.some(pointer => {
+        const pointerJumpTriggered = !jumpButton && activePointers.some(pointer => {
             if (this.jumpPointerId !== null && pointer.id === this.jumpPointerId) {
                 return false;
             }
             if (!pointer.justUp) {
                 return false;
+            }
+            const pointerX = (typeof pointer.x === 'number') ? pointer.x : pointer.worldX;
+            const pointerY = (typeof pointer.y === 'number') ? pointer.y : pointer.worldY;
+            const hasCoordinates = typeof pointerX === 'number' && typeof pointerY === 'number';
+            if (hasCoordinates) {
+                const isOnMusicToggle = this.isPointerOverGameObject(pointerX, pointerY, musicToggleButton);
+                const isOnLeaderboardButton = this.isPointerOverGameObject(pointerX, pointerY, leaderboardButton);
+                if (isOnMusicToggle || isOnLeaderboardButton) {
+                    return false;
+                }
             }
             const downTime = (typeof pointer.downTime === 'number') ? pointer.downTime : 0;
             const upTime = (typeof pointer.upTime === 'number') ? pointer.upTime : downTime + 201;

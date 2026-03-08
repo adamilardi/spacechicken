@@ -7,11 +7,22 @@ const PORT = 3000;
 const HOST = 'localhost';
 
 const server = http.createServer((req, res) => {
-    let filePath = req.url === '/' ? '/index.html' : req.url;
-    filePath = path.join(__dirname, filePath);
+    const rawUrl = typeof req.url === 'string' ? req.url : '/';
+    const pathOnly = rawUrl.split('?')[0];
+    let decodedPath;
+    try {
+        decodedPath = decodeURIComponent(pathOnly);
+    } catch (err) {
+        res.writeHead(400);
+        res.end('Bad request');
+        return;
+    }
+    const requestPath = decodedPath === '/' ? '/index.html' : decodedPath;
+    const filePath = path.resolve(__dirname, `.${requestPath}`);
+    const relativePath = path.relative(__dirname, filePath);
 
     // Security: don't allow access outside the current directory
-    if (!filePath.startsWith(__dirname)) {
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
         res.writeHead(403);
         res.end('Access forbidden');
         return;

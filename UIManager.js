@@ -150,7 +150,17 @@ export class UIManager {
         if (this.scene.pointerTapTimes && typeof this.scene.pointerTapTimes.clear === 'function') {
             this.scene.pointerTapTimes.clear();
         }
-        this.scene.input.addPointer(2);
+        if (this.scene.input && typeof this.scene.input.addPointer === 'function') {
+            const desiredPointerTotal = 3;
+            const manager = this.scene.input.manager;
+            const currentPointerTotal = (manager && typeof manager.pointersTotal === 'number')
+                ? manager.pointersTotal
+                : (Array.isArray(this.scene.input.pointers) ? this.scene.input.pointers.length : 0);
+            const pointersToAdd = Math.max(0, desiredPointerTotal - currentPointerTotal);
+            if (pointersToAdd > 0) {
+                this.scene.input.addPointer(pointersToAdd);
+            }
+        }
 
         // Jump button
         this.jumpButton = this.scene.add.image(0, 0, 'jumpBtn');
