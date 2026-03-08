@@ -138,31 +138,102 @@ export class LevelConfig {
             case 1:
                 return {
                     type: 'space',
-                    starCount: GAME_CONSTANTS.BACKGROUND_STAR_COUNT_DEFAULT,
-                    planetCount: GAME_CONSTANTS.BACKGROUND_PLANET_COUNT_DEFAULT,
-                    color: 0x000000
+                    style: 'dreamcastSunrise',
+                    starCount: 140,
+                    planetCount: 3,
+                    color: 0x06101f,
+                    palette: {
+                        top: 0x06101f,
+                        mid: 0x0f4e7a,
+                        bottom: 0xffa563,
+                        haze: 0x87ebff,
+                        glow: 0xffd79a,
+                        grid: 0x64d8ff,
+                        accent: 0xff8358,
+                        silhouetteFar: 0x0d1526,
+                        silhouetteNear: 0x07101a
+                    }
                 };
             case 2:
                 return {
                     type: 'space',
-                    starCount: 150,
-                    planetCount: 8,
-                    color: 0x000000
+                    style: 'arcadeOrbit',
+                    starCount: 180,
+                    planetCount: 4,
+                    color: 0x090418,
+                    palette: {
+                        top: 0x090418,
+                        mid: 0x34115a,
+                        bottom: 0xff7a58,
+                        haze: 0x8ce4ff,
+                        glow: 0xffc86f,
+                        grid: 0x63d5ff,
+                        accent: 0xff6faf,
+                        silhouetteFar: 0x120822,
+                        silhouetteNear: 0x080411
+                    },
+                    planetTemplates: [
+                        { color: 0x3568c0, size: 58 },
+                        { color: 0xf06d57, size: 44 },
+                        { color: 0x7f62cf, size: 36 },
+                        { color: 0x37b0a1, size: 40 }
+                    ]
                 };
             case 3:
                 return {
                     type: 'station',
-                    starCount: 110,
+                    starCount: 68,
                     planetCount: 1,
+                    style: 'orbitalDreamcast',
                     color: 0x050914,
-                    disablePlanet: false
+                    disablePlanet: false,
+                    ribbonCount: 1,
+                    nebulaCount: 1,
+                    frameCount: 1,
+                    moduleStride: 420,
+                    moduleBeaconChance: 0.25,
+                    catwalkStep: 360,
+                    catwalkLightStep: 44,
+                    deckLightStep: 260,
+                    showDeckLights: false,
+                    moduleDetail: {
+                        panelRows: [1, 2],
+                        panelCols: [2, 3],
+                        windowCount: [4, 8],
+                        antennaHeight: [18, 34]
+                    },
+                    scanlineAlpha: 0.02,
+                    palette: {
+                        top: 0x040915,
+                        mid: 0x102544,
+                        bottom: 0x1f5d7a,
+                        haze: 0x87f0ff,
+                        glow: 0xffc87c,
+                        metal: 0x18253a,
+                        metalAlt: 0x243657,
+                        highlight: 0x9ee5ff,
+                        accent: 0xff9745,
+                        shadow: 0x09111d
+                    }
                 };
             default:
                 return {
                     type: 'space',
+                    style: 'dreamcastSunrise',
                     starCount: GAME_CONSTANTS.BACKGROUND_STAR_COUNT_DEFAULT,
                     planetCount: GAME_CONSTANTS.BACKGROUND_PLANET_COUNT_DEFAULT,
-                    color: 0x000000
+                    color: 0x06101f,
+                    palette: {
+                        top: 0x06101f,
+                        mid: 0x0f4e7a,
+                        bottom: 0xffa563,
+                        haze: 0x87ebff,
+                        glow: 0xffd79a,
+                        grid: 0x64d8ff,
+                        accent: 0xff8358,
+                        silhouetteFar: 0x0d1526,
+                        silhouetteNear: 0x07101a
+                    }
                 };
         }
     }

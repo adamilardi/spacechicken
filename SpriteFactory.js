@@ -203,56 +203,105 @@ export class SpriteFactory {
             crownCanvas.width = 32;
             crownCanvas.height = 32;
             const ctx = crownCanvas.getContext('2d');
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(0, 0, 32, 32);
-            // Draw golden crown
-            ctx.fillStyle = '#ffed4a';
-            ctx.strokeStyle = '#ffa500';
+            const goldGradient = ctx.createLinearGradient(0, 8, 0, 28);
+            goldGradient.addColorStop(0, '#fff3a6');
+            goldGradient.addColorStop(0.35, '#ffd74f');
+            goldGradient.addColorStop(0.7, '#e6a91c');
+            goldGradient.addColorStop(1, '#9a5c00');
+            const innerGold = ctx.createLinearGradient(0, 10, 0, 24);
+            innerGold.addColorStop(0, '#fff9c8');
+            innerGold.addColorStop(0.45, '#ffd85e');
+            innerGold.addColorStop(1, '#c68108');
+
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // Ground shadow so the transparent sprite still has depth.
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+            ctx.beginPath();
+            ctx.ellipse(16, 28, 9, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Main silhouette.
+            ctx.fillStyle = goldGradient;
+            ctx.strokeStyle = '#8a4f00';
             ctx.lineWidth = 2;
-            // Main crown body
-            ctx.fillRect(4, 20, 24, 8);
-            ctx.strokeRect(4, 20, 24, 8);
-            // Jewels/spikes
             ctx.beginPath();
-            ctx.moveTo(6, 20);
-            ctx.lineTo(8, 14);
-            ctx.lineTo(10, 20);
-            ctx.moveTo(11, 20);
-            ctx.lineTo(13, 12);
-            ctx.lineTo(15, 20);
-            ctx.moveTo(16, 20);
-            ctx.lineTo(18, 10);
-            ctx.lineTo(20, 20);
-            ctx.moveTo(21, 20);
-            ctx.lineTo(23, 14);
-            ctx.lineTo(25, 20);
-            ctx.moveTo(26, 20);
-            ctx.lineTo(28, 14);
-            ctx.lineTo(30, 20);
+            ctx.moveTo(5, 25);
+            ctx.lineTo(7, 18);
+            ctx.lineTo(10, 12);
+            ctx.lineTo(13, 18);
+            ctx.lineTo(16, 8);
+            ctx.lineTo(19, 18);
+            ctx.lineTo(22, 12);
+            ctx.lineTo(25, 18);
+            ctx.lineTo(27, 25);
+            ctx.closePath();
+            ctx.fill();
             ctx.stroke();
-            // Fill spikes with gold
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(6, 20, 4, 8);
-            ctx.fillRect(11, 20, 4, 8);
-            ctx.fillRect(16, 20, 4, 8);
-            ctx.fillRect(21, 20, 4, 8);
-            ctx.fillRect(26, 20, 4, 8);
-            // Jewels on spikes
-            ctx.fillStyle = '#ff0000'; // Ruby
+
+            // Velvet band and lower trim.
+            ctx.fillStyle = '#7f1533';
+            ctx.fillRect(6, 20, 20, 6);
+            ctx.fillStyle = '#5e0f26';
+            ctx.fillRect(6, 24, 20, 2);
+            ctx.strokeStyle = '#f6c94e';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(6, 20, 20, 6);
+            ctx.strokeRect(7, 18, 18, 2);
+
+            // Inner gold bevel to stop it reading as a flat icon.
+            ctx.fillStyle = innerGold;
             ctx.beginPath();
-            ctx.arc(7, 17, 1, 0, Math.PI * 2);
+            ctx.moveTo(8, 23);
+            ctx.lineTo(10, 17);
+            ctx.lineTo(12.6, 14.4);
+            ctx.lineTo(15, 19);
+            ctx.lineTo(16, 14.5);
+            ctx.lineTo(17, 19);
+            ctx.lineTo(19.4, 14.4);
+            ctx.lineTo(22, 17);
+            ctx.lineTo(24, 23);
+            ctx.closePath();
             ctx.fill();
-            ctx.arc(12, 15, 1, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#0000ff'; // Sapphire
+
+            // Gem settings.
+            ctx.fillStyle = '#4c0013';
+            ctx.fillRect(9, 21, 4, 3);
+            ctx.fillRect(14, 20, 4, 4);
+            ctx.fillRect(19, 21, 4, 3);
+
+            ctx.fillStyle = '#e9415d';
+            ctx.fillRect(9.5, 21.5, 3, 2);
+            ctx.fillStyle = '#4cb5ff';
+            ctx.fillRect(14.5, 20.5, 3, 3);
+            ctx.fillStyle = '#3bdc8d';
+            ctx.fillRect(19.5, 21.5, 3, 2);
+
+            // Top jewels / pearls.
+            ctx.fillStyle = '#fff3b0';
+            [10, 16, 22].forEach((x) => {
+                ctx.beginPath();
+                ctx.arc(x, x === 16 ? 10 : 14, 1.3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Specular highlights.
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.arc(17, 13, 1, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#00ff00'; // Emerald
+            ctx.moveTo(9, 18);
+            ctx.lineTo(11, 14);
+            ctx.moveTo(15.2, 15.2);
+            ctx.lineTo(16, 11.2);
+            ctx.moveTo(21, 18);
+            ctx.lineTo(23, 14);
+            ctx.stroke();
+
+            // Tiny spark on the center jewel.
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
             ctx.beginPath();
-            ctx.arc(22, 17, 1, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.arc(27, 17, 1, 0, Math.PI * 2);
+            ctx.arc(16, 21, 0.8, 0, Math.PI * 2);
             ctx.fill();
             this.scene.textures.addCanvas('crown', crownCanvas);
         }
