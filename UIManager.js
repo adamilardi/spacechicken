@@ -57,6 +57,17 @@ export class UIManager {
         this.playerNameText.setOrigin(1, 0.5);
         this.playerNameText.setScrollFactor(0);
         this.playerNameText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.playerNameText.setInteractive({ useHandCursor: true });
+        this.playerNameText.on('pointerdown', () => {
+            this.playerNameText.setTint(0xcde6ff);
+        });
+        this.playerNameText.on('pointerup', () => {
+            this.playerNameText.clearTint();
+            this.editPlayerName();
+        });
+        this.playerNameText.on('pointerout', () => {
+            this.playerNameText.clearTint();
+        });
         this.updatePlayerName(playerName);
 
         // Music toggle button
@@ -359,6 +370,16 @@ export class UIManager {
         const trimmedName = typeof playerName === 'string' ? playerName.trim() : '';
         const displayName = trimmedName.length ? trimmedName : 'Anonymous';
         this.playerNameText.setText(`Player: ${displayName}`);
+        this.layoutUI();
+    }
+
+    editPlayerName() {
+        if (!this.scene || !this.scene.leaderboardManager) {
+            return;
+        }
+        const playerName = this.scene.leaderboardManager.ensurePlayerName(true);
+        this.scene.playerName = playerName;
+        this.updatePlayerName(playerName);
     }
 
     toggleLeaderboardOverlay() {

@@ -293,31 +293,32 @@ export class LeaderboardManager {
 
     ensurePlayerName(forcePrompt = false) {
         const storedName = this.loadPlayerName();
-        const currentTrimmed = typeof this.playerName === 'string' ? this.playerName.trim() : '';
+        const managerName = typeof this.playerName === 'string' ? this.playerName.trim() : '';
+        const sceneName = this.scene && typeof this.scene.playerName === 'string'
+            ? this.scene.playerName.trim()
+            : '';
+        const currentName = storedName || managerName || sceneName;
+
         if (!forcePrompt) {
-            if (storedName) {
-                this.playerName = storedName;
-                return storedName;
-            }
-            if (currentTrimmed) {
-                return currentTrimmed;
-            }
-        }
-        if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
-            const fallback = currentTrimmed || 'Anonymous';
+            const fallback = currentName || 'Anonymous';
             this.playerName = fallback;
             return fallback;
         }
-        const defaultValue = storedName || currentTrimmed;
+        if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
+            const fallback = currentName || 'Anonymous';
+            this.playerName = fallback;
+            return fallback;
+        }
+        const defaultValue = currentName;
         const response = window.prompt('Enter your name for the leaderboard:', defaultValue);
         let finalName;
         if (response === null) {
-            finalName = currentTrimmed;
+            finalName = currentName;
         } else {
             finalName = response.trim();
         }
         if (!finalName) {
-            finalName = currentTrimmed || 'Anonymous';
+            finalName = currentName || 'Anonymous';
         }
         this.playerName = finalName;
         this.savePlayerName(finalName);

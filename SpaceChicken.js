@@ -15,6 +15,8 @@ class SpaceChicken extends Phaser.Scene {
         this.deathCount = data.deathCount || 0;
         this.startTime = 0;
         this.gameOver = false;
+        this.isTransitioning = false;
+        this.pendingSceneData = null;
         this.maxJumps = GAME_CONSTANTS.MAX_JUMPS;
         this.jumpCount = 0;
         this.isJetpacking = false;
@@ -140,6 +142,7 @@ class SpaceChicken extends Phaser.Scene {
 
         // Setup physics
         this.physics.world.gravity.y = this.levelConfig.gravity;
+        this.physics.resume();
 
         // Set up timer
         this.startTime = performance.now();
@@ -795,6 +798,9 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     collectGem() {
+        if (this.isTransitioning || this.gameOver) {
+            return;
+        }
         const levelTime = performance.now() - this.startTime;
         const playerName = this.leaderboardManager.ensurePlayerName(false);
         this.playerName = playerName;
@@ -805,24 +811,18 @@ class SpaceChicken extends Phaser.Scene {
         this.audioManager.playCollectSound();
 
         if (this.levelConfig.nextLevel) {
-            this.scene.restart({ level: this.levelConfig.nextLevel, deathCount: this.deathCount });
+            this.crown.disableBody(true, true);
+            this.queueSceneStart({ level: this.levelConfig.nextLevel, deathCount: this.deathCount });
             return;
         }
 
         this.finalTime = levelTime;
         this.gameOver = true;
+        this.isTransitioning = true;
         this.restartDelayDone = false;
         this.time.delayedCall(GAME_CONSTANTS.RESTART_DELAY, () => { this.restartDelayDone = true; });
-        if (this.bombSpawnEvent) {
-            this.bombSpawnEvent.remove(false);
-            this.bombSpawnEvent = null;
-        }
-        if (this.bombs) {
-            this.bombs.clear(true, true);
-        }
-        this.physics.pause();
+        this.stopActiveGameplay();
         this.player.setTint(0x00ff00);
-        this.crown.disableBody(true, true);
         this.cameras.main.stopFollow();
         this.cameras.main.scrollX = 0;
         this.uiManager.showGameOver(this.finalTime);
@@ -839,7 +839,41 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     restartLevel() {
-        this.scene.restart({ level: this.level, deathCount: this.deathCount + 1 });
+        if (this.isTransitioning || this.gameOver) {
+            return;
+        }
+        this.queueSceneStart({ level: this.level, deathCount: this.deathCount + 1 });
+    }
+
+    queueSceneStart(data) {
+        if (this.isTransitioning) {
+            return;
+        }
+        this.isTransitioning = true;
+        this.pendingSceneData = data;
+        if (this.player && this.player.body) {
+            this.player.body.enable = false;
+        }
+        this.stopActiveGameplay({ pausePhysics: false });
+        this.time.delayedCall(0, () => {
+            const nextSceneData = this.pendingSceneData;
+            this.pendingSceneData = null;
+            this.scene.start(this.scene.key, nextSceneData);
+        });
+    }
+
+    stopActiveGameplay(options = {}) {
+        const pausePhysics = options.pausePhysics !== false;
+        if (this.bombSpawnEvent) {
+            this.bombSpawnEvent.remove(false);
+            this.bombSpawnEvent = null;
+        }
+        if (this.bombs) {
+            this.bombs.clear(true, true);
+        }
+        if (pausePhysics && this.physics && this.physics.world) {
+            this.physics.pause();
+        }
     }
 
     spawnBomb() {
@@ -1040,13 +1074,10 @@ class SpaceChicken extends Phaser.Scene {
             this.dynamicHazardEvents = [];
         }
 
-        if (this.dynamicHazardsGroup) {
-            this.dynamicHazardsGroup.clear(true, true);
-            this.dynamicHazardsGroup = null;
-        }
-        if (this.bombs) {
-            this.bombs.clear(true, true);
-        }
+        // Phaser destroys physics groups during scene shutdown. Clearing them again here
+        // can throw because the group internals have already been disposed.
+        this.dynamicHazardsGroup = null;
+        this.bombs = null;
 
         // Clean up pointer tracking
         if (this.pointerTapTimes) {
