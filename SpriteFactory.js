@@ -10,65 +10,119 @@ export class SpriteFactory {
             return;
         }
 
-        // Function to draw a chicken frame
-        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend) {
-            // Body (ellipse)
-            ctx.fillStyle = '#ffff00';
+        // Function to draw a much nicer chicken frame
+        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend, isJetpack = false) {
+            ctx.imageSmoothingEnabled = false;
+
+            // Body - rounded and fluffy
+            ctx.fillStyle = '#ffeb3b';
             ctx.beginPath();
-            ctx.ellipse(16, 24, 8, 6, 0, 0, Math.PI * 2);
+            ctx.ellipse(16, 23, 9, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#f9a825';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Feather highlights on body
+            ctx.fillStyle = '#fff59d';
+            ctx.beginPath();
+            ctx.ellipse(13, 21, 4, 2.5, -0.3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Head (circle)
+            // Head
+            ctx.fillStyle = '#ffeb3b';
             ctx.beginPath();
-            ctx.arc(16, 16, 6, 0, Math.PI * 2);
+            ctx.arc(16, 15, 6.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#f9a825';
+            ctx.stroke();
+
+            // Comb (red)
+            ctx.fillStyle = '#e53935';
+            ctx.beginPath();
+            ctx.moveTo(14, 9);
+            ctx.lineTo(16, 5);
+            ctx.lineTo(18, 9);
             ctx.fill();
 
-            // Beak (triangle)
-            ctx.fillStyle = '#ffa500';
+            // Beak (better shape)
+            ctx.fillStyle = '#ff9800';
             ctx.beginPath();
-            ctx.moveTo(22, 18);
-            ctx.lineTo(24, 16);
-            ctx.lineTo(22, 20);
-            ctx.closePath();
+            ctx.moveTo(22, 16);
+            ctx.lineTo(27, 15);
+            ctx.lineTo(22, 18);
+            ctx.fill();
+            ctx.fillStyle = '#f57c00';
+            ctx.beginPath();
+            ctx.moveTo(22, 17);
+            ctx.lineTo(26, 16.5);
+            ctx.lineTo(22, 18.5);
             ctx.fill();
 
-            // Eye (black dot)
+            // Eye with shine
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(18.5, 13.5, 2.2, 0, Math.PI * 2);
+            ctx.fill();
             ctx.fillStyle = '#000';
             ctx.beginPath();
-            ctx.arc(18, 14, 1, 0, Math.PI * 2);
+            ctx.arc(19, 13.8, 1.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(19.3, 13.4, 0.5, 0, Math.PI * 2);
             ctx.fill();
 
             // Legs
-            ctx.strokeStyle = '#ffa500';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ff9800';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
             ctx.beginPath();
             if (legBend) {
-                // Bent legs for jump
-                ctx.moveTo(12, 28);
-                ctx.lineTo(12 - 2, 30);
-                ctx.lineTo(10, 32);
-                ctx.moveTo(20, 28);
-                ctx.lineTo(20 + 2, 30);
-                ctx.lineTo(22, 32);
+                // Bent jump pose
+                ctx.moveTo(11, 28);
+                ctx.quadraticCurveTo(9, 32, 8, 35);
+                ctx.moveTo(21, 28);
+                ctx.quadraticCurveTo(23, 32, 24, 35);
             } else {
-                // Walking legs
-                ctx.moveTo(12, 28);
-                ctx.lineTo(legLeftX, 32);
-                ctx.moveTo(20, 28);
-                ctx.lineTo(legRightX, 32);
+                ctx.moveTo(11, 28);
+                ctx.lineTo(legLeftX, 34);
+                ctx.moveTo(21, 28);
+                ctx.lineTo(legRightX, 34);
             }
             ctx.stroke();
 
-            // Wings (triangles, rotated for animation)
-            ctx.fillStyle = '#ffff99';
+            // Toes
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            if (!legBend) {
+                ctx.moveTo(legLeftX - 1, 34);
+                ctx.lineTo(legLeftX + 3, 34);
+                ctx.moveTo(legRightX - 3, 34);
+                ctx.lineTo(legRightX + 1, 34);
+            }
+            ctx.stroke();
+
+            // Wings (much better)
+            ctx.fillStyle = '#fdd835';
+            ctx.strokeStyle = '#f9a825';
+            ctx.lineWidth = 1;
             ctx.save();
-            ctx.translate(16, 24);
+            ctx.translate(16, 23);
             ctx.rotate(wingAngle);
             ctx.beginPath();
-            ctx.moveTo(-6, -2);
-            ctx.lineTo(-2, -2);
-            ctx.lineTo(-4, 2);
-            ctx.closePath();
+            ctx.ellipse(-3, 0, 7, 4, wingAngle * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // Wing highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.save();
+            ctx.translate(16, 23);
+            ctx.rotate(wingAngle);
+            ctx.beginPath();
+            ctx.ellipse(-4, -1, 3, 1.5, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
