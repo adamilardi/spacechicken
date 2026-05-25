@@ -1,0 +1,25 @@
+{
+  "name": "space-chicken",
+  "version": "1.0.0",
+  "description": "Space Chicken - Modular Phaser 3 platformer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.cjs",
+    "lint": "eslint \"**/*.js\" --ignore-pattern archive/ --ignore-pattern node_modules/",
+    "lint:fix": "eslint \"**/*.js\" --fix --ignore-pattern archive/ --ignore-pattern node_modules/",
+    "format": "prettier --write \"**/*.js\" \"**/*.html\" \"**/*.md\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.js\" \"**/*.html\" \"**/*.md\" --ignore-path .prettierignore",
+    "test": "node test-modules.cjs",
+    "check": "npm run lint && npm run format:check"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

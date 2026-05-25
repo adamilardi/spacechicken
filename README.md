@@ -1,84 +1,97 @@
-# 🚀 Space Chicken Game - Refactored Modular Version
+# 🚀 Space Chicken Game
 
-## 🎯 Refactoring Summary
+A modular, browser-based Phaser 3 platformer with 3 challenging levels, procedural graphics, dynamic audio, touch controls, and local + optional Firebase leaderboards.
 
-This project has been completely refactored from a monolithic 2000+ line `game.js` file into a clean, modular architecture with better separation of concerns and maintainability.
+## 📁 Project Structure
 
-### 📁 New Modular Structure
-
-- **`Constants.js`** - All game constants, magic numbers, and configuration
-- **`AudioManager.js`** - Web Audio API handling, music, sound effects
-- **`LevelConfig.js`** - Level definitions, platform layouts, hazards
-- **`UIManager.js`** - HUD elements, touch controls, leaderboard display
-- **`LeaderboardManager.js`** - Local storage and Firebase leaderboard integration
-- **`SpriteFactory.js`** - Procedural graphics generation for all sprites
-- **`SpaceChicken.js`** - Clean main game class using modular managers
-
-### ✅ Key Improvements
-
-- **Separation of Concerns** - Each module has a single responsibility
-- **Error Handling** - Comprehensive error handling throughout all modules
-- **Maintainability** - Code is now organized into logical, manageable units
-- **Constants Management** - All magic numbers centralized for easy tuning
-- **Modular Architecture** - Components can be updated independently
-- **Functionality Preserved** - All original game features work identically
-
-### 🎮 How to Run
-
-#### Option 1: Via Development Server (Recommended)
-```bash
-# Start the development server
-node server.js
-
-# Then open in browser:
-# http://localhost:3000
+```
+spacechicken/
+├── index.html              # Entry point (loads modular ES6 scripts)
+├── server.js               # Lightweight dev server for ES modules
+├── SpaceChicken.js         # Main Phaser Scene (orchestrates gameplay)
+├── Constants.js            # All game constants & level definitions
+├── LevelConfig.js          # Per-level data (platforms, hazards, gravity, etc.)
+├── SpriteFactory.js        # Procedural canvas-based sprite generation
+├── AudioManager.js         # Web Audio API music + SFX
+├── UIManager.js            # HUD, touch controls, leaderboards UI
+├── LeaderboardManager.js   # localStorage + optional Firebase sync
+├── .gitignore
+└── archive/
+    └── old-versions/       # Historical monolithic code (see archive README)
 ```
 
-#### Option 2: Via VS Code Live Server or Python HTTP Server
+**Active game code is entirely in the root modular files.** The `archive/` directory contains pre-refactor artifacts for reference only.
+
+## 🎯 Refactoring History
+
+This project was refactored from a single ~2,800 line `game.js` monolith into focused, single-responsibility modules. The old code has been moved to `archive/old-versions/` so the repository stays clean while preserving history.
+
+### Key Improvements
+
+- **Separation of Concerns** — Each module has one job
+- **Constants Management** — All magic numbers live in `Constants.js`
+- **Error Handling & Defensiveness** — Robust guards around storage, audio, input, and Phaser APIs
+- **Maintainability** — Easy to add levels, hazards, or new managers
+- **Procedural Graphics** — All sprites generated at runtime via canvas (no external assets required)
+
+## 🎮 How to Run
+
+### Recommended: Development Server
+
 ```bash
-# Python 3
-python -m http.server 3000
-
-# Python 2
-python -m SimpleHTTPServer 3000
-
-# Then open: http://localhost:3000
+node server.cjs
+# Then open http://localhost:3000 (or http://<ip>:3000 from another device)
 ```
 
-### 🧪 Testing
-All modules have been tested for:
-- ✅ ES6 module syntax
-- ✅ Bracket/brace balancing
-- ✅ Import/export statements
-- ✅ File integrity
+### Alternative
 
-### 🎵 Game Features
-- **Multiple Levels** - 3 challenging levels with increasing difficulty
-- **Audio System** - Web Audio API with dynamic level music and sound effects
-- **Touch Controls** - Full mobile and desktop touch support
-- **Leaderboards** - Local storage + Firebase integration
-- **Progressive Gameplay** - Collect crown to advance levels
-- **Physics Hazards** - Lasers, drones, bombs, and falling platforms
-- **Procedural Graphics** - All sprites generated via canvas
+- VS Code Live Server extension
+- `python -m http.server 3000`
+- Any static file server that supports ES modules
 
-### 🏗️ Architecture Benefits
+## 🧪 Testing & Quality
 
-**Before:** One massive 2000+ line file
-**After:** 7 focused, reusable modules
+- `test-modules.cjs` — basic syntax and bracket balance checks (run with `node test-modules.cjs`)
+- All modules use ES6 `import`/`export`
+- The game runs entirely in the browser with no build step required
 
-Each module is:
-- **Focused** - Single responsibility
-- **Testable** - Can be unit tested independently
-- **Reusable** - Logic can be used in other projects
-- **Maintainable** - Easy to understand and modify
+For better long-term quality, ESLint + Prettier have been added (see below).
 
-### 🚀 Future Enhancements
+## 🎵 Game Features
 
-With this modular structure, you can easily:
-- Add new levels (edit `LevelConfig.js`)
-- Add new audio effects (extend `AudioManager.js`)
-- Add new UI elements (extend `UIManager.js`)
-- Add new sprite types (extend `SpriteFactory.js`)
-- Modify game constants (update `Constants.js`)
+- 3 levels with increasing difficulty and distinct visual/audio themes
+- Web Audio API music + sound effects (with mute toggle)
+- Full keyboard (WASD/arrows/space) + touch controls (including double-tap jump)
+- Moving platforms, lasers, patrolling drones, physics bombs
+- Collect the crown to advance
+- Local leaderboards + optional Firebase real-time sync
+- Fully responsive (resizes with the browser)
 
-The refactored codebase provides a solid foundation for future game development and maintenance! 🎉
+## 🛠️ Development
+
+### Adding ESLint + Prettier (recommended)
+
+```bash
+npm install
+npm run lint
+npm run lint:fix
+npm run format
+```
+
+See `package.json` scripts and the generated `.eslintrc.cjs` / `.prettierrc` for configuration.
+
+### Future Enhancements (easy with current architecture)
+
+- New levels → edit `LevelConfig.js`
+- New hazards/sprites → extend `SpriteFactory.js` + `LevelConfig`
+- Audio improvements → `AudioManager.js`
+- UI polish → `UIManager.js`
+- Different persistence backends → `LeaderboardManager.js`
+
+## 📜 License
+
+This is a personal/hobby project. Feel free to study the modular architecture and procedural graphics techniques.
+
+---
+
+**The current modular version is the canonical, maintained source.** The archive exists purely for historical interest.

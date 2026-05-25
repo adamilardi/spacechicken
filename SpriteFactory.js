@@ -11,7 +11,7 @@ export class SpriteFactory {
         }
 
         // Function to draw a much nicer chicken frame
-        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend, isJetpack = false) {
+        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend, _isJetpack = false) {
             ctx.imageSmoothingEnabled = false;
 
             // Body - rounded and fluffy
@@ -129,59 +129,59 @@ export class SpriteFactory {
 
         // Walking frames: alternate leg positions for walking motion
         // Frame 1: wings up, left leg back, right leg forward
-        let chicken1 = document.createElement('canvas');
+        const chicken1 = document.createElement('canvas');
         chicken1.width = 32;
         chicken1.height = 32;
-        let ctx1 = chicken1.getContext('2d');
+        const ctx1 = chicken1.getContext('2d');
         drawChicken(ctx1, Math.PI / 6, 10, 22, false);
         this.scene.textures.addCanvas('chicken1', chicken1);
 
         // Frame 2: wings down, legs switch
-        let chicken2 = document.createElement('canvas');
+        const chicken2 = document.createElement('canvas');
         chicken2.width = 32;
         chicken2.height = 32;
-        let ctx2 = chicken2.getContext('2d');
+        const ctx2 = chicken2.getContext('2d');
         drawChicken(ctx2, -Math.PI / 6, 14, 18, false);
         this.scene.textures.addCanvas('chicken2', chicken2);
 
         // Frame 3: wings up, right leg back, left leg forward
-        let chicken3 = document.createElement('canvas');
+        const chicken3 = document.createElement('canvas');
         chicken3.width = 32;
         chicken3.height = 32;
-        let ctx3 = chicken3.getContext('2d');
+        const ctx3 = chicken3.getContext('2d');
         drawChicken(ctx3, Math.PI / 6, 10, 22, false);
         this.scene.textures.addCanvas('chicken3', chicken3);
 
         // Frame 4: wings down, legs switch back
-        let chicken4 = document.createElement('canvas');
+        const chicken4 = document.createElement('canvas');
         chicken4.width = 32;
         chicken4.height = 32;
-        let ctx4 = chicken4.getContext('2d');
+        const ctx4 = chicken4.getContext('2d');
         drawChicken(ctx4, -Math.PI / 6, 14, 18, false);
         this.scene.textures.addCanvas('chicken4', chicken4);
 
         // Jump frame: wings neutral, legs bent
-        let chicken_jump = document.createElement('canvas');
+        const chicken_jump = document.createElement('canvas');
         chicken_jump.width = 32;
         chicken_jump.height = 32;
-        let ctx_jump = chicken_jump.getContext('2d');
+        const ctx_jump = chicken_jump.getContext('2d');
         drawChicken(ctx_jump, 0, 0, 0, true);
         this.scene.textures.addCanvas('chicken_jump', chicken_jump);
 
         // Jetpack frame 1: compact exhaust
-        let chicken_jetpack1 = document.createElement('canvas');
+        const chicken_jetpack1 = document.createElement('canvas');
         chicken_jetpack1.width = 32;
         chicken_jetpack1.height = 32;
-        let ctx_jetpack1 = chicken_jetpack1.getContext('2d');
+        const ctx_jetpack1 = chicken_jetpack1.getContext('2d');
         drawChicken(ctx_jetpack1, 0, 0, 0, true);
         this.drawJetpack(ctx_jetpack1, 1);
         this.scene.textures.addCanvas('chicken_jetpack1', chicken_jetpack1);
 
         // Jetpack frame 2: stretched exhaust
-        let chicken_jetpack2 = document.createElement('canvas');
+        const chicken_jetpack2 = document.createElement('canvas');
         chicken_jetpack2.width = 32;
         chicken_jetpack2.height = 32;
-        let ctx_jetpack2 = chicken_jetpack2.getContext('2d');
+        const ctx_jetpack2 = chicken_jetpack2.getContext('2d');
         drawChicken(ctx_jetpack2, 0, 0, 0, true);
         this.drawJetpack(ctx_jetpack2, 2);
         this.scene.textures.addCanvas('chicken_jetpack2', chicken_jetpack2);
@@ -253,7 +253,7 @@ export class SpriteFactory {
 
     createCrown() {
         if (!this.scene.textures.exists('crown')) {
-            let crownCanvas = document.createElement('canvas');
+            const crownCanvas = document.createElement('canvas');
             crownCanvas.width = 32;
             crownCanvas.height = 32;
             const ctx = crownCanvas.getContext('2d');
@@ -363,7 +363,7 @@ export class SpriteFactory {
 
     createCliff() {
         if (!this.scene.textures.exists('cliff')) {
-            let cliffCanvas = document.createElement('canvas');
+            const cliffCanvas = document.createElement('canvas');
             cliffCanvas.width = 64;
             cliffCanvas.height = 64;
             const ctx = cliffCanvas.getContext('2d');
@@ -391,7 +391,7 @@ export class SpriteFactory {
 
     createRock() {
         if (!this.scene.textures.exists('rock')) {
-            let rockCanvas = document.createElement('canvas');
+            const rockCanvas = document.createElement('canvas');
             rockCanvas.width = 32;
             rockCanvas.height = 32;
             const ctx = rockCanvas.getContext('2d');
@@ -442,7 +442,7 @@ export class SpriteFactory {
 
     createBomb() {
         if (!this.scene.textures.exists('bomb')) {
-            let bombCanvas = document.createElement('canvas');
+            const bombCanvas = document.createElement('canvas');
             bombCanvas.width = 32;
             bombCanvas.height = 32;
             const ctx = bombCanvas.getContext('2d');
@@ -460,7 +460,7 @@ export class SpriteFactory {
 
     createStationPanel() {
         if (!this.scene.textures.exists('stationPanel')) {
-            let stationPanelCanvas = document.createElement('canvas');
+            const stationPanelCanvas = document.createElement('canvas');
             stationPanelCanvas.width = 96;
             stationPanelCanvas.height = 24;
             const ctx = stationPanelCanvas.getContext('2d');
@@ -482,7 +482,7 @@ export class SpriteFactory {
 
     createLiftPlatform() {
         if (!this.scene.textures.exists('liftPlatform')) {
-            let liftCanvas = document.createElement('canvas');
+            const liftCanvas = document.createElement('canvas');
             liftCanvas.width = 96;
             liftCanvas.height = 24;
             const ctx = liftCanvas.getContext('2d');
@@ -500,11 +500,11 @@ export class SpriteFactory {
 
     createLaserBeam() {
         if (!this.scene.textures.exists('laserBeam')) {
-            let laserCanvas = document.createElement('canvas');
+            const laserCanvas = document.createElement('canvas');
             laserCanvas.width = 16;
             laserCanvas.height = 16;
             const ctx = laserCanvas.getContext('2d');
-            let gradient = ctx.createLinearGradient(0, 0, 16, 0);
+            const gradient = ctx.createLinearGradient(0, 0, 16, 0);
             gradient.addColorStop(0, 'rgba(255, 0, 120, 0)');
             gradient.addColorStop(0.5, 'rgba(255, 0, 120, 1)');
             gradient.addColorStop(1, 'rgba(255, 0, 120, 0)');
@@ -516,7 +516,7 @@ export class SpriteFactory {
 
     createLaserEmitter() {
         if (!this.scene.textures.exists('laserEmitter')) {
-            let emitterCanvas = document.createElement('canvas');
+            const emitterCanvas = document.createElement('canvas');
             emitterCanvas.width = 24;
             emitterCanvas.height = 24;
             const ctx = emitterCanvas.getContext('2d');
@@ -534,7 +534,7 @@ export class SpriteFactory {
 
     createDrone() {
         if (!this.scene.textures.exists('drone')) {
-            let droneCanvas = document.createElement('canvas');
+            const droneCanvas = document.createElement('canvas');
             droneCanvas.width = 48;
             droneCanvas.height = 48;
             const ctx = droneCanvas.getContext('2d');
@@ -564,7 +564,7 @@ export class SpriteFactory {
 
     createLeftBtn() {
         if (!this.scene.textures.exists('leftBtn')) {
-            let leftBtnCanvas = document.createElement('canvas');
+            const leftBtnCanvas = document.createElement('canvas');
             leftBtnCanvas.width = 64;
             leftBtnCanvas.height = 64;
             const ctx = leftBtnCanvas.getContext('2d');
@@ -585,7 +585,7 @@ export class SpriteFactory {
 
     createRightBtn() {
         if (!this.scene.textures.exists('rightBtn')) {
-            let rightBtnCanvas = document.createElement('canvas');
+            const rightBtnCanvas = document.createElement('canvas');
             rightBtnCanvas.width = 64;
             rightBtnCanvas.height = 64;
             const ctx = rightBtnCanvas.getContext('2d');
@@ -604,7 +604,7 @@ export class SpriteFactory {
 
     createJumpBtn() {
         if (!this.scene.textures.exists('jumpBtn')) {
-            let jumpBtnCanvas = document.createElement('canvas');
+            const jumpBtnCanvas = document.createElement('canvas');
             jumpBtnCanvas.width = 64;
             jumpBtnCanvas.height = 64;
             const ctx = jumpBtnCanvas.getContext('2d');
@@ -622,8 +622,8 @@ export class SpriteFactory {
 
     createMusicToggleButtons() {
         if (!this.scene.textures.exists('musicToggleOn')) {
-            let musicSize = 48;
-            let musicOnCanvas = document.createElement('canvas');
+            const musicSize = 48;
+            const musicOnCanvas = document.createElement('canvas');
             musicOnCanvas.width = musicSize;
             musicOnCanvas.height = musicSize;
             const ctx = musicOnCanvas.getContext('2d');
@@ -635,8 +635,8 @@ export class SpriteFactory {
             ctx.moveTo(musicSize * 0.28, musicSize * 0.68);
             ctx.lineTo(musicSize * 0.28, musicSize * 0.32);
             ctx.lineTo(musicSize * 0.44, musicSize * 0.32);
-            ctx.lineTo(musicSize * 0.60, musicSize * 0.18);
-            ctx.lineTo(musicSize * 0.60, musicSize * 0.82);
+            ctx.lineTo(musicSize * 0.6, musicSize * 0.18);
+            ctx.lineTo(musicSize * 0.6, musicSize * 0.82);
             ctx.lineTo(musicSize * 0.44, musicSize * 0.68);
             ctx.closePath();
             ctx.fill();
@@ -644,20 +644,20 @@ export class SpriteFactory {
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.arc(musicSize * 0.60, musicSize * 0.5, musicSize * 0.16, -Math.PI / 3, Math.PI / 3);
+            ctx.arc(musicSize * 0.6, musicSize * 0.5, musicSize * 0.16, -Math.PI / 3, Math.PI / 3);
             ctx.stroke();
             ctx.beginPath();
-            ctx.arc(musicSize * 0.60, musicSize * 0.5, musicSize * 0.26, -Math.PI / 3, Math.PI / 3);
+            ctx.arc(musicSize * 0.6, musicSize * 0.5, musicSize * 0.26, -Math.PI / 3, Math.PI / 3);
             ctx.stroke();
             ctx.beginPath();
-            ctx.arc(musicSize * 0.60, musicSize * 0.5, musicSize * 0.36, -Math.PI / 3, Math.PI / 3);
+            ctx.arc(musicSize * 0.6, musicSize * 0.5, musicSize * 0.36, -Math.PI / 3, Math.PI / 3);
             ctx.stroke();
             this.scene.textures.addCanvas('musicToggleOn', musicOnCanvas);
         }
 
         if (!this.scene.textures.exists('musicToggleOff')) {
-            let musicSize = 48;
-            let musicOffCanvas = document.createElement('canvas');
+            const musicSize = 48;
+            const musicOffCanvas = document.createElement('canvas');
             musicOffCanvas.width = musicSize;
             musicOffCanvas.height = musicSize;
             const ctx = musicOffCanvas.getContext('2d');
@@ -669,8 +669,8 @@ export class SpriteFactory {
             ctx.moveTo(musicSize * 0.28, musicSize * 0.68);
             ctx.lineTo(musicSize * 0.28, musicSize * 0.32);
             ctx.lineTo(musicSize * 0.44, musicSize * 0.32);
-            ctx.lineTo(musicSize * 0.60, musicSize * 0.18);
-            ctx.lineTo(musicSize * 0.60, musicSize * 0.48);
+            ctx.lineTo(musicSize * 0.6, musicSize * 0.18);
+            ctx.lineTo(musicSize * 0.6, musicSize * 0.48);
             ctx.lineTo(musicSize * 0.44, musicSize * 0.48);
             ctx.lineTo(musicSize * 0.44, musicSize * 0.32);
             ctx.lineTo(musicSize * 0.28, musicSize * 0.32);

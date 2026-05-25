@@ -12,7 +12,7 @@ export const GAME_CONSTANTS = {
 
     // Audio
     MUSIC_VOLUME: 0.18,
-    EFFECTS_VOLUME: 0.4,
+    EFFECTS_VOLUME: 0.48,
     AUDIO_UNLOCK_TOLERANCE: 0.05,
     AUDIO_FADE_TIME: 0.05,
 

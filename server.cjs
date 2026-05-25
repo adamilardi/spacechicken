@@ -1,10 +1,10 @@
-// Simple HTTP server to serve the game with ES6 modules
+// Simple HTTP server to serve the game with ES6 modules (run with node server.cjs)
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
 const PORT = 3000;
-const HOST = 'localhost';
+const HOST = '0.0.0.0';
 
 const server = http.createServer((req, res) => {
     const rawUrl = typeof req.url === 'string' ? req.url : '/';
@@ -41,11 +41,20 @@ const server = http.createServer((req, res) => {
         const ext = path.extname(filePath);
 
         switch (ext) {
-            case '.html': contentType = 'text/html'; break;
-            case '.css': contentType = 'text/css'; break;
-            case '.js': contentType = 'application/javascript'; break;
-            case '.json': contentType = 'application/json'; break;
-            default: contentType = 'text/plain';
+            case '.html':
+                contentType = 'text/html';
+                break;
+            case '.css':
+                contentType = 'text/css';
+                break;
+            case '.js':
+                contentType = 'application/javascript';
+                break;
+            case '.json':
+                contentType = 'application/json';
+                break;
+            default:
+                contentType = 'text/plain';
         }
 
         // Set CORS headers for ES6 modules

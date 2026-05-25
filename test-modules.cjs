@@ -13,7 +13,7 @@ try {
         'UIManager.js',
         'LeaderboardManager.js',
         'SpriteFactory.js',
-        'SpaceChicken.js'
+        'SpaceChicken.js',
     ];
 
     for (const moduleName of modules) {
@@ -37,12 +37,24 @@ try {
 
             for (let i = 0; i < content.length; i++) {
                 switch (content[i]) {
-                    case '[': bracketCount++; break;
-                    case ']': bracketCount--; break;
-                    case '{': braceCount++; break;
-                    case '}': braceCount--; break;
-                    case '(': parenCount++; break;
-                    case ')': parenCount--; break;
+                    case '[':
+                        bracketCount++;
+                        break;
+                    case ']':
+                        bracketCount--;
+                        break;
+                    case '{':
+                        braceCount++;
+                        break;
+                    case '}':
+                        braceCount--;
+                        break;
+                    case '(':
+                        parenCount++;
+                        break;
+                    case ')':
+                        parenCount--;
+                        break;
                 }
             }
 
@@ -51,14 +63,12 @@ try {
             } else {
                 console.log(`✓ ${moduleName} syntax appears balanced`);
             }
-
         } catch (e) {
             console.log(`✗ Error with ${moduleName}:`, e.message);
         }
     }
 
     console.log('\nTest complete. All modules created successfully!');
-
 } catch (e) {
     console.log('Test failed:', e.message);
 }
