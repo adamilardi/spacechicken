@@ -116,6 +116,8 @@ export class LevelConfig {
                 return 'Space Chicken - WASD to move, Space to jump, M toggles music\nCollect the golden crown!';
             case 3:
                 return 'Orbital Gauntlet - Ride the lifts, dodge lasers, claim the crown! (Press M to toggle music)';
+            case 4:
+                return 'Lunar Gauntlet - Low gravity. Avoid patrolling rovers and cosmic rays! (M toggles music)';
             default:
                 return 'Space Chicken - WASD to move, Space to jump, M toggles music\nCollect the golden crown!';
         }
@@ -129,6 +131,8 @@ export class LevelConfig {
                 return 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
             case 3:
                 return 'Orbital Gauntlet - Tap left/right halves to move, use the jump button to leap. Tap the speaker to toggle music.';
+            case 4:
+                return 'Lunar Gauntlet - Low gravity. Avoid patrolling rovers and dodge falling cosmic rays!';
             default:
                 return 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
         }
@@ -217,6 +221,22 @@ export class LevelConfig {
                         shadow: 0x09111d,
                     },
                 };
+            case 4:
+                // Moon theme - gray, cratered, low contrast
+                return {
+                    type: 'moon',
+                    starCount: 220,
+                    color: 0x0a0a0f,
+                    palette: {
+                        top: 0x0a0a0f,
+                        mid: 0x1a1a22,
+                        bottom: 0x2f2f38,
+                        surface: 0x8a8a94,
+                        crater: 0x5a5a62,
+                        highlight: 0xc8c8d0,
+                        shadow: 0x121216,
+                    },
+                };
             default:
                 return {
                     type: 'space',
@@ -264,6 +284,25 @@ export class LevelConfig {
                     { x: 960, y: 560, key: 'stationPanel', scaleX: 1.6, scaleY: 0.4 },
                     { x: 1440, y: 430, key: 'stationPanel', scaleX: 1.6, scaleY: 0.4 },
                     { x: 1920, y: 320, key: 'stationPanel', scaleX: 1.2, scaleY: 0.4 },
+                ];
+            case 4:
+                // Moon platforms - wider platforms for rover sections
+                return [
+                    // Big starting platform
+                    { x: 280, y: 680, key: 'cliff', scaleX: 2.8, scaleY: 0.4 },
+
+                    // Wide rover platform 1
+                    { x: 720, y: 580, key: 'cliff', scaleX: 3.2, scaleY: 0.4 },
+
+                    // Wide rover platform 2 (main challenge area)
+                    { x: 1350, y: 470, key: 'cliff', scaleX: 3.5, scaleY: 0.4 },
+
+                    // Platform with rover near the end
+                    { x: 1950, y: 360, key: 'cliff', scaleX: 2.6, scaleY: 0.4 },
+
+                    // Final approach platforms
+                    { x: 2350, y: 290, key: 'cliff', scaleX: 1.8, scaleY: 0.4 },
+                    { x: 2600, y: 240, key: 'cliff', scaleX: 1.4, scaleY: 0.4 },
                 ];
             default:
                 return [];
@@ -427,6 +466,38 @@ export class LevelConfig {
                         bobDuration: 900,
                         spin: { angle: 12, duration: GAME_CONSTANTS.SPIN_DEFAULT_DURATION },
                     },
+                ];
+            case 4:
+                return [
+                    // Patrolling rovers (placed on wide platforms)
+                    { type: 'rover', x: 580, y: 555, patrol: { x: 980, duration: 3200 } },
+                    { type: 'rover', x: 1220, y: 445, patrol: { x: 1700, duration: 2800 } },
+                    {
+                        type: 'rover',
+                        x: 1880,
+                        y: 335,
+                        patrol: { x: 2220, duration: 2600, delay: 600 },
+                    },
+                    // Cosmic rays falling from the sky (much stronger warnings)
+                    { type: 'cosmicRay', x: 550, y: 120, interval: 2100, warning: 850 },
+                    { type: 'cosmicRay', x: 980, y: 80, interval: 2600, warning: 780, delay: 900 },
+                    {
+                        type: 'cosmicRay',
+                        x: 1450,
+                        y: 100,
+                        interval: 2300,
+                        warning: 920,
+                        delay: 400,
+                    },
+                    {
+                        type: 'cosmicRay',
+                        x: 2000,
+                        y: 90,
+                        interval: 2800,
+                        warning: 750,
+                        delay: 1400,
+                    },
+                    { type: 'cosmicRay', x: 2350, y: 110, interval: 1900, warning: 820 },
                 ];
             default:
                 return [];

@@ -31,6 +31,7 @@ class SpaceChicken extends Phaser.Scene {
 
         // Timers and events
         this.dynamicHazardEvents = [];
+        this.activeWarningGraphics = [];
 
         // Pointer tracking
         this.pointerTapTimes = new Map();
@@ -122,6 +123,7 @@ class SpaceChicken extends Phaser.Scene {
         this.spriteFactory.createLaserBeam();
         this.spriteFactory.createLaserEmitter();
         this.spriteFactory.createDrone();
+        this.spriteFactory.createRover();
         this.spriteFactory.createVirtualButtons();
     }
 
@@ -170,6 +172,7 @@ class SpaceChicken extends Phaser.Scene {
         );
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(false);
+        this.player.setDepth(5); // Above platforms (0), below most hazards (6+) and effects (25)
 
         // Setup camera
         this.cameras.main.startFollow(this.player);
@@ -197,6 +200,7 @@ class SpaceChicken extends Phaser.Scene {
             this.levelConfig.crown.y,
             'crown'
         );
+        this.crown.setDepth(4); // Above platforms, below player
 
         // Create audio unlock handler
         if (this.shouldEnableTouchControls()) {
@@ -338,6 +342,7 @@ class SpaceChicken extends Phaser.Scene {
         platformConfigs.forEach((config) => {
             const key = config.key || 'cliff';
             const platform = this.platforms.create(config.x, config.y, key);
+            platform.setDepth(0);
             const scaleX = this.valueOrDefault(config.scaleX, 1);
             const scaleY = this.valueOrDefault(config.scaleY, 1);
             if (scaleX !== 1 || scaleY !== 1) {
@@ -365,6 +370,7 @@ class SpaceChicken extends Phaser.Scene {
                 const endX = segment[1];
                 for (let x = startX; x <= endX; x += step) {
                     const platform = this.platforms.create(x, floorConfig.y, key);
+                    platform.setDepth(0);
                     if (scaleX !== 1 || scaleY !== 1) {
                         platform.setScale(scaleX, scaleY);
                         platform.refreshBody();
@@ -383,6 +389,7 @@ class SpaceChicken extends Phaser.Scene {
                 continue;
             }
             const platform = this.platforms.create(x, floorConfig.y, key);
+            platform.setDepth(0);
             if (scaleX !== 1 || scaleY !== 1) {
                 platform.setScale(scaleX, scaleY);
                 platform.refreshBody();
@@ -400,6 +407,7 @@ class SpaceChicken extends Phaser.Scene {
             platform.setImmovable(true);
             platform.body.allowGravity = false;
             platform.setPushable(false);
+            platform.setDepth(0);
 
             if (config.origin) {
                 const originX = this.valueOrDefault(config.origin.x, 0.5);
@@ -472,6 +480,10 @@ class SpaceChicken extends Phaser.Scene {
             this.dynamicHazardEvents.forEach((event) => event.remove());
         }
         this.dynamicHazardEvents = [];
+        if (this.activeWarningGraphics) {
+            this.activeWarningGraphics.forEach((g) => g && g.destroy && g.destroy());
+            this.activeWarningGraphics = [];
+        }
 
         if (!dynamicConfigs || dynamicConfigs.length === 0) {
             return null;
@@ -485,6 +497,12 @@ class SpaceChicken extends Phaser.Scene {
                     break;
                 case 'drone':
                     this.createDroneHazard(group, config);
+                    break;
+                case 'rover':
+                    this.createRoverHazard(group, config);
+                    break;
+                case 'cosmicRay':
+                    this.createCosmicRayHazard(group, config);
                     break;
                 default: {
                     const hazard = group.create(config.x, config.y, config.key || 'rock');
@@ -679,6 +697,102 @@ class SpaceChicken extends Phaser.Scene {
         }
     }
 
+    createRoverHazard(group, config) {
+        const rover = group.create(config.x, config.y, 'rover');
+        rover.body.allowGravity = false;
+        rover.setImmovable(true);
+        rover.setDepth(6);
+
+        // Rovers are ground threats - slightly smaller hitbox
+        rover.body.setSize(42, 24, true);
+        rover.body.setOffset(7, 6);
+
+        if (config.patrol) {
+            const patrolConfig = Object.assign({ targets: rover }, config.patrol);
+            if (!Object.prototype.hasOwnProperty.call(patrolConfig, 'yoyo')) {
+                patrolConfig.yoyo = true;
+            }
+            if (!Object.prototype.hasOwnProperty.call(patrolConfig, 'repeat')) {
+                patrolConfig.repeat = -1;
+            }
+            if (!Object.prototype.hasOwnProperty.call(patrolConfig, 'ease')) {
+                patrolConfig.ease = 'Sine.easeInOut';
+            }
+            this.tweens.add(patrolConfig);
+        }
+    }
+
+    createCosmicRayHazard(group, config) {
+        const startY = config.y || 80;
+        const interval = this.valueOrDefault(config.interval, 2000);
+        const warningTime = this.valueOrDefault(config.warning, 420);
+        const initialDelay = this.valueOrDefault(config.delay, 0);
+
+        const spawnRay = () => {
+            // Strong visual warning: bright vertical beam + top glow
+            const warning = this.add.graphics();
+            warning.setDepth(25);
+            if (this.activeWarningGraphics) {
+                this.activeWarningGraphics.push(warning);
+            }
+
+            // Bright warning column (much more visible)
+            warning.fillStyle(0xffee66, 0.35);
+            warning.fillRect(config.x - 18, startY, 36, this.worldHeight - 100);
+
+            // Core bright line
+            warning.fillStyle(0xffffaa, 0.9);
+            warning.fillRect(config.x - 5, startY, 10, this.worldHeight - 100);
+
+            // Top charge glow (using graphics)
+            warning.fillStyle(0xffee66, 0.6);
+            warning.fillCircle(config.x, startY + 35, 28);
+            warning.fillStyle(0xffffff, 0.85);
+            warning.fillCircle(config.x, startY + 35, 14);
+
+            // Remove warning, then spawn the actual damaging ray
+            const warningDelay = this.time.delayedCall(warningTime, () => {
+                Phaser.Utils.Array.Remove(this.dynamicHazardEvents, warningDelay);
+                if (this.activeWarningGraphics) {
+                    Phaser.Utils.Array.Remove(this.activeWarningGraphics, warning);
+                }
+                warning.destroy();
+
+                const ray = group.create(config.x, startY, 'laserBeam');
+                ray.setDisplaySize(10, this.worldHeight - 110);
+                ray.setAngle(90);
+                ray.body.allowGravity = false;
+                ray.setImmovable(true);
+                ray.setBlendMode(Phaser.BlendModes.ADD);
+                ray.setDepth(8);
+
+                // Match laser vertical body setup: compute after transforms, use centering=true
+                const beamThicknessParam = 10;
+                const hitThickness = Math.max(4, Math.round(beamThicknessParam * 0.75));
+                ray.body.setSize(ray.displayWidth, hitThickness, true);
+
+                // The ray is dangerous for a short window
+                const rayLife = this.time.delayedCall(220, () => {
+                    Phaser.Utils.Array.Remove(this.dynamicHazardEvents, rayLife);
+                    if (ray && ray.destroy) ray.destroy();
+                });
+                this.dynamicHazardEvents.push(rayLife);
+            });
+            this.dynamicHazardEvents.push(warningDelay);
+        };
+
+        const starter = this.time.delayedCall(initialDelay, spawnRay);
+        this.dynamicHazardEvents.push(starter);
+
+        // Repeat
+        const repeatEvent = this.time.addEvent({
+            delay: interval,
+            loop: true,
+            callback: spawnRay,
+        });
+        this.dynamicHazardEvents.push(repeatEvent);
+    }
+
     renderBackground(worldWidth, worldHeight) {
         const background = this.levelConfig.background || {};
 
@@ -693,6 +807,12 @@ class SpaceChicken extends Phaser.Scene {
         if (!backgroundLayout) {
             if (background.type === 'station') {
                 backgroundLayout = this.createStationBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'moon') {
+                backgroundLayout = this.createMoonBackgroundLayout(
                     background,
                     worldWidth,
                     worldHeight
@@ -712,7 +832,84 @@ class SpaceChicken extends Phaser.Scene {
             this.renderStationBackground(background, backgroundLayout, worldWidth, worldHeight);
             return;
         }
+        if (background.type === 'moon') {
+            this.renderMoonBackground(background, backgroundLayout, worldWidth, worldHeight);
+            return;
+        }
         this.renderSpaceBackground(background, backgroundLayout, worldWidth, worldHeight);
+    }
+
+    renderMoonBackground(background, layout, worldWidth, worldHeight) {
+        const palette = Object.assign(
+            {
+                top: 0x0a0a0f,
+                mid: 0x1a1a22,
+                bottom: 0x2f2f38,
+                surface: 0x8a8a94,
+                crater: 0x5a5a62,
+                highlight: 0xc8c8d0,
+                shadow: 0x121216,
+            },
+            background.palette || {}
+        );
+
+        // Dark space gradient
+        this.renderVerticalGradient(
+            0,
+            0,
+            worldWidth,
+            worldHeight,
+            [palette.top, palette.mid, palette.bottom],
+            40
+        );
+
+        // Stars
+        this.renderStars(layout.stars || []);
+
+        // Moon surface (bottom third)
+        const surfaceY = worldHeight * 0.68;
+        this.renderPolygon(
+            [
+                { x: -100, y: worldHeight },
+                { x: -100, y: surfaceY },
+                { x: worldWidth + 100, y: surfaceY + 40 },
+                { x: worldWidth + 100, y: worldHeight },
+            ],
+            palette.surface,
+            1
+        );
+
+        // Craters
+        const craters = layout.craters || [
+            { x: 420, y: surfaceY + 30, r: 55 },
+            { x: 780, y: surfaceY + 55, r: 38 },
+            { x: 1150, y: surfaceY + 20, r: 72 },
+            { x: 1680, y: surfaceY + 65, r: 45 },
+            { x: 2100, y: surfaceY + 35, r: 60 },
+            { x: 2450, y: surfaceY + 70, r: 32 },
+        ];
+
+        craters.forEach((crater) => {
+            // Crater shadow/rim
+            this.drawGlow(crater.x, crater.y, crater.r, palette.crater, 0.85, 3);
+            this.drawGlow(crater.x + 8, crater.y + 6, crater.r * 0.6, palette.shadow, 0.6, 2);
+        });
+
+        // Distant hills / ridges
+        const ridgeY = surfaceY - 20;
+        this.renderPolygon(
+            [
+                { x: -80, y: worldHeight },
+                { x: 300, y: ridgeY },
+                { x: 700, y: ridgeY + 35 },
+                { x: 1200, y: ridgeY - 15 },
+                { x: 1800, y: ridgeY + 50 },
+                { x: 2300, y: ridgeY + 10 },
+                { x: worldWidth + 80, y: worldHeight },
+            ],
+            palette.shadow,
+            0.9
+        );
     }
 
     renderSpaceBackground(background, layout, worldWidth, worldHeight) {
@@ -1487,6 +1684,31 @@ class SpaceChicken extends Phaser.Scene {
         };
     }
 
+    createMoonBackgroundLayout(background, worldWidth, worldHeight) {
+        const starCount = background.starCount || 200;
+        const stars = [];
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * worldWidth,
+                y: Math.random() * (worldHeight * 0.75),
+                size: Math.random() * 2.2 + 0.6,
+                alpha: Math.random() * 0.6 + 0.4,
+            });
+        }
+
+        // Simple crater data (used in render)
+        const craters = [
+            { x: 420, y: 580, r: 55 },
+            { x: 780, y: 605, r: 38 },
+            { x: 1150, y: 570, r: 72 },
+            { x: 1680, y: 615, r: 45 },
+            { x: 2100, y: 585, r: 60 },
+            { x: 2450, y: 620, r: 32 },
+        ];
+
+        return { stars, craters };
+    }
+
     createSpaceBackgroundLayout(background, worldWidth, worldHeight) {
         const palette = Object.assign(
             {
@@ -2125,6 +2347,26 @@ class SpaceChicken extends Phaser.Scene {
         if (this.bombs) {
             this.bombs.clear(true, true);
         }
+
+        // Clear dynamic hazard timers/events (lasers, drones, rovers' repeat spawns, cosmic rays)
+        // and any active warning graphics so they don't leak across the 0ms restart transition.
+        if (this.dynamicHazardEvents) {
+            this.dynamicHazardEvents.forEach((event) => {
+                if (event && event.remove) event.remove(false);
+            });
+            this.dynamicHazardEvents = [];
+        }
+        if (this.activeWarningGraphics) {
+            this.activeWarningGraphics.forEach((g) => g && g.destroy && g.destroy());
+            this.activeWarningGraphics = [];
+        }
+
+        // Kill active tweens (rover patrols, drones, moving platforms) for this level.
+        // Safe here because we immediately do a scene restart.
+        if (this.tweens) {
+            this.tweens.killAll();
+        }
+
         if (pausePhysics && this.physics && this.physics.world) {
             this.physics.pause();
         }
@@ -2337,6 +2579,10 @@ class SpaceChicken extends Phaser.Scene {
         if (this.dynamicHazardEvents) {
             this.dynamicHazardEvents.forEach((event) => event.remove());
             this.dynamicHazardEvents = [];
+        }
+        if (this.activeWarningGraphics) {
+            this.activeWarningGraphics.forEach((g) => g && g.destroy && g.destroy());
+            this.activeWarningGraphics = [];
         }
 
         // Phaser destroys physics groups during scene shutdown. Clearing them again here

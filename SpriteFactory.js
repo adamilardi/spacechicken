@@ -555,6 +555,58 @@ export class SpriteFactory {
         }
     }
 
+    createRover() {
+        if (!this.scene.textures.exists('rover')) {
+            const roverCanvas = document.createElement('canvas');
+            roverCanvas.width = 56;
+            roverCanvas.height = 36;
+            const ctx = roverCanvas.getContext('2d');
+
+            // Body (lunar module style)
+            ctx.fillStyle = '#5a5a66';
+            ctx.fillRect(8, 8, 40, 18);
+            ctx.strokeStyle = '#3a3a42';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(8, 8, 40, 18);
+
+            // Solar panel / top detail
+            ctx.fillStyle = '#2f4f6f';
+            ctx.fillRect(14, 4, 28, 6);
+
+            // Wheels
+            ctx.fillStyle = '#2a2a32';
+            ctx.beginPath();
+            ctx.arc(14, 28, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(42, 28, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Wheel highlights
+            ctx.fillStyle = '#7a7a82';
+            ctx.beginPath();
+            ctx.arc(14, 28, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(42, 28, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Antenna
+            ctx.strokeStyle = '#9a9aa2';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(48, 10);
+            ctx.lineTo(54, 2);
+            ctx.stroke();
+            ctx.fillStyle = '#ffdd55';
+            ctx.beginPath();
+            ctx.arc(54, 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            this.scene.textures.addCanvas('rover', roverCanvas);
+        }
+    }
+
     createVirtualButtons() {
         this.createLeftBtn();
         this.createRightBtn();

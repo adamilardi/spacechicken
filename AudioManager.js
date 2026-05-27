@@ -359,7 +359,7 @@ export class AudioManager {
             type: 'triangle',
             volume: 0.26,
             attackTime: 0.007,
-            releaseTime: 0.30,
+            releaseTime: 0.3,
             filter: { type: 'lowpass', frequency: 1420, Q: 0.6 },
             startTime: now,
         });

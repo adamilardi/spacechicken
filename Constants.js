@@ -130,6 +130,21 @@ export const LEVEL_DEFINITIONS = {
         FLOOR_Y: null, // No floor, uses static platforms
         BOMB_SPEED: 260,
         KILLZONE_HEIGHT: 40,
+        NEXT_LEVEL: 4,
+    },
+    4: {
+        // Moon level - low gravity, rovers + cosmic rays
+        GRAVITY: 180,
+        WORLD_WIDTH: 2800,
+        WORLD_HEIGHT: 800,
+        KILLZONE_Y: 760,
+        PLAYER_START_X: 120,
+        PLAYER_START_Y: 620,
+        CROWN_X: 2550,
+        CROWN_Y: 280,
+        // No floor (intentionally platform-only level for rovers)
+        BOMB_SPEED: 180,
+        KILLZONE_HEIGHT: 30,
         NEXT_LEVEL: null,
     },
 };
