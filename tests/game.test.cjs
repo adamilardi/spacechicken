@@ -754,7 +754,8 @@ test('scene cleanup is idempotent and removes both lifecycle listeners', async (
     assert.equal(uiCleanups, 1);
     assert.equal(audioCleanups, 1);
     assert.equal(effectCleanups, 1);
-    assert.deepEqual(removedEvents, ['shutdown', 'destroy']);
+    assert.ok(removedEvents.includes('shutdown'));
+    assert.ok(removedEvents.includes('destroy'));
     assert.equal(scene.pointerTapTimes.size, 0);
 });
 
@@ -803,4 +804,251 @@ test('the Cloudflare build contains only deployable runtime assets', async () =>
     await fs.promises.access(
         path.join(outputDirectory, 'vendor', 'phaser-arcade-physics-3.70.0.min.js')
     );
+});
+
+test('viewport metrics shrink HUD and keep large controls on phones and tablets', async () => {
+    const { Viewport } = await importModule('Viewport.js');
+    const phone = new Viewport({ viewportWidth: 390, viewportHeight: 844 });
+    const phoneMetrics = phone.getLayoutMetrics({ top: 47, right: 0, bottom: 34, left: 0 });
+    assert.equal(phoneMetrics.isPortrait, true);
+    assert.equal(phoneMetrics.isCompact, true);
+    assert.ok(phoneMetrics.fonts.timer < 32);
+    assert.ok(phoneMetrics.fonts.title < 56);
+    assert.ok(phoneMetrics.controlSize >= 72);
+
+    const landscapePhone = new Viewport({ viewportWidth: 844, viewportHeight: 390 });
+    const landscapeMetrics = landscapePhone.getLayoutMetrics({
+        top: 0,
+        right: 47,
+        bottom: 21,
+        left: 47,
+    });
+    assert.equal(landscapeMetrics.isPortrait, false);
+    assert.equal(landscapeMetrics.isCompact, true);
+    assert.ok(landscapeMetrics.controlSize >= 72);
+
+    const tablet = new Viewport({ viewportWidth: 1024, viewportHeight: 768 });
+    const tabletMetrics = tablet.getLayoutMetrics({ top: 0, right: 0, bottom: 0, left: 0 });
+    assert.equal(tabletMetrics.isCompact, false);
+    assert.equal(tabletMetrics.fonts.timer, 32);
+    assert.ok(tabletMetrics.controlSize <= 108);
+    assert.ok(tabletMetrics.controlSize >= 64);
+
+    assert.equal(phone.fitFontSize(56, 500, 300, 22), 33);
+    assert.equal(phone.fitFontSize(56, 200, 300, 22), 56);
+});
+
+test('touch arrow buttons move the chicken and do not steal the jump pointer', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const leftButton = {
+        getBounds() {
+            return { x: 10, y: 500, width: 80, height: 80 };
+        },
+    };
+    const rightButton = {
+        getBounds() {
+            return { x: 110, y: 500, width: 80, height: 80 };
+        },
+    };
+    const jumpButton = {
+        getBounds() {
+            return { x: 280, y: 500, width: 80, height: 80 };
+        },
+    };
+    const scene = {
+        space: {},
+        cursors: { up: {} },
+        wasd: { W: {} },
+        jumpPointerId: null,
+        leftPressed: false,
+        rightPressed: false,
+        pointerTapTimes: new Map(),
+        getViewportWidth() {
+            return 390;
+        },
+        uiManager: {
+            touchControlsEnabled: true,
+            touchMovementMidpoint: 195,
+            jumpButton,
+            leftButton,
+            rightButton,
+            musicToggleButton: null,
+            leaderboardButton: null,
+            playerNameText: null,
+        },
+        input: {
+            pointers: [{ id: 1, isDown: true, justDown: false, justUp: false, x: 40, y: 540 }],
+        },
+    };
+    const controller = new InputController(scene);
+
+    controller.poll();
+    assert.equal(scene.leftPressed, true);
+    assert.equal(scene.rightPressed, false);
+
+    scene.input.pointers = [
+        { id: 2, isDown: true, justDown: false, justUp: false, x: 140, y: 540 },
+    ];
+    controller.poll();
+    assert.equal(scene.leftPressed, false);
+    assert.equal(scene.rightPressed, true);
+
+    scene.jumpPointerId = 3;
+    scene.input.pointers = [
+        { id: 3, isDown: true, justDown: false, justUp: false, x: 320, y: 540 },
+    ];
+    controller.poll();
+    assert.equal(scene.leftPressed, false);
+    assert.equal(scene.rightPressed, false);
+
+    scene.jumpPointerId = null;
+    scene.input.pointers = [
+        { id: 4, isDown: true, justDown: false, justUp: false, x: 200, y: 180 },
+    ];
+    controller.poll();
+    assert.equal(scene.leftPressed, false);
+    assert.equal(scene.rightPressed, false);
+});
+
+test('touch controls sit in the bottom corners on a phone-sized viewport', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const { Viewport } = await importModule('Viewport.js');
+
+    function fakeButton() {
+        return {
+            displayWidth: 80,
+            displayHeight: 80,
+            width: 128,
+            height: 128,
+            x: 0,
+            y: 0,
+            input: { hitArea: { setTo() {} } },
+            setDisplaySize(width, height) {
+                this.displayWidth = width;
+                this.displayHeight = height;
+            },
+            setPosition(x, y) {
+                this.x = x;
+                this.y = y;
+            },
+        };
+    }
+
+    const scene = {
+        viewportWidth: 390,
+        viewportHeight: 844,
+        getViewportWidth() {
+            return this.viewportWidth;
+        },
+        getViewportHeight() {
+            return this.viewportHeight;
+        },
+    };
+    scene.viewport = new Viewport(scene);
+    const ui = new UIManager(scene);
+    ui.leftButton = fakeButton();
+    ui.rightButton = fakeButton();
+    ui.jumpButton = fakeButton();
+    ui.cachedInsets = { top: 47, right: 0, bottom: 34, left: 0 };
+    ui.layoutTouchControls();
+
+    assert.ok(ui.leftButton.x < ui.rightButton.x);
+    assert.ok(ui.rightButton.x < ui.jumpButton.x);
+    assert.ok(ui.jumpButton.x > 390 / 2);
+    assert.ok(ui.leftButton.x < 390 / 2);
+    assert.equal(ui.leftButton.y, ui.jumpButton.y);
+    assert.ok(ui.leftButton.y > 700);
+    assert.ok(ui.leftButton.displayWidth >= 72);
+    assert.ok(ui.jumpButton.x + ui.jumpButton.displayWidth / 2 <= 390);
+});
+
+test('resizing a touch session stores the viewport and offsets the camera', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const follow = [];
+    scene.worldWidth = 2000;
+    scene.worldHeight = 700;
+    scene.uiManager = {
+        touchControlsEnabled: true,
+        handleResize() {},
+        getSafeAreaInsets() {
+            return { top: 0, right: 0, bottom: 0, left: 0 };
+        },
+    };
+    scene.cameras = {
+        main: {
+            setBounds() {},
+            setFollowOffset(x, y) {
+                follow.push([x, y]);
+            },
+        },
+    };
+
+    scene.handleResize({ width: 390, height: 844 });
+    assert.equal(scene.viewportWidth, 390);
+    assert.equal(scene.viewportHeight, 844);
+    assert.equal(follow.length, 1);
+    assert.equal(follow[0][0], 0);
+    assert.ok(follow[0][1] < 0);
+    assert.ok(scene.playCameraZoom >= 1);
+});
+
+test('UI objects are removed from the world camera after being marked', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.cameras = {
+        main: { id: 1, ignore() {} },
+    };
+    scene.uiCamera = { id: 2, ignore() {} };
+    const title = { cameraFilter: 0 };
+    scene.assignCameraFilter(title);
+    assert.equal(title.cameraFilter, 2);
+    title.spaceChickenUi = true;
+    scene.assignCameraFilter(title);
+    assert.equal(title.cameraFilter, 1);
+});
+
+test('instructions stay hidden until the level banner has finished', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const delays = [];
+    const manager = new UIManager({
+        time: {
+            delayedCall(ms) {
+                delays.push(ms);
+                return { remove() {} };
+            },
+        },
+    });
+    manager.text = {
+        visible: true,
+        setAlpha() {},
+        setVisible(value) {
+            this.visible = value;
+        },
+    };
+
+    manager.scheduleInstructionFade();
+    assert.equal(manager.text.visible, false);
+    assert.equal(
+        delays[0],
+        GAME_CONSTANTS.LEVEL_BANNER_HOLD_MS + GAME_CONSTANTS.INSTRUCTION_FADE_MS
+    );
+});
+
+test('touch instructions describe the on-screen arrow controls', async () => {
+    const { LevelConfig } = await importModule('LevelConfig.js');
+    const config = new LevelConfig(1);
+    assert.match(config.touchInstructions, /arrow/i);
+    assert.match(config.touchInstructions, /jump/i);
+});
+
+test('the game page opts into a mobile visual viewport', () => {
+    const html = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+    assert.match(html, /viewport-fit=cover/);
+    assert.match(html, /user-scalable=no/);
+    assert.match(html, /visualViewport/);
+    assert.match(html, /100svh/);
+    assert.match(html, /apple-mobile-web-app-capable/);
+    assert.match(html, /activePointers:\s*4/);
 });

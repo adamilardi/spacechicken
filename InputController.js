@@ -15,6 +15,8 @@ export class InputController {
         this.seenPointers = new Set();
         this.controls = {
             jumpButton: null,
+            leftButton: null,
+            rightButton: null,
             musicButton: null,
             leaderboardButton: null,
             playerNameText: null,
@@ -24,6 +26,8 @@ export class InputController {
             y: 0,
             hasCoordinates: false,
             jump: false,
+            left: false,
+            right: false,
             music: false,
             leaderboard: false,
             name: false,
@@ -49,6 +53,8 @@ export class InputController {
         const ui = scene.uiManager;
         const controls = this.controls;
         controls.jumpButton = ui ? ui.jumpButton : null;
+        controls.leftButton = ui ? ui.leftButton : null;
+        controls.rightButton = ui ? ui.rightButton : null;
         controls.musicButton = ui ? ui.musicToggleButton : null;
         controls.leaderboardButton = ui ? ui.leaderboardButton : null;
         controls.playerNameText = ui ? ui.playerNameText : null;
@@ -64,7 +70,7 @@ export class InputController {
             if (this.recordPointerTap(pointer, this.targets)) {
                 state.doubleTapJumpTriggered = true;
             }
-            this.applyPointerMovement(pointer, this.targets, movementMidpoint);
+            this.applyPointerMovement(pointer, this.targets, movementMidpoint, controls);
         }
 
         state.pointerJumpTriggered = this.detectPointerJump(activePointers, controls, ui);
@@ -112,6 +118,8 @@ export class InputController {
             if (
                 this.targets.hasCoordinates &&
                 !this.targets.jump &&
+                !this.targets.left &&
+                !this.targets.right &&
                 !this.targets.music &&
                 !this.targets.leaderboard &&
                 !this.targets.name
@@ -150,7 +158,7 @@ export class InputController {
         pointers.push(pointer);
     }
 
-    isPointerOverGameObject(pointerX, pointerY, gameObject) {
+    isPointerOverGameObject(pointerX, pointerY, gameObject, padding = 0) {
         if (
             !gameObject ||
             typeof pointerX !== 'number' ||
@@ -160,18 +168,15 @@ export class InputController {
             return false;
         }
         const bounds = gameObject.getBounds();
-        if (bounds && typeof bounds.contains === 'function') {
-            return bounds.contains(pointerX, pointerY);
-        }
         if (!bounds) {
             return false;
         }
-        return (
-            pointerX >= bounds.x &&
-            pointerX <= bounds.x + bounds.width &&
-            pointerY >= bounds.y &&
-            pointerY <= bounds.y + bounds.height
-        );
+        const pad = Number.isFinite(padding) ? padding : 0;
+        const left = bounds.x - pad;
+        const top = bounds.y - pad;
+        const right = bounds.x + bounds.width + pad;
+        const bottom = bounds.y + bounds.height + pad;
+        return pointerX >= left && pointerX <= right && pointerY >= top && pointerY <= bottom;
     }
 
     fillPointerTargets(pointer, controls) {
@@ -179,10 +184,16 @@ export class InputController {
         const y = typeof pointer.y === 'number' ? pointer.y : pointer.worldY;
         const hasCoordinates = typeof x === 'number' && typeof y === 'number';
         const targets = this.targets;
+        const pad = GAME_CONSTANTS.TOUCH_HIT_PADDING;
         targets.x = x;
         targets.y = y;
         targets.hasCoordinates = hasCoordinates;
-        targets.jump = hasCoordinates && this.isPointerOverGameObject(x, y, controls.jumpButton);
+        targets.jump =
+            hasCoordinates && this.isPointerOverGameObject(x, y, controls.jumpButton, pad);
+        targets.left =
+            hasCoordinates && this.isPointerOverGameObject(x, y, controls.leftButton, pad);
+        targets.right =
+            hasCoordinates && this.isPointerOverGameObject(x, y, controls.rightButton, pad);
         targets.music = hasCoordinates && this.isPointerOverGameObject(x, y, controls.musicButton);
         targets.leaderboard =
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.leaderboardButton);
@@ -191,12 +202,23 @@ export class InputController {
         return targets;
     }
 
+    isOverUiControl(targets) {
+        return Boolean(
+            targets.jump ||
+            targets.left ||
+            targets.right ||
+            targets.music ||
+            targets.leaderboard ||
+            targets.name
+        );
+    }
+
     recordPointerTap(pointer, targets) {
         if (!pointer.justUp) {
             return false;
         }
         const scene = this.scene;
-        const eligible = !targets.jump && !targets.music && !targets.leaderboard && !targets.name;
+        const eligible = !this.isOverUiControl(targets);
         const upTime =
             typeof pointer.upTime === 'number' && pointer.upTime > 0
                 ? pointer.upTime
@@ -217,18 +239,30 @@ export class InputController {
         return triggered;
     }
 
-    applyPointerMovement(pointer, targets, movementMidpoint) {
+    applyPointerMovement(pointer, targets, movementMidpoint, controls) {
         const scene = this.scene;
         const isJumpPointer = scene.jumpPointerId !== null && pointer.id === scene.jumpPointerId;
-        const isOverControl = targets.jump || targets.music || targets.leaderboard || targets.name;
         if (
             !pointer.isDown ||
             !scene.uiManager ||
             !scene.uiManager.touchControlsEnabled ||
             isJumpPointer ||
-            isOverControl ||
             !targets.hasCoordinates
         ) {
+            return;
+        }
+
+        if (targets.left) {
+            scene.leftPressed = true;
+            return;
+        }
+        if (targets.right) {
+            scene.rightPressed = true;
+            return;
+        }
+
+        const hasMoveButtons = Boolean(controls && (controls.leftButton || controls.rightButton));
+        if (hasMoveButtons || this.isOverUiControl(targets)) {
             return;
         }
 
@@ -248,7 +282,7 @@ export class InputController {
             return false;
         }
         const targets = this.fillPointerTargets(pointer, controls);
-        if (targets.music || targets.leaderboard || targets.name) {
+        if (targets.music || targets.leaderboard || targets.name || targets.left || targets.right) {
             return false;
         }
         const downTime = typeof pointer.downTime === 'number' ? pointer.downTime : 0;

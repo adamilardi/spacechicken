@@ -2,7 +2,16 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Space Chicken" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="format-detection" content="telephone=no" />
         <title>Space Chicken Game</title>
         <script src="./vendor/phaser-arcade-physics-3.70.0.min.js"></script>
         <style>
@@ -16,7 +25,10 @@
             body {
                 width: 100%;
                 height: 100%;
+                height: 100svh;
                 overflow: hidden;
+                position: fixed;
+                inset: 0;
             }
             body {
                 margin: 0;
@@ -27,12 +39,22 @@
                 overscroll-behavior: none;
                 user-select: none;
                 -webkit-user-select: none;
+                -webkit-touch-callout: none;
+                -webkit-tap-highlight-color: transparent;
             }
             #phaser-game {
                 display: block;
                 position: absolute;
+                top: 0;
+                left: 0;
                 width: 100%;
                 height: 100%;
+                height: 100svh;
+                touch-action: none;
+                overflow: hidden;
+            }
+            #phaser-game canvas {
+                display: block;
                 touch-action: none;
             }
             .error {
@@ -43,21 +65,89 @@
                 color: red;
                 font-size: 20px;
                 text-align: center;
+                padding: 0 16px;
             }
         </style>
     </head>
     <body>
         <div id="phaser-game"></div>
         <script type="module">
+            function readViewportSize() {
+                const visual = window.visualViewport;
+                const width = Math.max(
+                    1,
+                    Math.round(visual && visual.width ? visual.width : window.innerWidth || 800)
+                );
+                const height = Math.max(
+                    1,
+                    Math.round(visual && visual.height ? visual.height : window.innerHeight || 600)
+                );
+                return { width, height };
+            }
+
+            function preventBrowserGestures() {
+                const cancel = (event) => event.preventDefault();
+                document.addEventListener('gesturestart', cancel);
+                document.addEventListener('gesturechange', cancel);
+                document.addEventListener('gestureend', cancel);
+                document.addEventListener(
+                    'dblclick',
+                    (event) => {
+                        event.preventDefault();
+                    },
+                    { passive: false }
+                );
+            }
+
+            function attachViewportSync(game, parent) {
+                const sync = () => {
+                    const size = readViewportSize();
+                    const visual = window.visualViewport;
+                    parent.style.width = `${size.width}px`;
+                    parent.style.height = `${size.height}px`;
+                    parent.style.left = `${visual ? visual.offsetLeft || 0 : 0}px`;
+                    parent.style.top = `${visual ? visual.offsetTop || 0 : 0}px`;
+                    if (game && game.scale && typeof game.scale.resize === 'function') {
+                        game.scale.resize(size.width, size.height);
+                    }
+                };
+                sync();
+                window.addEventListener('resize', sync);
+                window.addEventListener('orientationchange', sync);
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', sync);
+                    window.visualViewport.addEventListener('scroll', sync);
+                }
+                return sync;
+            }
+
             try {
+                preventBrowserGestures();
+                const parent = document.getElementById('phaser-game');
+                const initialSize = readViewportSize();
                 const { SpaceChicken } = await import('./SpaceChicken.js');
                 const config = {
                     type: Phaser.AUTO,
+                    width: initialSize.width,
+                    height: initialSize.height,
                     scale: {
                         mode: Phaser.Scale.RESIZE,
                         autoCenter: Phaser.Scale.CENTER_BOTH,
+                        expandParent: false,
+                        width: initialSize.width,
+                        height: initialSize.height,
                     },
                     parent: 'phaser-game',
+                    input: {
+                        activePointers: 4,
+                        touch: {
+                            capture: true,
+                        },
+                    },
+                    render: {
+                        antialias: true,
+                        roundPixels: true,
+                    },
                     physics: {
                         default: 'arcade',
                         arcade: {
@@ -68,7 +158,8 @@
                     scene: [SpaceChicken],
                 };
 
-                new Phaser.Game(config);
+                const game = new Phaser.Game(config);
+                attachViewportSync(game, parent);
             } catch (error) {
                 console.error('Failed to initialize game:', error);
                 const errorDiv = document.createElement('div');

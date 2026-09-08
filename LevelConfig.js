@@ -100,15 +100,15 @@ export class LevelConfig {
     getDefaultTouchInstructions() {
         switch (this.level) {
             case 1:
-                return 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
+                return 'Hold the arrows to move, tap jump to leap, tap the speaker for music.\nCollect the golden crown!';
             case 2:
-                return 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
+                return 'Hold the arrows to move, tap jump to leap, tap the speaker for music.\nCollect the golden crown!';
             case 3:
-                return 'Orbital Gauntlet - Tap left/right halves to move, use the jump button to leap. Tap the speaker to toggle music.';
+                return 'Orbital Gauntlet - Ride the lifts and dodge lasers. Arrows move, jump leaps.';
             case 4:
-                return 'Lunar Gauntlet - Low gravity. Avoid patrolling rovers and dodge falling cosmic rays!';
+                return 'Lunar Gauntlet - Low gravity. Avoid rovers and cosmic rays. Arrows move, jump leaps.';
             default:
-                return 'Space Chicken - Touch left half for left, right half for right\nTap jump to leap, tap the speaker to toggle music\nCollect the golden crown!';
+                return 'Hold the arrows to move, tap jump to leap, tap the speaker for music.\nCollect the golden crown!';
         }
     }
 

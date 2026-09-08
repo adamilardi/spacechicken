@@ -42,6 +42,9 @@ class SpaceChicken extends Phaser.Scene {
         this.crownGlow = null;
         this.titlePlayerTween = null;
         this.killZoneFallY = 0;
+        this.hasStartedPlay = false;
+        this.uiCamera = null;
+        this.playCameraZoom = 1;
 
         this.leftPressed = false;
         this.rightPressed = false;
@@ -118,6 +121,8 @@ class SpaceChicken extends Phaser.Scene {
         this.physics.resume();
         this.startTime = performance.now();
 
+        this.viewportWidth = this.getBaseWidth();
+        this.viewportHeight = this.getBaseHeight();
         this.uiManager.createUI(this.levelConfig, this.level, this.playerName);
 
         this.worldWidth = this.levelConfig.world.width;
@@ -196,9 +201,13 @@ class SpaceChicken extends Phaser.Scene {
         this.audioManager.setupAudioPipeline();
         this.audioManager.setMusicMuted(this.musicMuted, { skipSave: true });
 
-        const initialWidth = this.game.config.width || 800;
-        const initialHeight = this.game.config.height || 600;
+        const initialWidth = this.game.config.width || this.getBaseWidth();
+        const initialHeight = this.game.config.height || this.getBaseHeight();
         this.handleResize({ width: initialWidth, height: initialHeight });
+        if (this.scale && typeof this.scale.on === 'function') {
+            this.boundHandleResize = (gameSize) => this.handleResize(gameSize);
+            this.scale.on('resize', this.boundHandleResize, this);
+        }
 
         this.events.once('shutdown', this.cleanup, this);
         this.events.once('destroy', this.cleanup, this);
@@ -223,6 +232,122 @@ class SpaceChicken extends Phaser.Scene {
             camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
         }
         camera.roundPixels = true;
+        this.setupUiCamera();
+        this.updateCameraForViewport();
+    }
+
+    setupUiCamera() {
+        if (!this.cameras || typeof this.cameras.add !== 'function' || this.uiCamera) {
+            return;
+        }
+        this.uiCamera = this.cameras.add(0, 0, this.getViewportWidth(), this.getViewportHeight());
+        if (typeof this.uiCamera.setName === 'function') {
+            this.uiCamera.setName('ui');
+        }
+        if (typeof this.uiCamera.setScroll === 'function') {
+            this.uiCamera.setScroll(0, 0);
+        }
+        this.uiCamera.roundPixels = true;
+        this.uiCamera.transparent = true;
+        if (typeof this.uiCamera.setBackgroundColor === 'function') {
+            this.uiCamera.setBackgroundColor({ r: 0, g: 0, b: 0, a: 0 });
+        }
+        this.addedToSceneHandler = (gameObject) => this.assignCameraFilter(gameObject);
+        if (this.events && typeof this.events.on === 'function') {
+            this.events.on('addedtoscene', this.addedToSceneHandler, this);
+        }
+        this.bindExistingCameraFilters();
+    }
+
+    bindExistingCameraFilters() {
+        if (this.uiManager && typeof this.uiManager.markAllUiObjects === 'function') {
+            this.uiManager.markAllUiObjects();
+        }
+        const list = this.children && Array.isArray(this.children.list) ? this.children.list : [];
+        for (let i = 0; i < list.length; i++) {
+            this.assignCameraFilter(list[i]);
+        }
+    }
+
+    assignCameraFilter(gameObject) {
+        if (!gameObject || !this.uiCamera || !this.cameras || !this.cameras.main) {
+            return;
+        }
+        const main = this.cameras.main;
+        const uiCamera = this.uiCamera;
+        if (typeof gameObject.cameraFilter !== 'number') {
+            if (gameObject.spaceChickenUi && typeof main.ignore === 'function') {
+                main.ignore(gameObject);
+            } else if (typeof uiCamera.ignore === 'function') {
+                uiCamera.ignore(gameObject);
+            }
+            return;
+        }
+        const mainId = typeof main.id === 'number' ? main.id : 1;
+        const uiId = typeof uiCamera.id === 'number' ? uiCamera.id : 2;
+        if (gameObject.spaceChickenUi) {
+            gameObject.cameraFilter = (gameObject.cameraFilter | mainId) & ~uiId;
+            return;
+        }
+        gameObject.cameraFilter = (gameObject.cameraFilter | uiId) & ~mainId;
+    }
+
+    updateCameraForViewport() {
+        const camera = this.getMainCamera();
+        if (!camera) {
+            return;
+        }
+        const insets =
+            this.uiManager && typeof this.uiManager.getSafeAreaInsets === 'function'
+                ? this.uiManager.getSafeAreaInsets()
+                : GAME_CONSTANTS.SAFE_AREA_FALLBACK;
+        const metrics =
+            this.viewport && typeof this.viewport.getLayoutMetrics === 'function'
+                ? this.viewport.getLayoutMetrics(insets)
+                : null;
+        const width = metrics ? metrics.width : this.getViewportWidth();
+        const height = metrics ? metrics.height : this.getViewportHeight();
+        if (this.uiCamera) {
+            if (typeof this.uiCamera.setViewport === 'function') {
+                this.uiCamera.setViewport(0, 0, width, height);
+            } else if (typeof this.uiCamera.setSize === 'function') {
+                this.uiCamera.setSize(width, height);
+            }
+            if (typeof this.uiCamera.setScroll === 'function') {
+                this.uiCamera.setScroll(0, 0);
+            }
+        }
+        if (this.worldWidth && this.worldHeight && typeof camera.setBounds === 'function') {
+            camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
+        }
+
+        let zoom = 1;
+        if (this.worldHeight > 0 && height > this.worldHeight) {
+            zoom = height / this.worldHeight;
+        }
+        const minVisibleWidth = 360;
+        if (zoom > 1 && width / zoom < minVisibleWidth) {
+            zoom = width / minVisibleWidth;
+        }
+        zoom = Phaser.Math.Clamp(zoom, 1, 1.55);
+        this.playCameraZoom = zoom;
+        if (typeof camera.setZoom === 'function') {
+            camera.setZoom(zoom);
+        }
+
+        if (typeof camera.setFollowOffset !== 'function') {
+            return;
+        }
+        const touchEnabled = Boolean(this.uiManager && this.uiManager.touchControlsEnabled);
+        if (touchEnabled && metrics) {
+            const reserve = (metrics.controlSize + metrics.controlMargin * 2) / zoom;
+            const ratio = metrics.isPortrait
+                ? GAME_CONSTANTS.CAMERA_TOUCH_FOLLOW_OFFSET_RATIO
+                : GAME_CONSTANTS.CAMERA_TOUCH_FOLLOW_OFFSET_LANDSCAPE_RATIO;
+            camera.setFollowOffset(0, -reserve * ratio);
+            return;
+        }
+        camera.setFollowOffset(0, 0);
     }
 
     decorateCrown() {
@@ -260,14 +385,45 @@ class SpaceChicken extends Phaser.Scene {
             if (this.uiManager) {
                 this.uiManager.showTitleScreen(this.levelConfig.title);
             }
+            if (this.input && typeof this.input.on === 'function') {
+                this.input.on('pointerup', this.onTitlePointerUp, this);
+            }
             return;
         }
         this.beginPlay();
     }
 
+    onTitlePointerUp(pointer) {
+        if (!this.awaitingStart) {
+            return;
+        }
+        if (this.inputController) {
+            const controls = this.inputController.controls;
+            const targets = this.inputController.fillPointerTargets(pointer, controls);
+            if (
+                targets.jump ||
+                targets.left ||
+                targets.right ||
+                targets.music ||
+                targets.leaderboard ||
+                targets.name
+            ) {
+                return;
+            }
+        }
+        this.beginPlay();
+    }
+
     beginPlay() {
+        if (this.hasStartedPlay) {
+            return;
+        }
+        this.hasStartedPlay = true;
         const wasWaiting = this.awaitingStart;
         this.awaitingStart = false;
+        if (this.input && typeof this.input.off === 'function') {
+            this.input.off('pointerup', this.onTitlePointerUp, this);
+        }
         this.startTime = performance.now();
         if (this.uiManager) {
             this.uiManager.hideTitleScreen();
@@ -380,7 +536,8 @@ class SpaceChicken extends Phaser.Scene {
         this.flashCamera(GAME_CONSTANTS.CAMERA_FLASH_COLLECT, 180, 255, 140);
         const camera = this.getMainCamera();
         if (camera && typeof camera.zoomTo === 'function') {
-            camera.zoomTo(GAME_CONSTANTS.CAMERA_WIN_ZOOM, GAME_CONSTANTS.CAMERA_WIN_ZOOM_DURATION);
+            const winZoom = (this.playCameraZoom || 1) * GAME_CONSTANTS.CAMERA_WIN_ZOOM;
+            camera.zoomTo(winZoom, GAME_CONSTANTS.CAMERA_WIN_ZOOM_DURATION);
         }
     }
 
@@ -931,9 +1088,20 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     handleResize(gameSize) {
+        const width =
+            gameSize && typeof gameSize.width === 'number' && gameSize.width > 0
+                ? gameSize.width
+                : this.getBaseWidth();
+        const height =
+            gameSize && typeof gameSize.height === 'number' && gameSize.height > 0
+                ? gameSize.height
+                : this.getBaseHeight();
+        this.viewportWidth = width;
+        this.viewportHeight = height;
         if (this.uiManager) {
             this.uiManager.handleResize(gameSize);
         }
+        this.updateCameraForViewport();
     }
 
     cleanup() {
@@ -944,6 +1112,21 @@ class SpaceChicken extends Phaser.Scene {
         if (this.events) {
             this.events.off('shutdown', this.cleanup, this);
             this.events.off('destroy', this.cleanup, this);
+        }
+        if (this.scale && this.boundHandleResize && typeof this.scale.off === 'function') {
+            this.scale.off('resize', this.boundHandleResize, this);
+            this.boundHandleResize = null;
+        }
+        if (this.events && this.addedToSceneHandler && typeof this.events.off === 'function') {
+            this.events.off('addedtoscene', this.addedToSceneHandler, this);
+            this.addedToSceneHandler = null;
+        }
+        if (this.input && typeof this.input.off === 'function') {
+            this.input.off('pointerup', this.onTitlePointerUp, this);
+        }
+        if (this.uiCamera && this.cameras && typeof this.cameras.remove === 'function') {
+            this.cameras.remove(this.uiCamera);
+            this.uiCamera = null;
         }
 
         if (this.uiManager) {

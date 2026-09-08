@@ -666,21 +666,36 @@ export class SpriteFactory {
         this.createMusicToggleButtons();
     }
 
+    drawCircularControl(ctx, size, fillStyle, strokeStyle) {
+        const radius = size * 0.46;
+        ctx.clearRect(0, 0, size, size);
+        ctx.fillStyle = fillStyle;
+        ctx.beginPath();
+        ctx.arc(size * 0.5, size * 0.5, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = Math.max(3, size * 0.045);
+        ctx.stroke();
+    }
+
     createLeftBtn() {
         if (!this.scene.textures.exists('leftBtn')) {
+            const size = 128;
             const leftBtnCanvas = document.createElement('canvas');
-            leftBtnCanvas.width = 64;
-            leftBtnCanvas.height = 64;
+            leftBtnCanvas.width = size;
+            leftBtnCanvas.height = size;
             const ctx = leftBtnCanvas.getContext('2d');
-            // Semi-transparent background
-            ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
-            ctx.fillRect(0, 0, 64, 64);
-            // Arrow
-            ctx.fillStyle = '#fff';
+            this.drawCircularControl(
+                ctx,
+                size,
+                'rgba(28, 40, 72, 0.82)',
+                'rgba(205, 230, 255, 0.9)'
+            );
+            ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.moveTo(64 * 0.6, 64 * 0.2);
-            ctx.lineTo(64 * 0.6, 64 * 0.8);
-            ctx.lineTo(64 * 0.2, 64 * 0.5);
+            ctx.moveTo(size * 0.62, size * 0.22);
+            ctx.lineTo(size * 0.62, size * 0.78);
+            ctx.lineTo(size * 0.28, size * 0.5);
             ctx.closePath();
             ctx.fill();
             this.scene.textures.addCanvas('leftBtn', leftBtnCanvas);
@@ -689,17 +704,22 @@ export class SpriteFactory {
 
     createRightBtn() {
         if (!this.scene.textures.exists('rightBtn')) {
+            const size = 128;
             const rightBtnCanvas = document.createElement('canvas');
-            rightBtnCanvas.width = 64;
-            rightBtnCanvas.height = 64;
+            rightBtnCanvas.width = size;
+            rightBtnCanvas.height = size;
             const ctx = rightBtnCanvas.getContext('2d');
-            ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
-            ctx.fillRect(0, 0, 64, 64);
-            ctx.fillStyle = '#fff';
+            this.drawCircularControl(
+                ctx,
+                size,
+                'rgba(28, 40, 72, 0.82)',
+                'rgba(205, 230, 255, 0.9)'
+            );
+            ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.moveTo(64 * 0.4, 64 * 0.2);
-            ctx.lineTo(64 * 0.4, 64 * 0.8);
-            ctx.lineTo(64 * 0.8, 64 * 0.5);
+            ctx.moveTo(size * 0.38, size * 0.22);
+            ctx.lineTo(size * 0.38, size * 0.78);
+            ctx.lineTo(size * 0.72, size * 0.5);
             ctx.closePath();
             ctx.fill();
             this.scene.textures.addCanvas('rightBtn', rightBtnCanvas);
@@ -708,26 +728,26 @@ export class SpriteFactory {
 
     createJumpBtn() {
         if (!this.scene.textures.exists('jumpBtn')) {
+            const size = 128;
             const jumpBtnCanvas = document.createElement('canvas');
-            jumpBtnCanvas.width = 64;
-            jumpBtnCanvas.height = 64;
+            jumpBtnCanvas.width = size;
+            jumpBtnCanvas.height = size;
             const ctx = jumpBtnCanvas.getContext('2d');
-            ctx.fillStyle = 'rgba(16, 90, 42, 0.78)';
-            ctx.beginPath();
-            ctx.arc(32, 32, 30, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(180, 255, 196, 0.9)';
-            ctx.lineWidth = 3;
-            ctx.stroke();
+            this.drawCircularControl(
+                ctx,
+                size,
+                'rgba(16, 90, 42, 0.82)',
+                'rgba(180, 255, 196, 0.9)'
+            );
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.moveTo(32, 16);
-            ctx.lineTo(46, 34);
-            ctx.lineTo(38, 34);
-            ctx.lineTo(38, 46);
-            ctx.lineTo(26, 46);
-            ctx.lineTo(26, 34);
-            ctx.lineTo(18, 34);
+            ctx.moveTo(size * 0.5, size * 0.22);
+            ctx.lineTo(size * 0.72, size * 0.52);
+            ctx.lineTo(size * 0.58, size * 0.52);
+            ctx.lineTo(size * 0.58, size * 0.74);
+            ctx.lineTo(size * 0.42, size * 0.74);
+            ctx.lineTo(size * 0.42, size * 0.52);
+            ctx.lineTo(size * 0.28, size * 0.52);
             ctx.closePath();
             ctx.fill();
             this.scene.textures.addCanvas('jumpBtn', jumpBtnCanvas);
