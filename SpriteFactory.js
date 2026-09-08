@@ -1,7 +1,6 @@
 export class SpriteFactory {
     constructor(scene) {
         this.scene = scene;
-        this.backgroundLayouts = new Map();
     }
 
     // Create chicken animation frames
@@ -512,6 +511,20 @@ export class SpriteFactory {
             ctx.fillRect(0, 4, 16, 8);
             this.scene.textures.addCanvas('laserBeam', laserCanvas);
         }
+
+        if (!this.scene.textures.exists('laserBeamVertical')) {
+            const laserCanvas = document.createElement('canvas');
+            laserCanvas.width = 16;
+            laserCanvas.height = 16;
+            const ctx = laserCanvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 16);
+            gradient.addColorStop(0, 'rgba(255, 0, 120, 0)');
+            gradient.addColorStop(0.5, 'rgba(255, 0, 120, 1)');
+            gradient.addColorStop(1, 'rgba(255, 0, 120, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(4, 0, 8, 16);
+            this.scene.textures.addCanvas('laserBeamVertical', laserCanvas);
+        }
     }
 
     createLaserEmitter() {
@@ -607,6 +620,45 @@ export class SpriteFactory {
         }
     }
 
+    createParticleTextures() {
+        if (!this.scene.textures.exists('particleSoft')) {
+            const size = 16;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(
+                size * 0.5,
+                size * 0.5,
+                0,
+                size * 0.5,
+                size * 0.5,
+                size * 0.5
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.45, 'rgba(255, 255, 255, 0.55)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            this.scene.textures.addCanvas('particleSoft', canvas);
+        }
+
+        if (!this.scene.textures.exists('particleSpark')) {
+            const size = 12;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.translate(size * 0.5, size * 0.5);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-1, -size * 0.5, 2, size);
+            ctx.fillRect(-size * 0.5, -1, size, 2);
+            ctx.globalAlpha = 0.7;
+            ctx.fillRect(-0.5, -size * 0.28, 1, size * 0.56);
+            this.scene.textures.addCanvas('particleSpark', canvas);
+        }
+    }
+
     createVirtualButtons() {
         this.createLeftBtn();
         this.createRightBtn();
@@ -660,14 +712,24 @@ export class SpriteFactory {
             jumpBtnCanvas.width = 64;
             jumpBtnCanvas.height = 64;
             const ctx = jumpBtnCanvas.getContext('2d');
-            ctx.fillStyle = 'rgba(0, 128, 0, 0.7)';
+            ctx.fillStyle = 'rgba(16, 90, 42, 0.78)';
             ctx.beginPath();
-            ctx.arc(32, 32, 32 - 2, 0, Math.PI * 2);
+            ctx.arc(32, 32, 30, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('JUMP', 32, 32 + 5);
+            ctx.strokeStyle = 'rgba(180, 255, 196, 0.9)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(32, 16);
+            ctx.lineTo(46, 34);
+            ctx.lineTo(38, 34);
+            ctx.lineTo(38, 46);
+            ctx.lineTo(26, 46);
+            ctx.lineTo(26, 34);
+            ctx.lineTo(18, 34);
+            ctx.closePath();
+            ctx.fill();
             this.scene.textures.addCanvas('jumpBtn', jumpBtnCanvas);
         }
     }

@@ -1,20 +1,27 @@
 # 🚀 Space Chicken Game
 
-A modular, browser-based Phaser 3 platformer with 3 challenging levels, procedural graphics, dynamic audio, touch controls, and local + optional Firebase leaderboards.
+A modular, browser-based Phaser 3 platformer with 4 challenging levels, procedural graphics, dynamic audio, touch controls, and local + optional Firebase leaderboards.
 
 ## 📁 Project Structure
 
 ```
 spacechicken/
 ├── index.html              # Entry point (loads modular ES6 scripts)
-├── server.js               # Lightweight dev server for ES modules
-├── SpaceChicken.js         # Main Phaser Scene (orchestrates gameplay)
+├── server.cjs              # Lightweight dev server for ES modules
+├── SpaceChicken.js         # Phaser Scene orchestrator (input, collisions, flow)
 ├── Constants.js            # All game constants & level definitions
+├── GameUtils.js            # Shared helpers (time format, defaults, tweens)
+├── Viewport.js             # Scale / viewport size helpers
 ├── LevelConfig.js          # Per-level data (platforms, hazards, gravity, etc.)
 ├── SpriteFactory.js        # Procedural canvas-based sprite generation
+├── BackgroundRenderer.js   # Cached, baked parallax backgrounds
+├── WorldBuilder.js         # Platforms, floors, and hazards
+├── InputController.js      # Keyboard + touch polling
+├── EffectsManager.js       # Pooled particles, squash/stretch, combat juice
 ├── AudioManager.js         # Web Audio API music + SFX
-├── UIManager.js            # HUD, touch controls, leaderboards UI
+├── UIManager.js            # HUD, title screen, touch controls, leaderboards UI
 ├── LeaderboardManager.js   # localStorage + optional Firebase sync
+├── tests/                  # Behavioral and server integration tests
 ├── .gitignore
 └── archive/
     └── old-versions/       # Historical monolithic code (see archive README)
@@ -33,6 +40,7 @@ This project was refactored from a single ~2,800 line `game.js` monolith into fo
 - **Error Handling & Defensiveness** — Robust guards around storage, audio, input, and Phaser APIs
 - **Maintainability** — Easy to add levels, hazards, or new managers
 - **Procedural Graphics** — All sprites generated at runtime via canvas (no external assets required)
+- **Hot-path performance** — Baked background textures, pooled particles/bombs, and allocation-light input/HUD updates
 
 ## 🎮 How to Run
 
@@ -49,9 +57,21 @@ node server.cjs
 - `python -m http.server 3000`
 - Any static file server that supports ES modules
 
+## ☁️ Cloudflare Pages
+
+The production artifact is self-contained and includes the pinned Phaser runtime.
+
+```bash
+npm run build:cloudflare
+npm run deploy:cloudflare
+```
+
+`wrangler.jsonc` is the source of truth for the Pages project. The build writes only runtime
+assets and Cloudflare security headers to `dist/`; development files are never uploaded.
+
 ## 🧪 Testing & Quality
 
-- `test-modules.cjs` — basic syntax and bracket balance checks (run with `node test-modules.cjs`)
+- `npm test` — executable unit, integration, syntax, persistence, audio, physics, and server checks
 - All modules use ES6 `import`/`export`
 - The game runs entirely in the browser with no build step required
 
@@ -59,7 +79,9 @@ For better long-term quality, ESLint + Prettier have been added (see below).
 
 ## 🎵 Game Features
 
-- 3 levels with increasing difficulty and distinct visual/audio themes
+- 4 levels with increasing difficulty and distinct visual/audio themes
+- Title screen, level banners, and a camera that eases, flashes, and shakes with the action
+- Landing dust, jump stretch, jetpack trails, and crown sparkles
 - Web Audio API music + sound effects (with mute toggle)
 - Full keyboard (WASD/arrows/space) + touch controls (including double-tap jump)
 - Moving platforms, lasers, patrolling drones, physics bombs
@@ -69,21 +91,21 @@ For better long-term quality, ESLint + Prettier have been added (see below).
 
 ## 🛠️ Development
 
-### Adding ESLint + Prettier (recommended)
+### Quality checks
 
 ```bash
 npm install
-npm run lint
-npm run lint:fix
-npm run format
+npm run check
 ```
 
-See `package.json` scripts and the generated `.eslintrc.cjs` / `.prettierrc` for configuration.
+Use `npm run lint:fix` or `npm run format` for automatic fixes. See `package.json`,
+`.eslintrc.cjs`, and `.prettierrc.json` for configuration.
 
 ### Future Enhancements (easy with current architecture)
 
 - New levels → edit `LevelConfig.js`
-- New hazards/sprites → extend `SpriteFactory.js` + `LevelConfig`
+- New hazards/sprites → extend `SpriteFactory.js` + `WorldBuilder.js` + `LevelConfig`
+- Background themes → `BackgroundRenderer.js`
 - Audio improvements → `AudioManager.js`
 - UI polish → `UIManager.js`
 - Different persistence backends → `LeaderboardManager.js`

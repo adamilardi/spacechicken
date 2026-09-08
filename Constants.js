@@ -9,6 +9,9 @@ export const GAME_CONSTANTS = {
     JUMP_VELOCITY_Y: -330,
     MAX_JUMPS: 2,
     PLAYER_CLAMP_OFFSET: 0.5,
+    PLAYER_BOUNCE: 0,
+    LAND_MIN_AIR_MS: 120,
+    LAND_MIN_SPEED_Y: 90,
 
     // Audio
     MUSIC_VOLUME: 0.18,
@@ -17,9 +20,10 @@ export const GAME_CONSTANTS = {
     AUDIO_FADE_TIME: 0.05,
 
     // UI Layout
-    TIMER_FORMAT: 'Time: %M:%S.%MS',
     DOUBLE_TAP_THRESHOLD: 350,
     RESTART_DELAY: 500,
+    DEATH_TRANSITION_DELAY: 320,
+    LEVEL_TRANSITION_DELAY: 640,
     OVERLAY_DEPTH: 10000,
     MUSIC_BUTTON_DEPTH: 10002,
     LEADERBOARD_BUTTON_DEPTH: 10002,
@@ -46,6 +50,29 @@ export const GAME_CONSTANTS = {
     SPIN_DEFAULT_DURATION: 1600,
     SPIN_DEFAULT_EASE: 'Sine.easeInOut',
 
+    // Feel / juice
+    CAMERA_LERP_X: 0.14,
+    CAMERA_LERP_Y: 0.16,
+    CAMERA_FADE_IN: 420,
+    CAMERA_SHAKE_DURATION: 200,
+    CAMERA_SHAKE_INTENSITY: 0.012,
+    CAMERA_FLASH_DEATH: 180,
+    CAMERA_FLASH_COLLECT: 280,
+    CAMERA_WIN_ZOOM: 1.12,
+    CAMERA_WIN_ZOOM_DURATION: 520,
+    SQUASH_DURATION: 80,
+    STRETCH_DURATION: 90,
+    LAND_DUST_COUNT: 8,
+    JUMP_PUFF_COUNT: 5,
+    DEATH_BURST_COUNT: 18,
+    COLLECT_BURST_COUNT: 20,
+    JETPACK_EMIT_INTERVAL: 45,
+    CROWN_SPARKLE_INTERVAL: 480,
+    INSTRUCTION_DISPLAY_MS: 5600,
+    INSTRUCTION_FADE_MS: 420,
+    LEVEL_BANNER_HOLD_MS: 1600,
+    TITLE_PROMPT_PULSE_MS: 900,
+
     // Platform Config
     PLATFORM_DEFAULT_SCALE: { x: 1, y: 1 },
     FLOOR_PLATFORM_SCALE: { x: 1.5, y: 0.3 },
@@ -63,10 +90,13 @@ export const GAME_CONSTANTS = {
     BOMB_DEFAULT_SPREAD: Math.PI / 6,
     BOMB_DEFAULT_GRAVITY_Y: 0,
     BOMB_CLEANUP_THRESHOLD_Y: 100,
+    BOMB_POOL_SIZE: 8,
+    PARTICLE_POOL_SIZE: 64,
 
     // Storage and Leaderboard
     LEADERBOARD_MAX_ENTRIES: 5,
     STORAGE_LEVEL_PREFIX: 'spaceChickenLevel',
+    PLAYER_NAME_MAX_LENGTH: 24,
 
     // Config
     FIREBASE_ENDPOINT_CONFIG: 'SPACE_CHICKEN_CONFIG.firebaseEndpoint',
@@ -81,8 +111,8 @@ export const GAME_CONSTANTS = {
 };
 
 export const KEY_CODES = {
-    M: Phaser.Input.Keyboard.KeyCodes.M,
-    SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
+    M: 77,
+    SPACE: 32,
 };
 
 export const AUDIO_SETTINGS = {
@@ -148,3 +178,11 @@ export const LEVEL_DEFINITIONS = {
         NEXT_LEVEL: null,
     },
 };
+
+// Keep every level-aware subsystem (scene progression, audio, and leaderboards)
+// on the same source of truth instead of maintaining separate hard-coded lists.
+export const LEVEL_IDS = Object.freeze(
+    Object.keys(LEVEL_DEFINITIONS)
+        .map(Number)
+        .sort((a, b) => a - b)
+);

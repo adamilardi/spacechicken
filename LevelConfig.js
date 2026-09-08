@@ -4,85 +4,59 @@ export class LevelConfig {
     constructor(level) {
         this.level = level;
         this.config = this.getLevelConfig(level);
-    }
-
-    get gravity() {
-        return this.config.gravity || GAME_CONSTANTS.PHYSICS_GRAVITY.y;
-    }
-
-    get maxJumps() {
-        return GAME_CONSTANTS.MAX_JUMPS;
-    }
-
-    get nextLevel() {
-        return this.config.nextLevel;
-    }
-
-    get world() {
-        return {
-            width: this.config.worldWidth || GAME_CONSTANTS.LEVEL_DEFAULT_WORLD_SIZE.width,
-            height: this.config.worldHeight || GAME_CONSTANTS.LEVEL_DEFAULT_WORLD_SIZE.height,
+        this.gravity = this.config.gravity ?? GAME_CONSTANTS.PHYSICS_GRAVITY.y;
+        this.maxJumps = GAME_CONSTANTS.MAX_JUMPS;
+        this.nextLevel = this.config.nextLevel;
+        this.world = {
+            width: this.config.worldWidth ?? GAME_CONSTANTS.LEVEL_DEFAULT_WORLD_SIZE.width,
+            height: this.config.worldHeight ?? GAME_CONSTANTS.LEVEL_DEFAULT_WORLD_SIZE.height,
         };
-    }
-
-    get killZoneY() {
-        return this.config.killZoneY || GAME_CONSTANTS.LEVEL_KILLZONE_Y;
-    }
-
-    get killZoneHeight() {
-        return this.config.killZoneHeight || GAME_CONSTANTS.LEVEL_KILLZONE_HEIGHT;
-    }
-
-    get playerStart() {
-        return {
+        this.killZoneY = this.config.killZoneY ?? GAME_CONSTANTS.LEVEL_KILLZONE_Y;
+        this.killZoneHeight = this.config.killZoneHeight ?? GAME_CONSTANTS.LEVEL_KILLZONE_HEIGHT;
+        this.playerStart = {
             x: this.config.playerStartX,
             y: this.config.playerStartY,
         };
-    }
-
-    get crown() {
-        return {
+        this.crown = {
             x: this.config.crownX,
             y: this.config.crownY,
         };
-    }
-
-    get instructions() {
-        return this.getDefaultInstructions();
-    }
-
-    get touchInstructions() {
-        return this.getDefaultTouchInstructions();
-    }
-
-    get background() {
-        return this.getBackgroundConfig();
-    }
-
-    get platforms() {
-        return {
+        this.title = this.resolveTitle();
+        this.instructions = this.getDefaultInstructions();
+        this.touchInstructions = this.getDefaultTouchInstructions();
+        this.background = this.getBackgroundConfig();
+        this.platforms = {
             static: this.getStaticPlatforms(),
             floor: this.getFloorPlatforms(),
             moving: this.getMovingPlatforms(),
         };
-    }
-
-    get hazards() {
-        return {
+        this.hazards = {
             rocks: this.getRockHazards(),
             dynamic: this.getDynamicHazards(),
         };
-    }
-
-    get bombs() {
-        return {
-            speed: this.config.bombSpeed || GAME_CONSTANTS.BOMB_DEFAULT_SPEED,
+        this.bombs = {
+            speed: this.config.bombSpeed ?? GAME_CONSTANTS.BOMB_DEFAULT_SPEED,
             delayMin: GAME_CONSTANTS.BOMB_DEFAULT_DELAY_MIN,
             delayMax: GAME_CONSTANTS.BOMB_DEFAULT_DELAY_MAX,
             spawnHeight: GAME_CONSTANTS.BOMB_DEFAULT_SPAWN_HEIGHT,
             spread: GAME_CONSTANTS.BOMB_DEFAULT_SPREAD,
             gravityY: GAME_CONSTANTS.BOMB_DEFAULT_GRAVITY_Y,
         };
+    }
+
+    resolveTitle() {
+        switch (this.level) {
+            case 1:
+                return 'Dawn Run';
+            case 2:
+                return 'Arcade Orbit';
+            case 3:
+                return 'Orbital Gauntlet';
+            case 4:
+                return 'Lunar Gauntlet';
+            default:
+                return `Level ${this.level}`;
+        }
     }
 
     getLevelConfig(level) {

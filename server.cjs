@@ -1,82 +1,75 @@
-// Simple HTTP server to serve the game with ES6 modules (run with node server.cjs)
+// Minimal development server for the browser game (run with `npm start`).
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { rootFiles, vendorFiles } = require('./config/runtime-assets.cjs');
 
-const PORT = 3000;
-const HOST = '0.0.0.0';
+const DEFAULT_PORT = 3000;
+const DEFAULT_HOST = '0.0.0.0';
+const PUBLIC_FILES = new Set([...rootFiles, ...Object.keys(vendorFiles)]);
+const CONTENT_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+};
 
-const server = http.createServer((req, res) => {
-    const rawUrl = typeof req.url === 'string' ? req.url : '/';
-    const pathOnly = rawUrl.split('?')[0];
-    let decodedPath;
-    try {
-        decodedPath = decodeURIComponent(pathOnly);
-    } catch (err) {
-        res.writeHead(400);
-        res.end('Bad request');
-        return;
-    }
-    const requestPath = decodedPath === '/' ? '/index.html' : decodedPath;
-    const filePath = path.resolve(__dirname, `.${requestPath}`);
-    const relativePath = path.relative(__dirname, filePath);
+function sendText(res, statusCode, message) {
+    res.writeHead(statusCode, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end(message);
+}
 
-    // Security: don't allow access outside the current directory
-    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-        res.writeHead(403);
-        res.end('Access forbidden');
-        return;
-    }
+function createServer() {
+    return http.createServer((req, res) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.setHeader('Cache-Control', 'no-cache');
 
-    // Check if file exists
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-        if (err) {
-            res.writeHead(404);
-            res.end('File not found');
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+            res.setHeader('Allow', 'GET, HEAD');
+            sendText(res, 405, 'Method not allowed');
             return;
         }
 
-        // Determine content type
-        let contentType = 'text/plain';
-        const ext = path.extname(filePath);
-
-        switch (ext) {
-            case '.html':
-                contentType = 'text/html';
-                break;
-            case '.css':
-                contentType = 'text/css';
-                break;
-            case '.js':
-                contentType = 'application/javascript';
-                break;
-            case '.json':
-                contentType = 'application/json';
-                break;
-            default:
-                contentType = 'text/plain';
+        let decodedPath;
+        try {
+            const pathOnly = (req.url || '/').split('?')[0];
+            decodedPath = decodeURIComponent(pathOnly);
+        } catch (error) {
+            sendText(res, 400, 'Bad request');
+            return;
         }
 
-        // Set CORS headers for ES6 modules
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        const relativePath = decodedPath === '/' ? 'index.html' : decodedPath.replace(/^\/+/, '');
+        if (!PUBLIC_FILES.has(relativePath)) {
+            sendText(res, 404, 'File not found');
+            return;
+        }
 
-        // Read and serve file
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                res.end('Server error');
+        const sourcePath = vendorFiles[relativePath] || relativePath;
+        const filePath = path.join(__dirname, sourcePath);
+        fs.readFile(filePath, (error, data) => {
+            if (error) {
+                sendText(res, error.code === 'ENOENT' ? 404 : 500, 'Unable to read file');
                 return;
             }
 
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(data);
+            const contentType = CONTENT_TYPES[path.extname(filePath)] || 'application/octet-stream';
+            res.writeHead(200, {
+                'Content-Type': contentType,
+                'Content-Length': data.length,
+            });
+            res.end(req.method === 'HEAD' ? undefined : data);
         });
     });
-});
+}
 
-server.listen(PORT, HOST, () => {
-    console.log(`🚀 Space Chicken game server running at http://${HOST}:${PORT}`);
-    console.log(`🎮 Open your browser and navigate to http://${HOST}:${PORT}`);
-});
+if (require.main === module) {
+    const configuredPort = Number(process.env.PORT);
+    const port =
+        Number.isInteger(configuredPort) && configuredPort > 0 ? configuredPort : DEFAULT_PORT;
+    const host = process.env.HOST || DEFAULT_HOST;
+    createServer().listen(port, host, () => {
+        console.log(`🚀 Space Chicken game server running at http://${host}:${port}`);
+    });
+}
+
+module.exports = { createServer, PUBLIC_FILES };

@@ -1,40 +1,70 @@
-import { GAME_CONSTANTS } from './Constants.js';
+import { GAME_CONSTANTS, LEVEL_IDS } from './Constants.js';
+import { formatElapsedTime } from './GameUtils.js';
+
+const HUD_FONT = 'Courier New, Courier, monospace';
+const BANNER_FONT = 'Trebuchet MS, Arial, sans-serif';
 
 export class UIManager {
     constructor(scene) {
         this.scene = scene;
         this.timerText = null;
         this.levelText = null;
+        this.deathText = null;
         this.text = null;
         this.playerNameText = null;
         this.musicToggleButton = null;
         this.leaderboardButton = null;
         this.leaderboardTextObject = null;
+        this.leaderboardBackdrop = null;
         this.leaderboardTextContent = '';
         this.leaderboardVisible = false;
         this.leaderboardRequestId = 0;
         this.jumpButton = null;
         this.touchControlsEnabled = false;
         this.touchMovementMidpoint = 0;
+        this.titleDim = null;
+        this.titleText = null;
+        this.titleSubtitle = null;
+        this.titlePrompt = null;
+        this.titlePromptTween = null;
+        this.bannerTitle = null;
+        this.bannerSubtitle = null;
+        this.bannerHideEvent = null;
+        this.instructionFadeEvent = null;
+        this.destroyed = false;
+        this.lastTimerDisplay = '';
+        this.cachedInsets = null;
     }
 
     createUI(levelConfig, level, playerName) {
         // Timer text
         this.timerText = this.scene.add.text(0, 0, 'Time: 00:00.00', {
-            fontSize: '36px',
-            fontFamily: 'monospace',
-            fill: '#ffff00',
+            fontSize: '32px',
+            fontFamily: HUD_FONT,
+            fill: '#ffe566',
         });
         this.timerText.setScrollFactor(0);
         this.timerText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.styleHudText(this.timerText, 6);
 
         // Level text
-        this.levelText = this.scene.add.text(0, 0, `Level: ${level}`, {
-            fontSize: '24px',
-            fill: '#fff',
+        this.levelText = this.scene.add.text(0, 0, `Level ${level}`, {
+            fontSize: '22px',
+            fontFamily: HUD_FONT,
+            fill: '#ffffff',
         });
         this.levelText.setScrollFactor(0);
         this.levelText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.styleHudText(this.levelText, 4);
+
+        this.deathText = this.scene.add.text(0, 0, `Deaths ${this.scene.deathCount || 0}`, {
+            fontSize: '18px',
+            fontFamily: HUD_FONT,
+            fill: '#ffb3b3',
+        });
+        this.deathText.setScrollFactor(0);
+        this.deathText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.styleHudText(this.deathText, 4);
 
         // Instructions text
         const initialWrapWidth = Math.max(
@@ -43,22 +73,25 @@ export class UIManager {
         );
         this.text = this.scene.add.text(0, 0, '', {
             fontSize: '16px',
-            fill: '#fff',
+            fontFamily: HUD_FONT,
+            fill: '#dce7ff',
             wordWrap: { width: initialWrapWidth, useAdvancedWrap: true },
         });
         this.text.setScrollFactor(0);
         this.text.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.styleHudText(this.text, 3);
 
         // Player name text
         this.playerNameText = this.scene.add.text(0, 0, '', {
             fontSize: '18px',
-            fontFamily: 'monospace',
-            fill: '#ffff00',
+            fontFamily: HUD_FONT,
+            fill: '#ffe566',
             align: 'right',
         });
         this.playerNameText.setOrigin(1, 0.5);
         this.playerNameText.setScrollFactor(0);
         this.playerNameText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.styleHudText(this.playerNameText, 4);
         this.playerNameText.setInteractive({ useHandCursor: true });
         this.playerNameText.on('pointerdown', () => {
             this.playerNameText.setTint(0xcde6ff);
@@ -121,11 +154,11 @@ export class UIManager {
     }
 
     createLeaderboardButton() {
-        this.leaderboardButton = this.scene.add.text(0, 0, 'LB', {
-            fontSize: '20px',
-            fontFamily: 'monospace',
-            fill: '#ffff00',
-            backgroundColor: '#222222',
+        this.leaderboardButton = this.scene.add.text(0, 0, 'TOP', {
+            fontSize: '18px',
+            fontFamily: HUD_FONT,
+            fill: '#ffe566',
+            backgroundColor: '#1a1a28',
             align: 'center',
         });
         this.leaderboardButton.setOrigin(0.5, 0.5);
@@ -133,6 +166,7 @@ export class UIManager {
         this.leaderboardButton.setScrollFactor(0);
         this.leaderboardButton.setDepth(GAME_CONSTANTS.LEADERBOARD_BUTTON_DEPTH);
         this.leaderboardButton.setAlpha(0.95);
+        this.leaderboardButton.setStroke('#000000', 3);
         this.leaderboardButton.setInteractive({ useHandCursor: true });
 
         this.leaderboardButton.on('pointerdown', () => {
@@ -151,8 +185,20 @@ export class UIManager {
         if (!this.leaderboardButton) {
             return;
         }
-        const backgroundColor = this.leaderboardVisible ? '#444444' : '#222222';
+        const backgroundColor = this.leaderboardVisible ? '#3a3a52' : '#1a1a28';
         this.leaderboardButton.setStyle({ backgroundColor });
+    }
+
+    styleHudText(text, strokeThickness = 4) {
+        if (!text) {
+            return;
+        }
+        if (typeof text.setStroke === 'function') {
+            text.setStroke('#000000', strokeThickness);
+        }
+        if (typeof text.setShadow === 'function') {
+            text.setShadow(2, 2, '#000000', 2, true, true);
+        }
     }
 
     enableTouchControls() {
@@ -228,6 +274,7 @@ export class UIManager {
     }
 
     handleResize() {
+        this.cachedInsets = null;
         if (!this.timerText || !this.levelText || !this.text) {
             return;
         }
@@ -238,24 +285,31 @@ export class UIManager {
         this.layoutUI();
         this.layoutTouchControls();
         this.layoutLeaderboard();
+        this.layoutTitleScreen();
+        this.layoutLevelBanner();
     }
 
     getSafeAreaInsets() {
-        if (typeof window === 'undefined' || !window.getComputedStyle) {
-            return GAME_CONSTANTS.SAFE_AREA_FALLBACK;
+        if (this.cachedInsets) {
+            return this.cachedInsets;
         }
-        const styles = getComputedStyle(document.documentElement);
+        if (typeof window === 'undefined' || !window.getComputedStyle) {
+            this.cachedInsets = GAME_CONSTANTS.SAFE_AREA_FALLBACK;
+            return this.cachedInsets;
+        }
+        const styles = window.getComputedStyle(document.documentElement);
         const parseInset = (prop) => {
             const value = styles.getPropertyValue(prop);
             const parsed = parseFloat(value);
             return Number.isFinite(parsed) ? parsed : 0;
         };
-        return {
+        this.cachedInsets = {
             top: parseInset('--safe-area-top'),
             right: parseInset('--safe-area-right'),
             bottom: parseInset('--safe-area-bottom'),
             left: parseInset('--safe-area-left'),
         };
+        return this.cachedInsets;
     }
 
     layoutUI() {
@@ -270,11 +324,20 @@ export class UIManager {
         this.timerText.setPosition(insets.left + padding, insets.top + padding);
         this.levelText.setPosition(
             insets.left + padding,
-            this.timerText.y + this.timerText.height + 8
+            this.timerText.y + this.timerText.height + 6
         );
+        if (this.deathText) {
+            this.deathText.setPosition(
+                insets.left + padding,
+                this.levelText.y + this.levelText.height + 4
+            );
+        }
 
         // Position instructions text
-        this.text.setPosition(insets.left + padding, this.levelText.y + this.levelText.height + 8);
+        const instructionsTop = this.deathText
+            ? this.deathText.y + this.deathText.height + 8
+            : this.levelText.y + this.levelText.height + 8;
+        this.text.setPosition(insets.left + padding, instructionsTop);
 
         // Position music toggle button
         if (this.musicToggleButton) {
@@ -348,31 +411,70 @@ export class UIManager {
         }
         const insets = this.getSafeAreaInsets();
         const width = this.scene.getViewportWidth();
-        const availableWidth = Math.max(220, width - insets.left - insets.right - 32);
+        const height = this.scene.getViewportHeight();
+        const availableWidth = Math.max(220, width - insets.left - insets.right - 48);
         this.leaderboardTextObject.setWordWrapWidth(availableWidth, true);
         const centerX = insets.left + (width - insets.left - insets.right) / 2;
         const top = Math.max(
-            insets.top + 80,
-            this.text ? this.text.y + this.text.height + 24 : insets.top + 80
+            insets.top + 92,
+            this.text && this.text.visible && this.text.alpha > 0.2
+                ? this.text.y + this.text.height + 28
+                : insets.top + 92
         );
         this.leaderboardTextObject.setPosition(centerX, top);
+        this.drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets);
+    }
+
+    drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets) {
+        if (!this.leaderboardBackdrop) {
+            return;
+        }
+        this.leaderboardBackdrop.clear();
+        this.leaderboardBackdrop.fillStyle(0x000000, 0.45);
+        this.leaderboardBackdrop.fillRect(0, 0, width, height);
+        const panelWidth = Math.min(availableWidth, 520);
+        const panelHeight = Math.min(
+            this.leaderboardTextObject.height + 36,
+            height - insets.top - insets.bottom - 120
+        );
+        const panelX = centerX - panelWidth / 2;
+        const panelY = top - 18;
+        this.leaderboardBackdrop.fillStyle(0x0b1020, 0.82);
+        if (typeof this.leaderboardBackdrop.fillRoundedRect === 'function') {
+            this.leaderboardBackdrop.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
+        } else {
+            this.leaderboardBackdrop.fillRect(panelX, panelY, panelWidth, panelHeight);
+        }
+        this.leaderboardBackdrop.lineStyle(2, 0xffe566, 0.35);
+        if (typeof this.leaderboardBackdrop.strokeRoundedRect === 'function') {
+            this.leaderboardBackdrop.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
+        } else {
+            this.leaderboardBackdrop.strokeRect(panelX, panelY, panelWidth, panelHeight);
+        }
     }
 
     updateTimer(elapsed) {
         if (!this.timerText) {
             return;
         }
-        const minutes = Math.floor(elapsed / 60000);
-        const seconds = Math.floor((elapsed % 60000) / 1000);
-        const milliseconds = Math.floor((elapsed % 1000) / 10);
-        this.timerText.setText(
-            `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`
-        );
+        const display = formatElapsedTime(elapsed);
+        if (display === this.lastTimerDisplay) {
+            return;
+        }
+        this.lastTimerDisplay = display;
+        this.timerText.setText(`Time: ${display}`);
     }
 
     updateLevelText(level) {
         if (this.levelText) {
-            this.levelText.setText(`Level: ${level}`);
+            this.levelText.setText(`Level ${level}`);
+        }
+    }
+
+    updateDeathCount(deathCount) {
+        if (this.deathText) {
+            this.deathText.setText(`Deaths ${deathCount || 0}`);
+            this.layoutUI();
         }
     }
 
@@ -407,7 +509,11 @@ export class UIManager {
         if (this.leaderboardTextObject) {
             this.leaderboardTextObject.destroy();
         }
+        if (this.leaderboardBackdrop) {
+            this.leaderboardBackdrop.destroy();
+        }
         this.leaderboardTextObject = null;
+        this.leaderboardBackdrop = null;
         this.leaderboardTextContent = '';
         this.leaderboardVisible = false;
         this.leaderboardRequestId = 0;
@@ -421,10 +527,10 @@ export class UIManager {
             ? this.touchControlsEnabled
                 ? 'Press SPACEBAR or tap the jump button to restart'
                 : 'Press SPACEBAR to restart'
-            : 'Select the LB button again to close this leaderboard';
+            : 'Select the TOP button again to close this leaderboard';
 
         const updateTextObject = (sectionsText) => {
-            if (this.leaderboardRequestId !== requestId) {
+            if (this.destroyed || this.leaderboardRequestId !== requestId) {
                 return;
             }
             const leaderboardText =
@@ -435,22 +541,29 @@ export class UIManager {
             if (this.leaderboardTextObject) {
                 this.leaderboardTextObject.destroy();
             }
+            if (!this.leaderboardBackdrop) {
+                this.leaderboardBackdrop = this.scene.add.graphics();
+                this.leaderboardBackdrop.setScrollFactor(0);
+                this.leaderboardBackdrop.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH - 1);
+            }
             this.leaderboardTextObject = this.scene.add
                 .text(0, 0, leaderboardText, {
                     fontSize: '16px',
-                    fill: '#ffff00',
+                    fontFamily: HUD_FONT,
+                    fill: '#ffe566',
                     align: 'center',
                 })
                 .setOrigin(0.5, 0)
                 .setScrollFactor(0);
             this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
+            this.styleHudText(this.leaderboardTextObject, 4);
             this.layoutLeaderboard();
             this.leaderboardVisible = true;
             this.refreshLeaderboardButtonStyle();
         };
 
         const buildSections = (remoteData) => {
-            const sections = [1, 2, 3].map((level) => {
+            const sections = LEVEL_IDS.map((level) => {
                 const remoteTimes = remoteData && remoteData[level] ? remoteData[level] : null;
                 const localTimes = this.scene.storageAvailable
                     ? this.scene.leaderboardManager.readLeaderboard(level)
@@ -496,19 +609,289 @@ export class UIManager {
     }
 
     showGameOver(finalTime) {
-        const minutes = Math.floor(finalTime / 60000);
-        const seconds = Math.floor((finalTime % 60000) / 1000);
-        const milliseconds = Math.floor((finalTime % 1000) / 10);
-        this.timerText.setText(
-            `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`
-        );
-        this.levelText.setText('Level: COMPLETED');
-        this.text.setText(`You Win!\nDeaths this run: ${this.scene.deathCount}`);
+        this.timerText.setText(`Time: ${formatElapsedTime(finalTime)}`);
+        this.levelText.setText('Completed');
+        if (this.deathText) {
+            this.deathText.setText(`Deaths ${this.scene.deathCount}`);
+        }
+        if (this.text) {
+            this.text.setAlpha(1);
+            this.text.setVisible(true);
+            this.text.setText(
+                `You win!\nDeaths this run: ${this.scene.deathCount}\nPress SPACE or tap to fly again`
+            );
+        }
+        this.showLevelBanner('YOU WIN', 'The chicken claims the cosmos');
         this.layoutUI();
         this.displayLeaderboard();
     }
 
+    showTitleScreen(subtitle) {
+        if (this.destroyed) {
+            return;
+        }
+        this.hideTitleScreen();
+        const width = this.scene.getViewportWidth();
+        const height = this.scene.getViewportHeight();
+        if (typeof this.scene.add.rectangle === 'function') {
+            this.titleDim = this.scene.add.rectangle(0, 0, width, height, 0x04060d, 0.58);
+            this.titleDim.setOrigin(0, 0);
+        } else {
+            this.titleDim = this.scene.add.graphics();
+            this.titleDim.fillStyle(0x04060d, 0.58);
+            this.titleDim.fillRect(0, 0, width, height);
+        }
+        this.titleDim.setScrollFactor(0);
+        this.titleDim.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 2);
+
+        this.titleText = this.scene.add
+            .text(0, 0, 'SPACE CHICKEN', {
+                fontSize: '56px',
+                fontFamily: BANNER_FONT,
+                fill: '#ffe566',
+                align: 'center',
+            })
+            .setOrigin(0.5);
+        this.titleText.setScrollFactor(0);
+        this.titleText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.styleHudText(this.titleText, 8);
+
+        this.titleSubtitle = this.scene.add
+            .text(0, 0, subtitle || 'Dawn Run', {
+                fontSize: '22px',
+                fontFamily: BANNER_FONT,
+                fill: '#cfe7ff',
+                align: 'center',
+            })
+            .setOrigin(0.5);
+        this.titleSubtitle.setScrollFactor(0);
+        this.titleSubtitle.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.styleHudText(this.titleSubtitle, 4);
+
+        const prompt = this.touchControlsEnabled ? 'Tap to start' : 'Press SPACE to start';
+        this.titlePrompt = this.scene.add
+            .text(0, 0, prompt, {
+                fontSize: '20px',
+                fontFamily: HUD_FONT,
+                fill: '#ffffff',
+                align: 'center',
+            })
+            .setOrigin(0.5);
+        this.titlePrompt.setScrollFactor(0);
+        this.titlePrompt.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.styleHudText(this.titlePrompt, 4);
+        if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
+            this.titlePromptTween = this.scene.tweens.add({
+                targets: this.titlePrompt,
+                alpha: { from: 0.35, to: 1 },
+                duration: GAME_CONSTANTS.TITLE_PROMPT_PULSE_MS,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+            });
+        }
+        this.setHudVisible(false);
+        this.layoutTitleScreen();
+    }
+
+    setHudVisible(visible) {
+        [this.timerText, this.levelText, this.deathText, this.text, this.playerNameText].forEach(
+            (element) => {
+                if (element && typeof element.setVisible === 'function') {
+                    element.setVisible(visible);
+                }
+            }
+        );
+        if (visible && this.text) {
+            this.text.setAlpha(1);
+        }
+    }
+
+    layoutTitleScreen() {
+        if (!this.titleText) {
+            return;
+        }
+        const insets = this.getSafeAreaInsets();
+        const width = this.scene.getViewportWidth();
+        const height = this.scene.getViewportHeight();
+        const centerX = insets.left + (width - insets.left - insets.right) / 2;
+        const centerY = insets.top + (height - insets.top - insets.bottom) / 2;
+        if (this.titleDim) {
+            if (typeof this.titleDim.setSize === 'function') {
+                this.titleDim.setSize(width, height);
+                this.titleDim.setPosition(0, 0);
+            } else if (typeof this.titleDim.clear === 'function') {
+                this.titleDim.clear();
+                this.titleDim.fillStyle(0x04060d, 0.58);
+                this.titleDim.fillRect(0, 0, width, height);
+            }
+        }
+        this.titleText.setPosition(centerX, centerY - 46);
+        if (this.titleSubtitle) {
+            this.titleSubtitle.setPosition(centerX, centerY + 8);
+        }
+        if (this.titlePrompt) {
+            this.titlePrompt.setPosition(centerX, centerY + 58);
+        }
+    }
+
+    hideTitleScreen() {
+        if (this.titlePromptTween && typeof this.titlePromptTween.stop === 'function') {
+            this.titlePromptTween.stop();
+        }
+        this.titlePromptTween = null;
+        [this.titleDim, this.titleText, this.titleSubtitle, this.titlePrompt].forEach((element) => {
+            if (element && element.destroy) {
+                element.destroy();
+            }
+        });
+        this.titleDim = null;
+        this.titleText = null;
+        this.titleSubtitle = null;
+        this.titlePrompt = null;
+        this.setHudVisible(true);
+    }
+
+    showLevelBanner(levelOrTitle, subtitle) {
+        if (this.destroyed) {
+            return;
+        }
+        this.clearLevelBanner();
+        const title =
+            typeof levelOrTitle === 'number' ? `LEVEL ${levelOrTitle}` : String(levelOrTitle);
+        this.bannerTitle = this.scene.add
+            .text(0, 0, title, {
+                fontSize: '42px',
+                fontFamily: BANNER_FONT,
+                fill: '#ffe566',
+                align: 'center',
+            })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1)
+            .setAlpha(0);
+        this.styleHudText(this.bannerTitle, 7);
+        if (subtitle) {
+            this.bannerSubtitle = this.scene.add
+                .text(0, 0, subtitle, {
+                    fontSize: '20px',
+                    fontFamily: BANNER_FONT,
+                    fill: '#ffffff',
+                    align: 'center',
+                })
+                .setOrigin(0.5)
+                .setScrollFactor(0)
+                .setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1)
+                .setAlpha(0);
+            this.styleHudText(this.bannerSubtitle, 4);
+        }
+        this.layoutLevelBanner();
+        const targets = [this.bannerTitle, this.bannerSubtitle].filter(Boolean);
+        if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
+            this.scene.tweens.add({
+                targets,
+                alpha: 1,
+                duration: 220,
+                ease: 'Quad.easeOut',
+            });
+        } else {
+            targets.forEach((target) => target.setAlpha(1));
+        }
+        if (this.scene.time && typeof this.scene.time.delayedCall === 'function') {
+            this.bannerHideEvent = this.scene.time.delayedCall(
+                GAME_CONSTANTS.LEVEL_BANNER_HOLD_MS,
+                () => this.fadeLevelBanner()
+            );
+        }
+    }
+
+    layoutLevelBanner() {
+        if (!this.bannerTitle) {
+            return;
+        }
+        const insets = this.getSafeAreaInsets();
+        const width = this.scene.getViewportWidth();
+        const height = this.scene.getViewportHeight();
+        const centerX = insets.left + (width - insets.left - insets.right) / 2;
+        const centerY = insets.top + (height - insets.top - insets.bottom) * 0.28;
+        this.bannerTitle.setPosition(centerX, centerY);
+        if (this.bannerSubtitle) {
+            this.bannerSubtitle.setPosition(centerX, centerY + 40);
+        }
+    }
+
+    fadeLevelBanner() {
+        const targets = [this.bannerTitle, this.bannerSubtitle].filter(Boolean);
+        if (!targets.length) {
+            return;
+        }
+        if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
+            this.scene.tweens.add({
+                targets,
+                alpha: 0,
+                duration: 360,
+                ease: 'Quad.easeIn',
+                onComplete: () => this.clearLevelBanner(),
+            });
+            return;
+        }
+        this.clearLevelBanner();
+    }
+
+    clearLevelBanner() {
+        if (this.bannerHideEvent && typeof this.bannerHideEvent.remove === 'function') {
+            this.bannerHideEvent.remove(false);
+        }
+        this.bannerHideEvent = null;
+        [this.bannerTitle, this.bannerSubtitle].forEach((element) => {
+            if (element && element.destroy) {
+                element.destroy();
+            }
+        });
+        this.bannerTitle = null;
+        this.bannerSubtitle = null;
+    }
+
+    scheduleInstructionFade() {
+        if (this.instructionFadeEvent && typeof this.instructionFadeEvent.remove === 'function') {
+            this.instructionFadeEvent.remove(false);
+        }
+        if (!this.text || !this.scene.time || typeof this.scene.time.delayedCall !== 'function') {
+            return;
+        }
+        this.text.setAlpha(1);
+        this.text.setVisible(true);
+        this.instructionFadeEvent = this.scene.time.delayedCall(
+            GAME_CONSTANTS.INSTRUCTION_DISPLAY_MS,
+            () => {
+                if (!this.text || this.destroyed) {
+                    return;
+                }
+                if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
+                    this.scene.tweens.add({
+                        targets: this.text,
+                        alpha: 0,
+                        duration: GAME_CONSTANTS.INSTRUCTION_FADE_MS,
+                        onComplete: () => {
+                            if (this.text) {
+                                this.text.setVisible(false);
+                            }
+                        },
+                    });
+                    return;
+                }
+                this.text.setVisible(false);
+            }
+        );
+    }
+
     cleanup() {
+        if (this.destroyed) {
+            return;
+        }
+        this.destroyed = true;
+        this.leaderboardRequestId += 1;
+
         // Clean up resize listener
         if (this.scene.scale && this.resizeHandler) {
             this.scene.scale.off('resize', this.resizeHandler, this);
@@ -516,14 +899,23 @@ export class UIManager {
         }
 
         // Destroy UI elements
+        if (this.instructionFadeEvent && typeof this.instructionFadeEvent.remove === 'function') {
+            this.instructionFadeEvent.remove(false);
+        }
+        this.instructionFadeEvent = null;
+        this.hideTitleScreen();
+        this.clearLevelBanner();
+
         const elements = [
             this.timerText,
             this.levelText,
+            this.deathText,
             this.text,
             this.playerNameText,
             this.musicToggleButton,
             this.leaderboardButton,
             this.leaderboardTextObject,
+            this.leaderboardBackdrop,
             this.jumpButton,
         ];
 
@@ -532,5 +924,16 @@ export class UIManager {
                 element.destroy();
             }
         });
+
+        this.timerText = null;
+        this.levelText = null;
+        this.deathText = null;
+        this.text = null;
+        this.playerNameText = null;
+        this.musicToggleButton = null;
+        this.leaderboardButton = null;
+        this.leaderboardTextObject = null;
+        this.leaderboardBackdrop = null;
+        this.jumpButton = null;
     }
 }

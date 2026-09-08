@@ -4,14 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <title>Space Chicken Game</title>
-        <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser-arcade-physics.min.js"></script>
-        <script src="Constants.js" type="module"></script>
-        <script src="AudioManager.js" type="module"></script>
-        <script src="LevelConfig.js" type="module"></script>
-        <script src="UIManager.js" type="module"></script>
-        <script src="LeaderboardManager.js" type="module"></script>
-        <script src="SpriteFactory.js" type="module"></script>
-        <script src="SpaceChicken.js" type="module"></script>
+        <script src="./vendor/phaser-arcade-physics-3.70.0.min.js"></script>
         <style>
             :root {
                 --safe-area-top: env(safe-area-inset-top, 0px);
@@ -29,9 +22,11 @@
                 margin: 0;
                 padding: 0;
                 background: #000;
-                font-family: monospace;
+                font-family: 'Trebuchet MS', 'Courier New', monospace;
                 touch-action: none;
                 overscroll-behavior: none;
+                user-select: none;
+                -webkit-user-select: none;
             }
             #phaser-game {
                 display: block;
@@ -54,9 +49,8 @@
     <body>
         <div id="phaser-game"></div>
         <script type="module">
-            import { SpaceChicken } from './SpaceChicken.js';
-
             try {
+                const { SpaceChicken } = await import('./SpaceChicken.js');
                 const config = {
                     type: Phaser.AUTO,
                     scale: {
@@ -74,7 +68,7 @@
                     scene: [SpaceChicken],
                 };
 
-                const game = new Phaser.Game(config);
+                new Phaser.Game(config);
             } catch (error) {
                 console.error('Failed to initialize game:', error);
                 const errorDiv = document.createElement('div');

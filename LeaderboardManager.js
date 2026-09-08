@@ -1,4 +1,32 @@
-import { GAME_CONSTANTS } from './Constants.js';
+import { AUDIO_SETTINGS, GAME_CONSTANTS, LEVEL_IDS } from './Constants.js';
+import { formatElapsedTime } from './GameUtils.js';
+
+export function normalizePlayerName(name) {
+    if (typeof name !== 'string') {
+        return 'Anonymous';
+    }
+    const normalized = name.trim().replace(/\s+/g, ' ');
+    const truncated = Array.from(normalized)
+        .slice(0, GAME_CONSTANTS.PLAYER_NAME_MAX_LENGTH)
+        .join('');
+    return truncated || 'Anonymous';
+}
+
+export function normalizeLeaderboardEntry(entry) {
+    const time = typeof entry === 'number' ? entry : entry && entry.time;
+    if (typeof time !== 'number' || !Number.isFinite(time) || time < 0) {
+        return null;
+    }
+    return {
+        time,
+        name: normalizePlayerName(entry && typeof entry === 'object' ? entry.name : null),
+    };
+}
+
+function normalizeLevel(level) {
+    const parsed = Number(level);
+    return LEVEL_IDS.includes(parsed) ? parsed : null;
+}
 
 export class LeaderboardManager {
     constructor(scene) {
@@ -19,7 +47,11 @@ export class LeaderboardManager {
     }
 
     readLeaderboard(level) {
-        const key = `${GAME_CONSTANTS.STORAGE_LEVEL_PREFIX}${level}`;
+        const normalizedLevel = normalizeLevel(level);
+        if (normalizedLevel === null) {
+            return [];
+        }
+        const key = `${GAME_CONSTANTS.STORAGE_LEVEL_PREFIX}${normalizedLevel}`;
         if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
             return [];
         }
@@ -33,20 +65,10 @@ export class LeaderboardManager {
                 return [];
             }
             return parsed
-                .map((entry) => {
-                    if (typeof entry === 'number') {
-                        return { time: entry, name: 'Anonymous' };
-                    }
-                    if (entry && typeof entry.time === 'number') {
-                        const name = typeof entry.name === 'string' ? entry.name.trim() : '';
-                        return {
-                            time: entry.time,
-                            name: name.length ? name : 'Anonymous',
-                        };
-                    }
-                    return null;
-                })
-                .filter(Boolean);
+                .map(normalizeLeaderboardEntry)
+                .filter(Boolean)
+                .sort((a, b) => a.time - b.time)
+                .slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
         } catch (err) {
             console.error('Error reading leaderboard:', err);
             return [];
@@ -54,24 +76,21 @@ export class LeaderboardManager {
     }
 
     writeLeaderboard(level, data) {
-        const key = `${GAME_CONSTANTS.STORAGE_LEVEL_PREFIX}${level}`;
+        const normalizedLevel = normalizeLevel(level);
+        if (normalizedLevel === null) {
+            return;
+        }
+        const key = `${GAME_CONSTANTS.STORAGE_LEVEL_PREFIX}${normalizedLevel}`;
         if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
             return;
         }
         try {
             const payload = Array.isArray(data)
                 ? data
-                      .map((entry) => {
-                          if (!entry || typeof entry.time !== 'number') {
-                              return null;
-                          }
-                          const name = typeof entry.name === 'string' ? entry.name.trim() : '';
-                          return {
-                              time: entry.time,
-                              name: name.length ? name : 'Anonymous',
-                          };
-                      })
+                      .map(normalizeLeaderboardEntry)
                       .filter(Boolean)
+                      .sort((a, b) => a.time - b.time)
+                      .slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES)
                 : [];
             window.localStorage.setItem(key, JSON.stringify(payload));
         } catch (err) {
@@ -81,20 +100,23 @@ export class LeaderboardManager {
     }
 
     saveTime(level, newTime, playerName) {
-        const normalizedLevel = Math.max(1, Math.min(3, Number(level) || 1));
-        const trimmedName = typeof playerName === 'string' ? playerName.trim() : '';
-        const safeName = trimmedName.length ? trimmedName : 'Anonymous';
+        const normalizedLevel = normalizeLevel(level);
+        const entry = normalizeLeaderboardEntry({ time: newTime, name: playerName });
+        if (normalizedLevel === null || !entry) {
+            return false;
+        }
 
-        this.saveTimeToFirebase(normalizedLevel, newTime, safeName);
+        this.saveTimeToFirebase(normalizedLevel, entry.time, entry.name);
         if (!this.scene.storageAvailable) {
-            return;
+            return true;
         }
 
         const leaderboard = this.readLeaderboard(normalizedLevel);
-        leaderboard.push({ time: newTime, name: safeName });
+        leaderboard.push(entry);
         leaderboard.sort((a, b) => a.time - b.time);
         const trimmed = leaderboard.slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
         this.writeLeaderboard(normalizedLevel, trimmed);
+        return true;
     }
 
     saveTimeToFirebase(level, newTime, playerName) {
@@ -146,13 +168,8 @@ export class LeaderboardManager {
                 }
                 const entries = Object.entries(data)
                     .map(([key, value]) => {
-                        if (typeof value === 'number') {
-                            return { key, time: value };
-                        }
-                        if (value && typeof value.time === 'number') {
-                            return { key, time: value.time };
-                        }
-                        return null;
+                        const normalized = normalizeLeaderboardEntry(value);
+                        return normalized ? { key, time: normalized.time } : null;
                     })
                     .filter(Boolean);
 
@@ -187,24 +204,7 @@ export class LeaderboardManager {
             return Promise.resolve(null);
         }
 
-        const levels = [1, 2, 3];
-        const normalizeEntry = (value) => {
-            if (value && typeof value === 'object') {
-                const time = typeof value.time === 'number' ? value.time : null;
-                if (time === null) {
-                    return null;
-                }
-                const name = typeof value.name === 'string' ? value.name.trim() : '';
-                return {
-                    time,
-                    name: name.length ? name : 'Anonymous',
-                };
-            }
-            if (typeof value === 'number') {
-                return { time: value, name: 'Anonymous' };
-            }
-            return null;
-        };
+        const levels = LEVEL_IDS;
 
         const requests = levels.map((level) => {
             const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
@@ -220,12 +220,14 @@ export class LeaderboardManager {
                         return [];
                     }
                     if (Array.isArray(data)) {
-                        const entries = data.map(normalizeEntry).filter(Boolean);
+                        const entries = data.map(normalizeLeaderboardEntry).filter(Boolean);
                         entries.sort((a, b) => a.time - b.time);
                         return entries.slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
                     }
                     if (typeof data === 'object') {
-                        const times = Object.values(data).map(normalizeEntry).filter(Boolean);
+                        const times = Object.values(data)
+                            .map(normalizeLeaderboardEntry)
+                            .filter(Boolean);
                         times.sort((a, b) => a.time - b.time);
                         return times.slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
                     }
@@ -264,14 +266,11 @@ export class LeaderboardManager {
                     entry && typeof entry === 'object' && typeof entry.name === 'string'
                         ? entry.name
                         : 'Anonymous';
-                if (typeof timeValue !== 'number') {
+                if (typeof timeValue !== 'number' || !Number.isFinite(timeValue) || timeValue < 0) {
                     return null;
                 }
-                const minutes = Math.floor(timeValue / 60000);
-                const seconds = Math.floor((timeValue % 60000) / 1000);
-                const milliseconds = Math.floor((timeValue % 1000) / 10);
-                const paddedName = nameValue && nameValue.length ? nameValue : 'Anonymous';
-                return `${index + 1}. ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')} - ${paddedName}`;
+                const paddedName = normalizePlayerName(nameValue);
+                return `${index + 1}. ${formatElapsedTime(timeValue)} - ${paddedName}`;
             })
             .filter(Boolean)
             .join('\n');
@@ -282,12 +281,11 @@ export class LeaderboardManager {
             return null;
         }
         try {
-            const stored = window.localStorage.getItem('spaceChickenPlayerName');
+            const stored = window.localStorage.getItem(AUDIO_SETTINGS.PLAYER_NAME_KEY);
             if (!stored) {
                 return null;
             }
-            const trimmed = stored.trim();
-            return trimmed.length ? trimmed : null;
+            return normalizePlayerName(stored);
         } catch (err) {
             console.error('Error loading player name:', err);
             return null;
@@ -299,7 +297,7 @@ export class LeaderboardManager {
             return;
         }
         try {
-            window.localStorage.setItem('spaceChickenPlayerName', name);
+            window.localStorage.setItem(AUDIO_SETTINGS.PLAYER_NAME_KEY, normalizePlayerName(name));
         } catch (err) {
             console.error('Error saving player name:', err);
         }
@@ -315,12 +313,12 @@ export class LeaderboardManager {
         const currentName = storedName || managerName || sceneName;
 
         if (!forcePrompt) {
-            const fallback = currentName || 'Anonymous';
+            const fallback = normalizePlayerName(currentName);
             this.playerName = fallback;
             return fallback;
         }
         if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
-            const fallback = currentName || 'Anonymous';
+            const fallback = normalizePlayerName(currentName);
             this.playerName = fallback;
             return fallback;
         }
@@ -330,11 +328,9 @@ export class LeaderboardManager {
         if (response === null) {
             finalName = currentName;
         } else {
-            finalName = response.trim();
+            finalName = response;
         }
-        if (!finalName) {
-            finalName = currentName || 'Anonymous';
-        }
+        finalName = normalizePlayerName(finalName || currentName);
         this.playerName = finalName;
         this.savePlayerName(finalName);
         return finalName;
