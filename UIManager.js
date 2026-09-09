@@ -39,7 +39,6 @@ export class UIManager {
     }
 
     createUI(levelConfig, level, playerName) {
-        // Timer text
         this.timerText = this.scene.add.text(0, 0, 'Time: 00:00.00', {
             fontSize: '32px',
             fontFamily: HUD_FONT,
@@ -49,7 +48,6 @@ export class UIManager {
         this.timerText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.styleHudText(this.timerText, 6);
 
-        // Level text
         this.levelText = this.scene.add.text(0, 0, `Level ${level}`, {
             fontSize: '22px',
             fontFamily: HUD_FONT,
@@ -68,7 +66,6 @@ export class UIManager {
         this.deathText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.styleHudText(this.deathText, 4);
 
-        // Instructions text
         const initialWrapWidth = Math.max(
             200,
             this.scene.scale && this.scene.scale.width ? this.scene.scale.width - 32 : 800 - 32
@@ -83,7 +80,6 @@ export class UIManager {
         this.text.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.styleHudText(this.text, 3);
 
-        // Player name text
         this.playerNameText = this.scene.add.text(0, 0, '', {
             fontSize: '18px',
             fontFamily: HUD_FONT,
@@ -107,13 +103,8 @@ export class UIManager {
         });
         this.updatePlayerName(playerName);
 
-        // Music toggle button
         this.createMusicToggleButton();
-
-        // Leaderboard button
         this.createLeaderboardButton();
-
-        // Setup touch controls if needed
         if (this.scene.shouldEnableTouchControls()) {
             this.enableTouchControls();
         }
@@ -125,7 +116,7 @@ export class UIManager {
 
     getLayoutMetrics() {
         const insets = this.getSafeAreaInsets();
-        if (this.scene.viewport && typeof this.scene.viewport.getLayoutMetrics === 'function') {
+        if (this.scene.viewport?.getLayoutMetrics) {
             return this.scene.viewport.getLayoutMetrics(insets);
         }
         const width = this.scene.getViewportWidth();
@@ -162,7 +153,7 @@ export class UIManager {
     }
 
     applyFontSize(text, size) {
-        if (!text || typeof text.setFontSize !== 'function' || !size) {
+        if (!text?.setFontSize || !size) {
             return;
         }
         text.setFontSize(size);
@@ -173,9 +164,7 @@ export class UIManager {
             return gameObject;
         }
         gameObject.spaceChickenUi = true;
-        if (this.scene && typeof this.scene.assignCameraFilter === 'function') {
-            this.scene.assignCameraFilter(gameObject);
-        }
+        this.scene?.assignCameraFilter?.(gameObject);
         return gameObject;
     }
 
@@ -278,12 +267,8 @@ export class UIManager {
         if (!text) {
             return;
         }
-        if (typeof text.setStroke === 'function') {
-            text.setStroke('#000000', strokeThickness);
-        }
-        if (typeof text.setShadow === 'function') {
-            text.setShadow(2, 2, '#000000', 2, true, true);
-        }
+        text.setStroke?.('#000000', strokeThickness);
+        text.setShadow?.(2, 2, '#000000', 2, true, true);
     }
 
     enableTouchControls() {
@@ -291,10 +276,8 @@ export class UIManager {
             return;
         }
         this.touchControlsEnabled = true;
-        if (this.scene.pointerTapTimes && typeof this.scene.pointerTapTimes.clear === 'function') {
-            this.scene.pointerTapTimes.clear();
-        }
-        if (this.scene.input && typeof this.scene.input.addPointer === 'function') {
+        this.scene.pointerTapTimes?.clear?.();
+        if (this.scene.input?.addPointer) {
             const desiredPointerTotal = GAME_CONSTANTS.TOUCH_POINTER_TOTAL;
             const manager = this.scene.input.manager;
             const currentPointerTotal =
@@ -711,7 +694,6 @@ export class UIManager {
     updateDeathCount(deathCount) {
         if (this.deathText) {
             this.deathText.setText(`Deaths ${deathCount || 0}`);
-            this.layoutUI();
         }
     }
 
@@ -1192,14 +1174,7 @@ export class UIManager {
         this.destroyed = true;
         this.leaderboardRequestId += 1;
 
-        // Clean up resize listener
-        if (this.scene.scale && this.resizeHandler) {
-            this.scene.scale.off('resize', this.resizeHandler, this);
-            this.resizeHandler = null;
-        }
-
-        // Destroy UI elements
-        if (this.instructionFadeEvent && typeof this.instructionFadeEvent.remove === 'function') {
+        if (this.instructionFadeEvent?.remove) {
             this.instructionFadeEvent.remove(false);
         }
         this.instructionFadeEvent = null;

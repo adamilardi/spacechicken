@@ -114,6 +114,8 @@ test('all active JavaScript files pass the JavaScript parser', () => {
         'server.cjs',
         'config/runtime-assets.cjs',
         'scripts/build-cloudflare.cjs',
+        'scripts/play-bot.mjs',
+        'scripts/playtest-bot.mjs',
     ];
     files.forEach((file) => {
         const source = fs.readFileSync(path.join(projectRoot, file), 'utf8');
@@ -318,8 +320,8 @@ test('sound effects use distinct layered voices', async () => {
 });
 
 test('vertical laser visuals and hitboxes have the same orientation', async () => {
-    const { SpaceChicken } = await importModule('SpaceChicken.js');
-    const scene = new SpaceChicken();
+    const { WorldBuilder } = await importModule('WorldBuilder.js');
+    const scene = {};
     const body = {
         allowGravity: true,
         enable: true,
@@ -361,7 +363,7 @@ test('vertical laser visuals and hitboxes have the same orientation', async () =
     };
     scene.add = { image: () => ({ setAngle() {}, setDepth() {} }) };
 
-    scene.createLaserHazard(group, {
+    new WorldBuilder(scene).createLaserHazard(group, {
         type: 'laser',
         x: 10,
         y: 20,
@@ -494,6 +496,75 @@ test('baked backgrounds reuse a generated texture instead of redrawing', async (
     assert.equal(images[0].key, 'space-chicken-bg-1_background_space_dawn_200x100');
 });
 
+test('wide worlds bake a smaller background texture and stretch it', async () => {
+    const { BackgroundRenderer } = await importModule('BackgroundRenderer.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const generated = [];
+    const images = [];
+    const scene = {
+        level: 2,
+        levelConfig: { background: { type: 'space', style: 'arcadeOrbit' } },
+        textures: {
+            exists(key) {
+                return generated.some((entry) => entry.key === key);
+            },
+        },
+        add: {
+            image(x, y, key) {
+                const sprite = {
+                    key,
+                    displayWidth: 0,
+                    displayHeight: 0,
+                    setOrigin() {
+                        return this;
+                    },
+                    setDepth() {
+                        return this;
+                    },
+                    setScrollFactor() {
+                        return this;
+                    },
+                    setDisplaySize(width, height) {
+                        this.displayWidth = width;
+                        this.displayHeight = height;
+                        return this;
+                    },
+                };
+                images.push(sprite);
+                return sprite;
+            },
+            graphics() {
+                return {
+                    constructor: {
+                        TargetCamera: {
+                            zoom: 1,
+                            setZoom(value) {
+                                this.zoom = value;
+                            },
+                        },
+                    },
+                    setDepth() {},
+                    generateTexture(key, width, height) {
+                        generated.push({ key, width, height });
+                    },
+                    destroy() {},
+                };
+            },
+        },
+    };
+    const renderer = new BackgroundRenderer(scene);
+    renderer.createTwinkleStars = () => {};
+    renderer.drawBackground = () => {};
+    renderer.render(3000, 700);
+
+    assert.equal(generated.length, 1);
+    assert.ok(generated[0].width <= GAME_CONSTANTS.BACKGROUND_BAKE_MAX_WIDTH);
+    assert.ok(generated[0].width < 3000);
+    assert.equal(images.length, 1);
+    assert.equal(images[0].displayWidth, 3000);
+    assert.equal(images[0].displayHeight, 700);
+});
+
 test('timer text only updates when the displayed centiseconds change', async () => {
     const { UIManager } = await importModule('UIManager.js');
     const texts = [];
@@ -557,8 +628,12 @@ test('effects burst particles and squash the player with a yoyo scale tween', as
     const particles = effects.burst({ x: 10, y: 20, count: 4, tint: 0xffee00 });
     assert.equal(particles.length, 4);
     assert.equal(images.length, 4);
-    assert.equal(tweens.length, 4);
-    assert.equal(tweens[0].alpha, 0);
+    assert.equal(tweens.length, 0);
+    assert.ok(particles[0]._fx);
+    assert.equal(particles[0]._fx.startX, 10);
+    effects.stepParticles(10_000);
+    assert.equal(effects.live.size, 0);
+    assert.equal(effects.pool.length, 4);
 
     const player = {
         scaleX: 1,
@@ -676,6 +751,162 @@ test('a one-frame ground flicker does not emit landing dust', async () => {
     scene.player.body.blocked.down = true;
     scene.updateGroundedState();
     assert.equal(landings, 1);
+});
+
+test('dying respawns in place without rebuilding the scene', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const scene = new SpaceChicken();
+    scene.init({ level: 1, deathCount: 2 });
+    let started = 0;
+    const deathLabels = [];
+    scene.scene = {
+        key: 'SpaceChicken',
+        start() {
+            started += 1;
+        },
+    };
+    scene.time = {
+        delayedCall(ms, callback) {
+            scene.queuedDelay = ms;
+            scene.queuedCallback = callback;
+            return { remove() {} };
+        },
+    };
+    scene.levelConfig = { playerStart: { x: 100, y: 450 } };
+    scene.player = {
+        x: 880,
+        y: 410,
+        body: {
+            enable: true,
+            stop() {
+                this.stopped = true;
+            },
+            reset(x, y) {
+                this.x = x;
+                this.y = y;
+            },
+        },
+        enableBody(_reset, x, y) {
+            this.x = x;
+            this.y = y;
+            this.body.enable = true;
+        },
+        setTint() {},
+        setAlpha() {},
+        setScale() {},
+        clearTint() {
+            this.tinted = false;
+        },
+        play(key) {
+            this.anim = key;
+        },
+    };
+    scene.audioManager = { playHazardHitSound() {} };
+    scene.effectsManager = { deathBurst() {}, stopPlayerScaleTween() {} };
+    scene.uiManager = {
+        updateDeathCount(count) {
+            deathLabels.push(count);
+        },
+        updateTimer() {},
+    };
+    scene.cameras = {
+        main: {
+            resetFX() {},
+            centerOn(x, y) {
+                scene.centered = [x, y];
+            },
+            flash() {},
+            shake() {},
+        },
+    };
+    scene.spawnBomb = () => {
+        scene.bombRestarted = true;
+    };
+    scene.recycleAllBombs = () => {
+        scene.bombsRecycled = true;
+    };
+
+    scene.failFromHazard();
+    assert.equal(scene.isTransitioning, true);
+    assert.equal(scene.deathCount, 3);
+    assert.equal(started, 0);
+    assert.equal(scene.queuedDelay, GAME_CONSTANTS.DEATH_TRANSITION_DELAY);
+    assert.deepEqual(deathLabels, [3]);
+    assert.equal(scene.bombsRecycled, true);
+    assert.equal(scene.player.body.enable, false);
+
+    scene.queuedCallback();
+    assert.equal(started, 0);
+    assert.equal(scene.isTransitioning, false);
+    assert.equal(scene.player.x, 100);
+    assert.equal(scene.player.y, 450);
+    assert.equal(scene.player.body.enable, true);
+    assert.equal(scene.bombRestarted, true);
+    assert.deepEqual(scene.centered, [100, 450]);
+});
+
+test('floor tiles share one collider per contiguous run', async () => {
+    const { WorldBuilder } = await importModule('WorldBuilder.js');
+    const visuals = [];
+    const colliders = [];
+    const scene = {
+        worldWidth: 2000,
+        add: {
+            image(x, y, key) {
+                const sprite = {
+                    x,
+                    y,
+                    key,
+                    setDepth() {},
+                    setScale(scaleX, scaleY) {
+                        this.scaleX = scaleX;
+                        this.scaleY = scaleY;
+                    },
+                };
+                visuals.push(sprite);
+                return sprite;
+            },
+        },
+        platforms: {
+            create(x, y, key) {
+                const sprite = {
+                    x,
+                    y,
+                    key,
+                    setDepth() {},
+                    setVisible(value) {
+                        this.visible = value;
+                    },
+                    setDisplaySize(width, height) {
+                        this.displayWidth = width;
+                        this.displayHeight = height;
+                    },
+                    refreshBody() {
+                        this.refreshed = true;
+                    },
+                };
+                colliders.push(sprite);
+                return sprite;
+            },
+        },
+    };
+    const builder = new WorldBuilder(scene);
+    builder.buildFloorPlatforms({
+        y: 580,
+        step: 100,
+        scaleX: 1.5,
+        scaleY: 0.3,
+        condition: (x) => x < 350 || (x > 450 && x < 650),
+    });
+
+    assert.ok(visuals.length > colliders.length);
+    assert.equal(colliders.length, 2);
+    assert.equal(
+        colliders.every((sprite) => sprite.visible === false),
+        true
+    );
+    assert.ok(colliders[0].displayWidth > 96);
 });
 
 test('hazards cannot kill the chicken during the title screen', async () => {
@@ -1041,6 +1272,11 @@ test('touch instructions describe the on-screen arrow controls', async () => {
     const config = new LevelConfig(1);
     assert.match(config.touchInstructions, /arrow/i);
     assert.match(config.touchInstructions, /jump/i);
+});
+
+test('the play-bot exports an in-page pilot installer', async () => {
+    const { installInPagePilot } = await importModule('scripts/play-bot.mjs');
+    assert.equal(typeof installInPagePilot, 'function');
 });
 
 test('the game page opts into a mobile visual viewport', () => {

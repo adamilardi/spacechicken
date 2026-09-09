@@ -8,12 +8,20 @@
         "start": "node server.cjs",
         "build:cloudflare": "node scripts/build-cloudflare.cjs",
         "deploy:cloudflare": "npm run check && npm run build:cloudflare && wrangler pages deploy dist --project-name space-chicken --branch main",
-        "lint": "eslint \"**/*.{js,cjs}\" --ignore-pattern archive/ --ignore-pattern node_modules/",
-        "lint:fix": "eslint \"**/*.{js,cjs}\" --fix --ignore-pattern archive/ --ignore-pattern node_modules/",
+        "lint": "eslint \"**/*.{js,cjs,mjs}\" --ignore-pattern archive/ --ignore-pattern node_modules/",
+        "lint:fix": "eslint \"**/*.{js,cjs,mjs}\" --fix --ignore-pattern archive/ --ignore-pattern node_modules/",
         "format": "prettier --write \"**/*.{js,cjs,json,jsonc,html,md}\" --ignore-path .prettierignore",
         "format:check": "prettier --check \"**/*.{js,cjs,json,jsonc,html,md}\" --ignore-path .prettierignore",
         "test": "node --test tests/*.test.cjs",
-        "check": "npm test && npm run lint -- --max-warnings=0 && npm run format:check"
+        "check": "npm test && npm run lint -- --max-warnings=0 && npm run format:check",
+        "bot": "node scripts/play-bot.mjs",
+        "bot:headed": "HEADLESS=0 node scripts/play-bot.mjs",
+        "bot:watch": "HEADLESS=0 RECORD_VIDEO=1 node scripts/play-bot.mjs",
+        "bot:level2": "LEVEL=2 node scripts/play-bot.mjs",
+        "bot:level3": "LEVEL=3 node scripts/play-bot.mjs",
+        "bot:level4": "LEVEL=4 node scripts/play-bot.mjs",
+        "playtest": "node scripts/playtest-bot.mjs",
+        "playtest:headed": "HEADLESS=0 node scripts/playtest-bot.mjs"
     },
     "dependencies": {
         "phaser": "3.70.0"
@@ -22,6 +30,7 @@
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",
+        "playwright": "^1.49.0",
         "prettier": "^3.3.3",
         "wrangler": "^4.123.0"
     },

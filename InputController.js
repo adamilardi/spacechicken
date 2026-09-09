@@ -32,6 +32,7 @@ export class InputController {
             leaderboard: false,
             name: false,
         };
+        this.hitBounds = { x: 0, y: 0, width: 0, height: 0 };
     }
 
     poll() {
@@ -159,30 +160,23 @@ export class InputController {
     }
 
     isPointerOverGameObject(pointerX, pointerY, gameObject, padding = 0) {
-        if (
-            !gameObject ||
-            typeof pointerX !== 'number' ||
-            typeof pointerY !== 'number' ||
-            typeof gameObject.getBounds !== 'function'
-        ) {
+        if (!gameObject || pointerX == null || pointerY == null || !gameObject.getBounds) {
             return false;
         }
-        const bounds = gameObject.getBounds();
-        if (!bounds) {
-            return false;
-        }
-        const pad = Number.isFinite(padding) ? padding : 0;
-        const left = bounds.x - pad;
-        const top = bounds.y - pad;
-        const right = bounds.x + bounds.width + pad;
-        const bottom = bounds.y + bounds.height + pad;
-        return pointerX >= left && pointerX <= right && pointerY >= top && pointerY <= bottom;
+        const bounds = gameObject.getBounds(this.hitBounds) || this.hitBounds;
+        const pad = padding || 0;
+        return (
+            pointerX >= bounds.x - pad &&
+            pointerX <= bounds.x + bounds.width + pad &&
+            pointerY >= bounds.y - pad &&
+            pointerY <= bounds.y + bounds.height + pad
+        );
     }
 
     fillPointerTargets(pointer, controls) {
-        const x = typeof pointer.x === 'number' ? pointer.x : pointer.worldX;
-        const y = typeof pointer.y === 'number' ? pointer.y : pointer.worldY;
-        const hasCoordinates = typeof x === 'number' && typeof y === 'number';
+        const x = pointer.x ?? pointer.worldX;
+        const y = pointer.y ?? pointer.worldY;
+        const hasCoordinates = x != null && y != null;
         const targets = this.targets;
         const pad = GAME_CONSTANTS.TOUCH_HIT_PADDING;
         targets.x = x;
@@ -219,10 +213,7 @@ export class InputController {
         }
         const scene = this.scene;
         const eligible = !this.isOverUiControl(targets);
-        const upTime =
-            typeof pointer.upTime === 'number' && pointer.upTime > 0
-                ? pointer.upTime
-                : performance.now();
+        const upTime = pointer.upTime > 0 ? pointer.upTime : performance.now();
         const lastTapTime = scene.pointerTapTimes.get(pointer.id) || 0;
         const triggered =
             Boolean(scene.uiManager && scene.uiManager.touchControlsEnabled) &&
@@ -285,8 +276,8 @@ export class InputController {
         if (targets.music || targets.leaderboard || targets.name || targets.left || targets.right) {
             return false;
         }
-        const downTime = typeof pointer.downTime === 'number' ? pointer.downTime : 0;
-        const upTime = typeof pointer.upTime === 'number' ? pointer.upTime : downTime + 201;
+        const downTime = pointer.downTime || 0;
+        const upTime = pointer.upTime || downTime + 201;
         return upTime - downTime < GAME_CONSTANTS.JUMP_BUTTON_TOUCH_TOLERANCE;
     }
 }

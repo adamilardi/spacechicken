@@ -1,5 +1,4 @@
 import { GAME_CONSTANTS, KEY_CODES, LEVEL_IDS } from './Constants.js';
-import { valueOrDefault } from './GameUtils.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
@@ -11,20 +10,62 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 
-class SpaceChicken extends Phaser.Scene {
+function readLaunchQuery() {
+    if (typeof location === 'undefined' || !location.search) {
+        return { level: null, bot: false };
+    }
+    const query = new URLSearchParams(location.search);
+    const level = Number(query.get('level'));
+    return {
+        level: Number.isFinite(level) ? level : null,
+        bot: query.has('bot'),
+    };
+}
+
+function listGroupBodies(group) {
+    const entries = group && group.children && group.children.entries;
+    if (!Array.isArray(entries)) {
+        return [];
+    }
+    const out = [];
+    for (let i = 0; i < entries.length; i++) {
+        const sprite = entries[i];
+        if (!sprite) {
+            continue;
+        }
+        const width = sprite.displayWidth || sprite.width || 32;
+        const height = sprite.displayHeight || sprite.height || 32;
+        out.push({
+            x: sprite.x,
+            y: sprite.y,
+            w: width,
+            h: height,
+            left: sprite.x - width / 2,
+            right: sprite.x + width / 2,
+            top: sprite.y - height / 2,
+            active: sprite.active !== false,
+            enable: !sprite.body || sprite.body.enable !== false,
+        });
+    }
+    return out;
+}
+
+export class SpaceChicken extends Phaser.Scene {
     constructor() {
         super();
         this.viewport = new Viewport(this);
     }
 
     init(data = {}) {
-        const requestedLevel = Number(data.level);
+        const launch = readLaunchQuery();
+        const requestedLevel = Number(data.level != null ? data.level : launch.level);
         this.level = LEVEL_IDS.includes(requestedLevel) ? requestedLevel : LEVEL_IDS[0];
         const requestedDeathCount = Number(data.deathCount);
         this.deathCount =
             Number.isFinite(requestedDeathCount) && requestedDeathCount >= 0
                 ? Math.floor(requestedDeathCount)
                 : 0;
+        this.launchBot = Boolean(launch.bot);
         this.startTime = 0;
         this.gameOver = false;
         this.isTransitioning = false;
@@ -34,13 +75,15 @@ class SpaceChicken extends Phaser.Scene {
         this.isJetpacking = false;
         this.restartDelayDone = true;
         this.bombSpawnEvent = null;
+        this.deathResetEvent = null;
+        this.deathResetWall = null;
         this.hasCleanedUp = false;
-        this.awaitingStart = this.level === LEVEL_IDS[0] && this.deathCount === 0;
+        this.awaitingStart =
+            this.level === LEVEL_IDS[0] && this.deathCount === 0 && !this.launchBot;
         this.wasGrounded = false;
         this.airborneSince = 0;
         this.maxAirSpeedY = 0;
         this.crownGlow = null;
-        this.titlePlayerTween = null;
         this.killZoneFallY = 0;
         this.hasStartedPlay = false;
         this.uiCamera = null;
@@ -54,18 +97,6 @@ class SpaceChicken extends Phaser.Scene {
         this.dynamicHazardEvents = [];
         this.activeWarningGraphics = [];
         this.pointerTapTimes = new Map();
-    }
-
-    getScaleDimension(dimension) {
-        return this.viewport.getScaleDimension(dimension);
-    }
-
-    getBaseDimension(dimension) {
-        return this.viewport.getBaseDimension(dimension);
-    }
-
-    getConfigDimension(dimension) {
-        return this.viewport.getConfigDimension(dimension);
     }
 
     getBaseWidth() {
@@ -114,8 +145,12 @@ class SpaceChicken extends Phaser.Scene {
         this.storageAvailable = this.checkStorageAvailability();
         this.playerName = this.leaderboardManager.loadPlayerName();
         this.musicMuted = this.audioManager.loadMusicPreference();
+        if (this.launchBot) {
+            this.musicMuted = true;
+        }
         this.audioManager.musicMuted = this.musicMuted;
         this.audioManager.configureLevelMusic();
+        this.bindBotDebugApi();
 
         this.physics.world.gravity.y = this.levelConfig.gravity;
         this.physics.resume();
@@ -156,10 +191,6 @@ class SpaceChicken extends Phaser.Scene {
         this.crown.setDepth(4);
         this.decorateCrown();
 
-        if (this.shouldEnableTouchControls()) {
-            this.uiManager.enableTouchControls();
-        }
-
         const killZone = this.add
             .zone(0, this.levelConfig.killZoneY, this.worldWidth, this.levelConfig.killZoneHeight)
             .setOrigin(0);
@@ -173,23 +204,23 @@ class SpaceChicken extends Phaser.Scene {
         if (this.movingPlatforms) {
             this.physics.add.collider(this.player, this.movingPlatforms);
         }
-        this.physics.add.overlap(this.player, this.hazards, () => this.hitHazard(), null, this);
+        this.physics.add.overlap(this.player, this.hazards, this.failFromHazard, null, this);
         if (this.dynamicHazardsGroup) {
             this.physics.add.overlap(
                 this.player,
                 this.dynamicHazardsGroup,
-                () => this.hitHazard(),
+                this.failFromHazard,
                 null,
                 this
             );
         }
         this.physics.add.overlap(this.player, this.crown, () => this.collectGem(), null, this);
-        this.physics.add.overlap(this.player, killZone, () => this.hitKillZone(), null, this);
+        this.physics.add.overlap(this.player, killZone, () => this.failFromHazard(), null, this);
 
         this.bombs = this.physics.add.group({
             maxSize: GAME_CONSTANTS.BOMB_POOL_SIZE,
         });
-        this.physics.add.overlap(this.player, this.bombs, this.hitBomb, null, this);
+        this.physics.add.overlap(this.player, this.bombs, this.failFromHazard, null, this);
 
         this.createAnimations();
 
@@ -204,7 +235,7 @@ class SpaceChicken extends Phaser.Scene {
         const initialWidth = this.game.config.width || this.getBaseWidth();
         const initialHeight = this.game.config.height || this.getBaseHeight();
         this.handleResize({ width: initialWidth, height: initialHeight });
-        if (this.scale && typeof this.scale.on === 'function') {
+        if (this.scale?.on) {
             this.boundHandleResize = (gameSize) => this.handleResize(gameSize);
             this.scale.on('resize', this.boundHandleResize, this);
         }
@@ -220,7 +251,7 @@ class SpaceChicken extends Phaser.Scene {
         if (!camera) {
             return;
         }
-        if (typeof camera.startFollow === 'function') {
+        if (camera.startFollow) {
             camera.startFollow(
                 this.player,
                 true,
@@ -228,7 +259,7 @@ class SpaceChicken extends Phaser.Scene {
                 GAME_CONSTANTS.CAMERA_LERP_Y
             );
         }
-        if (typeof camera.setBounds === 'function') {
+        if (camera.setBounds) {
             camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
         }
         camera.roundPixels = true;
@@ -237,48 +268,46 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     setupUiCamera() {
-        if (!this.cameras || typeof this.cameras.add !== 'function' || this.uiCamera) {
+        if (!this.cameras?.add || this.uiCamera) {
             return;
         }
         this.uiCamera = this.cameras.add(0, 0, this.getViewportWidth(), this.getViewportHeight());
-        if (typeof this.uiCamera.setName === 'function') {
+        if (this.uiCamera.setName) {
             this.uiCamera.setName('ui');
         }
-        if (typeof this.uiCamera.setScroll === 'function') {
+        if (this.uiCamera.setScroll) {
             this.uiCamera.setScroll(0, 0);
         }
         this.uiCamera.roundPixels = true;
         this.uiCamera.transparent = true;
-        if (typeof this.uiCamera.setBackgroundColor === 'function') {
+        if (this.uiCamera.setBackgroundColor) {
             this.uiCamera.setBackgroundColor({ r: 0, g: 0, b: 0, a: 0 });
         }
         this.addedToSceneHandler = (gameObject) => this.assignCameraFilter(gameObject);
-        if (this.events && typeof this.events.on === 'function') {
+        if (this.events?.on) {
             this.events.on('addedtoscene', this.addedToSceneHandler, this);
         }
         this.bindExistingCameraFilters();
     }
 
     bindExistingCameraFilters() {
-        if (this.uiManager && typeof this.uiManager.markAllUiObjects === 'function') {
-            this.uiManager.markAllUiObjects();
-        }
-        const list = this.children && Array.isArray(this.children.list) ? this.children.list : [];
+        this.uiManager?.markAllUiObjects?.();
+        const list = Array.isArray(this.children?.list) ? this.children.list : [];
         for (let i = 0; i < list.length; i++) {
             this.assignCameraFilter(list[i]);
         }
     }
 
     assignCameraFilter(gameObject) {
-        if (!gameObject || !this.uiCamera || !this.cameras || !this.cameras.main) {
+        if (!gameObject || !this.uiCamera || !this.cameras?.main) {
             return;
         }
         const main = this.cameras.main;
         const uiCamera = this.uiCamera;
         if (typeof gameObject.cameraFilter !== 'number') {
-            if (gameObject.spaceChickenUi && typeof main.ignore === 'function') {
+            if (gameObject.spaceChickenUi && main.ignore) {
                 main.ignore(gameObject);
-            } else if (typeof uiCamera.ignore === 'function') {
+            } else if (uiCamera.ignore) {
                 uiCamera.ignore(gameObject);
             }
             return;
@@ -297,27 +326,21 @@ class SpaceChicken extends Phaser.Scene {
         if (!camera) {
             return;
         }
-        const insets =
-            this.uiManager && typeof this.uiManager.getSafeAreaInsets === 'function'
-                ? this.uiManager.getSafeAreaInsets()
-                : GAME_CONSTANTS.SAFE_AREA_FALLBACK;
-        const metrics =
-            this.viewport && typeof this.viewport.getLayoutMetrics === 'function'
-                ? this.viewport.getLayoutMetrics(insets)
-                : null;
+        const insets = this.uiManager?.getSafeAreaInsets?.() || GAME_CONSTANTS.SAFE_AREA_FALLBACK;
+        const metrics = this.viewport?.getLayoutMetrics?.(insets) || null;
         const width = metrics ? metrics.width : this.getViewportWidth();
         const height = metrics ? metrics.height : this.getViewportHeight();
         if (this.uiCamera) {
-            if (typeof this.uiCamera.setViewport === 'function') {
+            if (this.uiCamera.setViewport) {
                 this.uiCamera.setViewport(0, 0, width, height);
-            } else if (typeof this.uiCamera.setSize === 'function') {
+            } else if (this.uiCamera.setSize) {
                 this.uiCamera.setSize(width, height);
             }
-            if (typeof this.uiCamera.setScroll === 'function') {
+            if (this.uiCamera.setScroll) {
                 this.uiCamera.setScroll(0, 0);
             }
         }
-        if (this.worldWidth && this.worldHeight && typeof camera.setBounds === 'function') {
+        if (this.worldWidth && this.worldHeight && camera.setBounds) {
             camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
         }
 
@@ -331,14 +354,13 @@ class SpaceChicken extends Phaser.Scene {
         }
         zoom = Phaser.Math.Clamp(zoom, 1, 1.55);
         this.playCameraZoom = zoom;
-        if (typeof camera.setZoom === 'function') {
+        if (camera.setZoom) {
             camera.setZoom(zoom);
         }
-
-        if (typeof camera.setFollowOffset !== 'function') {
+        if (!camera.setFollowOffset) {
             return;
         }
-        const touchEnabled = Boolean(this.uiManager && this.uiManager.touchControlsEnabled);
+        const touchEnabled = Boolean(this.uiManager?.touchControlsEnabled);
         if (touchEnabled && metrics) {
             const reserve = (metrics.controlSize + metrics.controlMargin * 2) / zoom;
             const ratio = metrics.isPortrait
@@ -351,33 +373,29 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     decorateCrown() {
-        if (!this.crown || !this.add) {
+        if (!this.crown || !this.add?.image) {
             return;
         }
-        if (typeof this.add.image === 'function') {
-            this.crownGlow = this.add.image(this.crown.x, this.crown.y, 'particleSoft');
-            this.crownGlow.setDepth(3);
-            this.crownGlow.setScale(2.4);
-            this.crownGlow.setTint(0xffe066);
-            this.crownGlow.setAlpha(0.55);
-            if (typeof this.crownGlow.setBlendMode === 'function') {
-                this.crownGlow.setBlendMode(Phaser.BlendModes.ADD);
-            }
-            if (this.tweens && typeof this.tweens.add === 'function') {
-                this.tweens.add({
-                    targets: this.crownGlow,
-                    alpha: { from: 0.28, to: 0.8 },
-                    scale: { from: 1.9, to: 2.7 },
-                    duration: 900,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut',
-                });
-            }
+        this.crownGlow = this.add.image(this.crown.x, this.crown.y, 'particleSoft');
+        this.crownGlow.setDepth(3);
+        this.crownGlow.setScale(2.4);
+        this.crownGlow.setTint(0xffe066);
+        this.crownGlow.setAlpha(0.55);
+        if (this.crownGlow.setBlendMode) {
+            this.crownGlow.setBlendMode(Phaser.BlendModes.ADD);
         }
-        if (this.effectsManager) {
-            this.effectsManager.startCrownIdle(this.crown);
+        if (this.tweens?.add) {
+            this.tweens.add({
+                targets: this.crownGlow,
+                alpha: { from: 0.28, to: 0.8 },
+                scale: { from: 1.9, to: 2.7 },
+                duration: 900,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+            });
         }
+        this.effectsManager?.startCrownIdle(this.crown);
     }
 
     startSession() {
@@ -385,7 +403,7 @@ class SpaceChicken extends Phaser.Scene {
             if (this.uiManager) {
                 this.uiManager.showTitleScreen(this.levelConfig.title);
             }
-            if (this.input && typeof this.input.on === 'function') {
+            if (this.input?.on) {
                 this.input.on('pointerup', this.onTitlePointerUp, this);
             }
             return;
@@ -421,9 +439,7 @@ class SpaceChicken extends Phaser.Scene {
         this.hasStartedPlay = true;
         const wasWaiting = this.awaitingStart;
         this.awaitingStart = false;
-        if (this.input && typeof this.input.off === 'function') {
-            this.input.off('pointerup', this.onTitlePointerUp, this);
-        }
+        this.input?.off?.('pointerup', this.onTitlePointerUp, this);
         this.startTime = performance.now();
         if (this.uiManager) {
             this.uiManager.hideTitleScreen();
@@ -433,12 +449,8 @@ class SpaceChicken extends Phaser.Scene {
         if (!this.bombSpawnEvent) {
             this.spawnBomb();
         }
-        if (
-            wasWaiting &&
-            this.audioManager &&
-            typeof this.audioManager.playStartSound === 'function'
-        ) {
-            this.audioManager.playStartSound();
+        if (wasWaiting) {
+            this.audioManager?.playStartSound?.();
         }
         this.fadeCameraIn();
     }
@@ -448,31 +460,19 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     flashCamera(duration, red, green, blue) {
-        const camera = this.getMainCamera();
-        if (camera && typeof camera.flash === 'function') {
-            camera.flash(duration, red, green, blue);
-        }
+        this.getMainCamera()?.flash?.(duration, red, green, blue);
     }
 
     shakeCamera(duration, intensity) {
-        const camera = this.getMainCamera();
-        if (camera && typeof camera.shake === 'function') {
-            camera.shake(duration, intensity);
-        }
+        this.getMainCamera()?.shake?.(duration, intensity);
     }
 
     fadeCameraIn() {
-        const camera = this.getMainCamera();
-        if (camera && typeof camera.fadeIn === 'function') {
-            camera.fadeIn(GAME_CONSTANTS.CAMERA_FADE_IN, 0, 0, 0);
-        }
+        this.getMainCamera()?.fadeIn?.(GAME_CONSTANTS.CAMERA_FADE_IN, 0, 0, 0);
     }
 
     fadeCameraOut(duration, red = 0, green = 0, blue = 0) {
-        const camera = this.getMainCamera();
-        if (camera && typeof camera.fadeOut === 'function') {
-            camera.fadeOut(duration, red, green, blue);
-        }
+        this.getMainCamera()?.fadeOut?.(duration, red, green, blue);
     }
 
     playDeathJuice() {
@@ -492,22 +492,18 @@ class SpaceChicken extends Phaser.Scene {
 
     playAdvanceJuice() {
         if (this.crown) {
-            if (typeof this.crown.disableBody === 'function') {
-                this.crown.disableBody(true, false);
-            }
-            if (this.tweens && typeof this.tweens.add === 'function') {
-                this.tweens.add({
-                    targets: this.crown,
-                    y: this.crown.y - 70,
-                    alpha: 0,
-                    scale: 1.85,
-                    duration: 420,
-                    ease: 'Back.easeIn',
-                });
-            }
+            this.crown.disableBody?.(true, false);
+            this.tweens?.add?.({
+                targets: this.crown,
+                y: this.crown.y - 70,
+                alpha: 0,
+                scale: 1.85,
+                duration: 420,
+                ease: 'Back.easeIn',
+            });
         }
-        if (this.crownGlow && this.tweens && typeof this.tweens.add === 'function') {
-            this.tweens.add({
+        if (this.crownGlow) {
+            this.tweens?.add?.({
                 targets: this.crownGlow,
                 alpha: 0,
                 scale: 4,
@@ -526,18 +522,16 @@ class SpaceChicken extends Phaser.Scene {
             this.player.setTint(0x7dff7d);
         }
         if (this.crown) {
-            if (typeof this.crown.disableBody === 'function') {
-                this.crown.disableBody(true, false);
-            }
-            if (this.effectsManager) {
-                this.effectsManager.collectBurst(this.crown.x, this.crown.y);
-            }
+            this.crown.disableBody?.(true, false);
+            this.effectsManager?.collectBurst(this.crown.x, this.crown.y);
         }
         this.flashCamera(GAME_CONSTANTS.CAMERA_FLASH_COLLECT, 180, 255, 140);
         const camera = this.getMainCamera();
-        if (camera && typeof camera.zoomTo === 'function') {
-            const winZoom = (this.playCameraZoom || 1) * GAME_CONSTANTS.CAMERA_WIN_ZOOM;
-            camera.zoomTo(winZoom, GAME_CONSTANTS.CAMERA_WIN_ZOOM_DURATION);
+        if (camera?.zoomTo) {
+            camera.zoomTo(
+                (this.playCameraZoom || 1) * GAME_CONSTANTS.CAMERA_WIN_ZOOM,
+                GAME_CONSTANTS.CAMERA_WIN_ZOOM_DURATION
+            );
         }
     }
 
@@ -556,61 +550,32 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     shouldEnableTouchControls() {
-        if (
-            this.sys &&
-            this.sys.game &&
-            this.sys.game.device &&
-            this.sys.game.device.input &&
-            this.sys.game.device.input.touch
-        ) {
+        if (this.sys?.game?.device?.input?.touch) {
             return true;
         }
         if (typeof navigator !== 'undefined') {
-            if (
-                (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0) ||
-                (typeof navigator.msMaxTouchPoints === 'number' && navigator.msMaxTouchPoints > 0)
-            ) {
-                return true;
-            }
-            const userAgent = navigator.userAgent || '';
-            if (
-                userAgent.indexOf('Macintosh') !== -1 &&
-                typeof navigator.maxTouchPoints === 'number' &&
-                navigator.maxTouchPoints > 0
-            ) {
+            if ((navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0) > 0) {
                 return true;
             }
         }
-        if (typeof window !== 'undefined') {
-            if ('ontouchstart' in window) {
-                return true;
-            }
-            if (typeof window.matchMedia === 'function') {
-                try {
-                    if (window.matchMedia('(any-pointer: coarse)').matches) {
-                        return true;
-                    }
-                } catch (error) {
-                    // Ignore matchMedia errors (some browsers throw when the query is unsupported)
-                }
-            }
+        if (typeof window === 'undefined') {
+            return false;
         }
-        if (
-            typeof window !== 'undefined' &&
-            typeof document !== 'undefined' &&
-            window.DocumentTouch &&
-            document instanceof window.DocumentTouch
-        ) {
+        if ('ontouchstart' in window) {
             return true;
         }
-        return false;
-    }
-
-    createLaserHazard(group, config) {
-        if (!this.worldBuilder) {
-            this.worldBuilder = new WorldBuilder(this);
+        try {
+            if (window.matchMedia?.('(any-pointer: coarse)').matches) {
+                return true;
+            }
+        } catch (_error) {
+            // matchMedia throws in some browsers for unsupported queries
         }
-        return this.worldBuilder.createLaserHazard(group, config);
+        return Boolean(
+            window.DocumentTouch &&
+            typeof document !== 'undefined' &&
+            document instanceof window.DocumentTouch
+        );
     }
 
     createAnimations() {
@@ -643,10 +608,6 @@ class SpaceChicken extends Phaser.Scene {
                 repeat: -1,
             });
         }
-    }
-
-    valueOrDefault(value, fallback) {
-        return valueOrDefault(value, fallback);
     }
 
     attemptJump() {
@@ -733,7 +694,85 @@ class SpaceChicken extends Phaser.Scene {
         if (this.isTransitioning || this.gameOver) {
             return;
         }
-        this.queueSceneStart({ level: this.level, deathCount: this.deathCount + 1 });
+        this.beginDeathReset();
+    }
+
+    beginDeathReset() {
+        this.isTransitioning = true;
+        this.deathCount += 1;
+        if (this.player?.body) {
+            this.player.body.enable = false;
+        }
+        this.clearBombSpawns();
+        this.effectsManager?.stopPlayerScaleTween?.();
+        this.playDeathJuice();
+        this.uiManager?.updateDeathCount?.(this.deathCount);
+        if (this.deathResetEvent?.remove) {
+            this.deathResetEvent.remove(false);
+        }
+        this.deathResetEvent = null;
+        if (this.deathResetWall) {
+            window.clearTimeout(this.deathResetWall);
+            this.deathResetWall = null;
+        }
+        const delay = GAME_CONSTANTS.DEATH_TRANSITION_DELAY;
+        if (this.time?.delayedCall) {
+            this.deathResetEvent = this.time.delayedCall(delay, () => this.respawnPlayer());
+        }
+        if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
+            this.deathResetWall = window.setTimeout(() => this.respawnPlayer(), delay);
+        }
+    }
+
+    respawnPlayer() {
+        if (!this.isTransitioning || this.hasCleanedUp || this.gameOver) {
+            return;
+        }
+        if (this.deathResetEvent?.remove) {
+            this.deathResetEvent.remove(false);
+        }
+        this.deathResetEvent = null;
+        if (this.deathResetWall) {
+            window.clearTimeout(this.deathResetWall);
+            this.deathResetWall = null;
+        }
+        const start = this.levelConfig.playerStart;
+        const player = this.player;
+        if (player) {
+            if (player.enableBody) {
+                player.enableBody(true, start.x, start.y, true, true);
+            } else {
+                player.x = start.x;
+                player.y = start.y;
+                if (player.body) {
+                    player.body.enable = true;
+                    player.body.reset?.(start.x, start.y);
+                }
+            }
+            player.body?.stop?.();
+            player.clearTint?.();
+            player.setAlpha?.(1);
+            player.setScale?.(1);
+            this.effectsManager?.keepPlayerBodyStable?.(player);
+            player.play?.('chicken-walk', true);
+        }
+        this.jumpCount = 0;
+        this.isJetpacking = false;
+        this.jumpRequested = false;
+        this.jumpPointerId = null;
+        this.wasGrounded = false;
+        this.airborneSince = 0;
+        this.maxAirSpeedY = 0;
+        this.startTime = performance.now();
+        if (this.uiManager) {
+            this.uiManager.lastTimerDisplay = '';
+            this.uiManager.updateTimer(0);
+        }
+        const camera = this.getMainCamera();
+        camera?.resetFX?.();
+        camera?.centerOn?.(start.x, start.y);
+        this.spawnBomb();
+        this.isTransitioning = false;
     }
 
     queueSceneStart(data) {
@@ -742,54 +781,33 @@ class SpaceChicken extends Phaser.Scene {
         }
         this.isTransitioning = true;
         this.pendingSceneData = data;
-        if (this.player && this.player.body) {
+        if (this.player?.body) {
             this.player.body.enable = false;
         }
         this.stopActiveGameplay({ pausePhysics: false });
-        const isLevelAdvance = data.level !== this.level;
-        if (isLevelAdvance) {
-            this.playAdvanceJuice();
-        } else {
-            this.playDeathJuice();
-        }
-        const transitionDelay = isLevelAdvance
-            ? GAME_CONSTANTS.LEVEL_TRANSITION_DELAY
-            : GAME_CONSTANTS.DEATH_TRANSITION_DELAY;
-        this.time.delayedCall(transitionDelay, () => {
+        this.playAdvanceJuice();
+        this.time.delayedCall(GAME_CONSTANTS.LEVEL_TRANSITION_DELAY, () => {
             const nextSceneData = this.pendingSceneData;
             this.pendingSceneData = null;
             this.scene.start(this.scene.key, nextSceneData);
         });
     }
 
-    stopActiveGameplay(options = {}) {
-        const pausePhysics = options.pausePhysics !== false;
+    clearBombSpawns() {
         if (this.bombSpawnEvent) {
             this.bombSpawnEvent.remove(false);
             this.bombSpawnEvent = null;
         }
         this.recycleAllBombs();
+    }
 
-        if (this.worldBuilder) {
-            this.worldBuilder.clearHazardTimers();
-        } else {
-            if (this.dynamicHazardEvents) {
-                this.dynamicHazardEvents.forEach((event) => {
-                    if (event && event.remove) event.remove(false);
-                });
-                this.dynamicHazardEvents = [];
-            }
-            if (this.activeWarningGraphics) {
-                this.activeWarningGraphics.forEach((g) => g && g.destroy && g.destroy());
-                this.activeWarningGraphics = [];
-            }
-        }
+    stopActiveGameplay(options = {}) {
+        const pausePhysics = options.pausePhysics !== false;
+        this.clearBombSpawns();
+        this.worldBuilder?.clearHazardTimers();
+        this.tweens?.killAll();
 
-        if (this.tweens) {
-            this.tweens.killAll();
-        }
-
-        if (pausePhysics && this.physics && this.physics.world) {
+        if (pausePhysics && this.physics?.world) {
             this.physics.pause();
         }
     }
@@ -812,9 +830,7 @@ class SpaceChicken extends Phaser.Scene {
 
             const speed = bombSettings.speed;
             bomb.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
-            if (typeof bomb.setAngularVelocity === 'function') {
-                bomb.setAngularVelocity(Phaser.Math.Between(-240, 240));
-            }
+            bomb.setAngularVelocity?.(Phaser.Math.Between(-240, 240));
         }
 
         const delay = Phaser.Math.Between(bombSettings.delayMin, bombSettings.delayMax);
@@ -828,24 +844,19 @@ class SpaceChicken extends Phaser.Scene {
         if (!this.bombs) {
             return null;
         }
-        const bomb =
-            typeof this.bombs.get === 'function'
-                ? this.bombs.get(x, y, 'bomb')
-                : this.bombs.create(x, y, 'bomb');
+        const bomb = this.bombs.get
+            ? this.bombs.get(x, y, 'bomb')
+            : this.bombs.create(x, y, 'bomb');
         if (!bomb) {
             return null;
         }
-        if (typeof bomb.setActive === 'function') {
-            bomb.setActive(true);
-        }
-        if (typeof bomb.setVisible === 'function') {
-            bomb.setVisible(true);
-        }
-        if (typeof bomb.enableBody === 'function') {
+        bomb.setActive?.(true);
+        bomb.setVisible?.(true);
+        if (bomb.enableBody) {
             bomb.enableBody(true, x, y, true, true);
         } else if (bomb.body) {
             bomb.body.enable = true;
-            if (typeof bomb.body.reset === 'function') {
+            if (bomb.body.reset) {
                 bomb.body.reset(x, y);
             } else {
                 bomb.x = x;
@@ -859,20 +870,14 @@ class SpaceChicken extends Phaser.Scene {
         if (!bomb) {
             return;
         }
-        if (this.bombs && typeof this.bombs.killAndHide === 'function') {
+        if (this.bombs?.killAndHide) {
             this.bombs.killAndHide(bomb);
         } else {
-            if (typeof bomb.setActive === 'function') {
-                bomb.setActive(false);
-            }
-            if (typeof bomb.setVisible === 'function') {
-                bomb.setVisible(false);
-            }
+            bomb.setActive?.(false);
+            bomb.setVisible?.(false);
         }
         if (bomb.body) {
-            if (typeof bomb.body.stop === 'function') {
-                bomb.body.stop();
-            }
+            bomb.body.stop?.();
             bomb.body.enable = false;
         }
     }
@@ -893,7 +898,7 @@ class SpaceChicken extends Phaser.Scene {
         }
     }
 
-    update() {
+    update(_time, delta) {
         const inputState = this.handleInput();
 
         if (this.muteKey && Phaser.Input.Keyboard.JustDown(this.muteKey)) {
@@ -937,7 +942,7 @@ class SpaceChicken extends Phaser.Scene {
         this.updatePlayerMovement();
         this.updatePlayerAnimation(isGrounded);
         if (this.effectsManager) {
-            this.effectsManager.update(this.player, isGrounded, this.isJetpacking);
+            this.effectsManager.update(this.player, isGrounded, this.isJetpacking, delta);
         }
 
         if (this.player.y > this.killZoneFallY) {
@@ -975,10 +980,7 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     getGameTime() {
-        if (this.time && typeof this.time.now === 'number' && this.time.now > 0) {
-            return this.time.now;
-        }
-        return performance.now();
+        return this.time?.now > 0 ? this.time.now : performance.now();
     }
 
     shouldPlayLandingFx(now) {
@@ -1020,9 +1022,7 @@ class SpaceChicken extends Phaser.Scene {
             this.effectsManager.squashPlayer(this.player);
             this.effectsManager.emitDust(this.player.x, this.player.y + 14);
         }
-        if (this.audioManager && typeof this.audioManager.playLandSound === 'function') {
-            this.audioManager.playLandSound();
-        }
+        this.audioManager?.playLandSound?.();
     }
 
     updatePlayerMovement() {
@@ -1034,10 +1034,10 @@ class SpaceChicken extends Phaser.Scene {
             velocityX += GAME_CONSTANTS.PLAYER_VELOCITY_X;
         }
         this.player.setVelocityX(velocityX);
-        if (velocityX < 0 && typeof this.player.setFlipX === 'function') {
-            this.player.setFlipX(true);
-        } else if (velocityX > 0 && typeof this.player.setFlipX === 'function') {
-            this.player.setFlipX(false);
+        if (velocityX < 0) {
+            this.player.setFlipX?.(true);
+        } else if (velocityX > 0) {
+            this.player.setFlipX?.(false);
         }
 
         const halfWidth = this.player.displayWidth * GAME_CONSTANTS.PLAYER_CLAMP_OFFSET;
@@ -1088,14 +1088,8 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     handleResize(gameSize) {
-        const width =
-            gameSize && typeof gameSize.width === 'number' && gameSize.width > 0
-                ? gameSize.width
-                : this.getBaseWidth();
-        const height =
-            gameSize && typeof gameSize.height === 'number' && gameSize.height > 0
-                ? gameSize.height
-                : this.getBaseHeight();
+        const width = gameSize?.width > 0 ? gameSize.width : this.getBaseWidth();
+        const height = gameSize?.height > 0 ? gameSize.height : this.getBaseHeight();
         this.viewportWidth = width;
         this.viewportHeight = height;
         if (this.uiManager) {
@@ -1113,18 +1107,16 @@ class SpaceChicken extends Phaser.Scene {
             this.events.off('shutdown', this.cleanup, this);
             this.events.off('destroy', this.cleanup, this);
         }
-        if (this.scale && this.boundHandleResize && typeof this.scale.off === 'function') {
+        if (this.scale && this.boundHandleResize && this.scale.off) {
             this.scale.off('resize', this.boundHandleResize, this);
             this.boundHandleResize = null;
         }
-        if (this.events && this.addedToSceneHandler && typeof this.events.off === 'function') {
+        if (this.events && this.addedToSceneHandler && this.events.off) {
             this.events.off('addedtoscene', this.addedToSceneHandler, this);
             this.addedToSceneHandler = null;
         }
-        if (this.input && typeof this.input.off === 'function') {
-            this.input.off('pointerup', this.onTitlePointerUp, this);
-        }
-        if (this.uiCamera && this.cameras && typeof this.cameras.remove === 'function') {
+        this.input?.off?.('pointerup', this.onTitlePointerUp, this);
+        if (this.uiCamera && this.cameras?.remove) {
             this.cameras.remove(this.uiCamera);
             this.uiCamera = null;
         }
@@ -1139,23 +1131,17 @@ class SpaceChicken extends Phaser.Scene {
             this.effectsManager.cleanup();
         }
 
-        if (this.bombSpawnEvent) {
-            this.bombSpawnEvent.remove(false);
-            this.bombSpawnEvent = null;
+        if (this.deathResetEvent?.remove) {
+            this.deathResetEvent.remove(false);
+            this.deathResetEvent = null;
         }
+        if (this.deathResetWall) {
+            window.clearTimeout(this.deathResetWall);
+            this.deathResetWall = null;
+        }
+        this.clearBombSpawns();
 
-        if (this.worldBuilder) {
-            this.worldBuilder.clearHazardTimers();
-        } else {
-            if (this.dynamicHazardEvents) {
-                this.dynamicHazardEvents.forEach((event) => event.remove());
-                this.dynamicHazardEvents = [];
-            }
-            if (this.activeWarningGraphics) {
-                this.activeWarningGraphics.forEach((g) => g && g.destroy && g.destroy());
-                this.activeWarningGraphics = [];
-            }
-        }
+        this.worldBuilder?.clearHazardTimers();
 
         this.dynamicHazardsGroup = null;
         this.bombs = null;
@@ -1166,11 +1152,111 @@ class SpaceChicken extends Phaser.Scene {
     }
 
     handleInput() {
-        if (!this.inputController) {
-            this.inputController = new InputController(this);
+        const state = this.inputController.poll();
+        const bot =
+            typeof window !== 'undefined' && window.__spaceChickenBotInput
+                ? window.__spaceChickenBotInput
+                : null;
+        if (!bot) {
+            return state;
         }
-        return this.inputController.poll();
+        if (bot.start && this.awaitingStart) {
+            this.beginPlay();
+        }
+        if (bot.left) {
+            this.leftPressed = true;
+        }
+        if (bot.right) {
+            this.rightPressed = true;
+        }
+        if (bot.jump) {
+            this.jumpRequested = true;
+        }
+        return state;
+    }
+
+    bindBotDebugApi() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        window.__spaceChickenDebug = {
+            ready: () => Boolean(this.sys && this.player),
+            getBotSnapshot: () => this.getBotSnapshot(),
+            setBotInput: (input) => {
+                window.__spaceChickenBotInput = input;
+            },
+            clearBotInput: () => {
+                window.__spaceChickenBotInput = null;
+            },
+        };
+    }
+
+    getBotSnapshot() {
+        const player = this.player;
+        const body = player && player.body;
+        return {
+            ready: Boolean(player),
+            level: this.level,
+            nextLevel: this.levelConfig ? this.levelConfig.nextLevel : null,
+            deaths: this.deathCount,
+            awaitingStart: this.awaitingStart,
+            transitioning: this.isTransitioning,
+            gameOver: this.gameOver,
+            elapsedMs: performance.now() - this.startTime,
+            jumpCount: this.jumpCount,
+            maxJumps: this.maxJumps,
+            player: player
+                ? {
+                      x: player.x,
+                      y: player.y,
+                      vx: body && body.velocity ? body.velocity.x : 0,
+                      vy: body && body.velocity ? body.velocity.y : 0,
+                      grounded: Boolean(body && (body.blocked.down || body.touching.down)),
+                      alpha: player.alpha,
+                      visible: player.visible !== false,
+                      scaleX: player.scaleX,
+                      scaleY: player.scaleY,
+                      bodyEnable: body ? body.enable !== false : null,
+                  }
+                : null,
+            hud: {
+                timer:
+                    this.uiManager && this.uiManager.timerText
+                        ? this.uiManager.timerText.text
+                        : null,
+                deaths:
+                    this.uiManager && this.uiManager.deathText
+                        ? this.uiManager.deathText.text
+                        : null,
+                level:
+                    this.uiManager && this.uiManager.levelText
+                        ? this.uiManager.levelText.text
+                        : null,
+            },
+            physicsPaused: Boolean(
+                this.physics && this.physics.world && this.physics.world.isPaused
+            ),
+            hasStartedPlay: this.hasStartedPlay,
+            hasCleanedUp: this.hasCleanedUp,
+            worldWidth: this.worldWidth,
+            worldHeight: this.worldHeight,
+            killZoneY: this.killZoneFallY,
+            camera:
+                this.cameras && this.cameras.main
+                    ? {
+                          scrollX: this.cameras.main.scrollX || 0,
+                          scrollY: this.cameras.main.scrollY || 0,
+                          zoom: this.cameras.main.zoom || 1,
+                      }
+                    : null,
+            crown: this.crown ? { x: this.crown.x, y: this.crown.y } : null,
+            platforms: listGroupBodies(this.platforms).concat(
+                listGroupBodies(this.movingPlatforms)
+            ),
+            hazards: listGroupBodies(this.hazards).concat(
+                listGroupBodies(this.dynamicHazardsGroup)
+            ),
+            bombs: listGroupBodies(this.bombs),
+        };
     }
 }
-
-export { SpaceChicken };

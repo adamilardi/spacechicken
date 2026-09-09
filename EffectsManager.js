@@ -2,11 +2,26 @@ import { GAME_CONSTANTS } from './Constants.js';
 
 const DEFAULT_TINTS = Object.freeze([0xffffff]);
 
+function quadEaseOut(t) {
+    return 1 - (1 - t) * (1 - t);
+}
+
+function asTintList(tint) {
+    if (Array.isArray(tint) && tint.length) {
+        return tint;
+    }
+    if (tint != null) {
+        return [tint];
+    }
+    return DEFAULT_TINTS;
+}
+
 export class EffectsManager {
     constructor(scene) {
         this.scene = scene;
         this.live = new Set();
         this.pool = [];
+        this.expired = [];
         this.playerScaleTween = null;
         this.restBody = null;
         this.crownIdleEvent = null;
@@ -15,7 +30,7 @@ export class EffectsManager {
     }
 
     burst(options = {}) {
-        if (this.destroyed || !this.scene || !this.scene.add) {
+        if (this.destroyed || !this.scene?.add) {
             return [];
         }
         const count = Math.max(1, options.count || 8);
@@ -160,7 +175,7 @@ export class EffectsManager {
 
     startCrownIdle(crown) {
         this.stopCrownIdle();
-        if (!this.scene || !this.scene.time || typeof this.scene.time.addEvent !== 'function') {
+        if (!this.scene?.time?.addEvent) {
             return;
         }
         this.crownIdleEvent = this.scene.time.addEvent({
@@ -188,19 +203,59 @@ export class EffectsManager {
         });
     }
 
-    update(player, isGrounded, isJetpacking) {
-        if (this.destroyed || !player || isGrounded || !isJetpacking) {
+    update(player, isGrounded, isJetpacking, delta) {
+        if (this.destroyed) {
             return;
         }
-        const now =
-            this.scene && this.scene.time && typeof this.scene.time.now === 'number'
-                ? this.scene.time.now
-                : Date.now();
+        this.stepParticles(delta);
+        if (!player || isGrounded || !isJetpacking) {
+            return;
+        }
+        const now = this.scene?.time?.now > 0 ? this.scene.time.now : Date.now();
         if (now - this.lastJetpackEmit < GAME_CONSTANTS.JETPACK_EMIT_INTERVAL) {
             return;
         }
         this.lastJetpackEmit = now;
         this.emitJetpack(player.x, player.y, Boolean(player.flipX));
+    }
+
+    stepParticles(delta) {
+        if (!this.live.size) {
+            return;
+        }
+        const dt = delta > 0 ? delta : 16.67;
+        this.expired.length = 0;
+        this.live.forEach((sprite) => {
+            const fx = sprite._fx;
+            if (!fx) {
+                this.expired.push(sprite);
+                return;
+            }
+            fx.life += dt;
+            const t = fx.life / fx.duration;
+            if (t >= 1) {
+                this.expired.push(sprite);
+                return;
+            }
+            const eased = quadEaseOut(t);
+            sprite.x = fx.startX + (fx.destX - fx.startX) * eased;
+            sprite.y = fx.startY + (fx.destY - fx.startY) * eased;
+            if (sprite.setAlpha) {
+                sprite.setAlpha(1 - t);
+            } else {
+                sprite.alpha = 1 - t;
+            }
+            const scale = fx.startScale + (fx.endScale - fx.startScale) * t;
+            if (sprite.setScale) {
+                sprite.setScale(scale);
+            } else {
+                sprite.scaleX = scale;
+                sprite.scaleY = scale;
+            }
+        });
+        for (let i = 0; i < this.expired.length; i++) {
+            this.release(this.expired[i]);
+        }
     }
 
     cleanup() {
@@ -212,50 +267,51 @@ export class EffectsManager {
         this.stopPlayerScaleTween();
         this.restBody = null;
         this.live.forEach((sprite) => {
-            if (sprite && sprite.destroy) {
+            if (sprite.destroy) {
                 sprite.destroy();
             }
         });
         this.live.clear();
         this.pool.forEach((sprite) => {
-            if (sprite && sprite.destroy) {
+            if (sprite.destroy) {
                 sprite.destroy();
             }
         });
         this.pool.length = 0;
+        this.expired.length = 0;
     }
 
     acquireSprite(texture, x, y) {
         const sprite = this.pool.pop();
         if (sprite) {
-            if (typeof sprite.setTexture === 'function') {
+            if (sprite.setTexture) {
                 sprite.setTexture(texture);
             }
-            if (typeof sprite.setPosition === 'function') {
+            if (sprite.setPosition) {
                 sprite.setPosition(x, y);
             } else {
                 sprite.x = x;
                 sprite.y = y;
             }
-            if (typeof sprite.setActive === 'function') {
+            if (sprite.setActive) {
                 sprite.setActive(true);
             }
-            if (typeof sprite.setVisible === 'function') {
+            if (sprite.setVisible) {
                 sprite.setVisible(true);
             }
-            if (typeof sprite.setAlpha === 'function') {
+            if (sprite.setAlpha) {
                 sprite.setAlpha(1);
             }
             return sprite;
         }
-        if (!this.scene.add || typeof this.scene.add.image !== 'function') {
+        if (!this.scene.add?.image) {
             return null;
         }
         return this.scene.add.image(x, y, texture);
     }
 
     spawnParticle(options) {
-        if (!this.scene.add || typeof this.scene.add.image !== 'function') {
+        if (!this.scene.add?.image) {
             return null;
         }
         const texture = this.resolveTexture(options.texture);
@@ -263,66 +319,51 @@ export class EffectsManager {
         if (!sprite) {
             return null;
         }
-        const tints =
-            Array.isArray(options.tint) && options.tint.length ? options.tint : DEFAULT_TINTS;
+        const tints = asTintList(options.tint);
         const tint = tints[Math.floor(Math.random() * tints.length)];
-        const angle = this.randomRange(
-            options.angleMin === undefined ? 0 : options.angleMin,
-            options.angleMax === undefined ? Math.PI * 2 : options.angleMax
-        );
+        const angle = this.randomRange(options.angleMin ?? 0, options.angleMax ?? Math.PI * 2);
         const speed = this.randomRange(options.speedMin || 20, options.speedMax || 80);
         const life = this.randomRange(options.lifeMin || 220, options.lifeMax || 400);
         const startScale = options.scale || 1;
         const gravity = options.gravity || 0;
         const duration = Math.max(80, life);
+        const durationSec = duration / 1000;
         this.styleParticle(sprite, options, tint, startScale);
-
+        sprite._fx = {
+            startX: sprite.x,
+            startY: sprite.y,
+            destX: sprite.x + Math.cos(angle) * speed * durationSec,
+            destY: sprite.y + Math.sin(angle) * speed * durationSec + gravity * durationSec,
+            life: 0,
+            duration,
+            startScale,
+            endScale: options.endScale ?? 0.12,
+        };
         this.live.add(sprite);
-        const destX = sprite.x + Math.cos(angle) * speed * (duration / 1000);
-        const destY =
-            sprite.y + Math.sin(angle) * speed * (duration / 1000) + gravity * (duration / 1000);
-        if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
-            this.scene.tweens.add({
-                targets: sprite,
-                x: destX,
-                y: destY,
-                alpha: 0,
-                scale: options.endScale === undefined ? 0.12 : options.endScale,
-                duration,
-                ease: 'Quad.easeOut',
-                onComplete: () => this.release(sprite),
-            });
-        } else {
-            this.release(sprite);
-        }
         return sprite;
     }
 
     styleParticle(sprite, options, tint, startScale) {
-        if (typeof sprite.setDepth === 'function') {
+        if (sprite.setDepth) {
             sprite.setDepth(options.depth || 22);
         }
-        if (typeof sprite.setScale === 'function') {
+        if (sprite.setScale) {
             sprite.setScale(startScale);
         }
-        if (typeof sprite.setTint === 'function') {
+        if (sprite.setTint) {
             sprite.setTint(tint);
         }
-        if (
-            options.blend !== false &&
-            typeof sprite.setBlendMode === 'function' &&
-            Phaser.BlendModes
-        ) {
+        if (options.blend !== false && sprite.setBlendMode && Phaser.BlendModes) {
             sprite.setBlendMode(Phaser.BlendModes.ADD);
         }
     }
 
     tweenPlayerScale(player, scaleX, scaleY, duration) {
-        if (!player || !this.scene.tweens || typeof this.scene.tweens.add !== 'function') {
+        if (!player || !this.scene.tweens?.add) {
             return;
         }
         this.stopPlayerScaleTween();
-        if (typeof player.setScale === 'function') {
+        if (player.setScale) {
             player.setScale(1);
         }
         this.captureRestBody(player);
@@ -335,7 +376,7 @@ export class EffectsManager {
             ease: 'Quad.easeOut',
             onUpdate: () => this.keepPlayerBodyStable(player),
             onComplete: () => {
-                if (player && typeof player.setScale === 'function') {
+                if (player.setScale) {
                     player.setScale(1);
                 }
                 this.keepPlayerBodyStable(player);
@@ -345,7 +386,7 @@ export class EffectsManager {
     }
 
     captureRestBody(player) {
-        if (this.restBody || !player || !player.body) {
+        if (this.restBody || !player?.body) {
             return;
         }
         const body = player.body;
@@ -356,12 +397,7 @@ export class EffectsManager {
     }
 
     keepPlayerBodyStable(player) {
-        if (
-            !player ||
-            !player.body ||
-            !this.restBody ||
-            typeof player.body.setSize !== 'function'
-        ) {
+        if (!player?.body?.setSize || !this.restBody) {
             return;
         }
         const scaleX = Math.abs(player.scaleX) || 1;
@@ -370,14 +406,14 @@ export class EffectsManager {
     }
 
     stopPlayerScaleTween() {
-        if (this.playerScaleTween && typeof this.playerScaleTween.stop === 'function') {
+        if (this.playerScaleTween?.stop) {
             this.playerScaleTween.stop();
         }
         this.playerScaleTween = null;
     }
 
     stopCrownIdle() {
-        if (this.crownIdleEvent && typeof this.crownIdleEvent.remove === 'function') {
+        if (this.crownIdleEvent?.remove) {
             this.crownIdleEvent.remove(false);
         }
         this.crownIdleEvent = null;
@@ -388,6 +424,7 @@ export class EffectsManager {
             return;
         }
         this.live.delete(sprite);
+        sprite._fx = null;
         if (this.destroyed) {
             if (sprite.destroy) {
                 sprite.destroy();
@@ -395,10 +432,10 @@ export class EffectsManager {
             return;
         }
         if (this.pool.length < GAME_CONSTANTS.PARTICLE_POOL_SIZE) {
-            if (typeof sprite.setActive === 'function') {
+            if (sprite.setActive) {
                 sprite.setActive(false);
             }
-            if (typeof sprite.setVisible === 'function') {
+            if (sprite.setVisible) {
                 sprite.setVisible(false);
             }
             this.pool.push(sprite);
@@ -410,19 +447,10 @@ export class EffectsManager {
     }
 
     resolveTexture(preferred) {
-        if (
-            preferred &&
-            this.scene.textures &&
-            typeof this.scene.textures.exists === 'function' &&
-            this.scene.textures.exists(preferred)
-        ) {
+        if (preferred && this.scene.textures?.exists?.(preferred)) {
             return preferred;
         }
-        if (
-            this.scene.textures &&
-            typeof this.scene.textures.exists === 'function' &&
-            this.scene.textures.exists('particleSoft')
-        ) {
+        if (this.scene.textures?.exists?.('particleSoft')) {
             return 'particleSoft';
         }
         return preferred || 'particleSoft';

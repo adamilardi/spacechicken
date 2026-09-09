@@ -32,31 +32,30 @@ export class BackgroundRenderer {
         return this.scene.textures;
     }
 
-    get backgroundGraphics() {
-        return this.graphics;
-    }
-
-    set backgroundGraphics(value) {
-        this.graphics = value;
-    }
-
-    valueOrDefault(value, fallback) {
-        return valueOrDefault(value, fallback);
+    resolveBakeSize(worldWidth, worldHeight) {
+        const maxWidth = GAME_CONSTANTS.BACKGROUND_BAKE_MAX_WIDTH;
+        const maxHeight = GAME_CONSTANTS.BACKGROUND_BAKE_MAX_HEIGHT;
+        const scale = Math.min(1, maxWidth / worldWidth, maxHeight / worldHeight);
+        return {
+            scale,
+            width: Math.max(1, Math.round(worldWidth * scale)),
+            height: Math.max(1, Math.round(worldHeight * scale)),
+        };
     }
 
     render(worldWidth, worldHeight) {
         const background = (this.levelConfig && this.levelConfig.background) || {};
+        const bake = this.resolveBakeSize(worldWidth, worldHeight);
         const layoutKey = `${this.level}_background_${background.type || 'space'}_${
             background.style || 'default'
         }_${worldWidth}x${worldHeight}`;
-        const textureKey = `space-chicken-bg-${layoutKey}`;
+        const textureKey =
+            bake.scale < 1
+                ? `space-chicken-bg-${layoutKey}_b${bake.width}x${bake.height}`
+                : `space-chicken-bg-${layoutKey}`;
 
-        if (
-            this.textures &&
-            typeof this.textures.exists === 'function' &&
-            this.textures.exists(textureKey)
-        ) {
-            this.placeBakedBackground(textureKey);
+        if (this.textures?.exists?.(textureKey)) {
+            this.placeBakedBackground(textureKey, worldWidth, worldHeight);
             this.createTwinkleStars(worldWidth, worldHeight);
             return this.image;
         }
@@ -64,8 +63,8 @@ export class BackgroundRenderer {
         this.graphics = this.createScratchGraphics();
         this.drawBackground(background, layoutKey, worldWidth, worldHeight);
 
-        if (this.tryBakeTexture(textureKey, worldWidth, worldHeight)) {
-            this.placeBakedBackground(textureKey);
+        if (this.tryBakeTexture(textureKey, bake)) {
+            this.placeBakedBackground(textureKey, worldWidth, worldHeight);
         } else {
             this.placeLiveGraphics();
         }
@@ -74,10 +73,10 @@ export class BackgroundRenderer {
     }
 
     createScratchGraphics() {
-        if (this.scene.make && typeof this.scene.make.graphics === 'function') {
+        if (this.scene.make?.graphics) {
             return this.scene.make.graphics({ x: 0, y: 0, add: false });
         }
-        if (this.add && typeof this.add.graphics === 'function') {
+        if (this.add?.graphics) {
             const graphics = this.add.graphics();
             graphics.setDepth(-10);
             return graphics;
@@ -116,7 +115,7 @@ export class BackgroundRenderer {
             layoutCache.set(layoutKey, backgroundLayout);
         }
 
-        if (!this.graphics || typeof this.graphics.clear !== 'function') {
+        if (!this.graphics?.clear) {
             return;
         }
         this.graphics.clear();
@@ -131,35 +130,38 @@ export class BackgroundRenderer {
         this.renderSpaceBackground(background, backgroundLayout, worldWidth, worldHeight);
     }
 
-    tryBakeTexture(textureKey, worldWidth, worldHeight) {
-        if (!this.graphics || typeof this.graphics.generateTexture !== 'function') {
+    tryBakeTexture(textureKey, bake) {
+        if (!this.graphics?.generateTexture || !this.textures?.exists) {
             return false;
         }
-        if (!this.textures || typeof this.textures.exists !== 'function') {
-            return false;
-        }
+        const camera = this.graphics.constructor?.TargetCamera;
+        const previousZoom = camera?.zoom;
         try {
-            this.graphics.generateTexture(textureKey, worldWidth, worldHeight);
+            if (camera?.setZoom && bake.scale !== 1) {
+                camera.setZoom(bake.scale);
+            }
+            this.graphics.generateTexture(textureKey, bake.width, bake.height);
             return this.textures.exists(textureKey);
-        } catch (error) {
+        } catch (_error) {
             return false;
+        } finally {
+            if (camera?.setZoom && previousZoom != null) {
+                camera.setZoom(previousZoom);
+            }
         }
     }
 
-    placeBakedBackground(textureKey) {
+    placeBakedBackground(textureKey, worldWidth, worldHeight) {
         this.destroyScratchGraphics();
-        if (!this.add || typeof this.add.image !== 'function') {
+        if (!this.add?.image) {
             return;
         }
         this.image = this.add.image(0, 0, textureKey);
-        if (typeof this.image.setOrigin === 'function') {
-            this.image.setOrigin(0, 0);
-        }
-        if (typeof this.image.setDepth === 'function') {
-            this.image.setDepth(-10);
-        }
-        if (typeof this.image.setScrollFactor === 'function') {
-            this.image.setScrollFactor(1);
+        this.image.setOrigin?.(0, 0);
+        this.image.setDepth?.(-10);
+        this.image.setScrollFactor?.(1);
+        if (worldWidth && worldHeight) {
+            this.image.setDisplaySize?.(worldWidth, worldHeight);
         }
     }
 
@@ -167,27 +169,23 @@ export class BackgroundRenderer {
         if (!this.graphics) {
             return;
         }
-        if (typeof this.graphics.setDepth === 'function') {
-            this.graphics.setDepth(-10);
-        }
-        if (this.add && typeof this.add.existing === 'function' && !this.graphics.displayList) {
+        this.graphics.setDepth?.(-10);
+        if (this.add?.existing && !this.graphics.displayList) {
             this.add.existing(this.graphics);
         }
         this.image = null;
     }
 
     destroyScratchGraphics() {
-        if (this.graphics && typeof this.graphics.destroy === 'function') {
-            this.graphics.destroy();
-        }
+        this.graphics?.destroy?.();
         this.graphics = null;
     }
 
     createTwinkleStars(worldWidth, worldHeight) {
-        if (!this.add || typeof this.add.image !== 'function') {
+        if (!this.add?.image) {
             return;
         }
-        const count = 14;
+        const count = GAME_CONSTANTS.TWINKLE_STAR_COUNT;
         for (let i = 0; i < count; i++) {
             const star = this.add.image(
                 Math.random() * worldWidth,
@@ -196,24 +194,20 @@ export class BackgroundRenderer {
             );
             star.setDepth(-9);
             star.setScale(0.18 + Math.random() * 0.28);
-            if (typeof star.setTint === 'function') {
-                star.setTint(0xffffff);
-            }
-            if (typeof star.setBlendMode === 'function') {
+            star.setTint?.(0xffffff);
+            if (star.setBlendMode && Phaser.BlendModes) {
                 star.setBlendMode(Phaser.BlendModes.ADD);
             }
             star.setAlpha(0.35);
-            if (this.tweens && typeof this.tweens.add === 'function') {
-                this.tweens.add({
-                    targets: star,
-                    alpha: { from: 0.12, to: 0.95 },
-                    duration: 700 + Math.random() * 1100,
-                    yoyo: true,
-                    repeat: -1,
-                    delay: Math.random() * 900,
-                    ease: 'Sine.easeInOut',
-                });
-            }
+            this.tweens?.add?.({
+                targets: star,
+                alpha: { from: 0.12, to: 0.95 },
+                duration: 700 + Math.random() * 1100,
+                yoyo: true,
+                repeat: -1,
+                delay: Math.random() * 900,
+                ease: 'Sine.easeInOut',
+            });
         }
     }
 
@@ -231,7 +225,6 @@ export class BackgroundRenderer {
             background.palette || {}
         );
 
-        // Dark space gradient
         this.renderVerticalGradient(
             0,
             0,
@@ -241,10 +234,8 @@ export class BackgroundRenderer {
             40
         );
 
-        // Stars
         this.renderStars(layout.stars || []);
 
-        // Moon surface (bottom third)
         const surfaceY = worldHeight * 0.68;
         this.renderPolygon(
             [
@@ -257,7 +248,6 @@ export class BackgroundRenderer {
             1
         );
 
-        // Craters
         const craters = layout.craters || [
             { x: 420, y: surfaceY + 30, r: 55 },
             { x: 780, y: surfaceY + 55, r: 38 },
@@ -268,12 +258,10 @@ export class BackgroundRenderer {
         ];
 
         craters.forEach((crater) => {
-            // Crater shadow/rim
             this.drawGlow(crater.x, crater.y, crater.r, palette.crater, 0.85, 3);
             this.drawGlow(crater.x + 8, crater.y + 6, crater.r * 0.6, palette.shadow, 0.6, 2);
         });
 
-        // Distant hills / ridges
         const ridgeY = surfaceY - 20;
         this.renderPolygon(
             [
@@ -355,16 +343,13 @@ export class BackgroundRenderer {
                 this.renderPolygon(
                     shape.points,
                     shape.fill,
-                    this.valueOrDefault(shape.alpha, 1),
+                    valueOrDefault(shape.alpha, 1),
                     shape.stroke
                 );
             });
             if (tower.spine) {
-                this.backgroundGraphics.fillStyle(
-                    tower.spine.fill,
-                    this.valueOrDefault(tower.spine.alpha, 1)
-                );
-                this.backgroundGraphics.fillRect(
+                this.graphics.fillStyle(tower.spine.fill, valueOrDefault(tower.spine.alpha, 1));
+                this.graphics.fillRect(
                     tower.spine.x,
                     tower.spine.y,
                     tower.spine.width,
@@ -372,11 +357,8 @@ export class BackgroundRenderer {
                 );
             }
             (tower.windows || []).forEach((windowPanel) => {
-                this.backgroundGraphics.fillStyle(
-                    windowPanel.color,
-                    this.valueOrDefault(windowPanel.alpha, 1)
-                );
-                this.backgroundGraphics.fillRect(
+                this.graphics.fillStyle(windowPanel.color, valueOrDefault(windowPanel.alpha, 1));
+                this.graphics.fillRect(
                     windowPanel.x,
                     windowPanel.y,
                     windowPanel.width,
@@ -402,7 +384,7 @@ export class BackgroundRenderer {
                     light.alpha * 0.16,
                     3
                 );
-                this.backgroundGraphics
+                this.graphics
                     .fillStyle(light.color, light.alpha)
                     .fillCircle(light.x, light.y, light.radius);
             });
@@ -417,7 +399,7 @@ export class BackgroundRenderer {
                 beacon.alpha * 0.22,
                 4
             );
-            this.backgroundGraphics
+            this.graphics
                 .fillStyle(beacon.color, beacon.alpha)
                 .fillCircle(beacon.x, beacon.y, beacon.radius);
         });
@@ -468,50 +450,43 @@ export class BackgroundRenderer {
         this.renderPlanets(layout.planets);
 
         (layout.frames || []).forEach((frame) => {
-            this.backgroundGraphics.lineStyle(frame.lineWidth, frame.color, frame.alpha);
-            this.backgroundGraphics.strokeEllipse(frame.x, frame.y, frame.width, frame.height);
+            this.graphics.lineStyle(frame.lineWidth, frame.color, frame.alpha);
+            this.graphics.strokeEllipse(frame.x, frame.y, frame.width, frame.height);
         });
 
         (layout.modules || []).forEach((module) => {
-            this.backgroundGraphics.fillStyle(module.fill, this.valueOrDefault(module.alpha, 1));
-            this.backgroundGraphics.fillRect(module.x, module.y, module.width, module.height);
-            this.backgroundGraphics.fillStyle(module.insetFill, 0.95);
-            this.backgroundGraphics.fillRect(
+            this.graphics.fillStyle(module.fill, valueOrDefault(module.alpha, 1));
+            this.graphics.fillRect(module.x, module.y, module.width, module.height);
+            this.graphics.fillStyle(module.insetFill, 0.95);
+            this.graphics.fillRect(
                 module.x + 6,
                 module.y + 6,
                 Math.max(8, module.width - 12),
                 Math.max(8, module.height - 12)
             );
-            this.backgroundGraphics.lineStyle(
-                2,
-                module.strokeColor,
-                this.valueOrDefault(module.edgeAlpha, 0.75)
-            );
-            this.backgroundGraphics.strokeRect(module.x, module.y, module.width, module.height);
+            this.graphics.lineStyle(2, module.strokeColor, valueOrDefault(module.edgeAlpha, 0.75));
+            this.graphics.strokeRect(module.x, module.y, module.width, module.height);
 
             (module.braces || []).forEach((brace) => {
                 this.renderPolygon(brace.points, brace.fill, brace.alpha, brace.stroke);
             });
 
             (module.panels || []).forEach((panel) => {
-                this.backgroundGraphics.fillStyle(panel.fill, this.valueOrDefault(panel.alpha, 1));
-                this.backgroundGraphics.fillRect(panel.x, panel.y, panel.width, panel.height);
+                this.graphics.fillStyle(panel.fill, valueOrDefault(panel.alpha, 1));
+                this.graphics.fillRect(panel.x, panel.y, panel.width, panel.height);
                 if (panel.strokeColor) {
-                    this.backgroundGraphics.lineStyle(
+                    this.graphics.lineStyle(
                         1,
                         panel.strokeColor,
-                        this.valueOrDefault(panel.strokeAlpha, 0.4)
+                        valueOrDefault(panel.strokeAlpha, 0.4)
                     );
-                    this.backgroundGraphics.strokeRect(panel.x, panel.y, panel.width, panel.height);
+                    this.graphics.strokeRect(panel.x, panel.y, panel.width, panel.height);
                 }
             });
 
             (module.windows || []).forEach((windowPanel) => {
-                this.backgroundGraphics.fillStyle(
-                    windowPanel.color,
-                    this.valueOrDefault(windowPanel.alpha, 1)
-                );
-                this.backgroundGraphics.fillRect(
+                this.graphics.fillStyle(windowPanel.color, valueOrDefault(windowPanel.alpha, 1));
+                this.graphics.fillRect(
                     windowPanel.x,
                     windowPanel.y,
                     windowPanel.width,
@@ -528,11 +503,11 @@ export class BackgroundRenderer {
             });
 
             if (module.antenna) {
-                this.backgroundGraphics.lineStyle(2, module.antenna.color, module.antenna.alpha);
-                this.backgroundGraphics.beginPath();
-                this.backgroundGraphics.moveTo(module.antenna.x, module.antenna.baseY);
-                this.backgroundGraphics.lineTo(module.antenna.x, module.antenna.tipY);
-                this.backgroundGraphics.strokePath();
+                this.graphics.lineStyle(2, module.antenna.color, module.antenna.alpha);
+                this.graphics.beginPath();
+                this.graphics.moveTo(module.antenna.x, module.antenna.baseY);
+                this.graphics.lineTo(module.antenna.x, module.antenna.tipY);
+                this.graphics.strokePath();
                 this.drawGlow(
                     module.antenna.x,
                     module.antenna.tipY,
@@ -541,23 +516,20 @@ export class BackgroundRenderer {
                     module.antenna.beaconAlpha * 0.18,
                     3
                 );
-                this.backgroundGraphics.fillStyle(
-                    module.antenna.beaconColor,
-                    module.antenna.beaconAlpha
-                );
-                this.backgroundGraphics.fillCircle(module.antenna.x, module.antenna.tipY, 2);
+                this.graphics.fillStyle(module.antenna.beaconColor, module.antenna.beaconAlpha);
+                this.graphics.fillCircle(module.antenna.x, module.antenna.tipY, 2);
             }
         });
 
         (layout.catwalks || []).forEach((catwalk) => {
-            this.backgroundGraphics
+            this.graphics
                 .fillStyle(catwalk.fill, catwalk.alpha)
                 .fillRect(catwalk.x, catwalk.y, catwalk.width, catwalk.height);
-            this.backgroundGraphics
+            this.graphics
                 .lineStyle(2, catwalk.strokeColor, 0.55)
                 .strokeRect(catwalk.x, catwalk.y, catwalk.width, catwalk.height);
             (catwalk.lights || []).forEach((light) => {
-                this.backgroundGraphics
+                this.graphics
                     .fillStyle(light.color, light.alpha)
                     .fillRect(light.x, light.y, light.width, light.height);
             });
@@ -580,7 +552,7 @@ export class BackgroundRenderer {
                 light.alpha * 0.18,
                 3
             );
-            this.backgroundGraphics
+            this.graphics
                 .fillStyle(light.color, light.alpha)
                 .fillRect(light.x, light.y, light.width, light.height);
         });
@@ -594,7 +566,7 @@ export class BackgroundRenderer {
                 beacon.alpha * 0.2,
                 4
             );
-            this.backgroundGraphics
+            this.graphics
                 .fillStyle(beacon.color, beacon.alpha)
                 .fillCircle(beacon.x, beacon.y, beacon.radius);
         });
@@ -603,7 +575,7 @@ export class BackgroundRenderer {
             worldWidth,
             worldHeight,
             palette.highlight,
-            this.valueOrDefault(background.scanlineAlpha, 0.04),
+            valueOrDefault(background.scanlineAlpha, 0.04),
             6,
             1
         );
@@ -614,7 +586,7 @@ export class BackgroundRenderer {
             return;
         }
         if (colors.length === 1) {
-            this.backgroundGraphics.fillStyle(colors[0], 1).fillRect(x, y, width, height);
+            this.graphics.fillStyle(colors[0], 1).fillRect(x, y, width, height);
             return;
         }
 
@@ -628,9 +600,7 @@ export class BackgroundRenderer {
             const color = this.blendColor(colors[segmentIndex], colors[segmentIndex + 1], localT);
             const rectY = y + Math.floor((i / safeSteps) * height);
             const nextY = y + Math.ceil(((i + 1) / safeSteps) * height);
-            this.backgroundGraphics
-                .fillStyle(color, 1)
-                .fillRect(x, rectY, width, Math.max(1, nextY - rectY));
+            this.graphics.fillStyle(color, 1).fillRect(x, rectY, width, Math.max(1, nextY - rectY));
         }
     }
 
@@ -645,52 +615,42 @@ export class BackgroundRenderer {
             return;
         }
 
-        this.backgroundGraphics.fillStyle(fill, alpha);
-        this.backgroundGraphics.beginPath();
-        this.backgroundGraphics.moveTo(points[0].x, points[0].y);
+        this.graphics.fillStyle(fill, alpha);
+        this.graphics.beginPath();
+        this.graphics.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
-            this.backgroundGraphics.lineTo(points[i].x, points[i].y);
+            this.graphics.lineTo(points[i].x, points[i].y);
         }
-        this.backgroundGraphics.closePath();
-        this.backgroundGraphics.fillPath();
+        this.graphics.closePath();
+        this.graphics.fillPath();
 
         if (!stroke) {
             return;
         }
 
-        this.backgroundGraphics.lineStyle(
-            this.valueOrDefault(stroke.width, 1),
-            this.valueOrDefault(stroke.color, 0xffffff),
-            this.valueOrDefault(stroke.alpha, 1)
+        this.graphics.lineStyle(
+            valueOrDefault(stroke.width, 1),
+            valueOrDefault(stroke.color, 0xffffff),
+            valueOrDefault(stroke.alpha, 1)
         );
-        this.backgroundGraphics.beginPath();
-        this.backgroundGraphics.moveTo(points[0].x, points[0].y);
+        this.graphics.beginPath();
+        this.graphics.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
-            this.backgroundGraphics.lineTo(points[i].x, points[i].y);
+            this.graphics.lineTo(points[i].x, points[i].y);
         }
-        this.backgroundGraphics.closePath();
-        this.backgroundGraphics.strokePath();
+        this.graphics.closePath();
+        this.graphics.strokePath();
     }
 
     renderStars(stars) {
         (stars || []).forEach((star) => {
-            const alpha = this.valueOrDefault(star.alpha, 1);
-            const size = this.valueOrDefault(star.size, 1);
-            this.backgroundGraphics.fillStyle(star.color, alpha).fillCircle(star.x, star.y, size);
+            const alpha = valueOrDefault(star.alpha, 1);
+            const size = valueOrDefault(star.size, 1);
+            this.graphics.fillStyle(star.color, alpha).fillCircle(star.x, star.y, size);
             if (star.flare) {
-                this.backgroundGraphics.fillStyle(star.color, alpha * 0.7);
-                this.backgroundGraphics.fillRect(
-                    star.x - star.flare,
-                    star.y,
-                    star.flare * 2 + 1,
-                    1
-                );
-                this.backgroundGraphics.fillRect(
-                    star.x,
-                    star.y - star.flare,
-                    1,
-                    star.flare * 2 + 1
-                );
+                this.graphics.fillStyle(star.color, alpha * 0.7);
+                this.graphics.fillRect(star.x - star.flare, star.y, star.flare * 2 + 1, 1);
+                this.graphics.fillRect(star.x, star.y - star.flare, 1, star.flare * 2 + 1);
             }
         });
     }
@@ -702,65 +662,40 @@ export class BackgroundRenderer {
     }
 
     renderPlanet(planet) {
-        const alpha = this.valueOrDefault(planet.alpha, 1);
-        const size = this.valueOrDefault(planet.size, 40);
-        const glowColor = this.valueOrDefault(planet.glowColor, planet.color);
+        const alpha = valueOrDefault(planet.alpha, 1);
+        const size = valueOrDefault(planet.size, 40);
+        const glowColor = valueOrDefault(planet.glowColor, planet.color);
 
         this.drawGlow(planet.x, planet.y, size * 1.8, glowColor, 0.16 * alpha, 6);
 
         if (planet.ringWidth && planet.ringHeight) {
-            this.backgroundGraphics.lineStyle(
+            this.graphics.lineStyle(
                 2,
-                this.valueOrDefault(planet.ringColor, glowColor),
-                this.valueOrDefault(planet.ringAlpha, 0.4)
+                valueOrDefault(planet.ringColor, glowColor),
+                valueOrDefault(planet.ringAlpha, 0.4)
             );
-            this.backgroundGraphics.strokeEllipse(
-                planet.x,
-                planet.y,
-                planet.ringWidth,
-                planet.ringHeight
-            );
+            this.graphics.strokeEllipse(planet.x, planet.y, planet.ringWidth, planet.ringHeight);
         }
 
-        this.backgroundGraphics.fillStyle(
-            this.valueOrDefault(planet.shadowColor, this.adjustColor(planet.color, -70)),
+        this.graphics.fillStyle(
+            valueOrDefault(planet.shadowColor, this.adjustColor(planet.color, -70)),
             0.35 * alpha
         );
-        this.backgroundGraphics.fillCircle(
-            planet.x + size * 0.16,
-            planet.y + size * 0.05,
-            size * 0.96
-        );
-        this.backgroundGraphics.fillStyle(planet.color, alpha).fillCircle(planet.x, planet.y, size);
-        this.backgroundGraphics.fillStyle(
-            this.valueOrDefault(planet.highlightColor, this.adjustColor(planet.color, 50)),
+        this.graphics.fillCircle(planet.x + size * 0.16, planet.y + size * 0.05, size * 0.96);
+        this.graphics.fillStyle(planet.color, alpha).fillCircle(planet.x, planet.y, size);
+        this.graphics.fillStyle(
+            valueOrDefault(planet.highlightColor, this.adjustColor(planet.color, 50)),
             0.24 * alpha
         );
-        this.backgroundGraphics.fillCircle(
-            planet.x - size * 0.3,
-            planet.y - size * 0.28,
-            size * 0.42
-        );
-        this.backgroundGraphics.fillStyle(
-            this.valueOrDefault(planet.detailColor, this.adjustColor(planet.color, -28)),
+        this.graphics.fillCircle(planet.x - size * 0.3, planet.y - size * 0.28, size * 0.42);
+        this.graphics.fillStyle(
+            valueOrDefault(planet.detailColor, this.adjustColor(planet.color, -28)),
             0.15 * alpha
         );
-        this.backgroundGraphics.fillCircle(
-            planet.x - size * 0.08,
-            planet.y + size * 0.14,
-            size * 0.18
-        );
-        this.backgroundGraphics.fillCircle(
-            planet.x + size * 0.3,
-            planet.y - size * 0.2,
-            size * 0.12
-        );
-        this.backgroundGraphics.lineStyle(
-            2,
-            this.valueOrDefault(planet.atmosphereColor, glowColor),
-            0.5 * alpha
-        );
-        this.backgroundGraphics.strokeCircle(planet.x, planet.y, size + 4);
+        this.graphics.fillCircle(planet.x - size * 0.08, planet.y + size * 0.14, size * 0.18);
+        this.graphics.fillCircle(planet.x + size * 0.3, planet.y - size * 0.2, size * 0.12);
+        this.graphics.lineStyle(2, valueOrDefault(planet.atmosphereColor, glowColor), 0.5 * alpha);
+        this.graphics.strokeCircle(planet.x, planet.y, size + 4);
     }
 
     renderPerspectiveGrid(grid, worldWidth, worldHeight) {
@@ -768,31 +703,31 @@ export class BackgroundRenderer {
             return;
         }
 
-        const horizonY = this.valueOrDefault(grid.horizonY, Math.round(worldHeight * 0.72));
-        const vanishingX = this.valueOrDefault(grid.vanishingX, Math.round(worldWidth * 0.5));
-        const rows = this.valueOrDefault(grid.rows, 8);
-        const colStep = Math.max(48, this.valueOrDefault(grid.colStep, 120));
-        const color = this.valueOrDefault(grid.color, 0x63d5ff);
+        const horizonY = valueOrDefault(grid.horizonY, Math.round(worldHeight * 0.72));
+        const vanishingX = valueOrDefault(grid.vanishingX, Math.round(worldWidth * 0.5));
+        const rows = valueOrDefault(grid.rows, 8);
+        const colStep = Math.max(48, valueOrDefault(grid.colStep, 120));
+        const color = valueOrDefault(grid.color, 0x63d5ff);
 
         this.drawGlow(vanishingX, horizonY + 36, Math.max(worldWidth * 0.18, 180), color, 0.08, 4);
 
         for (let row = 1; row <= rows; row++) {
             const t = row / rows;
             const y = Phaser.Math.Linear(horizonY, worldHeight, t * t);
-            this.backgroundGraphics.lineStyle(1, color, 0.06 + t * 0.16);
-            this.backgroundGraphics.beginPath();
-            this.backgroundGraphics.moveTo(0, y);
-            this.backgroundGraphics.lineTo(worldWidth, y);
-            this.backgroundGraphics.strokePath();
+            this.graphics.lineStyle(1, color, 0.06 + t * 0.16);
+            this.graphics.beginPath();
+            this.graphics.moveTo(0, y);
+            this.graphics.lineTo(worldWidth, y);
+            this.graphics.strokePath();
         }
 
         for (let x = -colStep; x <= worldWidth + colStep; x += colStep) {
             const distance = Math.abs(x - vanishingX) / Math.max(1, worldWidth);
-            this.backgroundGraphics.lineStyle(1, color, 0.08 + distance * 0.08);
-            this.backgroundGraphics.beginPath();
-            this.backgroundGraphics.moveTo(vanishingX, horizonY);
-            this.backgroundGraphics.lineTo(x, worldHeight);
-            this.backgroundGraphics.strokePath();
+            this.graphics.lineStyle(1, color, 0.08 + distance * 0.08);
+            this.graphics.beginPath();
+            this.graphics.moveTo(vanishingX, horizonY);
+            this.graphics.lineTo(x, worldHeight);
+            this.graphics.strokePath();
         }
     }
 
@@ -800,9 +735,7 @@ export class BackgroundRenderer {
         const safeStep = Math.max(2, step);
         for (let y = 0; y < worldHeight; y += safeStep) {
             const lineAlpha = Math.floor(y / safeStep) % 2 === 0 ? alpha : alpha * 0.55;
-            this.backgroundGraphics
-                .fillStyle(color, lineAlpha)
-                .fillRect(0, y, worldWidth, thickness);
+            this.graphics.fillStyle(color, lineAlpha).fillRect(0, y, worldWidth, thickness);
         }
     }
 
@@ -810,8 +743,8 @@ export class BackgroundRenderer {
         const safeRings = Math.max(1, rings);
         for (let i = safeRings; i >= 1; i--) {
             const ratio = i / safeRings;
-            this.backgroundGraphics.fillStyle(color, alpha * ratio * ratio);
-            this.backgroundGraphics.fillCircle(x, y, Math.max(1, radius * ratio));
+            this.graphics.fillStyle(color, alpha * ratio * ratio);
+            this.graphics.fillCircle(x, y, Math.max(1, radius * ratio));
         }
     }
 
@@ -1074,7 +1007,6 @@ export class BackgroundRenderer {
             });
         }
 
-        // Simple crater data (used in render)
         const craters = [
             { x: 420, y: 580, r: 55 },
             { x: 780, y: 605, r: 38 },
@@ -1098,7 +1030,7 @@ export class BackgroundRenderer {
             },
             background.palette || {}
         );
-        const starCount = this.valueOrDefault(
+        const starCount = valueOrDefault(
             background.starCount,
             GAME_CONSTANTS.BACKGROUND_STAR_COUNT_DEFAULT
         );
@@ -1160,10 +1092,7 @@ export class BackgroundRenderer {
         const planetTemplates = background.planetTemplates || defaultPlanets;
         const planetCount = Math.max(
             1,
-            this.valueOrDefault(
-                background.planetCount,
-                GAME_CONSTANTS.BACKGROUND_PLANET_COUNT_DEFAULT
-            )
+            valueOrDefault(background.planetCount, GAME_CONSTANTS.BACKGROUND_PLANET_COUNT_DEFAULT)
         );
         const planets = [];
         const heroTemplate = planetTemplates[0];
@@ -1336,8 +1265,6 @@ export class BackgroundRenderer {
         };
     }
 
-    // This is a declarative layout recipe; keeping its generated layers together
-    // makes the shared palette and coordinates easier to tune.
     // eslint-disable-next-line max-lines-per-function
     createStationBackgroundLayout(background, worldWidth, worldHeight) {
         const palette = Object.assign(
@@ -1353,14 +1280,14 @@ export class BackgroundRenderer {
             background.palette || {}
         );
         const stars = [];
-        const starCount = this.valueOrDefault(background.starCount, 80);
-        const ribbonCount = this.valueOrDefault(background.ribbonCount, 2);
-        const nebulaCount = this.valueOrDefault(background.nebulaCount, 3);
-        const frameCount = this.valueOrDefault(background.frameCount, 2);
-        const moduleStride = this.valueOrDefault(background.moduleStride, 260);
-        const catwalkStep = this.valueOrDefault(background.catwalkStep, 220);
-        const deckLightStep = this.valueOrDefault(background.deckLightStep, 130);
-        const beaconChance = this.valueOrDefault(background.moduleBeaconChance, 0.5);
+        const starCount = valueOrDefault(background.starCount, 80);
+        const ribbonCount = valueOrDefault(background.ribbonCount, 2);
+        const nebulaCount = valueOrDefault(background.nebulaCount, 3);
+        const frameCount = valueOrDefault(background.frameCount, 2);
+        const moduleStride = valueOrDefault(background.moduleStride, 260);
+        const catwalkStep = valueOrDefault(background.catwalkStep, 220);
+        const deckLightStep = valueOrDefault(background.deckLightStep, 130);
+        const beaconChance = valueOrDefault(background.moduleBeaconChance, 0.5);
         const starColors = [0xffffff, palette.haze, palette.highlight];
         for (let i = 0; i < starCount; i++) {
             stars.push({
@@ -1464,7 +1391,7 @@ export class BackgroundRenderer {
                 Math.round(worldHeight * 0.76)
             );
             const lights = [];
-            const catwalkLightStep = this.valueOrDefault(background.catwalkLightStep, 28);
+            const catwalkLightStep = valueOrDefault(background.catwalkLightStep, 28);
             for (let lightX = x + 18; lightX < x + width - 18; lightX += catwalkLightStep) {
                 lights.push({
                     x: lightX,

@@ -3,17 +3,25 @@ export class SpriteFactory {
         this.scene = scene;
     }
 
-    // Create chicken animation frames
+    addCanvasTexture(key, width, height, paint) {
+        if (this.scene.textures.exists(key)) {
+            return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        paint(canvas.getContext('2d'), width, height);
+        this.scene.textures.addCanvas(key, canvas);
+    }
+
     createChickenFrames() {
         if (this.scene.textures.exists('chicken1')) {
             return;
         }
 
-        // Function to draw a much nicer chicken frame
-        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend, _isJetpack = false) {
+        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend) {
             ctx.imageSmoothingEnabled = false;
 
-            // Body - rounded and fluffy
             ctx.fillStyle = '#ffeb3b';
             ctx.beginPath();
             ctx.ellipse(16, 23, 9, 7, 0, 0, Math.PI * 2);
@@ -22,13 +30,11 @@ export class SpriteFactory {
             ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            // Feather highlights on body
             ctx.fillStyle = '#fff59d';
             ctx.beginPath();
             ctx.ellipse(13, 21, 4, 2.5, -0.3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Head
             ctx.fillStyle = '#ffeb3b';
             ctx.beginPath();
             ctx.arc(16, 15, 6.5, 0, Math.PI * 2);
@@ -36,7 +42,6 @@ export class SpriteFactory {
             ctx.strokeStyle = '#f9a825';
             ctx.stroke();
 
-            // Comb (red)
             ctx.fillStyle = '#e53935';
             ctx.beginPath();
             ctx.moveTo(14, 9);
@@ -44,7 +49,6 @@ export class SpriteFactory {
             ctx.lineTo(18, 9);
             ctx.fill();
 
-            // Beak (better shape)
             ctx.fillStyle = '#ff9800';
             ctx.beginPath();
             ctx.moveTo(22, 16);
@@ -58,7 +62,6 @@ export class SpriteFactory {
             ctx.lineTo(22, 18.5);
             ctx.fill();
 
-            // Eye with shine
             ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.arc(18.5, 13.5, 2.2, 0, Math.PI * 2);
@@ -72,13 +75,11 @@ export class SpriteFactory {
             ctx.arc(19.3, 13.4, 0.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Legs
             ctx.strokeStyle = '#ff9800';
             ctx.lineWidth = 2.5;
             ctx.lineCap = 'round';
             ctx.beginPath();
             if (legBend) {
-                // Bent jump pose
                 ctx.moveTo(11, 28);
                 ctx.quadraticCurveTo(9, 32, 8, 35);
                 ctx.moveTo(21, 28);
@@ -91,7 +92,6 @@ export class SpriteFactory {
             }
             ctx.stroke();
 
-            // Toes
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             if (!legBend) {
@@ -102,7 +102,6 @@ export class SpriteFactory {
             }
             ctx.stroke();
 
-            // Wings (much better)
             ctx.fillStyle = '#fdd835';
             ctx.strokeStyle = '#f9a825';
             ctx.lineWidth = 1;
@@ -115,7 +114,6 @@ export class SpriteFactory {
             ctx.stroke();
             ctx.restore();
 
-            // Wing highlight
             ctx.fillStyle = 'rgba(255,255,255,0.4)';
             ctx.save();
             ctx.translate(16, 23);
@@ -126,64 +124,28 @@ export class SpriteFactory {
             ctx.restore();
         }
 
-        // Walking frames: alternate leg positions for walking motion
-        // Frame 1: wings up, left leg back, right leg forward
-        const chicken1 = document.createElement('canvas');
-        chicken1.width = 32;
-        chicken1.height = 32;
-        const ctx1 = chicken1.getContext('2d');
-        drawChicken(ctx1, Math.PI / 6, 10, 22, false);
-        this.scene.textures.addCanvas('chicken1', chicken1);
-
-        // Frame 2: wings down, legs switch
-        const chicken2 = document.createElement('canvas');
-        chicken2.width = 32;
-        chicken2.height = 32;
-        const ctx2 = chicken2.getContext('2d');
-        drawChicken(ctx2, -Math.PI / 6, 14, 18, false);
-        this.scene.textures.addCanvas('chicken2', chicken2);
-
-        // Frame 3: wings up, right leg back, left leg forward
-        const chicken3 = document.createElement('canvas');
-        chicken3.width = 32;
-        chicken3.height = 32;
-        const ctx3 = chicken3.getContext('2d');
-        drawChicken(ctx3, Math.PI / 6, 10, 22, false);
-        this.scene.textures.addCanvas('chicken3', chicken3);
-
-        // Frame 4: wings down, legs switch back
-        const chicken4 = document.createElement('canvas');
-        chicken4.width = 32;
-        chicken4.height = 32;
-        const ctx4 = chicken4.getContext('2d');
-        drawChicken(ctx4, -Math.PI / 6, 14, 18, false);
-        this.scene.textures.addCanvas('chicken4', chicken4);
-
-        // Jump frame: wings neutral, legs bent
-        const chicken_jump = document.createElement('canvas');
-        chicken_jump.width = 32;
-        chicken_jump.height = 32;
-        const ctx_jump = chicken_jump.getContext('2d');
-        drawChicken(ctx_jump, 0, 0, 0, true);
-        this.scene.textures.addCanvas('chicken_jump', chicken_jump);
-
-        // Jetpack frame 1: compact exhaust
-        const chicken_jetpack1 = document.createElement('canvas');
-        chicken_jetpack1.width = 32;
-        chicken_jetpack1.height = 32;
-        const ctx_jetpack1 = chicken_jetpack1.getContext('2d');
-        drawChicken(ctx_jetpack1, 0, 0, 0, true);
-        this.drawJetpack(ctx_jetpack1, 1);
-        this.scene.textures.addCanvas('chicken_jetpack1', chicken_jetpack1);
-
-        // Jetpack frame 2: stretched exhaust
-        const chicken_jetpack2 = document.createElement('canvas');
-        chicken_jetpack2.width = 32;
-        chicken_jetpack2.height = 32;
-        const ctx_jetpack2 = chicken_jetpack2.getContext('2d');
-        drawChicken(ctx_jetpack2, 0, 0, 0, true);
-        this.drawJetpack(ctx_jetpack2, 2);
-        this.scene.textures.addCanvas('chicken_jetpack2', chicken_jetpack2);
+        const walkFrames = [
+            ['chicken1', Math.PI / 6, 10, 22],
+            ['chicken2', -Math.PI / 6, 12, 20],
+            ['chicken3', Math.PI / 6, 14, 18],
+            ['chicken4', Math.PI / 8, 11, 21],
+        ];
+        walkFrames.forEach(([key, wing, left, right]) => {
+            this.addCanvasTexture(key, 32, 32, (ctx) => {
+                drawChicken(ctx, wing, left, right, false);
+            });
+        });
+        this.addCanvasTexture('chicken_jump', 32, 32, (ctx) => {
+            drawChicken(ctx, 0, 0, 0, true);
+        });
+        this.addCanvasTexture('chicken_jetpack1', 32, 32, (ctx) => {
+            drawChicken(ctx, 0, 0, 0, true);
+            this.drawJetpack(ctx, 1);
+        });
+        this.addCanvasTexture('chicken_jetpack2', 32, 32, (ctx) => {
+            drawChicken(ctx, 0, 0, 0, true);
+            this.drawJetpack(ctx, 2);
+        });
     }
 
     drawJetpack(ctx, frame) {
@@ -194,7 +156,6 @@ export class SpriteFactory {
         ctx.fillRect(12, 16, 8, 8);
         ctx.fillStyle = '#ffcc00';
         if (frame === 1) {
-            // Compact exhaust
             ctx.beginPath();
             ctx.moveTo(10, 26);
             ctx.lineTo(12, 32);
@@ -221,7 +182,6 @@ export class SpriteFactory {
             ctx.closePath();
             ctx.fill();
         } else {
-            // Stretched exhaust
             ctx.beginPath();
             ctx.moveTo(10, 26);
             ctx.lineTo(12, 34);
@@ -269,13 +229,11 @@ export class SpriteFactory {
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
 
-            // Ground shadow so the transparent sprite still has depth.
             ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
             ctx.beginPath();
             ctx.ellipse(16, 28, 9, 3, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Main silhouette.
             ctx.fillStyle = goldGradient;
             ctx.strokeStyle = '#8a4f00';
             ctx.lineWidth = 2;
@@ -293,7 +251,6 @@ export class SpriteFactory {
             ctx.fill();
             ctx.stroke();
 
-            // Velvet band and lower trim.
             ctx.fillStyle = '#7f1533';
             ctx.fillRect(6, 20, 20, 6);
             ctx.fillStyle = '#5e0f26';
@@ -303,7 +260,6 @@ export class SpriteFactory {
             ctx.strokeRect(6, 20, 20, 6);
             ctx.strokeRect(7, 18, 18, 2);
 
-            // Inner gold bevel to stop it reading as a flat icon.
             ctx.fillStyle = innerGold;
             ctx.beginPath();
             ctx.moveTo(8, 23);
@@ -318,7 +274,6 @@ export class SpriteFactory {
             ctx.closePath();
             ctx.fill();
 
-            // Gem settings.
             ctx.fillStyle = '#4c0013';
             ctx.fillRect(9, 21, 4, 3);
             ctx.fillRect(14, 20, 4, 4);
@@ -331,7 +286,6 @@ export class SpriteFactory {
             ctx.fillStyle = '#3bdc8d';
             ctx.fillRect(19.5, 21.5, 3, 2);
 
-            // Top jewels / pearls.
             ctx.fillStyle = '#fff3b0';
             [10, 16, 22].forEach((x) => {
                 ctx.beginPath();
@@ -339,7 +293,6 @@ export class SpriteFactory {
                 ctx.fill();
             });
 
-            // Specular highlights.
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -351,7 +304,6 @@ export class SpriteFactory {
             ctx.lineTo(23, 14);
             ctx.stroke();
 
-            // Tiny spark on the center jewel.
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
             ctx.beginPath();
             ctx.arc(16, 21, 0.8, 0, Math.PI * 2);
@@ -366,14 +318,11 @@ export class SpriteFactory {
             cliffCanvas.width = 64;
             cliffCanvas.height = 64;
             const ctx = cliffCanvas.getContext('2d');
-            // Space platform: metallic gray with light border
             ctx.fillStyle = '#555555';
             ctx.fillRect(0, 0, 64, 64);
-            // Add a light outline for metallic effect
             ctx.strokeStyle = '#aaaaaa';
             ctx.lineWidth = 2;
             ctx.strokeRect(1, 1, 62, 62);
-            // Add some panel lines
             ctx.strokeStyle = '#333333';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -396,7 +345,6 @@ export class SpriteFactory {
             const ctx = rockCanvas.getContext('2d');
             ctx.fillStyle = '#404040';
             ctx.fillRect(0, 0, 32, 32);
-            // Draw irregular rock shape
             ctx.fillStyle = '#808080';
             ctx.beginPath();
             ctx.moveTo(8, 2);
@@ -418,7 +366,6 @@ export class SpriteFactory {
             ctx.lineTo(6, 6);
             ctx.closePath();
             ctx.fill();
-            // Add shadows/highlights for 3D effect
             ctx.fillStyle = '#cccccc';
             ctx.beginPath();
             ctx.arc(10, 8, 3, 0, Math.PI * 2);
@@ -427,7 +374,6 @@ export class SpriteFactory {
             ctx.beginPath();
             ctx.arc(20, 24, 4, 0, Math.PI * 2);
             ctx.fill();
-            // Add small craters
             ctx.fillStyle = '#666666';
             ctx.beginPath();
             ctx.arc(6, 20, 2, 0, Math.PI * 2);
@@ -575,18 +521,15 @@ export class SpriteFactory {
             roverCanvas.height = 36;
             const ctx = roverCanvas.getContext('2d');
 
-            // Body (lunar module style)
             ctx.fillStyle = '#5a5a66';
             ctx.fillRect(8, 8, 40, 18);
             ctx.strokeStyle = '#3a3a42';
             ctx.lineWidth = 2;
             ctx.strokeRect(8, 8, 40, 18);
 
-            // Solar panel / top detail
             ctx.fillStyle = '#2f4f6f';
             ctx.fillRect(14, 4, 28, 6);
 
-            // Wheels
             ctx.fillStyle = '#2a2a32';
             ctx.beginPath();
             ctx.arc(14, 28, 7, 0, Math.PI * 2);
@@ -595,7 +538,6 @@ export class SpriteFactory {
             ctx.arc(42, 28, 7, 0, Math.PI * 2);
             ctx.fill();
 
-            // Wheel highlights
             ctx.fillStyle = '#7a7a82';
             ctx.beginPath();
             ctx.arc(14, 28, 3, 0, Math.PI * 2);
@@ -604,7 +546,6 @@ export class SpriteFactory {
             ctx.arc(42, 28, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Antenna
             ctx.strokeStyle = '#9a9aa2';
             ctx.lineWidth = 2;
             ctx.beginPath();

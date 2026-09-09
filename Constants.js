@@ -1,10 +1,6 @@
-// Game Constants for SpaceChicken
 export const GAME_CONSTANTS = {
-    // Physics
     PHYSICS_GRAVITY: { x: 0, y: 300 },
-    DEBUG_MODE: false,
 
-    // Player
     PLAYER_VELOCITY_X: 160,
     JUMP_VELOCITY_Y: -330,
     MAX_JUMPS: 2,
@@ -13,13 +9,11 @@ export const GAME_CONSTANTS = {
     LAND_MIN_AIR_MS: 120,
     LAND_MIN_SPEED_Y: 90,
 
-    // Audio
     MUSIC_VOLUME: 0.18,
     EFFECTS_VOLUME: 0.48,
     AUDIO_UNLOCK_TOLERANCE: 0.05,
     AUDIO_FADE_TIME: 0.05,
 
-    // UI Layout
     DOUBLE_TAP_THRESHOLD: 350,
     RESTART_DELAY: 500,
     DEATH_TRANSITION_DELAY: 320,
@@ -38,10 +32,8 @@ export const GAME_CONSTANTS = {
     HUD_SCALE_MIN: 0.58,
     HUD_SCALE_MAX: 1.1,
 
-    // World Bounds
     SAFE_AREA_FALLBACK: { top: 0, right: 0, bottom: 0, left: 0 },
 
-    // Input
     JUMP_BUTTON_TOUCH_TOLERANCE: 200,
     MOVEMENT_MIDPOINT_RATIO: 0.5,
     TOUCH_HIT_PADDING: 22,
@@ -49,12 +41,10 @@ export const GAME_CONSTANTS = {
     CAMERA_TOUCH_FOLLOW_OFFSET_RATIO: 0.38,
     CAMERA_TOUCH_FOLLOW_OFFSET_LANDSCAPE_RATIO: 0.92,
 
-    // Hazard Timing (lasers)
     LASER_DEFAULT_ON_DURATION: 1200,
     LASER_DEFAULT_OFF_DURATION: 900,
     LASER_DEFAULT_START_DELAY: 0,
 
-    // Animation
     WALK_FRAME_RATE: 8,
     JETPACK_FRAME_RATE: 12,
     BOB_DEFAULT_DURATION: 1000,
@@ -62,7 +52,6 @@ export const GAME_CONSTANTS = {
     SPIN_DEFAULT_DURATION: 1600,
     SPIN_DEFAULT_EASE: 'Sine.easeInOut',
 
-    // Feel / juice
     CAMERA_LERP_X: 0.14,
     CAMERA_LERP_Y: 0.16,
     CAMERA_FADE_IN: 420,
@@ -84,17 +73,17 @@ export const GAME_CONSTANTS = {
     INSTRUCTION_FADE_MS: 420,
     LEVEL_BANNER_HOLD_MS: 1600,
     TITLE_PROMPT_PULSE_MS: 900,
+    TWINKLE_STAR_COUNT: 6,
+    BACKGROUND_BAKE_MAX_WIDTH: 2048,
+    BACKGROUND_BAKE_MAX_HEIGHT: 1024,
 
-    // Platform Config
-    PLATFORM_DEFAULT_SCALE: { x: 1, y: 1 },
     FLOOR_PLATFORM_SCALE: { x: 1.5, y: 0.3 },
+    FLOOR_TILE_SIZE: 64,
 
-    // Level-specific constants
     LEVEL_DEFAULT_WORLD_SIZE: { width: 2000, height: 700 },
     LEVEL_KILLZONE_Y: 620,
     LEVEL_KILLZONE_HEIGHT: 20,
 
-    // Bomb settings defaults
     BOMB_DEFAULT_SPEED: 150,
     BOMB_DEFAULT_DELAY_MIN: 1000,
     BOMB_DEFAULT_DELAY_MAX: 5000,
@@ -104,20 +93,15 @@ export const GAME_CONSTANTS = {
     BOMB_CLEANUP_THRESHOLD_Y: 100,
     BOMB_POOL_SIZE: 8,
     PARTICLE_POOL_SIZE: 64,
+    WARNING_POOL_SIZE: 8,
 
-    // Storage and Leaderboard
     LEADERBOARD_MAX_ENTRIES: 5,
     STORAGE_LEVEL_PREFIX: 'spaceChickenLevel',
     PLAYER_NAME_MAX_LENGTH: 24,
 
-    // Config
-    FIREBASE_ENDPOINT_CONFIG: 'SPACE_CHICKEN_CONFIG.firebaseEndpoint',
-
-    // Background
     BACKGROUND_STAR_COUNT_DEFAULT: 100,
     BACKGROUND_PLANET_COUNT_DEFAULT: 5,
 
-    // Touch Controls
     TOUCH_CONTROL_MARGIN: 24,
     VIRTUAL_BUTTON_SIZE: 64,
     CONTROL_SIZE_MIN: 72,
@@ -141,6 +125,7 @@ export const AUDIO_SETTINGS = {
 
 export const LEVEL_DEFINITIONS = {
     1: {
+        TITLE: 'Dawn Run',
         GRAVITY: 300,
         WORLD_WIDTH: 2000,
         WORLD_HEIGHT: 700,
@@ -154,6 +139,7 @@ export const LEVEL_DEFINITIONS = {
         NEXT_LEVEL: 2,
     },
     2: {
+        TITLE: 'Arcade Orbit',
         GRAVITY: 400,
         WORLD_WIDTH: 3000,
         WORLD_HEIGHT: 700,
@@ -167,6 +153,7 @@ export const LEVEL_DEFINITIONS = {
         NEXT_LEVEL: 3,
     },
     3: {
+        TITLE: 'Orbital Gauntlet',
         GRAVITY: 260,
         WORLD_WIDTH: 2200,
         WORLD_HEIGHT: 900,
@@ -175,13 +162,13 @@ export const LEVEL_DEFINITIONS = {
         PLAYER_START_Y: 760,
         CROWN_X: 2050,
         CROWN_Y: 220,
-        FLOOR_Y: null, // No floor, uses static platforms
+        FLOOR_Y: null,
         BOMB_SPEED: 260,
         KILLZONE_HEIGHT: 40,
         NEXT_LEVEL: 4,
     },
     4: {
-        // Moon level - low gravity, rovers + cosmic rays
+        TITLE: 'Lunar Gauntlet',
         GRAVITY: 180,
         WORLD_WIDTH: 2800,
         WORLD_HEIGHT: 800,
@@ -190,15 +177,12 @@ export const LEVEL_DEFINITIONS = {
         PLAYER_START_Y: 620,
         CROWN_X: 2550,
         CROWN_Y: 280,
-        // No floor (intentionally platform-only level for rovers)
         BOMB_SPEED: 180,
         KILLZONE_HEIGHT: 30,
         NEXT_LEVEL: null,
     },
 };
 
-// Keep every level-aware subsystem (scene progression, audio, and leaderboards)
-// on the same source of truth instead of maintaining separate hard-coded lists.
 export const LEVEL_IDS = Object.freeze(
     Object.keys(LEVEL_DEFINITIONS)
         .map(Number)

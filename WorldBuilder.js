@@ -1,9 +1,10 @@
 import { GAME_CONSTANTS } from './Constants.js';
-import { addLoopingTween, valueOrDefault } from './GameUtils.js';
+import { addLoopingTween } from './GameUtils.js';
 
 export class WorldBuilder {
     constructor(scene) {
         this.scene = scene;
+        this.warningPool = [];
     }
 
     get platforms() {
@@ -54,10 +55,6 @@ export class WorldBuilder {
         this.scene.activeWarningGraphics = value;
     }
 
-    valueOrDefault(value, fallback) {
-        return valueOrDefault(value, fallback);
-    }
-
     build(levelConfig) {
         this.buildStaticPlatforms(levelConfig.platforms.static);
         this.buildFloorPlatforms(levelConfig.platforms.floor);
@@ -68,21 +65,60 @@ export class WorldBuilder {
     }
 
     clearHazardTimers() {
-        if (this.scene.dynamicHazardEvents) {
-            this.scene.dynamicHazardEvents.forEach((event) => {
-                if (event && typeof event.remove === 'function') {
+        const events = this.scene.dynamicHazardEvents;
+        if (events) {
+            events.forEach((event) => {
+                if (event?.remove) {
                     event.remove(false);
                 }
             });
             this.scene.dynamicHazardEvents = [];
         }
-        if (this.scene.activeWarningGraphics) {
-            this.scene.activeWarningGraphics.forEach((graphic) => {
-                if (graphic && typeof graphic.destroy === 'function') {
-                    graphic.destroy();
-                }
-            });
+        const warnings = this.scene.activeWarningGraphics;
+        if (warnings) {
+            warnings.forEach((graphic) => this.releaseWarningGraphics(graphic, true));
             this.scene.activeWarningGraphics = [];
+        }
+        this.warningPool.forEach((graphic) => {
+            if (graphic.destroy) {
+                graphic.destroy();
+            }
+        });
+        this.warningPool.length = 0;
+    }
+
+    acquireWarningGraphics() {
+        const graphic = this.warningPool.pop() || this.add.graphics();
+        graphic.clear();
+        if (graphic.setVisible) {
+            graphic.setVisible(true);
+        }
+        if (graphic.setActive) {
+            graphic.setActive(true);
+        }
+        return graphic;
+    }
+
+    releaseWarningGraphics(graphic, destroy = false) {
+        if (!graphic) {
+            return;
+        }
+        if (destroy) {
+            if (graphic.destroy) {
+                graphic.destroy();
+            }
+            return;
+        }
+        graphic.clear();
+        if (graphic.setVisible) {
+            graphic.setVisible(false);
+        }
+        if (this.warningPool.length < GAME_CONSTANTS.WARNING_POOL_SIZE) {
+            this.warningPool.push(graphic);
+            return;
+        }
+        if (graphic.destroy) {
+            graphic.destroy();
         }
     }
 
@@ -91,16 +127,15 @@ export class WorldBuilder {
             return;
         }
         platformConfigs.forEach((config) => {
-            const key = config.key || 'cliff';
-            const platform = this.platforms.create(config.x, config.y, key);
+            const platform = this.platforms.create(config.x, config.y, config.key || 'cliff');
             platform.setDepth(0);
-            const scaleX = this.valueOrDefault(config.scaleX, 1);
-            const scaleY = this.valueOrDefault(config.scaleY, 1);
+            const scaleX = config.scaleX ?? 1;
+            const scaleY = config.scaleY ?? 1;
             if (scaleX !== 1 || scaleY !== 1) {
                 platform.setScale(scaleX, scaleY);
                 platform.refreshBody();
             }
-            if (config.angle !== undefined && config.angle !== null) {
+            if (config.angle != null) {
                 platform.setAngle(config.angle);
                 platform.refreshBody();
             }
@@ -111,41 +146,89 @@ export class WorldBuilder {
         if (!floorConfig) {
             return;
         }
-        const step = this.valueOrDefault(floorConfig.step, 100);
+        const step = floorConfig.step ?? 100;
         const key = floorConfig.key || 'cliff';
-        const scaleX = this.valueOrDefault(floorConfig.scaleX, 1);
-        const scaleY = this.valueOrDefault(floorConfig.scaleY, 1);
+        const scaleX = floorConfig.scaleX ?? 1;
+        const scaleY = floorConfig.scaleY ?? 1;
+        const positions = [];
         if (Array.isArray(floorConfig.segments) && floorConfig.segments.length) {
             floorConfig.segments.forEach((segment) => {
-                const startX = segment[0];
-                const endX = segment[1];
-                for (let x = startX; x <= endX; x += step) {
-                    const platform = this.platforms.create(x, floorConfig.y, key);
-                    platform.setDepth(0);
-                    if (scaleX !== 1 || scaleY !== 1) {
-                        platform.setScale(scaleX, scaleY);
-                        platform.refreshBody();
-                    }
+                for (let x = segment[0]; x <= segment[1]; x += step) {
+                    positions.push(x);
                 }
             });
+        } else {
+            const startX = floorConfig.start ?? 0;
+            for (let x = startX; x < this.worldWidth; x += step) {
+                if (
+                    typeof floorConfig.condition === 'function' &&
+                    !floorConfig.condition(x, this.worldWidth)
+                ) {
+                    continue;
+                }
+                positions.push(x);
+            }
+        }
+        this.placeFloorRuns(positions, floorConfig.y, key, scaleX, scaleY, step);
+    }
+
+    placeFloorRuns(positions, y, key, scaleX, scaleY, step) {
+        if (!positions.length) {
             return;
         }
-        const startX = this.valueOrDefault(floorConfig.start, 0);
-        for (let x = startX; x < this.worldWidth; x += step) {
-            const shouldPlace =
-                typeof floorConfig.condition === 'function'
-                    ? floorConfig.condition(x, this.worldWidth)
-                    : true;
-            if (!shouldPlace) {
+        positions.sort((a, b) => a - b);
+        const tileWidth = GAME_CONSTANTS.FLOOR_TILE_SIZE * scaleX;
+        const tileHeight = GAME_CONSTANTS.FLOOR_TILE_SIZE * scaleY;
+        let runStart = 0;
+        for (let i = 1; i <= positions.length; i++) {
+            const endOfRun = i === positions.length || positions[i] - positions[i - 1] > step + 1;
+            if (!endOfRun) {
                 continue;
             }
-            const platform = this.platforms.create(x, floorConfig.y, key);
+            const run = positions.slice(runStart, i);
+            for (let j = 0; j < run.length; j++) {
+                this.placeFloorVisual(run[j], y, key, scaleX, scaleY);
+            }
+            if (this.add?.image) {
+                this.placeFloorCollider(run, y, key, tileWidth, tileHeight);
+            }
+            runStart = i;
+        }
+    }
+
+    placeFloorVisual(x, y, key, scaleX, scaleY) {
+        if (!this.add?.image) {
+            const platform = this.platforms.create(x, y, key);
             platform.setDepth(0);
             if (scaleX !== 1 || scaleY !== 1) {
                 platform.setScale(scaleX, scaleY);
                 platform.refreshBody();
             }
+            return;
         }
+        const image = this.add.image(x, y, key);
+        image.setDepth(0);
+        if (scaleX !== 1 || scaleY !== 1) {
+            image.setScale(scaleX, scaleY);
+        }
+    }
+
+    placeFloorCollider(run, y, key, tileWidth, tileHeight) {
+        if (!this.platforms?.create || !run.length) {
+            return;
+        }
+        const left = run[0] - tileWidth / 2;
+        const right = run[run.length - 1] + tileWidth / 2;
+        const collider = this.platforms.create((left + right) / 2, y, key);
+        collider.setDepth(0);
+        collider.setVisible(false);
+        if (collider.setDisplaySize) {
+            collider.setDisplaySize(right - left, tileHeight);
+        } else {
+            collider.displayWidth = right - left;
+            collider.displayHeight = tileHeight;
+        }
+        collider.refreshBody?.();
     }
 
     setupMovingPlatforms(movingConfigs) {
@@ -161,42 +244,36 @@ export class WorldBuilder {
             platform.setDepth(0);
 
             if (config.origin) {
-                const originX = this.valueOrDefault(config.origin.x, 0.5);
-                const originY = this.valueOrDefault(config.origin.y, 0.5);
-                platform.setOrigin(originX, originY);
+                platform.setOrigin(config.origin.x ?? 0.5, config.origin.y ?? 0.5);
             }
-
             if (config.flipX) {
                 platform.setFlipX(true);
             }
 
-            const scaleX = this.valueOrDefault(config.scaleX, 1);
-            const scaleY = this.valueOrDefault(config.scaleY, 1);
+            const scaleX = config.scaleX ?? 1;
+            const scaleY = config.scaleY ?? 1;
             if (scaleX !== 1 || scaleY !== 1) {
                 platform.setScale(scaleX, scaleY);
             }
 
             const bodySize = config.bodySize || {};
-            const bodyWidth = this.valueOrDefault(bodySize.width, platform.displayWidth);
-            const bodyHeight = this.valueOrDefault(bodySize.height, platform.displayHeight);
+            const bodyWidth = bodySize.width ?? platform.displayWidth;
+            const bodyHeight = bodySize.height ?? platform.displayHeight;
             const bodyScaleX = Math.abs(platform.scaleX) || 1;
             const bodyScaleY = Math.abs(platform.scaleY) || 1;
             platform.body.setSize(bodyWidth / bodyScaleX, bodyHeight / bodyScaleY, true);
 
             if (config.bodyOffset) {
-                const offsetX = this.valueOrDefault(config.bodyOffset.x, platform.body.offset.x);
-                const offsetY = this.valueOrDefault(config.bodyOffset.y, platform.body.offset.y);
-                platform.body.setOffset(offsetX, offsetY);
+                platform.body.setOffset(
+                    config.bodyOffset.x ?? platform.body.offset.x,
+                    config.bodyOffset.y ?? platform.body.offset.y
+                );
             }
-
             if (config.tween) {
                 addLoopingTween(this.tweens, platform, config.tween);
             }
-
             if (config.pathVelocity) {
-                const velocityX = this.valueOrDefault(config.pathVelocity.x, 0);
-                const velocityY = this.valueOrDefault(config.pathVelocity.y, 0);
-                platform.body.setVelocity(velocityX, velocityY);
+                platform.body.setVelocity(config.pathVelocity.x ?? 0, config.pathVelocity.y ?? 0);
             }
         });
         return group;
@@ -208,8 +285,8 @@ export class WorldBuilder {
         }
         rockConfigs.forEach((config) => {
             const hazard = this.hazards.create(config.x, config.y, config.key || 'rock');
-            const scaleX = this.valueOrDefault(config.scaleX, 1);
-            const scaleY = this.valueOrDefault(config.scaleY, 1);
+            const scaleX = config.scaleX ?? 1;
+            const scaleY = config.scaleY ?? 1;
             if (scaleX !== 1 || scaleY !== 1) {
                 hazard.setScale(scaleX, scaleY);
                 hazard.refreshBody();
@@ -218,15 +295,9 @@ export class WorldBuilder {
     }
 
     setupDynamicHazards(dynamicConfigs) {
-        // Clean up any existing dynamic hazard events
-        if (this.dynamicHazardEvents) {
-            this.dynamicHazardEvents.forEach((event) => event.remove());
-        }
+        this.clearHazardTimers();
         this.dynamicHazardEvents = [];
-        if (this.activeWarningGraphics) {
-            this.activeWarningGraphics.forEach((g) => g && g.destroy && g.destroy());
-            this.activeWarningGraphics = [];
-        }
+        this.activeWarningGraphics = [];
 
         if (!dynamicConfigs || dynamicConfigs.length === 0) {
             return null;
@@ -251,8 +322,8 @@ export class WorldBuilder {
                     const hazard = group.create(config.x, config.y, config.key || 'rock');
                     hazard.body.allowGravity = false;
                     hazard.setImmovable(true);
-                    const scaleX = this.valueOrDefault(config.scaleX, 1);
-                    const scaleY = this.valueOrDefault(config.scaleY, 1);
+                    const scaleX = config.scaleX ?? 1;
+                    const scaleY = config.scaleY ?? 1;
                     if (scaleX !== 1 || scaleY !== 1) {
                         hazard.setScale(scaleX, scaleY);
                     }
@@ -260,9 +331,7 @@ export class WorldBuilder {
                         addLoopingTween(this.tweens, hazard, config.tween);
                     }
                     if (config.velocity) {
-                        const velocityX = this.valueOrDefault(config.velocity.x, 0);
-                        const velocityY = this.valueOrDefault(config.velocity.y, 0);
-                        hazard.setVelocity(velocityX, velocityY);
+                        hazard.setVelocity(config.velocity.x ?? 0, config.velocity.y ?? 0);
                     }
                     break;
                 }
@@ -273,15 +342,15 @@ export class WorldBuilder {
 
     createLaserHazard(group, config) {
         const orientation = config.orientation || 'horizontal';
-        const length = this.valueOrDefault(config.length, 200);
-        const width = this.valueOrDefault(config.width, 10);
+        const length = config.length ?? 200;
+        const width = config.width ?? 10;
         const beamTexture =
             config.key || (orientation === 'vertical' ? 'laserBeamVertical' : 'laserBeam');
         const beam = group.create(config.x, config.y, beamTexture);
         beam.body.allowGravity = false;
         beam.setImmovable(true);
         beam.setBlendMode(Phaser.BlendModes.ADD);
-        beam.setDepth(this.valueOrDefault(config.depth, 6));
+        beam.setDepth(config.depth ?? 6);
 
         if (orientation === 'horizontal') {
             beam.setDisplaySize(length, width);
@@ -295,7 +364,7 @@ export class WorldBuilder {
         const scaleY = Math.abs(beam.scaleY) || 1;
         beam.body.setSize(hitboxWidth / scaleX, hitboxHeight / scaleY, true);
 
-        const startActive = this.valueOrDefault(config.initiallyActive, true);
+        const startActive = config.initiallyActive ?? true;
         const setState = (state) => {
             beam.body.enable = state;
             beam.setActive(state);
@@ -303,7 +372,7 @@ export class WorldBuilder {
         };
         setState(startActive);
 
-        if (this.tweens && typeof this.tweens.add === 'function') {
+        if (this.tweens?.add) {
             this.tweens.add({
                 targets: beam,
                 alpha: { from: 0.72, to: 1 },
@@ -325,23 +394,14 @@ export class WorldBuilder {
                 emitterStart.setAngle(90);
                 emitterEnd.setAngle(90);
             }
-            const emitterDepth = this.valueOrDefault(config.depth, 6) - 1;
+            const emitterDepth = (config.depth ?? 6) - 1;
             emitterStart.setDepth(emitterDepth);
             emitterEnd.setDepth(emitterDepth);
         }
 
-        const onDuration = this.valueOrDefault(
-            config.onDuration,
-            GAME_CONSTANTS.LASER_DEFAULT_ON_DURATION
-        );
-        const offDuration = this.valueOrDefault(
-            config.offDuration,
-            GAME_CONSTANTS.LASER_DEFAULT_OFF_DURATION
-        );
-        const startDelay = this.valueOrDefault(
-            config.startDelay,
-            GAME_CONSTANTS.LASER_DEFAULT_START_DELAY
-        );
+        const onDuration = config.onDuration ?? GAME_CONSTANTS.LASER_DEFAULT_ON_DURATION;
+        const offDuration = config.offDuration ?? GAME_CONSTANTS.LASER_DEFAULT_OFF_DURATION;
+        const startDelay = config.startDelay ?? GAME_CONSTANTS.LASER_DEFAULT_START_DELAY;
 
         const scheduleCycle = (state, delay) => {
             const event = this.time.delayedCall(delay, () => {
@@ -364,7 +424,7 @@ export class WorldBuilder {
         const drone = group.create(config.x, config.y, config.key || 'drone');
         drone.body.allowGravity = false;
         drone.setImmovable(true);
-        const scale = this.valueOrDefault(config.scale, 1);
+        const scale = config.scale ?? 1;
         if (scale !== 1) {
             drone.setScale(scale);
         }
@@ -377,58 +437,39 @@ export class WorldBuilder {
             drone.displayWidth * 0.5 - radius,
             drone.displayHeight * 0.5 - radius
         );
-        drone.setDepth(this.valueOrDefault(config.depth, 7));
+        drone.setDepth(config.depth ?? 7);
 
         if (config.patrol) {
             addLoopingTween(this.tweens, drone, config.patrol);
         }
 
-        if (config.bobAmplitude !== undefined && config.bobAmplitude !== null) {
+        if (config.bobAmplitude != null) {
             this.tweens.add({
                 targets: drone,
                 y: drone.y - config.bobAmplitude,
-                duration: this.valueOrDefault(
-                    config.bobDuration,
-                    GAME_CONSTANTS.BOB_DEFAULT_DURATION
-                ),
+                duration: config.bobDuration ?? GAME_CONSTANTS.BOB_DEFAULT_DURATION,
                 yoyo: true,
                 repeat: -1,
                 ease: GAME_CONSTANTS.BOB_DEFAULT_EASE,
-                delay: this.valueOrDefault(config.bobDelay, 0),
+                delay: config.bobDelay ?? 0,
             });
         }
 
         if (config.spin) {
             const spinConfig =
-                typeof config.spin === 'object'
-                    ? Object.assign({}, config.spin)
-                    : { angle: config.spin };
-            if (typeof spinConfig.angle === 'number') {
-                const angle = spinConfig.angle;
-                this.tweens.add({
-                    targets: drone,
-                    angle: { from: -angle, to: angle },
-                    duration: this.valueOrDefault(
-                        spinConfig.duration,
-                        GAME_CONSTANTS.SPIN_DEFAULT_DURATION
-                    ),
-                    yoyo: true,
-                    repeat: -1,
-                    ease: GAME_CONSTANTS.SPIN_DEFAULT_EASE,
-                });
-            } else {
-                this.tweens.add({
-                    targets: drone,
-                    angle: spinConfig.angle || { from: -10, to: 10 },
-                    duration: this.valueOrDefault(
-                        spinConfig.duration,
-                        GAME_CONSTANTS.SPIN_DEFAULT_DURATION
-                    ),
-                    yoyo: true,
-                    repeat: -1,
-                    ease: GAME_CONSTANTS.SPIN_DEFAULT_EASE,
-                });
-            }
+                typeof config.spin === 'object' ? config.spin : { angle: config.spin };
+            const angle =
+                typeof spinConfig.angle === 'number'
+                    ? { from: -spinConfig.angle, to: spinConfig.angle }
+                    : spinConfig.angle || { from: -10, to: 10 };
+            this.tweens.add({
+                targets: drone,
+                angle,
+                duration: spinConfig.duration ?? GAME_CONSTANTS.SPIN_DEFAULT_DURATION,
+                yoyo: true,
+                repeat: -1,
+                ease: GAME_CONSTANTS.SPIN_DEFAULT_EASE,
+            });
         }
     }
 
@@ -437,11 +478,8 @@ export class WorldBuilder {
         rover.body.allowGravity = false;
         rover.setImmovable(true);
         rover.setDepth(6);
-
-        // Rovers are ground threats - slightly smaller hitbox
         rover.body.setSize(42, 24, true);
         rover.body.setOffset(7, 6);
-
         if (config.patrol) {
             addLoopingTween(this.tweens, rover, config.patrol);
         }
@@ -449,39 +487,32 @@ export class WorldBuilder {
 
     createCosmicRayHazard(group, config) {
         const startY = config.y || 80;
-        const interval = this.valueOrDefault(config.interval, 2000);
-        const warningTime = this.valueOrDefault(config.warning, 420);
-        const initialDelay = this.valueOrDefault(config.delay, 0);
+        const interval = config.interval ?? 2000;
+        const warningTime = config.warning ?? 420;
+        const initialDelay = config.delay ?? 0;
 
         const spawnRay = () => {
-            // Strong visual warning: bright vertical beam + top glow
-            const warning = this.add.graphics();
+            const warning = this.acquireWarningGraphics();
             warning.setDepth(25);
             if (this.activeWarningGraphics) {
                 this.activeWarningGraphics.push(warning);
             }
 
-            // Bright warning column (much more visible)
             warning.fillStyle(0xffee66, 0.35);
             warning.fillRect(config.x - 18, startY, 36, this.worldHeight - 100);
-
-            // Core bright line
             warning.fillStyle(0xffffaa, 0.9);
             warning.fillRect(config.x - 5, startY, 10, this.worldHeight - 100);
-
-            // Top charge glow (using graphics)
             warning.fillStyle(0xffee66, 0.6);
             warning.fillCircle(config.x, startY + 35, 28);
             warning.fillStyle(0xffffff, 0.85);
             warning.fillCircle(config.x, startY + 35, 14);
 
-            // Remove warning, then spawn the actual damaging ray
             const warningDelay = this.time.delayedCall(warningTime, () => {
                 Phaser.Utils.Array.Remove(this.dynamicHazardEvents, warningDelay);
                 if (this.activeWarningGraphics) {
                     Phaser.Utils.Array.Remove(this.activeWarningGraphics, warning);
                 }
-                warning.destroy();
+                this.releaseWarningGraphics(warning);
 
                 const ray = group.create(config.x, startY, 'laserBeamVertical');
                 ray.setDisplaySize(10, this.worldHeight - 110);
@@ -496,10 +527,11 @@ export class WorldBuilder {
                 const scaleY = Math.abs(ray.scaleY) || 1;
                 ray.body.setSize(hitThickness / scaleX, rayLength / scaleY, true);
 
-                // The ray is dangerous for a short window
                 const rayLife = this.time.delayedCall(220, () => {
                     Phaser.Utils.Array.Remove(this.dynamicHazardEvents, rayLife);
-                    if (ray && ray.destroy) ray.destroy();
+                    if (ray?.destroy) {
+                        ray.destroy();
+                    }
                 });
                 this.dynamicHazardEvents.push(rayLife);
             });
@@ -508,13 +540,12 @@ export class WorldBuilder {
 
         const starter = this.time.delayedCall(initialDelay, spawnRay);
         this.dynamicHazardEvents.push(starter);
-
-        // Repeat
-        const repeatEvent = this.time.addEvent({
-            delay: interval,
-            loop: true,
-            callback: spawnRay,
-        });
-        this.dynamicHazardEvents.push(repeatEvent);
+        this.dynamicHazardEvents.push(
+            this.time.addEvent({
+                delay: interval,
+                loop: true,
+                callback: spawnRay,
+            })
+        );
     }
 }

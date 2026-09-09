@@ -4,6 +4,21 @@ import { getMusicDefinition } from './MusicConfig.js';
 const SILENCE = 0.0001;
 const DEFAULT_TONE_DURATION = 0.2;
 const NOISE_BUFFER_SECONDS = 2;
+const DRIVE_CURVES = new Map();
+
+function driveCurve(amount) {
+    let curve = DRIVE_CURVES.get(amount);
+    if (curve) {
+        return curve;
+    }
+    curve = new Float32Array(256);
+    for (let i = 0; i < curve.length; i++) {
+        const x = (i / (curve.length - 1)) * 2 - 1;
+        curve[i] = Math.tanh(x * amount);
+    }
+    DRIVE_CURVES.set(amount, curve);
+    return curve;
+}
 
 export class AudioManager {
     constructor(scene) {
@@ -26,7 +41,6 @@ export class AudioManager {
         this.audioUnlocked = false;
         this.audioUnlockHandler = null;
         this.audioUnlockInProgress = false;
-        this.musicToggleButton = null;
         this.destroyed = false;
     }
 
@@ -274,8 +288,8 @@ export class AudioManager {
         sourceSet.forEach((source) => {
             try {
                 source.stop();
-            } catch (error) {
-                // A source may already have ended naturally.
+            } catch (_error) {
+                // already stopped
             }
         });
         sourceSet.clear();
@@ -299,8 +313,8 @@ export class AudioManager {
         }
         try {
             node.disconnect();
-        } catch (error) {
-            // Disconnecting an already disconnected Web Audio node is harmless.
+        } catch (_error) {
+            // already disconnected
         }
     }
 
@@ -333,10 +347,6 @@ export class AudioManager {
         this.noiseBuffer = null;
         this.audioUnlocked = false;
         this.audioUnlockInProgress = false;
-        if (this.musicToggleButton) {
-            this.musicToggleButton.destroy();
-            this.musicToggleButton = null;
-        }
     }
 
     applyEnvelope(param, startTime, duration, options) {
@@ -374,15 +384,9 @@ export class AudioManager {
         const nodes = [gainNode];
         let inputNode = gainNode;
 
-        if (options.drive && typeof context.createWaveShaper === 'function') {
+        if (options.drive && context.createWaveShaper) {
             const driveNode = context.createWaveShaper();
-            const amount = Math.max(1, options.drive);
-            const curve = new Float32Array(256);
-            for (let i = 0; i < curve.length; i++) {
-                const x = (i / (curve.length - 1)) * 2 - 1;
-                curve[i] = Math.tanh(x * amount);
-            }
-            driveNode.curve = curve;
+            driveNode.curve = driveCurve(Math.max(1, options.drive));
             driveNode.oversample = '2x';
             driveNode.connect(inputNode);
             inputNode = driveNode;
@@ -907,18 +911,7 @@ export class AudioManager {
     }
 
     updateMusicToggleVisual() {
-        if (
-            this.scene &&
-            this.scene.uiManager &&
-            typeof this.scene.uiManager.updateMusicToggleVisual === 'function'
-        ) {
-            this.scene.uiManager.updateMusicToggleVisual(this.musicMuted);
-            return;
-        }
-        if (this.musicToggleButton) {
-            this.musicToggleButton.setTexture(this.musicMuted ? 'musicToggleOff' : 'musicToggleOn');
-            this.musicToggleButton.setAlpha(this.musicMuted ? 0.75 : 0.95);
-        }
+        this.scene?.uiManager?.updateMusicToggleVisual?.(this.musicMuted);
     }
 }
 
