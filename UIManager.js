@@ -1,7 +1,7 @@
 import { GAME_CONSTANTS, LEVEL_IDS } from './Constants.js';
 import { formatElapsedTime } from './GameUtils.js';
 
-const HUD_FONT = 'Courier New, Courier, monospace';
+const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';
 const BANNER_FONT = 'Trebuchet MS, Arial, sans-serif';
 
 export class UIManager {
@@ -41,7 +41,7 @@ export class UIManager {
     createUI(levelConfig, level, playerName) {
         this.timerText = this.scene.add.text(0, 0, 'Time: 00:00.00', {
             fontSize: '32px',
-            fontFamily: HUD_FONT,
+            fontFamily: 'Courier New, Courier, monospace',
             fill: '#ffe566',
         });
         this.timerText.setScrollFactor(0);
@@ -259,7 +259,7 @@ export class UIManager {
         if (!this.leaderboardButton) {
             return;
         }
-        const backgroundColor = this.leaderboardVisible ? '#3a3a52' : '#1a1a28';
+        const backgroundColor = this.leaderboardVisible ? '#244c65' : '#14283e';
         this.leaderboardButton.setStyle({ backgroundColor });
     }
 
@@ -267,8 +267,8 @@ export class UIManager {
         if (!text) {
             return;
         }
-        text.setStroke?.('#000000', strokeThickness);
-        text.setShadow?.(2, 2, '#000000', 2, true, true);
+        text.setStroke?.('#081522', Math.max(2, strokeThickness * 0.65));
+        text.setShadow?.(0, 2, '#020914', 3, false, true);
     }
 
     enableTouchControls() {
@@ -349,7 +349,7 @@ export class UIManager {
         return jumpButton;
     }
 
-    expandControlHitArea(button, displaySize) {
+    expandControlHitArea(button, displaySize, maxPadding = GAME_CONSTANTS.TOUCH_HIT_PADDING) {
         if (!button || !button.input || !button.input.hitArea) {
             return;
         }
@@ -360,7 +360,8 @@ export class UIManager {
         const sourceWidth = button.width || displaySize || GAME_CONSTANTS.VIRTUAL_BUTTON_SIZE;
         const sourceHeight = button.height || displaySize || GAME_CONSTANTS.VIRTUAL_BUTTON_SIZE;
         const scaleX = displaySize && sourceWidth ? displaySize / sourceWidth : 1;
-        const pad = GAME_CONSTANTS.TOUCH_HIT_PADDING / (scaleX || 1);
+        button.touchHitPadding = Math.min(GAME_CONSTANTS.TOUCH_HIT_PADDING, maxPadding);
+        const pad = Math.min(GAME_CONSTANTS.TOUCH_HIT_PADDING, maxPadding) / (scaleX || 1);
         area.setTo(-pad, -pad, sourceWidth + pad * 2, sourceHeight + pad * 2);
         if (typeof button.input.setAlwaysEnabled === 'function') {
             button.input.setAlwaysEnabled(true);
@@ -441,7 +442,9 @@ export class UIManager {
         this.applyFontSize(this.leaderboardButton, fonts.leaderboardButton);
         if (this.leaderboardButton && typeof this.leaderboardButton.setPadding === 'function') {
             const padX = metrics.isCompact ? 10 : 8;
-            const padY = metrics.isCompact ? 6 : 4;
+            const padY = this.touchControlsEnabled
+                ? Math.max(10, Math.ceil((44 - fonts.leaderboardButton) / 2))
+                : 4;
             this.leaderboardButton.setPadding(padX, padY, padX, padY);
         }
         if (this.musicToggleButton && typeof this.musicToggleButton.setDisplaySize === 'function') {
@@ -510,6 +513,26 @@ export class UIManager {
         }
         this.wrapInstructionText(metrics, padding);
         this.avoidHudOverlap();
+        if (metrics.isCompact) {
+            // Keep the HUD shallow in landscape and leave the playfield readable.
+            this.levelText.setPosition(
+                insets.left + padding,
+                this.timerText.y + this.timerText.height + 4
+            );
+            if (this.deathText) {
+                this.deathText.setPosition(
+                    this.levelText.x + this.levelText.width + 12,
+                    this.levelText.y
+                );
+            }
+            const statsBottom =
+                this.levelText.y + Math.max(this.levelText.height, this.deathText?.height || 0);
+            const nameBottom = this.playerNameText
+                ? this.playerNameText.y + this.playerNameText.displayHeight / 2
+                : 0;
+            this.text.setPosition(insets.left + padding, Math.max(statsBottom, nameBottom) + 8);
+            this.text.setWordWrapWidth(Math.max(140, metrics.innerWidth - padding * 2), true);
+        }
     }
 
     wrapInstructionText(metrics, padding) {
@@ -581,31 +604,32 @@ export class UIManager {
 
         let controlSize = metrics.controlSize;
         const margin = metrics.controlMargin;
-        const jumpReserve = controlSize + margin;
-        const leftClusterWidth = controlSize * 2 + margin * 0.7;
-        const availableForMove = metrics.innerWidth - jumpReserve - margin;
-        if (leftClusterWidth > availableForMove && availableForMove > 0) {
-            controlSize = Math.max(64, Math.floor((availableForMove - margin * 0.7) / 2));
-        }
+        const gap = Math.max(16, Math.round(margin * 0.7));
+        // Reserve two gaps, including the gap between movement and jump.
+        controlSize = Math.min(
+            controlSize,
+            Math.max(44, Math.floor((metrics.innerWidth - margin * 2 - gap * 2) / 3))
+        );
+        const hitPadding = Math.min(margin, (gap - 2) / 2);
 
         const buttonY = height - insets.bottom - controlSize / 2 - margin;
         if (this.leftButton) {
             this.leftButton.setDisplaySize(controlSize, controlSize);
             this.leftButton.setPosition(insets.left + controlSize / 2 + margin, buttonY);
-            this.expandControlHitArea(this.leftButton, controlSize);
+            this.expandControlHitArea(this.leftButton, controlSize, hitPadding);
         }
         if (this.rightButton) {
             this.rightButton.setDisplaySize(controlSize, controlSize);
             const leftX = this.leftButton
                 ? this.leftButton.x
                 : insets.left + controlSize / 2 + margin;
-            this.rightButton.setPosition(leftX + controlSize + margin * 0.7, buttonY);
-            this.expandControlHitArea(this.rightButton, controlSize);
+            this.rightButton.setPosition(leftX + controlSize + gap, buttonY);
+            this.expandControlHitArea(this.rightButton, controlSize, hitPadding);
         }
         if (this.jumpButton) {
             this.jumpButton.setDisplaySize(controlSize, controlSize);
             this.jumpButton.setPosition(width - insets.right - controlSize / 2 - margin, buttonY);
-            this.expandControlHitArea(this.jumpButton, controlSize);
+            this.expandControlHitArea(this.jumpButton, controlSize, hitPadding);
         }
     }
 
@@ -881,7 +905,8 @@ export class UIManager {
             .text(0, 0, 'SPACE CHICKEN', {
                 fontSize: `${metrics.fonts.title}px`,
                 fontFamily: BANNER_FONT,
-                fill: '#ffe566',
+                fill: '#fff1a6',
+                fontStyle: 'bold',
                 align: 'center',
             })
             .setOrigin(0.5);
@@ -903,7 +928,9 @@ export class UIManager {
         this.styleHudText(this.titleSubtitle, 4);
         this.markUi(this.titleSubtitle);
 
-        const prompt = this.touchControlsEnabled ? 'Tap to start' : 'Press SPACE to start';
+        const prompt = this.touchControlsEnabled
+            ? 'Tap to start\n2P: 2 keys · 3 key + pad · 4 two pads'
+            : 'Press SPACE to start\n2P: 2 keys · 3 key + pad · 4 two pads';
         this.titlePrompt = this.scene.add
             .text(0, 0, prompt, {
                 fontSize: `${metrics.fonts.prompt}px`,
@@ -914,12 +941,14 @@ export class UIManager {
             .setOrigin(0.5);
         this.titlePrompt.setScrollFactor(0);
         this.titlePrompt.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.titlePrompt.setPadding(16, 10, 16, 10);
+        this.titlePrompt.setBackgroundColor('#17334b');
         this.styleHudText(this.titlePrompt, 4);
         this.markUi(this.titlePrompt);
         if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
             this.titlePromptTween = this.scene.tweens.add({
                 targets: this.titlePrompt,
-                alpha: { from: 0.35, to: 1 },
+                alpha: { from: 0.72, to: 1 },
                 duration: GAME_CONSTANTS.TITLE_PROMPT_PULSE_MS,
                 yoyo: true,
                 repeat: -1,
@@ -970,6 +999,9 @@ export class UIManager {
         }
         this.applyFontSize(this.titleSubtitle, metrics.fonts.subtitle);
         this.applyFontSize(this.titlePrompt, metrics.fonts.prompt);
+        if (this.titlePrompt?.setWordWrapWidth) {
+            this.titlePrompt.setWordWrapWidth(maxTitleWidth, true);
+        }
         if (this.titleDim) {
             if (typeof this.titleDim.setSize === 'function') {
                 this.titleDim.setSize(width, height);

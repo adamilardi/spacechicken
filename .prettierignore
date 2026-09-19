@@ -2,5 +2,6 @@ node_modules/
 archive/
 dist/
 build/
+.bot-runs/
 *.min.js
 package-lock.json

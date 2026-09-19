@@ -203,9 +203,70 @@ async function launchBrowser() {
     return chromium.launch(options);
 }
 
+function applyChaos(page, scenario, started) {
+    if (scenario.chaos === 'gap') {
+        return page.evaluate(() => {
+            if (window.__spaceChickenDebug && window.__spaceChickenDebug.setBotInput) {
+                window.__spaceChickenDebug.setBotInput({
+                    right: true,
+                    left: false,
+                    jump: false,
+                    start: true,
+                });
+            }
+        });
+    }
+    if (scenario.chaos === 'random' && Math.random() < 0.08) {
+        return page.evaluate(() => {
+            window.__spaceChickenDebug.setBotInput({
+                right: Math.random() > 0.35,
+                left: Math.random() > 0.8,
+                jump: Math.random() > 0.45,
+                start: true,
+            });
+        });
+    }
+    if (scenario.chaos === 'resize' && Date.now() - started > 4000) {
+        scenario.chaos = null;
+        return page.setViewportSize({ width: 390, height: 844 });
+    }
+    return Promise.resolve();
+}
+
+function scenarioResult(name, scenario, result, shot) {
+    const unique = [...new Set(result.bugs.map((bug) => bug.kind))];
+    const finished = result.outcome === 'win' || result.outcome === 'advance';
+    if (scenario.requireWin && !finished) {
+        result.bugs.push({
+            kind: 'did_not_finish',
+            detail: {
+                outcome: result.outcome || null,
+                x: result.snap && result.snap.player && Math.round(result.snap.player.x),
+                y: result.snap && result.snap.player && Math.round(result.snap.player.y),
+                deaths: result.snap && result.snap.deaths,
+            },
+        });
+        unique.push('did_not_finish');
+    }
+    return {
+        name,
+        description: scenario.description,
+        ok: unique.length === 0,
+        bugs: result.bugs,
+        kinds: unique,
+        outcome: result.outcome,
+        level: result.snap && result.snap.level,
+        deaths: result.snap && result.snap.deaths,
+        x: result.snap && result.snap.player && Math.round(result.snap.player.x),
+        y: result.snap && result.snap.player && Math.round(result.snap.player.y),
+        screenshot: shot,
+    };
+}
+
 async function runScenario(browser, name, scenario) {
     const url = new URL(BASE);
     url.searchParams.set('bot', String(Date.now()));
+    url.searchParams.set('debug', '1');
     url.searchParams.set('playtest', name);
     url.searchParams.set('level', String(scenario.level));
     const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
@@ -239,34 +300,9 @@ async function runScenario(browser, name, scenario) {
 
     const started = Date.now();
     while (Date.now() - started < scenario.durationMs) {
-        if (scenario.chaos === 'gap') {
-            await page.evaluate(() => {
-                if (window.__spaceChickenDebug && window.__spaceChickenDebug.setBotInput) {
-                    window.__spaceChickenDebug.setBotInput({
-                        right: true,
-                        left: false,
-                        jump: false,
-                        start: true,
-                    });
-                }
-            });
-        } else if (scenario.chaos === 'random' && Math.random() < 0.08) {
-            await page.evaluate(() => {
-                window.__spaceChickenDebug.setBotInput({
-                    right: Math.random() > 0.35,
-                    left: Math.random() > 0.8,
-                    jump: Math.random() > 0.45,
-                    start: true,
-                });
-            });
-        } else if (scenario.chaos === 'resize' && Date.now() - started > 4000) {
-            await page.setViewportSize({ width: 390, height: 844 });
-            scenario.chaos = null;
-        }
+        await applyChaos(page, scenario, started);
         const status = await page.evaluate(() => ({
             outcome: window.__spaceChickenPilotOutcome,
-            snap: window.__spaceChickenPilotLastSnap,
-            bugs: window.__spaceChickenWatchdogBugs || [],
         }));
         if (status.outcome === 'win' || status.outcome === 'advance') {
             break;
@@ -287,21 +323,7 @@ async function runScenario(browser, name, scenario) {
     fs.mkdirSync(OUT_DIR, { recursive: true });
     await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
     await context.close();
-
-    const unique = [...new Set(result.bugs.map((bug) => bug.kind))];
-    return {
-        name,
-        description: scenario.description,
-        ok: unique.length === 0,
-        bugs: result.bugs,
-        kinds: unique,
-        outcome: result.outcome,
-        level: result.snap && result.snap.level,
-        deaths: result.snap && result.snap.deaths,
-        x: result.snap && result.snap.player && Math.round(result.snap.player.x),
-        y: result.snap && result.snap.player && Math.round(result.snap.player.y),
-        screenshot: shot,
-    };
+    return scenarioResult(name, scenario, result, shot);
 }
 
 async function main() {

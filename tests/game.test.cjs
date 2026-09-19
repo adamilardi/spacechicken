@@ -145,7 +145,7 @@ test('level configuration exposes every playable level', async () => {
     assert.equal(new LevelConfig(1).title, 'Dawn Run');
     assert.equal(new LevelConfig(2).title, 'Arcade Orbit');
     assert.equal(new LevelConfig(3).title, 'Orbital Gauntlet');
-    assert.equal(new LevelConfig(4).title, 'Lunar Gauntlet');
+    assert.equal(new LevelConfig(4).title, 'Moonfall Citadel');
     const levelThree = new LevelConfig(3);
     assert.equal(levelThree.platforms, levelThree.platforms);
     assert.equal(levelThree.background.type, 'station');
@@ -1141,6 +1141,80 @@ test('touch arrow buttons move the chicken and do not steal the jump pointer', a
     assert.equal(scene.rightPressed, false);
 });
 
+test('standard gamepad maps stick, d-pad, and jump edges', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const pad = {
+        connected: true,
+        axes: [0.8],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false })),
+    };
+    const previousNavigator = global.navigator;
+    Object.defineProperty(global, 'navigator', {
+        configurable: true,
+        value: { getGamepads: () => [pad] },
+    });
+    const scene = {
+        space: {},
+        cursors: { up: {} },
+        wasd: { W: {} },
+        jumpPointerId: null,
+        pointerTapTimes: new Map(),
+        leftPressed: false,
+        rightPressed: false,
+        getViewportWidth: () => 800,
+        input: { pointers: [] },
+        uiManager: null,
+    };
+    try {
+        const controller = new InputController(scene);
+        pad.buttons[0].pressed = true;
+        const first = controller.poll();
+        assert.equal(scene.rightPressed, true);
+        assert.equal(first.gamepadJumpJustPressed, true);
+        const held = controller.poll();
+        assert.equal(held.gamepadJumpJustPressed, false);
+        pad.axes[0] = 0;
+        pad.buttons[0].pressed = false;
+        pad.buttons[14].pressed = true;
+        controller.poll();
+        assert.equal(scene.leftPressed, true);
+        assert.equal(scene.rightPressed, false);
+    } finally {
+        Object.defineProperty(global, 'navigator', {
+            configurable: true,
+            value: previousNavigator,
+        });
+    }
+});
+
+test('Phaser manager retains movement while a second finger jumps', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const move = { id: 1, isDown: true, x: 120, y: 520 };
+    const jump = { id: 2, isDown: true, x: 320, y: 520 };
+    const scene = {
+        space: {},
+        cursors: { up: {} },
+        wasd: { W: {} },
+        jumpPointerId: 2,
+        pointerTapTimes: new Map(),
+        getViewportWidth: () => 390,
+        input: { manager: { pointers: [move, jump] }, activePointer: jump },
+        uiManager: {
+            touchControlsEnabled: true,
+            rightButton: { getBounds: () => ({ x: 100, y: 480, width: 80, height: 80 }) },
+            jumpButton: { getBounds: () => ({ x: 280, y: 480, width: 80, height: 80 }) },
+        },
+    };
+    const controller = new InputController(scene);
+    controller.poll();
+    assert.equal(scene.rightPressed, true);
+    assert.equal(scene.jumpPointerId, 2);
+    assert.equal(controller.getActivePointers().length, 2);
+    move.isDown = false;
+    controller.poll();
+    assert.equal(scene.rightPressed, false);
+});
+
 test('touch controls sit in the bottom corners on a phone-sized viewport', async () => {
     const { UIManager } = await importModule('UIManager.js');
     const { Viewport } = await importModule('Viewport.js');
@@ -1275,8 +1349,56 @@ test('touch instructions describe the on-screen arrow controls', async () => {
 });
 
 test('the play-bot exports an in-page pilot installer', async () => {
-    const { installInPagePilot } = await importModule('scripts/play-bot.mjs');
+    const { installInPagePilot, outcomeFromSnapshot } = await importModule('scripts/play-bot.mjs');
     assert.equal(typeof installInPagePilot, 'function');
+    assert.equal(outcomeFromSnapshot({ gameOver: true }), 'win');
+    assert.equal(outcomeFromSnapshot({ pendingLevel: 2 }, null), 'advance');
+    assert.equal(outcomeFromSnapshot({ pendingLevel: 2 }, 1), 'win');
+    assert.equal(
+        outcomeFromSnapshot({ dying: true, transitioning: true, nextLevel: 2, gameOver: false }),
+        null
+    );
+    const source = installInPagePilot.toString();
+    assert.match(source, /pendingLevel/);
+    assert.doesNotMatch(
+        source,
+        /snap\.transitioning && snap\.nextLevel && snap\.nextLevel !== snap\.level/
+    );
+});
+
+test('bot snapshot distinguishes death from collecting the crown', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.init({ level: 1 });
+    scene.player = {
+        x: 400,
+        y: 400,
+        alpha: 1,
+        visible: true,
+        scaleX: 1,
+        scaleY: 1,
+        body: {
+            enable: true,
+            velocity: { x: 0, y: 0 },
+            blocked: { down: true },
+            touching: { down: false },
+        },
+    };
+    scene.levelConfig = { nextLevel: 2 };
+    scene.isTransitioning = true;
+    scene.gameOver = false;
+    scene.pendingSceneData = null;
+    scene.activeWarningGraphics = [{ rayX: 550 }];
+
+    let snap = scene.getBotSnapshot();
+    assert.equal(snap.dying, true);
+    assert.equal(snap.pendingLevel, null);
+    assert.deepEqual(snap.columns, [{ x: 550, w: 36, warning: true }]);
+
+    scene.pendingSceneData = { level: 2, deathCount: 0 };
+    snap = scene.getBotSnapshot();
+    assert.equal(snap.dying, false);
+    assert.equal(snap.pendingLevel, 2);
 });
 
 test('the game page opts into a mobile visual viewport', () => {

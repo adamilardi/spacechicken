@@ -110,6 +110,7 @@ export class WorldBuilder {
             return;
         }
         graphic.clear();
+        graphic.rayX = null;
         if (graphic.setVisible) {
             graphic.setVisible(false);
         }
@@ -493,6 +494,7 @@ export class WorldBuilder {
 
         const spawnRay = () => {
             const warning = this.acquireWarningGraphics();
+            warning.rayX = config.x;
             warning.setDepth(25);
             if (this.activeWarningGraphics) {
                 this.activeWarningGraphics.push(warning);

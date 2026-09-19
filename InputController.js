@@ -10,6 +10,9 @@ export class InputController {
             doubleTapJumpTriggered: false,
             pointerJumpTriggered: false,
             pointerStartTriggered: false,
+            gamepadJumpJustPressed: false,
+            gamepadStartJustPressed: false,
+            coopMode: null,
         };
         this.pointerBuffer = [];
         this.seenPointers = new Set();
@@ -44,12 +47,24 @@ export class InputController {
         state.doubleTapJumpTriggered = false;
         state.pointerJumpTriggered = false;
         state.pointerStartTriggered = false;
+        state.gamepadJumpJustPressed = false;
+        state.gamepadStartJustPressed = false;
+        state.coopMode = null;
+        if (scene.coopKeys) {
+            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboard))
+                state.coopMode = 'keyboard';
+            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboardController))
+                state.coopMode = 'keyboard-controller';
+            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.controllers))
+                state.coopMode = 'controllers';
+        }
 
         const activePointers = this.getActivePointers();
         this.syncJumpPointer(activePointers);
 
         scene.leftPressed = false;
         scene.rightPressed = false;
+        this.pollGamepad(state);
 
         const ui = scene.uiManager;
         const controls = this.controls;
@@ -78,6 +93,56 @@ export class InputController {
         state.pointerStartTriggered = this.detectTitleStart(activePointers, controls);
 
         return state;
+    }
+
+    // eslint-disable-next-line complexity
+    pollGamepad(state) {
+        const scene = this.scene;
+        const pads =
+            typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function'
+                ? navigator.getGamepads()
+                : [];
+        let pad = null;
+        for (let i = 0; i < pads.length; i++) {
+            if (pads[i] && pads[i].connected !== false) {
+                pad = pads[i];
+                break;
+            }
+        }
+        if (!pad) {
+            this.previousGamepadButtons = null;
+            return;
+        }
+        const buttonDown = (index) => Boolean(pad.buttons?.[index]?.pressed);
+        const previous = this.previousGamepadButtons || [];
+        const jump = buttonDown(0) || buttonDown(1) || buttonDown(12);
+        const start = buttonDown(9) || buttonDown(16);
+        state.gamepadJumpJustPressed = jump && !previous.jump;
+        state.gamepadStartJustPressed = start && !previous.start;
+        const axis = (value) => (Math.abs(value || 0) >= 0.22 ? value : 0);
+        const horizontal =
+            axis(pad.axes?.[0]) || (buttonDown(15) ? 1 : 0) || (buttonDown(14) ? -1 : 0);
+        if (scene.coopMode !== 'keyboard-controller' && scene.coopMode !== 'keyboard') {
+            scene.leftPressed ||= horizontal < 0;
+            scene.rightPressed ||= horizontal > 0;
+        }
+        this.previousGamepadButtons = { jump, start };
+        const second = this.getGamepad(scene.coopMode === 'keyboard-controller' ? 0 : 1);
+        const secondJump = Boolean(
+            second?.buttons?.[0]?.pressed ||
+            second?.buttons?.[1]?.pressed ||
+            second?.buttons?.[12]?.pressed
+        );
+        this.gamepadJumpEdges = [jump && !previous.jump, secondJump && !previous.secondJump];
+        this.previousGamepadButtons.secondJump = secondJump;
+    }
+
+    getGamepad(index = 0) {
+        if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function')
+            return null;
+        const pads = navigator.getGamepads();
+        const pad = pads?.[index];
+        return pad && pad.connected !== false ? pad : null;
     }
 
     syncJumpPointer(activePointers) {
@@ -140,9 +205,10 @@ export class InputController {
         if (!input) {
             return pointers;
         }
-        if (Array.isArray(input.pointers)) {
-            for (let i = 0; i < input.pointers.length; i++) {
-                this.pushUniquePointer(input.pointers[i], pointers);
+        const managedPointers = input.manager?.pointers || input.pointers;
+        if (Array.isArray(managedPointers)) {
+            for (let i = 0; i < managedPointers.length; i++) {
+                this.pushUniquePointer(managedPointers[i], pointers);
             }
         }
         if (input.activePointer) {
@@ -183,11 +249,29 @@ export class InputController {
         targets.y = y;
         targets.hasCoordinates = hasCoordinates;
         targets.jump =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.jumpButton, pad);
+            hasCoordinates &&
+            this.isPointerOverGameObject(
+                x,
+                y,
+                controls.jumpButton,
+                controls.jumpButton?.touchHitPadding ?? pad
+            );
         targets.left =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.leftButton, pad);
+            hasCoordinates &&
+            this.isPointerOverGameObject(
+                x,
+                y,
+                controls.leftButton,
+                controls.leftButton?.touchHitPadding ?? pad
+            );
         targets.right =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.rightButton, pad);
+            hasCoordinates &&
+            this.isPointerOverGameObject(
+                x,
+                y,
+                controls.rightButton,
+                controls.rightButton?.touchHitPadding ?? pad
+            );
         targets.music = hasCoordinates && this.isPointerOverGameObject(x, y, controls.musicButton);
         targets.leaderboard =
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.leaderboardButton);

@@ -19,9 +19,8 @@ export class SpriteFactory {
             return;
         }
 
-        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend) {
+        function drawChicken(ctx, wingAngle, legLeftX, legRightX, legBend, blink = false) {
             ctx.imageSmoothingEnabled = false;
-
             ctx.fillStyle = '#ffeb3b';
             ctx.beginPath();
             ctx.ellipse(16, 23, 9, 7, 0, 0, Math.PI * 2);
@@ -74,31 +73,47 @@ export class SpriteFactory {
             ctx.beginPath();
             ctx.arc(19.3, 13.4, 0.5, 0, Math.PI * 2);
             ctx.fill();
+            if (blink) {
+                ctx.fillStyle = '#ffeb3b';
+                ctx.beginPath();
+                ctx.arc(18.5, 13.5, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#f9a825';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(17, 14);
+                ctx.quadraticCurveTo(18.5, 15, 20.5, 14);
+                ctx.stroke();
+            }
 
-            ctx.strokeStyle = '#ff9800';
-            ctx.lineWidth = 2.5;
+            // Short, tapered legs stay inside the 32px frame and read clearly at game scale.
+            ctx.strokeStyle = '#d87918';
+            ctx.lineWidth = 1.8;
             ctx.lineCap = 'round';
             ctx.beginPath();
             if (legBend) {
-                ctx.moveTo(11, 28);
-                ctx.quadraticCurveTo(9, 32, 8, 35);
-                ctx.moveTo(21, 28);
-                ctx.quadraticCurveTo(23, 32, 24, 35);
+                ctx.moveTo(12, 27);
+                ctx.quadraticCurveTo(10, 29, 10, 30.5);
+                ctx.moveTo(20, 27);
+                ctx.quadraticCurveTo(22, 29, 22, 30.5);
             } else {
-                ctx.moveTo(11, 28);
-                ctx.lineTo(legLeftX, 34);
-                ctx.moveTo(21, 28);
-                ctx.lineTo(legRightX, 34);
+                ctx.moveTo(12, 27);
+                ctx.lineTo(Math.max(9, Math.min(15, legLeftX)), 30.5);
+                ctx.moveTo(20, 27);
+                ctx.lineTo(Math.max(17, Math.min(23, legRightX)), 30.5);
             }
             ctx.stroke();
 
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#f6a52b';
+            ctx.lineWidth = 1.4;
             ctx.beginPath();
             if (!legBend) {
-                ctx.moveTo(legLeftX - 1, 34);
-                ctx.lineTo(legLeftX + 3, 34);
-                ctx.moveTo(legRightX - 3, 34);
-                ctx.lineTo(legRightX + 1, 34);
+                const leftFoot = Math.max(9, Math.min(15, legLeftX));
+                const rightFoot = Math.max(17, Math.min(23, legRightX));
+                ctx.moveTo(leftFoot - 1.5, 30.5);
+                ctx.lineTo(leftFoot + 2, 30.5);
+                ctx.moveTo(rightFoot - 2, 30.5);
+                ctx.lineTo(rightFoot + 1.5, 30.5);
             }
             ctx.stroke();
 
@@ -135,6 +150,12 @@ export class SpriteFactory {
                 drawChicken(ctx, wing, left, right, false);
             });
         });
+        this.addCanvasTexture('chicken_idle', 32, 32, (ctx) => {
+            drawChicken(ctx, 0, 11, 21, false);
+        });
+        this.addCanvasTexture('chicken_blink', 32, 32, (ctx) => {
+            drawChicken(ctx, 0, 11, 21, false, true);
+        });
         this.addCanvasTexture('chicken_jump', 32, 32, (ctx) => {
             drawChicken(ctx, 0, 0, 0, true);
         });
@@ -149,22 +170,28 @@ export class SpriteFactory {
     }
 
     drawJetpack(ctx, frame) {
-        ctx.fillStyle = '#555555';
+        ctx.fillStyle = '#24394e';
         ctx.fillRect(8, 16, 4, 10);
         ctx.fillRect(20, 16, 4, 10);
-        ctx.fillStyle = '#999999';
+        const casing = ctx.createLinearGradient(12, 16, 20, 24);
+        casing.addColorStop(0, '#cee9ee');
+        casing.addColorStop(0.45, '#7299ac');
+        casing.addColorStop(1, '#344d68');
+        ctx.fillStyle = casing;
         ctx.fillRect(12, 16, 8, 8);
+        ctx.fillStyle = '#81f4ff';
+        ctx.fillRect(14, 18, 4, 2);
         ctx.fillStyle = '#ffcc00';
         if (frame === 1) {
             ctx.beginPath();
             ctx.moveTo(10, 26);
-            ctx.lineTo(12, 32);
+            ctx.lineTo(12, 30);
             ctx.lineTo(14, 26);
             ctx.closePath();
             ctx.fill();
             ctx.beginPath();
             ctx.moveTo(18, 26);
-            ctx.lineTo(20, 32);
+            ctx.lineTo(20, 30);
             ctx.lineTo(22, 26);
             ctx.closePath();
             ctx.fill();
@@ -184,13 +211,13 @@ export class SpriteFactory {
         } else {
             ctx.beginPath();
             ctx.moveTo(10, 26);
-            ctx.lineTo(12, 34);
+            ctx.lineTo(12, 31);
             ctx.lineTo(14, 26);
             ctx.closePath();
             ctx.fill();
             ctx.beginPath();
             ctx.moveTo(18, 26);
-            ctx.lineTo(20, 34);
+            ctx.lineTo(20, 31);
             ctx.lineTo(22, 26);
             ctx.closePath();
             ctx.fill();
@@ -318,12 +345,17 @@ export class SpriteFactory {
             cliffCanvas.width = 64;
             cliffCanvas.height = 64;
             const ctx = cliffCanvas.getContext('2d');
-            ctx.fillStyle = '#555555';
+            const metal = ctx.createLinearGradient(0, 0, 0, 64);
+            metal.addColorStop(0, '#94b8ce');
+            metal.addColorStop(0.12, '#49627c');
+            metal.addColorStop(0.4, '#293b54');
+            metal.addColorStop(1, '#101b30');
+            ctx.fillStyle = metal;
             ctx.fillRect(0, 0, 64, 64);
-            ctx.strokeStyle = '#aaaaaa';
+            ctx.strokeStyle = '#67879d';
             ctx.lineWidth = 2;
             ctx.strokeRect(1, 1, 62, 62);
-            ctx.strokeStyle = '#333333';
+            ctx.strokeStyle = '#142238';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(16, 0);
@@ -333,6 +365,30 @@ export class SpriteFactory {
             ctx.moveTo(48, 0);
             ctx.lineTo(48, 64);
             ctx.stroke();
+            ctx.fillStyle = '#bed8e5';
+            ctx.fillRect(1, 1, 62, 2);
+            ctx.fillStyle = '#69e5f4';
+            ctx.fillRect(5, 5, 54, 2);
+            ctx.fillStyle = '#0e1a2c';
+            ctx.fillRect(5, 13, 54, 38);
+            ctx.strokeStyle = '#415c76';
+            ctx.strokeRect(5.5, 13.5, 53, 37);
+            ctx.beginPath();
+            ctx.moveTo(9, 17);
+            ctx.lineTo(55, 47);
+            ctx.moveTo(55, 17);
+            ctx.lineTo(9, 47);
+            ctx.stroke();
+            ctx.fillStyle = '#304760';
+            ctx.fillRect(24, 25, 16, 14);
+            ctx.fillStyle = '#f6c16a';
+            ctx.fillRect(28, 30, 8, 3);
+            for (const x of [3, 61]) {
+                for (const y of [10, 55]) {
+                    ctx.fillStyle = '#a5bccb';
+                    ctx.fillRect(x - 1, y, 2, 2);
+                }
+            }
             this.scene.textures.addCanvas('cliff', cliffCanvas);
         }
     }
@@ -343,9 +399,11 @@ export class SpriteFactory {
             rockCanvas.width = 32;
             rockCanvas.height = 32;
             const ctx = rockCanvas.getContext('2d');
-            ctx.fillStyle = '#404040';
-            ctx.fillRect(0, 0, 32, 32);
-            ctx.fillStyle = '#808080';
+            const stone = ctx.createLinearGradient(5, 2, 27, 30);
+            stone.addColorStop(0, '#9cb1c7');
+            stone.addColorStop(0.5, '#526880');
+            stone.addColorStop(1, '#26374f');
+            ctx.fillStyle = stone;
             ctx.beginPath();
             ctx.moveTo(8, 2);
             ctx.lineTo(12, 4);
@@ -366,15 +424,18 @@ export class SpriteFactory {
             ctx.lineTo(6, 6);
             ctx.closePath();
             ctx.fill();
-            ctx.fillStyle = '#cccccc';
+            ctx.strokeStyle = '#1b293f';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#c6d4e0';
             ctx.beginPath();
             ctx.arc(10, 8, 3, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#444444';
+            ctx.fillStyle = '#283c55';
             ctx.beginPath();
             ctx.arc(20, 24, 4, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#666666';
+            ctx.fillStyle = '#445970';
             ctx.beginPath();
             ctx.arc(6, 20, 2, 0, Math.PI * 2);
             ctx.fill();
@@ -391,14 +452,49 @@ export class SpriteFactory {
             bombCanvas.width = 32;
             bombCanvas.height = 32;
             const ctx = bombCanvas.getContext('2d');
-            ctx.fillStyle = '#ff0000';
+            const shell = ctx.createRadialGradient(10, 8, 1, 16, 16, 16);
+            shell.addColorStop(0, '#ffb39e');
+            shell.addColorStop(0.35, '#ef5d5b');
+            shell.addColorStop(0.7, '#ad2746');
+            shell.addColorStop(1, '#401e3a');
+            ctx.fillStyle = shell;
             ctx.beginPath();
-            ctx.arc(16, 16, 16, 0, Math.PI * 2);
+            ctx.arc(16, 16, 15, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#000';
+            ctx.strokeStyle = '#ff8e82';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.strokeStyle = '#61223d';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(16, 16, 11, 0.2, Math.PI * 1.2);
+            ctx.stroke();
+            ctx.fillStyle = '#281e35';
             ctx.beginPath();
             ctx.arc(16, 16, 8, 0, Math.PI * 2);
             ctx.fill();
+            ctx.strokeStyle = '#ffc298';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = '#ffcc73';
+            ctx.beginPath();
+            ctx.moveTo(16, 10);
+            ctx.lineTo(22, 20);
+            ctx.lineTo(10, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#6b2637';
+            ctx.fillRect(15, 13, 2, 4);
+            ctx.fillRect(15, 18, 2, 1);
+            ctx.fillStyle = '#fff0c9';
+            for (const [x, y] of [
+                [16, 3],
+                [3, 16],
+                [29, 16],
+                [16, 29],
+            ]) {
+                ctx.fillRect(x - 1, y - 1, 2, 2);
+            }
             this.scene.textures.addCanvas('bomb', bombCanvas);
         }
     }
@@ -409,17 +505,25 @@ export class SpriteFactory {
             stationPanelCanvas.width = 96;
             stationPanelCanvas.height = 24;
             const ctx = stationPanelCanvas.getContext('2d');
-            ctx.fillStyle = '#2a2f3b';
+            const metal = ctx.createLinearGradient(0, 0, 0, 24);
+            metal.addColorStop(0, '#99becd');
+            metal.addColorStop(0.25, '#435c77');
+            metal.addColorStop(1, '#152238');
+            ctx.fillStyle = metal;
             ctx.fillRect(0, 0, 96, 24);
-            ctx.fillStyle = '#3c455a';
-            ctx.fillRect(0, 0, 96, 6);
-            ctx.fillRect(0, 18, 96, 6);
-            ctx.strokeStyle = '#55617d';
+            ctx.fillStyle = '#aeeaf0';
+            ctx.fillRect(2, 1, 92, 2);
+            ctx.fillStyle = '#0e1a2b';
+            ctx.fillRect(4, 8, 88, 10);
+            ctx.strokeStyle = '#6c889f';
             ctx.lineWidth = 2;
             ctx.strokeRect(1, 1, 94, 22);
             ctx.fillStyle = '#6ad1ff';
             for (let i = 8; i < 96; i += 20) {
-                ctx.fillRect(i, 10, 8, 4);
+                ctx.fillStyle = '#286880';
+                ctx.fillRect(i - 1, 10, 10, 6);
+                ctx.fillStyle = '#83efff';
+                ctx.fillRect(i, 11, 8, 2);
             }
             this.scene.textures.addCanvas('stationPanel', stationPanelCanvas);
         }
@@ -431,14 +535,26 @@ export class SpriteFactory {
             liftCanvas.width = 96;
             liftCanvas.height = 24;
             const ctx = liftCanvas.getContext('2d');
-            ctx.fillStyle = '#1f2a38';
+            const metal = ctx.createLinearGradient(0, 0, 0, 24);
+            metal.addColorStop(0, '#b6bbab');
+            metal.addColorStop(0.3, '#4f6073');
+            metal.addColorStop(1, '#18243b');
+            ctx.fillStyle = metal;
             ctx.fillRect(0, 0, 96, 24);
+            ctx.fillStyle = '#0d1a2e';
+            ctx.fillRect(4, 8, 88, 8);
             ctx.fillStyle = '#ffaa00';
             for (let i = 0; i < 96; i += 12) {
                 ctx.fillRect(i, 18, 8, 4);
             }
-            ctx.fillStyle = '#55617d';
-            ctx.fillRect(0, 0, 96, 6);
+            ctx.fillStyle = '#ffe0a1';
+            ctx.fillRect(1, 1, 94, 2);
+            ctx.fillStyle = '#92d6e1';
+            for (const x of [8, 84]) {
+                ctx.fillRect(x, 10, 4, 3);
+            }
+            ctx.strokeStyle = '#536b7f';
+            ctx.strokeRect(0.5, 0.5, 95, 23);
             this.scene.textures.addCanvas('liftPlatform', liftCanvas);
         }
     }
@@ -616,6 +732,17 @@ export class SpriteFactory {
         ctx.fill();
         ctx.strokeStyle = strokeStyle;
         ctx.lineWidth = Math.max(3, size * 0.045);
+        ctx.stroke();
+        const sheen = ctx.createLinearGradient(0, size * 0.08, 0, size * 0.92);
+        sheen.addColorStop(0, 'rgba(175, 222, 255, 0.22)');
+        sheen.addColorStop(0.5, 'rgba(175, 222, 255, 0)');
+        sheen.addColorStop(1, 'rgba(0, 6, 28, 0.24)');
+        ctx.fillStyle = sheen;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(225, 246, 255, 0.16)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(size * 0.5, size * 0.5, radius - size * 0.07, 0, Math.PI * 2);
         ctx.stroke();
     }
 

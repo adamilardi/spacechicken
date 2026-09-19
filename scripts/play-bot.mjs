@@ -29,7 +29,21 @@ const CACHED_CHROME =
 const SCREENSHOT_DIR = process.env.BOT_SCREENSHOT_DIR || path.join(__dirname, '..', '.bot-runs');
 const RECORD_VIDEO = process.env.RECORD_VIDEO === '1';
 
+export function outcomeFromSnapshot(snap, lockedLevel) {
+    if (!snap) {
+        return null;
+    }
+    if (snap.gameOver) {
+        return 'win';
+    }
+    if (snap.pendingLevel != null) {
+        return lockedLevel != null ? 'win' : 'advance';
+    }
+    return null;
+}
+
 /** In-page heuristic pilot. Serialized into the browser; no Node closures. */
+// eslint-disable-next-line max-lines-per-function
 export function installInPagePilot() {
     if (window.__spaceChickenPilotInstalled) {
         return true;
@@ -39,13 +53,51 @@ export function installInPagePilot() {
         for (let i = 0; i < platforms.length; i++) {
             const plat = platforms[i];
             if (x >= plat.left && x <= plat.right && y <= plat.top + 55 && y >= plat.top - 100) {
+                return plat;
+            }
+        }
+        return null;
+    }
+
+    function lockedLevel() {
+        try {
+            const locked = Number(new URLSearchParams(location.search || '').get('level'));
+            return Number.isFinite(locked) && locked > 0 ? locked : null;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function yOverlaps(py, item, pad) {
+        const height = item.h || 0;
+        const top = item.top != null ? item.top : item.y - height / 2;
+        return py + 22 > top - pad && py - 22 < top + height + pad;
+    }
+
+    function columnAhead(px, py, dir, snap) {
+        const reach = 82;
+        const columns = snap.columns || [];
+        for (let i = 0; i < columns.length; i++) {
+            const dx = columns[i].x - px;
+            if (dx * dir > 6 && dx * dir < reach) {
+                return true;
+            }
+        }
+        const hazards = snap.hazards || [];
+        for (let i = 0; i < hazards.length; i++) {
+            const item = hazards[i];
+            if (!item.active || item.enable === false || (item.h || 0) < 160) {
+                continue;
+            }
+            const dx = item.x - px;
+            if (dx * dir > 6 && dx * dir < reach && yOverlaps(py, item, 8)) {
                 return true;
             }
         }
         return false;
     }
 
-    function threatAhead(px, py, dir, hazards, bombs) {
+    function hazardInPath(px, py, dir, hazards, bombs, reach) {
         const items = hazards.concat(bombs);
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
@@ -53,16 +105,48 @@ export function installInPagePilot() {
                 continue;
             }
             const dx = item.x - px;
-            if (dx * dir < -12) {
+            if (dx * dir <= 8 || dx * dir >= reach) {
                 continue;
             }
-            if (Math.abs(dx) < 58 && Math.abs(item.y - py) < 72) {
-                return true;
+            if (yOverlaps(py, item, 18)) {
+                return item;
             }
         }
-        return false;
+        return null;
     }
 
+    function isHopable(item) {
+        return (item.w || 0) < 80 && (item.h || 0) < 60;
+    }
+
+    function nextPlatform(px, py, dir, platforms) {
+        let bestHigh = null;
+        let bestHighDist = Infinity;
+        let best = null;
+        let bestDist = Infinity;
+        for (let i = 0; i < platforms.length; i++) {
+            const plat = platforms[i];
+            const edge = dir > 0 ? plat.left : plat.right;
+            const dist = (edge - px) * dir;
+            if (dist < 8 || dist > 260) {
+                continue;
+            }
+            if (dist < bestDist) {
+                best = plat;
+                bestDist = dist;
+            }
+            if ((plat.w || 0) > 400) {
+                continue;
+            }
+            if (plat.top < py - 20 && dist < bestHighDist) {
+                bestHigh = plat;
+                bestHighDist = dist;
+            }
+        }
+        return bestHigh || best;
+    }
+
+    // eslint-disable-next-line complexity
     function decide(snap) {
         const input = { left: false, right: false, jump: false, start: false };
         if (!snap || !snap.ready || !snap.player) {
@@ -73,27 +157,60 @@ export function installInPagePilot() {
             input.jump = true;
             return input;
         }
-        if (snap.transitioning || snap.gameOver) {
+        if (snap.gameOver || snap.pendingLevel != null || snap.dying) {
             return input;
         }
         const player = snap.player;
+        const platforms = snap.platforms || [];
         const crown = snap.crown || { x: player.x + 200, y: player.y };
         const dx = crown.x - player.x;
         const dir = dx === 0 ? 1 : Math.sign(dx);
-        const ahead = player.x + dir * 70;
-        const hasSupport = supportAt(ahead, player.y + 6, snap.platforms || []);
-        const hazard = threatAhead(player.x, player.y, dir, snap.hazards || [], snap.bombs || []);
-        const needHeight = player.y > crown.y + 28;
+        if (columnAhead(player.x, player.y, dir, snap)) {
+            return input;
+        }
+        const blocker = hazardInPath(
+            player.x,
+            player.y,
+            dir,
+            snap.hazards || [],
+            snap.bombs || [],
+            70
+        );
+        if (blocker && !isHopable(blocker)) {
+            return input;
+        }
+        const under = supportAt(player.x, player.y + 6, platforms);
+        const ahead = supportAt(player.x + dir * 56, player.y + 6, platforms);
+        const landing = nextPlatform(player.x, player.y, dir, platforms);
+        if (under && landing && under.top - landing.top > 200 && player.grounded) {
+            if (player.x > under.x + 10) {
+                input.left = true;
+            } else if (player.x < under.x - 10) {
+                input.right = true;
+            }
+            return input;
+        }
         const falling = player.vy > 28;
-
+        if (blocker && isHopable(blocker)) {
+            const dist = Math.abs(blocker.x - player.x);
+            input.right = dx > 10 && (dist > 44 || !player.grounded);
+            input.left = dx < -10 && (dist > 44 || !player.grounded);
+            input.jump = player.grounded;
+            return input;
+        }
         input.right = dx > 10;
         input.left = dx < -10;
-        if (hazard && Math.abs(dx) > 40 && player.grounded) {
-            input.right = dir > 0 ? false : input.right;
-            input.left = dir < 0 ? false : input.left;
-        }
-        const shouldJump = !hasSupport || hazard || needHeight;
-        const canDouble = !player.grounded && falling && snap.jumpCount < snap.maxJumps;
+        const stepUp = Boolean(
+            landing &&
+            player.grounded &&
+            landing.top < player.y - 28 &&
+            landing.top > player.y - 230
+        );
+        const grabCrown = Math.abs(dx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
+        const gap = !ahead;
+        const shouldJump = gap || stepUp || grabCrown;
+        const canDouble =
+            !player.grounded && falling && grabCrown && snap.jumpCount < snap.maxJumps;
         input.jump = shouldJump && (player.grounded || canDouble);
         return input;
     }
@@ -109,29 +226,22 @@ export function installInPagePilot() {
             if (!snap || !snap.ready) {
                 return;
             }
+            let outcome = null;
             if (snap.gameOver) {
-                window.__spaceChickenPilotOutcome = 'win';
+                outcome = 'win';
+            } else if (snap.pendingLevel != null) {
+                outcome = lockedLevel() != null ? 'win' : 'advance';
+            }
+            if (outcome) {
+                window.__spaceChickenPilotOutcome = outcome;
                 debug.setBotInput({ left: false, right: false, jump: false, start: false });
                 return;
-            }
-            if (snap.transitioning && snap.nextLevel && snap.nextLevel !== snap.level) {
-                window.__spaceChickenPilotOutcome = processLevelLock() != null ? 'win' : 'advance';
             }
             const input = decide(snap);
             window.__spaceChickenPilotLastInput = input;
             debug.setBotInput(input);
         } catch (err) {
             window.__spaceChickenPilotError = String(err && err.message ? err.message : err);
-        }
-    }
-
-    function processLevelLock() {
-        try {
-            const query = new URLSearchParams(location.search || '');
-            const locked = Number(query.get('level'));
-            return Number.isFinite(locked) && locked > 0 ? locked : null;
-        } catch (err) {
-            return null;
         }
     }
 

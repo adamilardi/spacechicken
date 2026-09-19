@@ -234,7 +234,27 @@ export class BackgroundRenderer {
             40
         );
 
+        this.drawGlow(worldWidth * 0.3, worldHeight * 0.48, worldHeight * 0.52, 0x729fc8, 0.08, 8);
         this.renderStars(layout.stars || []);
+
+        // The final ascent passes beneath a huge blue world, giving the level a clear landmark.
+        const planetSize = Math.min(170, worldHeight * 0.2);
+        this.renderPlanet({
+            x: worldWidth * 0.82,
+            y: worldHeight * 0.16,
+            size: planetSize,
+            color: 0x2d6bb0,
+            shadowColor: 0x10183f,
+            highlightColor: 0x8bd8ff,
+            detailColor: 0x53a77f,
+            atmosphereColor: 0x9cecff,
+            glowColor: 0x59bfff,
+            alpha: 0.94,
+        });
+        this.drawGlow(worldWidth * 0.08, worldHeight * 0.18, 120, 0xffd38a, 0.14, 10);
+        this.graphics
+            .fillStyle(0xfff1bd, 0.95)
+            .fillCircle(worldWidth * 0.08, worldHeight * 0.18, 9);
 
         const surfaceY = worldHeight * 0.68;
         this.renderPolygon(
@@ -258,8 +278,12 @@ export class BackgroundRenderer {
         ];
 
         craters.forEach((crater) => {
-            this.drawGlow(crater.x, crater.y, crater.r, palette.crater, 0.85, 3);
-            this.drawGlow(crater.x + 8, crater.y + 6, crater.r * 0.6, palette.shadow, 0.6, 2);
+            this.graphics.fillStyle(palette.highlight, 0.28);
+            this.graphics.fillEllipse(crater.x, crater.y + 3, crater.r * 2.1, crater.r * 0.72);
+            this.graphics.fillStyle(palette.crater, 0.95);
+            this.graphics.fillEllipse(crater.x, crater.y, crater.r * 2, crater.r * 0.65);
+            this.graphics.fillStyle(palette.shadow, 0.5);
+            this.graphics.fillEllipse(crater.x + 5, crater.y - 3, crater.r * 1.65, crater.r * 0.42);
         });
 
         const ridgeY = surfaceY - 20;
@@ -310,7 +334,7 @@ export class BackgroundRenderer {
             0.06,
             5
         );
-        this.renderPolygons(layout.ribbons);
+        this.renderAtmosphericRibbons(layout.ribbons);
 
         (layout.nebulas || []).forEach((nebula) => {
             this.drawGlow(nebula.x, nebula.y, nebula.radius, nebula.color, nebula.alpha, 6);
@@ -327,6 +351,7 @@ export class BackgroundRenderer {
                 { x: worldWidth + 80, y: worldHeight },
             ];
             this.renderPolygon(farPoints, palette.silhouetteFar, 0.95);
+            this.renderRidgeLight(layout.farRidge, palette.haze, 0.22);
         }
 
         if (layout.nearRidge && layout.nearRidge.length) {
@@ -336,6 +361,7 @@ export class BackgroundRenderer {
                 { x: worldWidth + 80, y: worldHeight },
             ];
             this.renderPolygon(nearPoints, palette.silhouetteNear, 0.98);
+            this.renderRidgeLight(layout.nearRidge, palette.accent, 0.16);
         }
 
         (layout.towers || []).forEach((tower) => {
@@ -403,8 +429,6 @@ export class BackgroundRenderer {
                 .fillStyle(beacon.color, beacon.alpha)
                 .fillCircle(beacon.x, beacon.y, beacon.radius);
         });
-
-        this.renderScanlines(worldWidth, worldHeight, palette.haze, 0.05, 5, 1);
     }
 
     renderStationBackground(background, layout, worldWidth, worldHeight) {
@@ -440,7 +464,7 @@ export class BackgroundRenderer {
             0.05,
             4
         );
-        this.renderPolygons(layout.ribbons);
+        this.renderAtmosphericRibbons(layout.ribbons);
 
         (layout.nebulas || []).forEach((nebula) => {
             this.drawGlow(nebula.x, nebula.y, nebula.radius, nebula.color, nebula.alpha, 6);
@@ -575,7 +599,7 @@ export class BackgroundRenderer {
             worldWidth,
             worldHeight,
             palette.highlight,
-            valueOrDefault(background.scanlineAlpha, 0.04),
+            Math.min(valueOrDefault(background.scanlineAlpha, 0), 0.008),
             6,
             1
         );
@@ -590,7 +614,8 @@ export class BackgroundRenderer {
             return;
         }
 
-        const safeSteps = Math.max(1, steps);
+        // These strips are baked once; finer spacing avoids visible sky bands on tablets.
+        const safeSteps = Math.max(steps, Math.min(384, Math.ceil(height / 2)));
         const segments = colors.length - 1;
         for (let i = 0; i < safeSteps; i++) {
             const t = i / safeSteps;
@@ -608,6 +633,42 @@ export class BackgroundRenderer {
         (polygons || []).forEach((polygon) => {
             this.renderPolygon(polygon.points, polygon.fill, polygon.alpha, polygon.stroke);
         });
+    }
+
+    renderAtmosphericRibbons(ribbons) {
+        (ribbons || []).forEach((ribbon) => {
+            const points = ribbon.points;
+            if (!points || points.length < 4) return;
+            const leftY = (points[0].y + points[3].y) * 0.5;
+            const rightY = (points[1].y + points[2].y) * 0.5;
+            const thickness = Math.abs(points[3].y - points[0].y);
+            // Feathered clouds replace hard-edged bands, using the cached layout.
+            for (let i = 0; i < 12; i++) {
+                const t = i / 11;
+                const x = Phaser.Math.Linear(points[0].x, points[1].x, t);
+                const y =
+                    Phaser.Math.Linear(leftY, rightY, t) +
+                    Math.sin(t * Math.PI * 3) * thickness * 0.25;
+                this.drawGlow(
+                    x,
+                    y,
+                    thickness * (1.2 + Math.sin(t * Math.PI)),
+                    ribbon.fill,
+                    ribbon.alpha * 0.28,
+                    8
+                );
+            }
+        });
+    }
+
+    renderRidgeLight(points, color, alpha) {
+        this.graphics.lineStyle(2, color, alpha);
+        this.graphics.beginPath();
+        this.graphics.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            this.graphics.lineTo(points[i].x, points[i].y);
+        }
+        this.graphics.strokePath();
     }
 
     renderPolygon(points, fill, alpha = 1, stroke = null) {
@@ -645,7 +706,8 @@ export class BackgroundRenderer {
     renderStars(stars) {
         (stars || []).forEach((star) => {
             const alpha = valueOrDefault(star.alpha, 1);
-            const size = valueOrDefault(star.size, 1);
+            const size = valueOrDefault(star.size, 1) * 0.65;
+            if (star.flare) this.drawGlow(star.x, star.y, size * 5, star.color, alpha * 0.1, 6);
             this.graphics.fillStyle(star.color, alpha).fillCircle(star.x, star.y, size);
             if (star.flare) {
                 this.graphics.fillStyle(star.color, alpha * 0.7);
@@ -683,19 +745,41 @@ export class BackgroundRenderer {
         );
         this.graphics.fillCircle(planet.x + size * 0.16, planet.y + size * 0.05, size * 0.96);
         this.graphics.fillStyle(planet.color, alpha).fillCircle(planet.x, planet.y, size);
-        this.graphics.fillStyle(
-            valueOrDefault(planet.highlightColor, this.adjustColor(planet.color, 50)),
-            0.24 * alpha
-        );
-        this.graphics.fillCircle(planet.x - size * 0.3, planet.y - size * 0.28, size * 0.42);
+        const shadow = valueOrDefault(planet.shadowColor, this.adjustColor(planet.color, -70));
+        const highlight = valueOrDefault(planet.highlightColor, this.adjustColor(planet.color, 50));
+        // Each latitude stays within the sphere, with a curved day/night boundary.
+        for (let row = -size; row < size; row += 2) {
+            const halfWidth = Math.sqrt(Math.max(0, size * size - row * row));
+            const terminator = halfWidth * 0.08 + row * 0.12;
+            this.graphics.fillStyle(shadow, 0.65 * alpha);
+            this.graphics.fillRect(
+                planet.x + terminator,
+                planet.y + row,
+                Math.max(0, halfWidth - terminator),
+                2
+            );
+        }
+        for (let layer = 0; layer < 12; layer++) {
+            const t = layer / 12;
+            this.graphics.fillStyle(highlight, 0.025 * alpha);
+            this.graphics.fillCircle(
+                planet.x - size * 0.22,
+                planet.y - size * 0.2,
+                size * (0.68 - t * 0.42)
+            );
+        }
         this.graphics.fillStyle(
             valueOrDefault(planet.detailColor, this.adjustColor(planet.color, -28)),
             0.15 * alpha
         );
         this.graphics.fillCircle(planet.x - size * 0.08, planet.y + size * 0.14, size * 0.18);
         this.graphics.fillCircle(planet.x + size * 0.3, planet.y - size * 0.2, size * 0.12);
-        this.graphics.lineStyle(2, valueOrDefault(planet.atmosphereColor, glowColor), 0.5 * alpha);
-        this.graphics.strokeCircle(planet.x, planet.y, size + 4);
+        this.graphics.lineStyle(
+            1.5,
+            valueOrDefault(planet.atmosphereColor, glowColor),
+            0.35 * alpha
+        );
+        this.graphics.strokeCircle(planet.x, planet.y, size + 1);
     }
 
     renderPerspectiveGrid(grid, worldWidth, worldHeight) {
@@ -732,6 +816,7 @@ export class BackgroundRenderer {
     }
 
     renderScanlines(worldWidth, worldHeight, color, alpha, step = 6, thickness = 1) {
+        if (alpha <= 0) return;
         const safeStep = Math.max(2, step);
         for (let y = 0; y < worldHeight; y += safeStep) {
             const lineAlpha = Math.floor(y / safeStep) % 2 === 0 ? alpha : alpha * 0.55;
@@ -740,10 +825,13 @@ export class BackgroundRenderer {
     }
 
     drawGlow(x, y, radius, color, alpha = 0.15, rings = 5) {
-        const safeRings = Math.max(1, rings);
+        const originalRings = Math.max(12, rings * 2);
+        const safeRings = Math.min(64, Math.max(24, originalRings, Math.ceil(radius / 8)));
+        // Preserve the existing glow strength as the baked gradient gains finer steps.
+        const strength = (alpha * 4 * (1 - 1 / originalRings)) / (safeRings - 1);
         for (let i = safeRings; i >= 1; i--) {
             const ratio = i / safeRings;
-            this.graphics.fillStyle(color, alpha * ratio * ratio);
+            this.graphics.fillStyle(color, strength * (1 - ratio));
             this.graphics.fillCircle(x, y, Math.max(1, radius * ratio));
         }
     }

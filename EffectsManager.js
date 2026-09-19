@@ -56,10 +56,11 @@ export class EffectsManager {
             lifeMin: 220,
             lifeMax: 380,
             scale: 0.9,
-            endScale: 0.15,
+            endScale: 1.15,
             angleMin: Math.PI * 1.05,
             angleMax: Math.PI * 1.95,
-            gravity: 90,
+            velocityScaleX: 1.35,
+            velocityScaleY: 0.35,
             blend: false,
         });
     }
@@ -76,9 +77,11 @@ export class EffectsManager {
             lifeMin: 180,
             lifeMax: 300,
             scale: 0.7,
-            endScale: 0.1,
+            endScale: 0.95,
             angleMin: Math.PI * 1.1,
             angleMax: Math.PI * 1.9,
+            velocityScaleX: 1.15,
+            velocityScaleY: 0.45,
             blend: true,
         });
     }
@@ -91,10 +94,10 @@ export class EffectsManager {
             count: 2,
             texture: 'particleSoft',
             tint: [0xffee88, 0xff9933, 0xff5522],
-            speedMin: 24,
-            speedMax: 58,
-            lifeMin: 180,
-            lifeMax: 280,
+            speedMin: 40,
+            speedMax: 72,
+            lifeMin: 140,
+            lifeMax: 220,
             scale: 0.55,
             endScale: 0.05,
             angleMin: Math.PI * 0.35 + drift,
@@ -332,8 +335,11 @@ export class EffectsManager {
         sprite._fx = {
             startX: sprite.x,
             startY: sprite.y,
-            destX: sprite.x + Math.cos(angle) * speed * durationSec,
-            destY: sprite.y + Math.sin(angle) * speed * durationSec + gravity * durationSec,
+            destX: sprite.x + Math.cos(angle) * speed * durationSec * (options.velocityScaleX ?? 1),
+            destY:
+                sprite.y +
+                Math.sin(angle) * speed * durationSec * (options.velocityScaleY ?? 1) +
+                gravity * durationSec,
             life: 0,
             duration,
             startScale,
@@ -353,8 +359,10 @@ export class EffectsManager {
         if (sprite.setTint) {
             sprite.setTint(tint);
         }
-        if (options.blend !== false && sprite.setBlendMode && Phaser.BlendModes) {
-            sprite.setBlendMode(Phaser.BlendModes.ADD);
+        if (sprite.setBlendMode && typeof Phaser !== 'undefined' && Phaser.BlendModes) {
+            sprite.setBlendMode(
+                options.blend === false ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD
+            );
         }
     }
 

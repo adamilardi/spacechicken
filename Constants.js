@@ -168,7 +168,7 @@ export const LEVEL_DEFINITIONS = {
         NEXT_LEVEL: 4,
     },
     4: {
-        TITLE: 'Lunar Gauntlet',
+        TITLE: 'Moonfall Citadel',
         GRAVITY: 180,
         WORLD_WIDTH: 2800,
         WORLD_HEIGHT: 800,
@@ -176,7 +176,7 @@ export const LEVEL_DEFINITIONS = {
         PLAYER_START_X: 120,
         PLAYER_START_Y: 620,
         CROWN_X: 2550,
-        CROWN_Y: 280,
+        CROWN_Y: 222,
         BOMB_SPEED: 180,
         KILLZONE_HEIGHT: 30,
         NEXT_LEVEL: null,

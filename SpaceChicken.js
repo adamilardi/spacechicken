@@ -12,13 +12,15 @@ import { Viewport } from './Viewport.js';
 
 function readLaunchQuery() {
     if (typeof location === 'undefined' || !location.search) {
-        return { level: null, bot: false };
+        return { level: null, bot: false, debug: false };
     }
     const query = new URLSearchParams(location.search);
     const level = Number(query.get('level'));
     return {
         level: Number.isFinite(level) ? level : null,
         bot: query.has('bot'),
+        debug: query.has('debug'),
+        coop: query.get('coop') || null,
     };
 }
 
@@ -50,6 +52,53 @@ function listGroupBodies(group) {
     return out;
 }
 
+function listRayColumns(scene) {
+    const warnings = scene && scene.activeWarningGraphics;
+    if (!Array.isArray(warnings) || warnings.length === 0) {
+        return [];
+    }
+    const out = [];
+    for (let i = 0; i < warnings.length; i++) {
+        const graphic = warnings[i];
+        if (graphic && Number.isFinite(graphic.rayX)) {
+            out.push({ x: graphic.rayX, w: 36, warning: true });
+        }
+    }
+    return out;
+}
+
+function pendingLevelOf(scene) {
+    const data = scene && scene.pendingSceneData;
+    if (!data || data.level == null) {
+        return null;
+    }
+    return data.level;
+}
+
+function describePlayer(player) {
+    if (!player) {
+        return null;
+    }
+    const body = player.body;
+    const velocity = body && body.velocity;
+    return {
+        x: player.x,
+        y: player.y,
+        vx: velocity ? velocity.x : 0,
+        vy: velocity ? velocity.y : 0,
+        grounded: Boolean(body && (body.blocked.down || body.touching.down)),
+        alpha: player.alpha,
+        visible: player.visible !== false,
+        scaleX: player.scaleX,
+        scaleY: player.scaleY,
+        bodyEnable: body ? body.enable !== false : null,
+    };
+}
+
+function hudField(manager, key) {
+    return manager && manager[key] ? manager[key].text : null;
+}
+
 export class SpaceChicken extends Phaser.Scene {
     constructor() {
         super();
@@ -66,6 +115,14 @@ export class SpaceChicken extends Phaser.Scene {
                 ? Math.floor(requestedDeathCount)
                 : 0;
         this.launchBot = Boolean(launch.bot);
+        this.debugMode = Boolean(launch.debug || launch.bot);
+        this.coopMode = ['keyboard', 'keyboard-controller', 'controllers'].includes(launch.coop)
+            ? launch.coop
+            : null;
+        this.player2 = null;
+        this.player2JumpCount = 0;
+        this.player2WasGrounded = false;
+        this.levelCheckpoint = null;
         this.startTime = 0;
         this.gameOver = false;
         this.isTransitioning = false;
@@ -228,6 +285,19 @@ export class SpaceChicken extends Phaser.Scene {
         this.wasd = this.input.keyboard.addKeys('W,S,A,D');
         this.space = this.input.keyboard.addKey(KEY_CODES.SPACE);
         this.muteKey = this.input.keyboard.addKey(KEY_CODES.M);
+        this.debugSkipKey = this.debugMode
+            ? this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N)
+            : null;
+        this.player2Keys = {
+            left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
+            right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
+            jump: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO),
+        };
+        this.coopKeys = {
+            keyboard: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO),
+            keyboardController: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE),
+            controllers: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR),
+        };
 
         this.audioManager.setupAudioPipeline();
         this.audioManager.setMusicMuted(this.musicMuted, { skipSave: true });
@@ -579,6 +649,14 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     createAnimations() {
+        if (!this.anims.exists('chicken-idle')) {
+            this.anims.create({
+                key: 'chicken-idle',
+                frames: [{ key: 'chicken_idle', duration: 2600 }, { key: 'chicken_blink' }],
+                frameRate: 10,
+                repeat: -1,
+            });
+        }
         if (!this.anims.exists('chicken-walk')) {
             this.anims.create({
                 key: 'chicken-walk',
@@ -736,7 +814,7 @@ export class SpaceChicken extends Phaser.Scene {
             window.clearTimeout(this.deathResetWall);
             this.deathResetWall = null;
         }
-        const start = this.levelConfig.playerStart;
+        const start = this.levelCheckpoint || this.levelConfig.playerStart;
         const player = this.player;
         if (player) {
             if (player.enableBody) {
@@ -755,6 +833,17 @@ export class SpaceChicken extends Phaser.Scene {
             player.setScale?.(1);
             this.effectsManager?.keepPlayerBodyStable?.(player);
             player.play?.('chicken-walk', true);
+        }
+        if (this.player2) {
+            const secondStart = { x: start.x + 42, y: start.y };
+            this.player2.enableBody?.(true, secondStart.x, secondStart.y, true, true);
+            this.player2.body?.reset?.(secondStart.x, secondStart.y);
+            this.player2.body?.stop?.();
+            this.player2.clearTint?.();
+            this.player2.setAlpha?.(1);
+            this.player2.setScale?.(1);
+            this.player2JumpCount = 0;
+            this.player2.play?.('chicken-idle', true);
         }
         this.jumpCount = 0;
         this.isJetpacking = false;
@@ -901,8 +990,16 @@ export class SpaceChicken extends Phaser.Scene {
     update(_time, delta) {
         const inputState = this.handleInput();
 
+        if (inputState.gamepadStartJustPressed && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('space-chicken-gamepad-start'));
+        }
+
         if (this.muteKey && Phaser.Input.Keyboard.JustDown(this.muteKey)) {
             this.audioManager.toggleMusicMute();
+        }
+        if (this.debugSkipKey && Phaser.Input.Keyboard.JustDown(this.debugSkipKey)) {
+            this.debugSkipLevel();
+            return;
         }
 
         if (this.awaitingStart) {
@@ -941,6 +1038,10 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.updatePlayerMovement();
         this.updatePlayerAnimation(isGrounded);
+        this.updateLevelCheckpoint();
+        if (this.player2) {
+            this.updatePlayer2(inputState);
+        }
         if (this.effectsManager) {
             this.effectsManager.update(this.player, isGrounded, this.isJetpacking, delta);
         }
@@ -983,6 +1084,24 @@ export class SpaceChicken extends Phaser.Scene {
         return this.time?.now > 0 ? this.time.now : performance.now();
     }
 
+    updateLevelCheckpoint() {
+        if (this.level !== 4 || !this.player || this.isTransitioning) return;
+        const furthestX = Math.max(this.player.x, this.player2?.x || 0);
+        const checkpoints = [
+            { trigger: 950, x: 1000, y: 500, label: 'CRATER GATE SECURED' },
+            { trigger: 1780, x: 1840, y: 370, label: 'SUMMIT APPROACH SECURED' },
+        ];
+        const next = checkpoints.find(
+            (checkpoint) =>
+                furthestX >= checkpoint.trigger &&
+                (!this.levelCheckpoint || checkpoint.trigger > this.levelCheckpoint.trigger)
+        );
+        if (!next) return;
+        this.levelCheckpoint = next;
+        this.uiManager?.showLevelBanner?.('CHECKPOINT', next.label);
+        this.audioManager?.playCollectSound?.();
+    }
+
     shouldPlayLandingFx(now) {
         const airMs = this.airborneSince ? now - this.airborneSince : 0;
         if (airMs < GAME_CONSTANTS.LAND_MIN_AIR_MS) {
@@ -992,6 +1111,11 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     updateTitleScreen(inputState) {
+        const mode = inputState.coopMode;
+        if (mode) {
+            this.coopMode = mode;
+            this.enableCoopMode();
+        }
         const startTriggered = this.isJumpInput(inputState) || inputState.pointerStartTriggered;
         this.jumpRequested = false;
         if (this.player && this.player.body) {
@@ -1005,13 +1129,85 @@ export class SpaceChicken extends Phaser.Scene {
 
     isJumpInput(inputState) {
         return Boolean(
-            inputState.upJustPressed ||
+            (this.coopMode !== 'keyboard' && inputState.upJustPressed) ||
             inputState.spaceJustPressed ||
             inputState.wJustPressed ||
+            inputState.gamepadJumpJustPressed ||
             inputState.pointerJumpTriggered ||
             inputState.doubleTapJumpTriggered ||
             this.jumpRequested
         );
+    }
+
+    enableCoopMode() {
+        if (this.player2 || !this.coopMode || !this.platforms) return;
+        const start = this.levelConfig.playerStart;
+        this.player2 = this.physics.add.sprite(start.x + 42, start.y, 'chicken2');
+        this.player2.setBounce(GAME_CONSTANTS.PLAYER_BOUNCE);
+        this.player2.setCollideWorldBounds(false);
+        this.player2.setDepth(5);
+        this.physics.add.collider(this.player2, this.platforms);
+        if (this.movingPlatforms) this.physics.add.collider(this.player2, this.movingPlatforms);
+        this.physics.add.overlap(this.player2, this.hazards, this.failFromHazard, null, this);
+        if (this.dynamicHazardsGroup) {
+            this.physics.add.overlap(
+                this.player2,
+                this.dynamicHazardsGroup,
+                this.failFromHazard,
+                null,
+                this
+            );
+        }
+        this.physics.add.overlap(this.player2, this.crown, () => this.collectGem(), null, this);
+        this.physics.add.overlap(
+            this.player2,
+            this.killZone,
+            () => this.failFromHazard(),
+            null,
+            this
+        );
+        this.physics.add.overlap(this.player2, this.bombs, this.failFromHazard, null, this);
+    }
+
+    // eslint-disable-next-line complexity
+    updatePlayer2(_inputState) {
+        const pad = this.inputController.getGamepad?.(
+            this.coopMode === 'keyboard-controller' ? 0 : 1
+        );
+        const usePad = this.coopMode !== 'keyboard';
+        const axis = usePad && Math.abs(pad?.axes?.[0] || 0) >= 0.22 ? pad.axes[0] : 0;
+        const left =
+            (this.player2Keys.left.isDown && !usePad) ||
+            (usePad && ((pad?.buttons?.[14]?.pressed ?? false) || axis < -0.22));
+        const right =
+            (this.player2Keys.right.isDown && !usePad) ||
+            (usePad && ((pad?.buttons?.[15]?.pressed ?? false) || axis > 0.22));
+        this.player2.setVelocityX(
+            (right ? 1 : 0) * GAME_CONSTANTS.PLAYER_VELOCITY_X -
+                (left ? 1 : 0) * GAME_CONSTANTS.PLAYER_VELOCITY_X
+        );
+        if (
+            (this.player2Keys.jump.justDown && !usePad) ||
+            (usePad && this.inputController.gamepadJumpEdges?.[1])
+        )
+            this.attemptPlayer2Jump();
+        if (this.player2.y > this.killZoneFallY) this.failFromHazard();
+        const grounded = Boolean(this.player2.body.blocked.down || this.player2.body.touching.down);
+        if (grounded) this.player2JumpCount = 0;
+        this.player2.play(
+            grounded ? (left || right ? 'chicken-walk' : 'chicken-idle') : 'chicken-jump',
+            true
+        );
+        this.player2.setFlipX?.(left);
+    }
+
+    attemptPlayer2Jump() {
+        if (this.player2JumpCount >= this.maxJumps) return;
+        this.player2.setVelocityY(GAME_CONSTANTS.JUMP_VELOCITY_Y);
+        this.player2JumpCount += 1;
+        this.effectsManager?.stretchPlayer(this.player2);
+        this.effectsManager?.emitJumpPuff(this.player2.x, this.player2.y + 14);
+        this.audioManager?.playJumpSound?.();
     }
 
     onPlayerLanded() {
@@ -1027,10 +1223,20 @@ export class SpaceChicken extends Phaser.Scene {
 
     updatePlayerMovement() {
         let velocityX = 0;
-        if (this.cursors.left.isDown || this.wasd.A.isDown || this.leftPressed) {
+        const keyboardEnabled = this.coopMode !== 'controllers';
+        const arrowsEnabled = this.coopMode !== 'keyboard';
+        if (
+            (keyboardEnabled &&
+                ((arrowsEnabled && this.cursors.left.isDown) || this.wasd.A.isDown)) ||
+            this.leftPressed
+        ) {
             velocityX -= GAME_CONSTANTS.PLAYER_VELOCITY_X;
         }
-        if (this.cursors.right.isDown || this.wasd.D.isDown || this.rightPressed) {
+        if (
+            (keyboardEnabled &&
+                ((arrowsEnabled && this.cursors.right.isDown) || this.wasd.D.isDown)) ||
+            this.rightPressed
+        ) {
             velocityX += GAME_CONSTANTS.PLAYER_VELOCITY_X;
         }
         this.player.setVelocityX(velocityX);
@@ -1055,8 +1261,10 @@ export class SpaceChicken extends Phaser.Scene {
             ? this.player.anims.currentAnim.key
             : null;
         if (isGrounded && this.jumpCount === 0) {
-            if (currentAnimKey !== 'chicken-walk') {
-                this.player.play('chicken-walk');
+            const animation =
+                Math.abs(this.player.body?.velocity?.x || 0) > 1 ? 'chicken-walk' : 'chicken-idle';
+            if (currentAnimKey !== animation) {
+                this.player.play(animation);
             }
         } else if (this.isJetpacking) {
             if (currentAnimKey !== 'chicken-jetpack') {
@@ -1188,50 +1396,52 @@ export class SpaceChicken extends Phaser.Scene {
             clearBotInput: () => {
                 window.__spaceChickenBotInput = null;
             },
+            mode: this.debugMode,
+            goToLevel: (level) => this.debugGoToLevel(level),
+            skipLevel: () => this.debugSkipLevel(),
         };
     }
 
+    debugGoToLevel(level) {
+        const requested = Number(level);
+        if (!this.debugMode || !LEVEL_IDS.includes(requested)) return false;
+        this.scene.start(this.scene.key, {
+            level: requested,
+            deathCount: 0,
+            coopMode: this.coopMode,
+        });
+        return true;
+    }
+
+    debugSkipLevel() {
+        if (!this.debugMode) return false;
+        const index = LEVEL_IDS.indexOf(this.level);
+        const nextLevel = LEVEL_IDS[index + 1];
+        if (!nextLevel) return false;
+        return this.debugGoToLevel(nextLevel);
+    }
+
     getBotSnapshot() {
-        const player = this.player;
-        const body = player && player.body;
+        const pendingLevel = pendingLevelOf(this);
+        const camera = this.cameras && this.cameras.main;
         return {
-            ready: Boolean(player),
+            ready: Boolean(this.player),
             level: this.level,
             nextLevel: this.levelConfig ? this.levelConfig.nextLevel : null,
             deaths: this.deathCount,
             awaitingStart: this.awaitingStart,
             transitioning: this.isTransitioning,
             gameOver: this.gameOver,
+            dying: Boolean(this.isTransitioning && !this.gameOver && pendingLevel == null),
+            pendingLevel,
             elapsedMs: performance.now() - this.startTime,
             jumpCount: this.jumpCount,
             maxJumps: this.maxJumps,
-            player: player
-                ? {
-                      x: player.x,
-                      y: player.y,
-                      vx: body && body.velocity ? body.velocity.x : 0,
-                      vy: body && body.velocity ? body.velocity.y : 0,
-                      grounded: Boolean(body && (body.blocked.down || body.touching.down)),
-                      alpha: player.alpha,
-                      visible: player.visible !== false,
-                      scaleX: player.scaleX,
-                      scaleY: player.scaleY,
-                      bodyEnable: body ? body.enable !== false : null,
-                  }
-                : null,
+            player: describePlayer(this.player),
             hud: {
-                timer:
-                    this.uiManager && this.uiManager.timerText
-                        ? this.uiManager.timerText.text
-                        : null,
-                deaths:
-                    this.uiManager && this.uiManager.deathText
-                        ? this.uiManager.deathText.text
-                        : null,
-                level:
-                    this.uiManager && this.uiManager.levelText
-                        ? this.uiManager.levelText.text
-                        : null,
+                timer: hudField(this.uiManager, 'timerText'),
+                deaths: hudField(this.uiManager, 'deathText'),
+                level: hudField(this.uiManager, 'levelText'),
             },
             physicsPaused: Boolean(
                 this.physics && this.physics.world && this.physics.world.isPaused
@@ -1241,15 +1451,15 @@ export class SpaceChicken extends Phaser.Scene {
             worldWidth: this.worldWidth,
             worldHeight: this.worldHeight,
             killZoneY: this.killZoneFallY,
-            camera:
-                this.cameras && this.cameras.main
-                    ? {
-                          scrollX: this.cameras.main.scrollX || 0,
-                          scrollY: this.cameras.main.scrollY || 0,
-                          zoom: this.cameras.main.zoom || 1,
-                      }
-                    : null,
+            camera: camera
+                ? {
+                      scrollX: camera.scrollX || 0,
+                      scrollY: camera.scrollY || 0,
+                      zoom: camera.zoom || 1,
+                  }
+                : null,
             crown: this.crown ? { x: this.crown.x, y: this.crown.y } : null,
+            columns: listRayColumns(this),
             platforms: listGroupBodies(this.platforms).concat(
                 listGroupBodies(this.movingPlatforms)
             ),

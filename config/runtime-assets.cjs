@@ -14,6 +14,7 @@ const rootFiles = Object.freeze([
     'InputController.js',
     'Viewport.js',
     'SpaceChicken.js',
+    'PauseController.js',
 ]);
 
 const vendorFiles = Object.freeze({

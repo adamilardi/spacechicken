@@ -13,6 +13,10 @@
         <meta name="theme-color" content="#000000" />
         <meta name="format-detection" content="telephone=no" />
         <title>Space Chicken Game</title>
+        <meta
+            name="description"
+            content="A chicken. A jetpack. Four cosmic obstacle courses. Jump, dodge, and chase the crown in Space Chicken."
+        />
         <script src="./vendor/phaser-arcade-physics-3.70.0.min.js"></script>
         <style>
             :root {
@@ -67,11 +71,84 @@
                 text-align: center;
                 padding: 0 16px;
             }
+            .game-button {
+                min-height: 44px;
+                padding: 10px 18px;
+                border: 1px solid #8ca9db;
+                border-radius: 12px;
+                background: #14233e;
+                color: #fff;
+                font:
+                    bold 16px 'Trebuchet MS',
+                    sans-serif;
+                cursor: pointer;
+            }
+            .game-button:focus-visible {
+                outline: 3px solid #ffe566;
+                outline-offset: 4px;
+            }
+            #pause-button {
+                position: fixed;
+                right: max(16px, env(safe-area-inset-right));
+                top: 50%;
+                z-index: 10;
+                opacity: 0.85;
+            }
+            #pause-dialog {
+                box-sizing: border-box;
+                width: min(420px, calc(100% - 32px));
+                padding: 28px;
+                border: 1px solid #617dad;
+                border-radius: 20px;
+                background: #101b30;
+                color: #dce7ff;
+                text-align: center;
+                line-height: 1.6;
+                max-height: calc(
+                    100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+                );
+                overflow-y: auto;
+                touch-action: pan-y;
+            }
+            #pause-dialog::backdrop {
+                background: #030918cc;
+            }
+            #pause-dialog h1 {
+                color: #ffe566;
+                margin-top: 0;
+            }
+            @media (max-height: 500px) {
+                #pause-dialog {
+                    padding: 12px 20px;
+                    line-height: 1.35;
+                }
+                #pause-dialog h1 {
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                }
+                #pause-dialog p {
+                    margin: 8px 0;
+                }
+            }
         </style>
     </head>
     <body>
         <div id="phaser-game"></div>
+        <button id="pause-button" class="game-button" aria-label="Pause game (Escape or P)">
+            Ⅱ
+        </button>
+        <dialog id="pause-dialog" aria-labelledby="pause-title">
+            <h1 id="pause-title">Taking a breather</h1>
+            <p>Your run is paused. Ready for the next jump?</p>
+            <p>
+                Move with ← → or A / D.<br />Jump with Space, ↑, or W. Jump again for a boost.<br />On
+                touch screens, use the arrow and jump buttons.
+            </p>
+            <button id="resume-button" class="game-button">Resume game</button>
+        </dialog>
+        <noscript><p class="error">Enable JavaScript to play Space Chicken.</p></noscript>
         <script type="module">
+            import { attachPauseControls } from './PauseController.js';
             function readViewportSize() {
                 const visual = window.visualViewport;
                 const width = Math.max(
@@ -107,7 +184,10 @@
                     parent.style.height = `${size.height}px`;
                     parent.style.left = `${visual ? visual.offsetLeft || 0 : 0}px`;
                     parent.style.top = `${visual ? visual.offsetTop || 0 : 0}px`;
-                    if (game && game.scale && typeof game.scale.resize === 'function') {
+                    if (
+                        game?.scale &&
+                        (game.scale.width !== size.width || game.scale.height !== size.height)
+                    ) {
                         game.scale.resize(size.width, size.height);
                     }
                 };
@@ -140,6 +220,7 @@
                     parent: 'phaser-game',
                     input: {
                         activePointers: 4,
+                        gamepad: true,
                         touch: {
                             capture: true,
                         },
@@ -161,12 +242,13 @@
 
                 const game = new Phaser.Game(config);
                 window.SPACE_CHICKEN_GAME = game;
+                attachPauseControls(game);
                 attachViewportSync(game, parent);
             } catch (error) {
                 console.error('Failed to initialize game:', error);
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error';
-                errorDiv.textContent = 'Failed to load game. Please check console for details.';
+                errorDiv.textContent = 'Space Chicken could not load. Please refresh to try again.';
                 document.body.appendChild(errorDiv);
             }
         </script>
