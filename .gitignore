@@ -27,6 +27,7 @@ dist/
 build/
 *.tmp
 .bot-runs/
+.jev-runs/
 
 # Optional: if you ever add a real test runner or coverage
 coverage/

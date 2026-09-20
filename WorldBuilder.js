@@ -5,6 +5,7 @@ export class WorldBuilder {
     constructor(scene) {
         this.scene = scene;
         this.warningPool = [];
+        this.testEntityCounter = 0;
     }
 
     get platforms() {
@@ -47,12 +48,30 @@ export class WorldBuilder {
         return this.scene.activeWarningGraphics;
     }
 
+    get now() {
+        return Number.isFinite(this.time?.now) ? this.time.now : 0;
+    }
+
+    phaseDeadline(delay) {
+        return this.now + delay / (this.scene.testTimeScale || 1);
+    }
+
     set dynamicHazardEvents(value) {
         this.scene.dynamicHazardEvents = value;
     }
 
     set activeWarningGraphics(value) {
         this.scene.activeWarningGraphics = value;
+    }
+
+    tagTestEntity(entity, metadata) {
+        if (!entity) return entity;
+        this.testEntityCounter += 1;
+        entity.testMeta = {
+            id: `${metadata.type || metadata.kind || 'entity'}-${this.testEntityCounter}`,
+            ...metadata,
+        };
+        return entity;
     }
 
     build(levelConfig) {
@@ -85,6 +104,7 @@ export class WorldBuilder {
             }
         });
         this.warningPool.length = 0;
+        this.scene.testHazardSchedules = [];
     }
 
     acquireWarningGraphics() {
@@ -129,6 +149,7 @@ export class WorldBuilder {
         }
         platformConfigs.forEach((config) => {
             const platform = this.platforms.create(config.x, config.y, config.key || 'cliff');
+            this.tagTestEntity(platform, { kind: 'platform', type: 'static_platform' });
             platform.setDepth(0);
             const scaleX = config.scaleX ?? 1;
             const scaleY = config.scaleY ?? 1;
@@ -200,6 +221,7 @@ export class WorldBuilder {
     placeFloorVisual(x, y, key, scaleX, scaleY) {
         if (!this.add?.image) {
             const platform = this.platforms.create(x, y, key);
+            this.tagTestEntity(platform, { kind: 'platform', type: 'static_platform' });
             platform.setDepth(0);
             if (scaleX !== 1 || scaleY !== 1) {
                 platform.setScale(scaleX, scaleY);
@@ -221,6 +243,7 @@ export class WorldBuilder {
         const left = run[0] - tileWidth / 2;
         const right = run[run.length - 1] + tileWidth / 2;
         const collider = this.platforms.create((left + right) / 2, y, key);
+        this.tagTestEntity(collider, { kind: 'platform', type: 'floor' });
         collider.setDepth(0);
         collider.setVisible(false);
         if (collider.setDisplaySize) {
@@ -237,8 +260,19 @@ export class WorldBuilder {
             return null;
         }
         const group = this.physics.add.group({ allowGravity: false });
+        // eslint-disable-next-line complexity
         movingConfigs.forEach((config) => {
             const platform = group.create(config.x, config.y, config.key || 'cliff');
+            this.tagTestEntity(platform, {
+                kind: 'platform',
+                type: 'moving_platform',
+                origin: { x: config.x, y: config.y },
+                target: config.tween
+                    ? { x: config.tween.x ?? config.x, y: config.tween.y ?? config.y }
+                    : null,
+                durationMs: config.tween?.duration ?? null,
+                delayMs: config.tween?.delay ?? 0,
+            });
             platform.setImmovable(true);
             platform.body.allowGravity = false;
             platform.setPushable(false);
@@ -286,6 +320,7 @@ export class WorldBuilder {
         }
         rockConfigs.forEach((config) => {
             const hazard = this.hazards.create(config.x, config.y, config.key || 'rock');
+            this.tagTestEntity(hazard, { kind: 'hazard', type: 'rock' });
             const scaleX = config.scaleX ?? 1;
             const scaleY = config.scaleY ?? 1;
             if (scaleX !== 1 || scaleY !== 1) {
@@ -299,6 +334,7 @@ export class WorldBuilder {
         this.clearHazardTimers();
         this.dynamicHazardEvents = [];
         this.activeWarningGraphics = [];
+        this.scene.testHazardSchedules = [];
 
         if (!dynamicConfigs || dynamicConfigs.length === 0) {
             return null;
@@ -321,6 +357,10 @@ export class WorldBuilder {
                     break;
                 default: {
                     const hazard = group.create(config.x, config.y, config.key || 'rock');
+                    this.tagTestEntity(hazard, {
+                        kind: 'hazard',
+                        type: config.type || 'dynamic_hazard',
+                    });
                     hazard.body.allowGravity = false;
                     hazard.setImmovable(true);
                     const scaleX = config.scaleX ?? 1;
@@ -348,6 +388,19 @@ export class WorldBuilder {
         const beamTexture =
             config.key || (orientation === 'vertical' ? 'laserBeamVertical' : 'laserBeam');
         const beam = group.create(config.x, config.y, beamTexture);
+        const onDuration = config.onDuration ?? GAME_CONSTANTS.LASER_DEFAULT_ON_DURATION;
+        const offDuration = config.offDuration ?? GAME_CONSTANTS.LASER_DEFAULT_OFF_DURATION;
+        const startDelay = config.startDelay ?? GAME_CONSTANTS.LASER_DEFAULT_START_DELAY;
+        const startActive = config.initiallyActive ?? true;
+        this.tagTestEntity(beam, {
+            kind: 'hazard',
+            type: 'laser',
+            orientation,
+            onDurationMs: onDuration,
+            offDurationMs: offDuration,
+            phase: startActive ? 'active' : 'cooldown',
+            nextChangeAt: this.phaseDeadline(startDelay + (startActive ? onDuration : offDuration)),
+        });
         beam.body.allowGravity = false;
         beam.setImmovable(true);
         beam.setBlendMode(Phaser.BlendModes.ADD);
@@ -365,11 +418,11 @@ export class WorldBuilder {
         const scaleY = Math.abs(beam.scaleY) || 1;
         beam.body.setSize(hitboxWidth / scaleX, hitboxHeight / scaleY, true);
 
-        const startActive = config.initiallyActive ?? true;
         const setState = (state) => {
             beam.body.enable = state;
             beam.setActive(state);
             beam.setVisible(state);
+            beam.testMeta.phase = state ? 'active' : 'cooldown';
         };
         setState(startActive);
 
@@ -400,11 +453,8 @@ export class WorldBuilder {
             emitterEnd.setDepth(emitterDepth);
         }
 
-        const onDuration = config.onDuration ?? GAME_CONSTANTS.LASER_DEFAULT_ON_DURATION;
-        const offDuration = config.offDuration ?? GAME_CONSTANTS.LASER_DEFAULT_OFF_DURATION;
-        const startDelay = config.startDelay ?? GAME_CONSTANTS.LASER_DEFAULT_START_DELAY;
-
         const scheduleCycle = (state, delay) => {
+            beam.testMeta.nextChangeAt = this.phaseDeadline(delay);
             const event = this.time.delayedCall(delay, () => {
                 Phaser.Utils.Array.Remove(this.dynamicHazardEvents, event);
                 const nextState = !state;
@@ -423,6 +473,18 @@ export class WorldBuilder {
 
     createDroneHazard(group, config) {
         const drone = group.create(config.x, config.y, config.key || 'drone');
+        this.tagTestEntity(drone, {
+            kind: 'hazard',
+            type: 'drone',
+            origin: { x: config.x, y: config.y },
+            target: config.patrol
+                ? { x: config.patrol.x ?? config.x, y: config.patrol.y ?? config.y }
+                : null,
+            durationMs: config.patrol?.duration ?? null,
+            delayMs: config.patrol?.delay ?? 0,
+            bobAmplitude: config.bobAmplitude ?? 0,
+            bobDurationMs: config.bobDuration ?? null,
+        });
         drone.body.allowGravity = false;
         drone.setImmovable(true);
         const scale = config.scale ?? 1;
@@ -476,6 +538,16 @@ export class WorldBuilder {
 
     createRoverHazard(group, config) {
         const rover = group.create(config.x, config.y, 'rover');
+        this.tagTestEntity(rover, {
+            kind: 'hazard',
+            type: 'rover',
+            origin: { x: config.x, y: config.y },
+            target: config.patrol
+                ? { x: config.patrol.x ?? config.x, y: config.patrol.y ?? config.y }
+                : null,
+            durationMs: config.patrol?.duration ?? null,
+            delayMs: config.patrol?.delay ?? 0,
+        });
         rover.body.allowGravity = false;
         rover.setImmovable(true);
         rover.setDepth(6);
@@ -491,8 +563,27 @@ export class WorldBuilder {
         const interval = config.interval ?? 2000;
         const warningTime = config.warning ?? 420;
         const initialDelay = config.delay ?? 0;
+        const schedule = {
+            id: `cosmic_ray-${++this.testEntityCounter}`,
+            kind: 'hazard_schedule',
+            type: 'cosmic_ray',
+            x: config.x,
+            y: startY,
+            intervalMs: interval,
+            warningDurationMs: warningTime,
+            activeDurationMs: 220,
+            phase: 'cooldown',
+            nextChangeAt: this.phaseDeadline(initialDelay),
+        };
+        if (!Array.isArray(this.scene.testHazardSchedules)) {
+            this.scene.testHazardSchedules = [];
+        }
+        this.scene.testHazardSchedules.push(schedule);
 
         const spawnRay = () => {
+            schedule.phase = 'warning';
+            schedule.nextChangeAt = this.phaseDeadline(warningTime);
+            schedule.nextWarningAt = this.phaseDeadline(interval);
             const warning = this.acquireWarningGraphics();
             warning.rayX = config.x;
             warning.setDepth(25);
@@ -515,8 +606,16 @@ export class WorldBuilder {
                     Phaser.Utils.Array.Remove(this.activeWarningGraphics, warning);
                 }
                 this.releaseWarningGraphics(warning);
+                schedule.phase = 'active';
+                schedule.nextChangeAt = this.phaseDeadline(schedule.activeDurationMs);
 
                 const ray = group.create(config.x, startY, 'laserBeamVertical');
+                this.tagTestEntity(ray, {
+                    kind: 'hazard',
+                    type: 'cosmic_ray',
+                    phase: 'active',
+                    scheduleId: schedule.id,
+                });
                 ray.setDisplaySize(10, this.worldHeight - 110);
                 ray.body.allowGravity = false;
                 ray.setImmovable(true);
@@ -534,6 +633,8 @@ export class WorldBuilder {
                     if (ray?.destroy) {
                         ray.destroy();
                     }
+                    schedule.phase = 'cooldown';
+                    schedule.nextChangeAt = schedule.nextWarningAt;
                 });
                 this.dynamicHazardEvents.push(rayLife);
             });

@@ -110,12 +110,14 @@ test('all active JavaScript files pass the JavaScript parser', () => {
         'WorldBuilder.js',
         'InputController.js',
         'Viewport.js',
+        'GameTestInterface.js',
         'SpaceChicken.js',
         'server.cjs',
         'config/runtime-assets.cjs',
         'scripts/build-cloudflare.cjs',
         'scripts/play-bot.mjs',
         'scripts/playtest-bot.mjs',
+        'scripts/jev-playtest.mjs',
     ];
     files.forEach((file) => {
         const source = fs.readFileSync(path.join(projectRoot, file), 'utf8');
@@ -206,18 +208,21 @@ test('remote leaderboard requests include all configured levels', async () => {
     const calls = [];
     global.window = {
         localStorage: createStorage(),
-        SPACE_CHICKEN_CONFIG: { firebaseEndpoint: 'https://example.test/' },
+        location: { href: 'https://example.test/space-chicken/' },
     };
     global.fetch = async (url) => {
         calls.push(url);
-        return { ok: true, json: async () => null };
+        return {
+            ok: true,
+            json: async () => ({ levels: { 1: [], 2: [], 3: [], 4: [] } }),
+        };
     };
     const { LeaderboardManager } = await importModule('LeaderboardManager.js');
     const manager = new LeaderboardManager({ storageAvailable: true });
 
     const data = await manager.fetchFirebaseLeaderboards();
     assert.deepEqual(Object.keys(data), ['1', '2', '3', '4']);
-    assert.ok(calls.some((url) => url.endsWith('/leaderboard/level4.json')));
+    assert.ok(calls.some((url) => url === 'https://example.test/space-chicken/api/leaderboard'));
     delete global.fetch;
 });
 
@@ -409,6 +414,29 @@ test('simultaneous input sources consume only one jump', async () => {
     scene.update();
     assert.equal(jumps, 1);
     assert.equal(scene.jumpRequested, false);
+});
+
+test('a held bot jump is edge-triggered like human input', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.inputController = { poll: () => ({}) };
+    scene.awaitingStart = false;
+    scene.botJumpWasDown = false;
+    global.window = {
+        __spaceChickenBotInput: { left: false, right: true, jump: true, start: false },
+    };
+
+    scene.handleInput();
+    assert.equal(scene.jumpRequested, true);
+    scene.jumpRequested = false;
+    scene.handleInput();
+    assert.equal(scene.jumpRequested, false);
+
+    global.window.__spaceChickenBotInput.jump = false;
+    scene.handleInput();
+    global.window.__spaceChickenBotInput.jump = true;
+    scene.handleInput();
+    assert.equal(scene.jumpRequested, true);
 });
 
 test('the opening scene waits for a title start on a fresh run only', async () => {
@@ -1005,6 +1033,7 @@ test('the development server serves only game assets', async () => {
     assert.equal((await request(server, '/WorldBuilder.js')).statusCode, 200);
     assert.equal((await request(server, '/InputController.js')).statusCode, 200);
     assert.equal((await request(server, '/Viewport.js')).statusCode, 200);
+    assert.equal((await request(server, '/GameTestInterface.js')).statusCode, 200);
     assert.equal((await request(server, '/GameUtils.js')).statusCode, 200);
     assert.equal(
         (await request(server, '/vendor/phaser-arcade-physics-3.70.0.min.js')).statusCode,
@@ -1366,6 +1395,135 @@ test('the play-bot exports an in-page pilot installer', async () => {
     );
 });
 
+test('the game test interface exposes compact observations and game-rule objectives', async () => {
+    const {
+        GAME_TEST_ACTIONS,
+        checkTestObjectives,
+        createTestObservation,
+        normalizeTestAction,
+        normalizeTestSeed,
+    } = await importModule('GameTestInterface.js');
+    const snapshot = {
+        ready: true,
+        level: 1,
+        deaths: 2,
+        elapsedMs: 1234.5,
+        simulationTimeScale: 0.25,
+        awaitingStart: false,
+        transitioning: false,
+        gameOver: false,
+        pendingLevel: null,
+        physicsPaused: false,
+        jumpCount: 1,
+        maxJumps: 2,
+        player: { x: 100, y: 200, vx: 120, vy: 0, grounded: true },
+        crown: { x: 500, y: 150 },
+        worldWidth: 1000,
+        worldHeight: 700,
+        killZoneY: 800,
+        platforms: [
+            {
+                id: 'floor-1',
+                type: 'floor',
+                x: 120,
+                y: 230,
+                w: 80,
+                h: 20,
+                left: 80,
+                right: 160,
+                top: 220,
+            },
+            {
+                id: 'moving-1',
+                type: 'moving_platform',
+                x: 300,
+                y: 180,
+                vx: 30,
+                vy: 0,
+                w: 100,
+                h: 20,
+                left: 250,
+                right: 350,
+                top: 170,
+                origin: { x: 250, y: 180 },
+                target: { x: 350, y: 180 },
+                durationMs: 1000,
+            },
+        ],
+        movingPlatforms: [
+            {
+                id: 'moving-1',
+                type: 'moving_platform',
+                x: 300,
+                y: 180,
+                vx: 30,
+                vy: 0,
+                w: 100,
+                h: 20,
+                left: 250,
+                right: 350,
+                top: 170,
+            },
+        ],
+        hazards: [
+            {
+                id: 'rover-1',
+                type: 'rover',
+                phase: 'active',
+                x: 160,
+                y: 200,
+                vx: -25,
+                vy: 0,
+                w: 32,
+                h: 32,
+                left: 144,
+                right: 176,
+                top: 184,
+            },
+        ],
+        hazardSchedules: [
+            {
+                id: 'ray-1',
+                type: 'cosmic_ray',
+                x: 420,
+                y: 90,
+                phase: 'warning',
+                timeUntilPhaseChangeMs: 300,
+                warningDurationMs: 1000,
+                activeDurationMs: 220,
+                intervalMs: 3600,
+            },
+        ],
+        bombs: [],
+        columns: [],
+    };
+
+    const observation = createTestObservation(snapshot, 42);
+    assert.equal(observation.schemaVersion, 2);
+    assert.equal(observation.phase, 'playing');
+    assert.equal(observation.seed, 42);
+    assert.equal(observation.simulationTimeScale, 0.25);
+    assert.equal(observation.objective.dx, 400);
+    assert.equal(observation.player.jumpsRemaining, 1);
+    assert.equal(observation.nearby.hazards[0].dx, 60);
+    assert.equal(observation.nearby.hazards[0].left, 44);
+    assert.equal(observation.nearby.hazards[0].type, 'rover');
+    assert.equal(observation.nearby.hazards[0].direction, 'left');
+    assert.equal(observation.nearby.movingPlatforms[0].vx, 30);
+    assert.equal(observation.nearby.timedHazards[0].phase, 'warning');
+    assert.equal(observation.navigation.supportPlatformId, 'floor-1');
+    assert.equal(observation.navigation.landingWindow.platformId, 'moving-1');
+    assert.deepEqual(observation.availableActions, GAME_TEST_ACTIONS.slice(1));
+    const spentJumps = createTestObservation({ ...snapshot, jumpCount: 2 }, 42);
+    assert.deepEqual(spentJumps.availableActions, ['wait', 'move_left', 'move_right']);
+    assert.equal(checkTestObjectives(snapshot).passed, false);
+    assert.equal(checkTestObjectives({ ...snapshot, pendingLevel: 2 }).passed, true);
+    assert.equal(normalizeTestAction({ name: 'jump_right' }), 'jump_right');
+    assert.equal(normalizeTestAction('teleport'), null);
+    assert.equal(normalizeTestSeed('17'), 17);
+    assert.equal(normalizeTestSeed(null, null), null);
+});
+
 test('bot snapshot distinguishes death from collecting the crown', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();
@@ -1393,7 +1551,9 @@ test('bot snapshot distinguishes death from collecting the crown', async () => {
     let snap = scene.getBotSnapshot();
     assert.equal(snap.dying, true);
     assert.equal(snap.pendingLevel, null);
-    assert.deepEqual(snap.columns, [{ x: 550, w: 36, warning: true }]);
+    assert.equal(snap.columns[0].x, 550);
+    assert.equal(snap.columns[0].type, 'cosmic_ray');
+    assert.equal(snap.columns[0].phase, 'warning');
 
     scene.pendingSceneData = { level: 2, deathCount: 0 };
     snap = scene.getBotSnapshot();

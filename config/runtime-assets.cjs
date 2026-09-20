@@ -13,6 +13,7 @@ const rootFiles = Object.freeze([
     'WorldBuilder.js',
     'InputController.js',
     'Viewport.js',
+    'GameTestInterface.js',
     'SpaceChicken.js',
     'PauseController.js',
 ]);

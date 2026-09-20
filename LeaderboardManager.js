@@ -120,20 +120,13 @@ export class LeaderboardManager {
     }
 
     saveTimeToFirebase(level, newTime, playerName) {
-        if (!this.firebaseEndpoint || typeof fetch !== 'function') {
+        if (typeof fetch !== 'function') {
             return;
         }
-        const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
-        const payload = {
-            time: newTime,
-            name: playerName,
-            createdAt: Date.now(),
-        };
-
-        fetch(url, {
+        fetch(this.getLeaderboardApiUrl(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ level, time: newTime, name: playerName }),
         })
             .then((response) => {
                 if (!response.ok) {
@@ -141,121 +134,38 @@ export class LeaderboardManager {
                 }
                 return response.json();
             })
-            .then(() => {
-                this.trimFirebaseLeaderboard(level);
-            })
             .catch((err) => {
-                console.error('Firebase save failed', err);
+                console.error('Online leaderboard save failed', err);
             });
     }
 
     trimFirebaseLeaderboard(level) {
-        if (!this.firebaseEndpoint || typeof fetch !== 'function') {
-            return;
-        }
-        const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
-
-        fetch(url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch leaderboard: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (!data || typeof data !== 'object') {
-                    return null;
-                }
-                const entries = Object.entries(data)
-                    .map(([key, value]) => {
-                        const normalized = normalizeLeaderboardEntry(value);
-                        return normalized ? { key, time: normalized.time } : null;
-                    })
-                    .filter(Boolean);
-
-                if (entries.length <= GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES) {
-                    return null;
-                }
-
-                entries.sort((a, b) => a.time - b.time);
-                const extras = entries.slice(GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
-                if (!extras.length) {
-                    return null;
-                }
-
-                const updates = {};
-                extras.forEach((entry) => {
-                    updates[entry.key] = null;
-                });
-
-                return fetch(url, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updates),
-                });
-            })
-            .catch((err) => {
-                console.error('Firebase trim failed', err);
-            });
+        // D1 keeps only the fastest entries server-side.
     }
 
     fetchFirebaseLeaderboards() {
-        if (!this.firebaseEndpoint || typeof fetch !== 'function') {
+        if (typeof fetch !== 'function') {
             return Promise.resolve(null);
         }
-
-        const levels = LEVEL_IDS;
-
-        const requests = levels.map((level) => {
-            const url = `${this.firebaseEndpoint}/leaderboard/level${level}.json`;
-            return fetch(url)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to load leaderboard: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    if (!data) {
-                        return [];
-                    }
-                    if (Array.isArray(data)) {
-                        const entries = data.map(normalizeLeaderboardEntry).filter(Boolean);
-                        entries.sort((a, b) => a.time - b.time);
-                        return entries.slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
-                    }
-                    if (typeof data === 'object') {
-                        const times = Object.values(data)
-                            .map(normalizeLeaderboardEntry)
-                            .filter(Boolean);
-                        times.sort((a, b) => a.time - b.time);
-                        return times.slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
-                    }
-                    return [];
-                })
-                .catch((err) => {
-                    console.error(`Firebase load failed for level ${level}`, err);
-                    return null;
-                });
-        });
-
-        return Promise.all(requests)
-            .then((results) => {
-                if (!results || !results.length) {
-                    return null;
+        return fetch(this.getLeaderboardApiUrl())
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load leaderboard: ${response.status}`);
                 }
-                const data = {};
-                results.forEach((times, index) => {
-                    if (Array.isArray(times)) {
-                        data[levels[index]] = times;
-                    }
-                });
-                return data;
+                return response.json();
             })
+            .then((payload) => payload && payload.levels ? payload.levels : null)
             .catch((err) => {
-                console.error('Firebase leaderboard fetch failed', err);
+                console.error('Online leaderboard load failed', err);
                 return null;
             });
+    }
+
+    getLeaderboardApiUrl() {
+        if (typeof window === 'undefined' || !window.location) {
+            return '/api/leaderboard';
+        }
+        return new URL('./api/leaderboard', window.location.href).toString();
     }
 
     formatTimes(times) {

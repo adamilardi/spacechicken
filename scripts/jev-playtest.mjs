@@ -1,0 +1,373 @@
+/**
+ * Jev-driven browser playtest.
+ *
+ * The TypeSafe client runs in Node so TYPESAFE_API_KEY never enters the page.
+ * The browser receives only constrained actions through __spaceChickenTest.
+ *
+ *   npm run jev:playtest
+ *   LEVEL=2 SEED=42 JEV_DURATION_MS=90000 npm run jev:playtest
+ */
+import { choice, TypeSafeClient } from '@typesafe-ai/sdk';
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { installInPageWatchdog } from './playtest-bot.mjs';
+
+const require = createRequire(import.meta.url);
+const { createServer } = require('../server.cjs');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const LEVEL = boundedNumber(process.env.LEVEL, 1, 1, 4);
+const SEED = boundedNumber(process.env.SEED, 1, 0, 2_147_483_647);
+const DURATION_MS = boundedNumber(process.env.JEV_DURATION_MS, 60_000, 2_000, 600_000);
+const DECISION_MS = boundedNumber(process.env.JEV_DECISION_MS, 450, 100, 5_000);
+const TIME_SCALE = boundedScale(process.env.JEV_TIME_SCALE, 0.25);
+const HEADLESS = process.env.HEADLESS !== '0';
+const OUT_DIR = process.env.JEV_OUT || path.join(__dirname, '..', '.jev-runs');
+const CACHED_CHROME =
+    process.env.PLAYWRIGHT_CHROME ||
+    '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+
+const ACTION_CRITERIA = Object.freeze({
+    wait: 'Brake horizontal movement. Avoid while airborne over a gap; use only when movement is unsafe.',
+    move_left: 'Run left without jumping.',
+    move_right: 'Run right without jumping.',
+    jump: 'Jump vertically with no horizontal movement.',
+    jump_left: 'Pulse jump while moving left.',
+    jump_right: 'Pulse jump while moving right.',
+    start: 'Start the game from its title screen.',
+});
+
+function boundedNumber(value, fallback, min, max) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return fallback;
+    return Math.max(min, Math.min(max, Math.floor(number)));
+}
+
+function boundedScale(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return fallback;
+    return Math.max(0.1, Math.min(1, number));
+}
+
+function safeError(error) {
+    return {
+        name: error && error.name ? error.name : 'Error',
+        message: error && error.message ? error.message : String(error),
+        status: Number.isFinite(error && error.status) ? error.status : undefined,
+        requestId: error && error.requestId ? error.requestId : undefined,
+    };
+}
+
+export function fallbackAction(observation) {
+    const actions = observation.availableActions || [];
+    if (actions.length === 1) return actions[0];
+    const player = observation.player;
+    const objective = observation.objective;
+    if (!player || !objective || !Number.isFinite(objective.dx)) return 'wait';
+
+    const direction = objective.dx < 0 ? 'left' : 'right';
+    const navigation = observation.navigation || {};
+    const forwardHazard = (observation.nearby?.hazards || [])
+        .concat(observation.nearby?.bombs || [])
+        .some(
+            (item) =>
+                item.active &&
+                item.dx * Math.sign(objective.dx || 1) > 0 &&
+                item.dx * Math.sign(objective.dx || 1) < 100 &&
+                Math.abs(item.dy) < 80
+        );
+    const shouldJump =
+        player.grounded &&
+        (forwardHazard ||
+            navigation.immediateThreat ||
+            navigation.gapAhead ||
+            objective.dy < -35 ||
+            Math.abs(objective.dx) < 150);
+    const action = shouldJump ? `jump_${direction}` : `move_${direction}`;
+    return actions.includes(action) ? action : 'wait';
+}
+
+function criteriaFor(availableActions) {
+    return Object.fromEntries(
+        availableActions.map((action) => [action, ACTION_CRITERIA[action] || null])
+    );
+}
+
+export async function chooseJevAction(client, observation, recentActions = []) {
+    const availableActions = observation.availableActions || [];
+    if (availableActions.length === 1) {
+        return { action: availableActions[0], source: 'game_rule', confidence: 1 };
+    }
+    const response = await client.systemOne(
+        {
+            state: {
+                objective:
+                    'Collect the crown using normal player movement while avoiding hazards and falls.',
+                observation,
+                recentActions,
+            },
+            questions: {
+                nextAction: choice(
+                    {
+                        task: 'Choose the single best next action from `observation.availableActions`.',
+                        guidance: [
+                            'Use relative geometry: positive dx is right; negative dx is left.',
+                            'Use `observation.navigation` for the landing window, gap, support platform, and immediate threat.',
+                            'Use velocity, direction, and path endpoints for moving platforms, drones, and rovers.',
+                            'For lasers and cosmic rays, cooldown is safe, warning means leave the column, and active means do not cross; use timeUntilPhaseChangeMs.',
+                            'Jump to cross a gap, reach a higher landing window, or avoid an immediate threat.',
+                            'Do not invent actions or assume hidden game state.',
+                        ],
+                    },
+                    criteriaFor(availableActions)
+                ),
+            },
+        },
+        { timeout: 10_000, retry: { maxRetries: 1 } }
+    );
+    const answer = response.answers.nextAction;
+    let action = answer.choice;
+    let source = 'jev';
+    if (!availableActions.includes(action)) {
+        action = fallbackAction(observation);
+        source = 'fallback_invalid_answer';
+    } else if (action === 'wait' && answer.confidence < 0.35 && observation.phase === 'playing') {
+        action = fallbackAction(observation);
+        source = 'policy_low_confidence_wait';
+    }
+    return {
+        action,
+        source,
+        rawAction: answer.choice,
+        confidence: answer.confidence,
+        probabilities: answer.probabilities,
+        model: response.model,
+        usage: response.usage,
+    };
+}
+
+async function startGameServer() {
+    if (process.env.SPACE_CHICKEN_URL) {
+        return { baseURL: process.env.SPACE_CHICKEN_URL, close: async () => {} };
+    }
+    const server = createServer();
+    await new Promise((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(0, '127.0.0.1', resolve);
+    });
+    const address = server.address();
+    return {
+        baseURL: `http://127.0.0.1:${address.port}/`,
+        close: () => new Promise((resolve) => server.close(resolve)),
+    };
+}
+
+async function launchBrowser() {
+    const options = {
+        headless: HEADLESS,
+        args: [
+            '--use-gl=swiftshader',
+            '--ignore-gpu-blocklist',
+            '--no-sandbox',
+            '--autoplay-policy=no-user-gesture-required',
+        ],
+    };
+    if (fs.existsSync(CACHED_CHROME)) options.executablePath = CACHED_CHROME;
+    return chromium.launch(options);
+}
+
+async function readGameState(page) {
+    return page.evaluate(() => ({
+        observation: window.__spaceChickenTest.observe(),
+        objective: window.__spaceChickenTest.checkObjectives(),
+    }));
+}
+
+async function applyAction(page, action) {
+    const result = await page.evaluate(
+        (selectedAction) => window.__spaceChickenTest.act(selectedAction),
+        action
+    );
+    if (!result || !result.ok) {
+        throw new Error(`Game rejected action ${action}: ${result && result.error}`);
+    }
+    return result;
+}
+
+async function preparePage(page, baseURL) {
+    const url = new URL(baseURL);
+    url.searchParams.set('bot', 'jev');
+    url.searchParams.set('debug', '1');
+    url.searchParams.set('level', String(LEVEL));
+    url.searchParams.set('seed', String(SEED));
+    url.searchParams.set('timeScale', String(TIME_SCALE));
+    const response = await page.goto(url.toString(), { waitUntil: 'load', timeout: 45_000 });
+    if (!response || !response.ok()) {
+        throw new Error(`Failed to load game: ${response && response.status()}`);
+    }
+    await page.waitForFunction(
+        () =>
+            window.__spaceChickenTest &&
+            window.__spaceChickenDebug &&
+            window.__spaceChickenDebug.ready(),
+        null,
+        { timeout: 25_000 }
+    );
+    const reset = await page.evaluate((seed) => window.__spaceChickenTest.reset(seed), SEED);
+    if (!reset || !reset.ok) throw new Error('The game test interface could not reset the scene');
+    await page.waitForFunction(
+        () => window.__spaceChickenTest && window.__spaceChickenDebug?.ready(),
+        null,
+        { timeout: 25_000 }
+    );
+    await page.evaluate(installInPageWatchdog);
+}
+
+// eslint-disable-next-line complexity
+async function runPlaytest(client, page) {
+    const actions = [];
+    const jevErrors = [];
+    const usage = { input_tokens: 0, output_tokens: 0 };
+    const startedAt = Date.now();
+    let objective = null;
+    let finalObservation = null;
+    let jevDecisions = 0;
+
+    while (Date.now() - startedAt < DURATION_MS) {
+        const state = await readGameState(page);
+        finalObservation = state.observation;
+        objective = state.objective;
+        if (objective.passed) break;
+
+        let decision;
+        try {
+            decision = await chooseJevAction(
+                client,
+                state.observation,
+                actions.slice(-6).map(({ action, source }) => ({ action, source }))
+            );
+            if (decision.model) jevDecisions += 1;
+            usage.input_tokens += decision.usage?.input_tokens || 0;
+            usage.output_tokens += decision.usage?.output_tokens || 0;
+        } catch (error) {
+            const detail = safeError(error);
+            jevErrors.push({ atMs: Date.now() - startedAt, ...detail });
+            decision = {
+                action: fallbackAction(state.observation),
+                source: 'fallback_api_error',
+                error: detail,
+            };
+        }
+
+        await applyAction(page, decision.action);
+        const record = {
+            atMs: Date.now() - startedAt,
+            level: state.observation.level,
+            deaths: state.observation.deaths,
+            player: state.observation.player,
+            objective: state.observation.objective,
+            ...decision,
+        };
+        actions.push(record);
+        console.log(
+            `[${record.atMs}ms] L${record.level} ${record.source} -> ${record.action}` +
+                (Number.isFinite(record.confidence)
+                    ? ` (${Math.round(record.confidence * 100)}%)`
+                    : '')
+        );
+
+        await page.waitForTimeout(decision.action === 'start' ? 120 : DECISION_MS);
+        await applyAction(page, 'wait');
+    }
+
+    const state = await page.evaluate(() => {
+        window.__spaceChickenWatchdogStop?.();
+        return window.__spaceChickenTest.captureReport();
+    });
+    finalObservation = state.observation;
+    objective = state.objective;
+    const watchdogBugs = await page.evaluate(() =>
+        (window.__spaceChickenWatchdogBugs || []).slice()
+    );
+    return {
+        passed: Boolean(objective && objective.passed),
+        objective,
+        finalObservation,
+        actions,
+        watchdogBugs,
+        jevErrors,
+        jevDecisions,
+        usage,
+        durationMs: Date.now() - startedAt,
+    };
+}
+
+async function main() {
+    if (!process.env.TYPESAFE_API_KEY?.trim()) {
+        throw new Error('TYPESAFE_API_KEY is required and must stay in the Node environment');
+    }
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    const client = new TypeSafeClient({ logLevel: 'off' });
+    const gameServer = await startGameServer();
+    const browser = await launchBrowser();
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(String(error.message || error)));
+
+    console.log('Space Chicken Jev playtest');
+    console.log(
+        `URL=${gameServer.baseURL} level=${LEVEL} seed=${SEED} duration=${DURATION_MS}ms ` +
+            `timeScale=${TIME_SCALE}`
+    );
+    let result;
+    try {
+        await preparePage(page, gameServer.baseURL);
+        result = await runPlaytest(client, page);
+        await page.screenshot({
+            path: path.join(OUT_DIR, 'jev-playtest-final.png'),
+            fullPage: true,
+        });
+    } finally {
+        await context.close();
+        await browser.close();
+        await gameServer.close();
+    }
+
+    const failures = [];
+    if (!result.passed) failures.push({ kind: 'objective_not_completed' });
+    if (!result.jevDecisions) failures.push({ kind: 'no_successful_jev_decisions' });
+    failures.push(
+        ...result.watchdogBugs,
+        ...pageErrors.map((detail) => ({ kind: 'pageerror', detail }))
+    );
+    const report = {
+        when: new Date().toISOString(),
+        level: LEVEL,
+        seed: SEED,
+        simulationTimeScale: TIME_SCALE,
+        ok: failures.length === 0,
+        failures,
+        pageErrors,
+        ...result,
+    };
+    const reportPath = path.join(OUT_DIR, 'jev-playtest-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    console.log(
+        `${report.ok ? 'PASS' : 'FAIL'} objective=${report.objective?.status} ` +
+            `jevDecisions=${report.jevDecisions} deaths=${report.finalObservation?.deaths}`
+    );
+    console.log(`Report: ${reportPath}`);
+    if (!report.ok) process.exitCode = 1;
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+    main().catch((error) => {
+        console.error(safeError(error));
+        process.exit(1);
+    });
+}

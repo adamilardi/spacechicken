@@ -21,12 +21,15 @@
         "bot:level3": "LEVEL=3 node scripts/play-bot.mjs",
         "bot:level4": "LEVEL=4 node scripts/play-bot.mjs",
         "playtest": "node scripts/playtest-bot.mjs",
-        "playtest:headed": "HEADLESS=0 node scripts/playtest-bot.mjs"
+        "playtest:headed": "HEADLESS=0 node scripts/playtest-bot.mjs",
+        "jev:playtest": "node scripts/jev-playtest.mjs",
+        "jev:playtest:headed": "HEADLESS=0 node scripts/jev-playtest.mjs"
     },
     "dependencies": {
         "phaser": "3.70.0"
     },
     "devDependencies": {
+        "@typesafe-ai/sdk": "^0.6.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",
@@ -35,6 +38,6 @@
         "wrangler": "^4.123.0"
     },
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     }
 }

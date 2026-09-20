@@ -9,22 +9,36 @@ import { BackgroundRenderer } from './BackgroundRenderer.js';
 import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
+import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
 
 function readLaunchQuery() {
     if (typeof location === 'undefined' || !location.search) {
-        return { level: null, bot: false, debug: false };
+        return { level: null, bot: false, debug: false, seed: null, timeScale: 1 };
     }
     const query = new URLSearchParams(location.search);
     const level = Number(query.get('level'));
+    const requestedTimeScale = Number(query.get('timeScale'));
     return {
         level: Number.isFinite(level) ? level : null,
         bot: query.has('bot'),
         debug: query.has('debug'),
         coop: query.get('coop') || null,
+        seed: query.get('seed'),
+        timeScale:
+            query.has('timeScale') && Number.isFinite(requestedTimeScale)
+                ? Phaser.Math.Clamp(requestedTimeScale, 0.1, 1)
+                : 1,
     };
 }
 
-function listGroupBodies(group) {
+function motionDirection(vx, vy) {
+    const horizontal = vx > 5 ? 'right' : vx < -5 ? 'left' : '';
+    const vertical = vy > 5 ? 'down' : vy < -5 ? 'up' : '';
+    return [vertical, horizontal].filter(Boolean).join('_') || 'stationary';
+}
+
+// eslint-disable-next-line complexity
+function listGroupBodies(group, now = 0, defaults = {}, timeScale = 1) {
     const entries = group && group.children && group.children.entries;
     if (!Array.isArray(entries)) {
         return [];
@@ -37,9 +51,18 @@ function listGroupBodies(group) {
         }
         const width = sprite.displayWidth || sprite.width || 32;
         const height = sprite.displayHeight || sprite.height || 32;
+        const meta = sprite.testMeta || {};
+        const vx = sprite.body?.velocity?.x || 0;
+        const vy = sprite.body?.velocity?.y || 0;
         out.push({
+            id: meta.id || `${defaults.type || 'entity'}-${i + 1}`,
+            kind: meta.kind || defaults.kind || null,
+            type: meta.type || defaults.type || null,
             x: sprite.x,
             y: sprite.y,
+            vx,
+            vy,
+            direction: motionDirection(vx, vy),
             w: width,
             h: height,
             left: sprite.x - width / 2,
@@ -47,9 +70,38 @@ function listGroupBodies(group) {
             top: sprite.y - height / 2,
             active: sprite.active !== false,
             enable: !sprite.body || sprite.body.enable !== false,
+            phase: meta.phase || null,
+            timeUntilPhaseChangeMs: Number.isFinite(meta.nextChangeAt)
+                ? Math.max(0, Math.round(meta.nextChangeAt - now))
+                : null,
+            origin: meta.origin || null,
+            target: meta.target || null,
+            durationMs: Number.isFinite(meta.durationMs) ? meta.durationMs / timeScale : null,
+            delayMs: Number.isFinite(meta.delayMs) ? meta.delayMs / timeScale : null,
+            orientation: meta.orientation || null,
+            intervalMs: meta.intervalMs ?? null,
         });
     }
     return out;
+}
+
+function listHazardSchedules(scene, now, timeScale = 1) {
+    const schedules = scene && scene.testHazardSchedules;
+    if (!Array.isArray(schedules)) return [];
+    return schedules.map((schedule) => ({
+        id: schedule.id,
+        kind: schedule.kind,
+        type: schedule.type,
+        x: schedule.x,
+        y: schedule.y,
+        phase: schedule.phase,
+        intervalMs: schedule.intervalMs / timeScale,
+        warningDurationMs: schedule.warningDurationMs / timeScale,
+        activeDurationMs: schedule.activeDurationMs / timeScale,
+        timeUntilPhaseChangeMs: Number.isFinite(schedule.nextChangeAt)
+            ? Math.max(0, Math.round(schedule.nextChangeAt - now))
+            : null,
+    }));
 }
 
 function listRayColumns(scene) {
@@ -61,7 +113,19 @@ function listRayColumns(scene) {
     for (let i = 0; i < warnings.length; i++) {
         const graphic = warnings[i];
         if (graphic && Number.isFinite(graphic.rayX)) {
-            out.push({ x: graphic.rayX, w: 36, warning: true });
+            out.push({
+                id: `cosmic-ray-warning-${i + 1}`,
+                kind: 'hazard_warning',
+                type: 'cosmic_ray',
+                x: graphic.rayX,
+                y: (scene.worldHeight || 0) / 2,
+                w: 36,
+                h: Math.max(0, (scene.worldHeight || 0) - 100),
+                warning: true,
+                phase: 'warning',
+                active: true,
+                enable: true,
+            });
         }
     }
     return out;
@@ -116,6 +180,14 @@ export class SpaceChicken extends Phaser.Scene {
                 : 0;
         this.launchBot = Boolean(launch.bot);
         this.debugMode = Boolean(launch.debug || launch.bot);
+        this.testTimeScale = this.debugMode ? launch.timeScale : 1;
+        this.testSeed = normalizeTestSeed(
+            data.testSeed != null ? data.testSeed : launch.seed,
+            null
+        );
+        if (this.debugMode && this.testSeed != null && Phaser.Math.RND?.sow) {
+            Phaser.Math.RND.sow([String(this.testSeed)]);
+        }
         this.coopMode = ['keyboard', 'keyboard-controller', 'controllers'].includes(launch.coop)
             ? launch.coop
             : null;
@@ -132,6 +204,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.isJetpacking = false;
         this.restartDelayDone = true;
         this.bombSpawnEvent = null;
+        this.bombTestCounter = 0;
         this.deathResetEvent = null;
         this.deathResetWall = null;
         this.hasCleanedUp = false;
@@ -149,6 +222,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.leftPressed = false;
         this.rightPressed = false;
         this.jumpRequested = false;
+        this.botJumpWasDown = false;
         this.jumpPointerId = null;
 
         this.dynamicHazardEvents = [];
@@ -211,6 +285,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.physics.world.gravity.y = this.levelConfig.gravity;
         this.physics.resume();
+        this.applyTestTimeScale();
         this.startTime = performance.now();
 
         this.viewportWidth = this.getBaseWidth();
@@ -941,6 +1016,14 @@ export class SpaceChicken extends Phaser.Scene {
         }
         bomb.setActive?.(true);
         bomb.setVisible?.(true);
+        if (!bomb.testMeta) {
+            this.bombTestCounter += 1;
+            bomb.testMeta = {
+                id: `bomb-${this.bombTestCounter}`,
+                kind: 'hazard',
+                type: 'bomb',
+            };
+        }
         if (bomb.enableBody) {
             bomb.enableBody(true, x, y, true, true);
         } else if (bomb.body) {
@@ -1351,12 +1434,23 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.worldBuilder?.clearHazardTimers();
 
+        this.gameTestInterface?.clear();
+        this.gameTestInterface = null;
+
         this.dynamicHazardsGroup = null;
         this.bombs = null;
 
         if (this.pointerTapTimes) {
             this.pointerTapTimes.clear();
         }
+    }
+
+    applyTestTimeScale() {
+        const scale = this.testTimeScale || 1;
+        this.time.timeScale = scale;
+        this.tweens.setGlobalTimeScale(scale);
+        // Arcade Physics uses the inverse convention: larger values mean fewer fixed steps.
+        this.physics.world.timeScale = 1 / scale;
     }
 
     handleInput() {
@@ -1366,6 +1460,7 @@ export class SpaceChicken extends Phaser.Scene {
                 ? window.__spaceChickenBotInput
                 : null;
         if (!bot) {
+            this.botJumpWasDown = false;
             return state;
         }
         if (bot.start && this.awaitingStart) {
@@ -1377,9 +1472,11 @@ export class SpaceChicken extends Phaser.Scene {
         if (bot.right) {
             this.rightPressed = true;
         }
-        if (bot.jump) {
+        const botJumpDown = Boolean(bot.jump);
+        if (botJumpDown && !this.botJumpWasDown) {
             this.jumpRequested = true;
         }
+        this.botJumpWasDown = botJumpDown;
         return state;
     }
 
@@ -1387,6 +1484,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (typeof window === 'undefined') {
             return;
         }
+        this.gameTestInterface = new GameTestInterface(this, window);
         window.__spaceChickenDebug = {
             ready: () => Boolean(this.sys && this.player),
             getBotSnapshot: () => this.getBotSnapshot(),
@@ -1399,6 +1497,13 @@ export class SpaceChicken extends Phaser.Scene {
             mode: this.debugMode,
             goToLevel: (level) => this.debugGoToLevel(level),
             skipLevel: () => this.debugSkipLevel(),
+        };
+        window.__spaceChickenTest = {
+            observe: () => this.gameTestInterface.observe(),
+            act: (action) => this.gameTestInterface.act(action),
+            reset: (seed) => this.gameTestInterface.reset(seed),
+            checkObjectives: () => this.gameTestInterface.checkObjectives(),
+            captureReport: () => this.gameTestInterface.captureReport(),
         };
     }
 
@@ -1424,8 +1529,29 @@ export class SpaceChicken extends Phaser.Scene {
     getBotSnapshot() {
         const pendingLevel = pendingLevelOf(this);
         const camera = this.cameras && this.cameras.main;
+        const now = Number.isFinite(this.time?.now) ? this.time.now : 0;
+        const timeScale = this.testTimeScale || 1;
+        const staticPlatforms = listGroupBodies(
+            this.platforms,
+            now,
+            {
+                kind: 'platform',
+                type: 'static_platform',
+            },
+            timeScale
+        );
+        const movingPlatforms = listGroupBodies(
+            this.movingPlatforms,
+            now,
+            {
+                kind: 'platform',
+                type: 'moving_platform',
+            },
+            timeScale
+        );
         return {
             ready: Boolean(this.player),
+            capturedAtMs: performance.now(),
             level: this.level,
             nextLevel: this.levelConfig ? this.levelConfig.nextLevel : null,
             deaths: this.deathCount,
@@ -1435,6 +1561,7 @@ export class SpaceChicken extends Phaser.Scene {
             dying: Boolean(this.isTransitioning && !this.gameOver && pendingLevel == null),
             pendingLevel,
             elapsedMs: performance.now() - this.startTime,
+            simulationTimeScale: this.testTimeScale,
             jumpCount: this.jumpCount,
             maxJumps: this.maxJumps,
             player: describePlayer(this.player),
@@ -1460,13 +1587,29 @@ export class SpaceChicken extends Phaser.Scene {
                 : null,
             crown: this.crown ? { x: this.crown.x, y: this.crown.y } : null,
             columns: listRayColumns(this),
-            platforms: listGroupBodies(this.platforms).concat(
-                listGroupBodies(this.movingPlatforms)
+            platforms: staticPlatforms.concat(movingPlatforms),
+            movingPlatforms,
+            hazards: listGroupBodies(
+                this.hazards,
+                now,
+                {
+                    kind: 'hazard',
+                    type: 'rock',
+                },
+                timeScale
+            ).concat(
+                listGroupBodies(
+                    this.dynamicHazardsGroup,
+                    now,
+                    {
+                        kind: 'hazard',
+                        type: 'dynamic_hazard',
+                    },
+                    timeScale
+                )
             ),
-            hazards: listGroupBodies(this.hazards).concat(
-                listGroupBodies(this.dynamicHazardsGroup)
-            ),
-            bombs: listGroupBodies(this.bombs),
+            hazardSchedules: listHazardSchedules(this, now, timeScale),
+            bombs: listGroupBodies(this.bombs, now, { kind: 'hazard', type: 'bomb' }, timeScale),
         };
     }
 }

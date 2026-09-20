@@ -112,6 +112,31 @@ For testing, add `?debug=1` to the URL. Press N to skip to the next level, or us
 `window.__spaceChickenDebug.goToLevel(1)` through `goToLevel(4)` in the browser console.
 The bug-hunt bot opens each scenario directly at its target level.
 
+The debug build also exposes a constrained gameplay-testing API:
+
+```js
+window.__spaceChickenTest.observe();
+window.__spaceChickenTest.act('jump_right');
+window.__spaceChickenTest.reset(42);
+window.__spaceChickenTest.checkObjectives();
+```
+
+Run a server-side Jev pilot with `npm run jev:playtest`. The runner starts a temporary
+local game server unless `SPACE_CHICKEN_URL` is set, reads `TYPESAFE_API_KEY` only from
+the Node environment, and writes its action history, assertions, token usage, API
+errors, and final screenshot under `.jev-runs/`. Use `LEVEL=2`, `SEED=42`,
+`JEV_DURATION_MS=90000`, or `HEADLESS=0` to adjust a run. Jev can only select the
+published movement actions; collisions, deaths, checkpoints, and crown collection
+still use the same controller and game rules as human play. Jev runs the simulation at
+quarter speed by default for finer control while normal gameplay stays at full speed.
+Set `JEV_TIME_SCALE=0.5` to override it (accepted range: `0.1` through `1`).
+
+Observations use named entities and relative coordinates. Dynamic entries include hazard
+type, phase timing, velocity, direction, patrol endpoints, and moving-platform paths. The
+`navigation` section identifies the supporting platform, next landing window, gap width,
+and immediate threat so a decision model does not have to reconstruct those facts from raw
+sprites.
+
 `node scripts/verify-mobile.mjs` exercises simultaneous touch movement and jumping,
 control bounds, and rotation across phone and tablet viewports. Mobile HUD text uses
 readable minimum sizes, and neighboring controls have separate touch regions.
