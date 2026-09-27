@@ -1,6 +1,6 @@
 # 🚀 Space Chicken Game
 
-A modular, browser-based Phaser 3 platformer with 4 challenging levels, procedural graphics, dynamic audio, touch controls, and local + optional Firebase leaderboards.
+A modular, browser-based Phaser 3 platformer with 4 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
 
 ## 📁 Project Structure
 
@@ -20,7 +20,7 @@ spacechicken/
 ├── EffectsManager.js       # Pooled particles, squash/stretch, combat juice
 ├── AudioManager.js         # Web Audio API music + SFX
 ├── UIManager.js            # HUD, title screen, touch controls, leaderboards UI
-├── LeaderboardManager.js   # localStorage + optional Firebase sync
+├── LeaderboardManager.js   # localStorage + Cloudflare D1 leaderboard client
 ├── tests/                  # Behavioral and server integration tests
 ├── .gitignore
 └── archive/
@@ -89,10 +89,19 @@ For better long-term quality, ESLint + Prettier have been added (see below).
   In keyboard + keyboard mode, Player 1 uses WASD + Space; Player 2 uses the arrow keys + Numpad 0.
 - Moving platforms, lasers, patrolling drones, physics bombs
 - Collect the crown to advance
-- Local leaderboards + optional Firebase real-time sync
+- Personal bests, all-time and weekly Cloudflare D1 leaderboards, and a full-game category
 - Fully responsive (resizes with the browser)
 - Pause with Escape, P, or the on-screen pause button; leaving the tab pauses active play.
   Resume explicitly when ready. Paused time is excluded from the level timer.
+
+### Competition rules
+
+- Each level ranks its fastest completion times. A death restarts that level's timer.
+- The full-run board requires a solo, zero-death run through all four levels. Its time is the sum of the four level times, so transitions and pauses do not count.
+- Weekly boards start on Monday at 00:00 UTC. Previous weekly winners appear under Past Winners.
+- The board shows the best time from each browser identity in each category. Browser storage holds that identity and personal bests; clearing it creates a new identity.
+- Online entries require a one-use run token and plausible elapsed wall time. These checks do not prove the player followed the game rules, so the board should not be presented as cheat-proof or tied to cash prizes.
+- On the final screen, Space or JUMP starts a new full game; R or the bottom line of the board retries level 4.
 
 ## 🛠️ Development
 

@@ -1,4 +1,4 @@
-import { GAME_CONSTANTS } from './Constants.js';
+import { GAME_CONSTANTS, parallaxLayersForLevel } from './Constants.js';
 import { valueOrDefault } from './GameUtils.js';
 
 const MAX_LAYOUT_CACHE = 12;
@@ -10,6 +10,11 @@ export class BackgroundRenderer {
         this.scene = scene;
         this.graphics = null;
         this.image = null;
+        this.layerSprites = [];
+        this.twinkles = [];
+        this.worldWidth = 0;
+        this.worldHeight = 0;
+        this.viewKey = '';
     }
 
     get level() {
@@ -33,43 +38,181 @@ export class BackgroundRenderer {
     }
 
     resolveBakeSize(worldWidth, worldHeight) {
-        const maxWidth = GAME_CONSTANTS.BACKGROUND_BAKE_MAX_WIDTH;
-        const maxHeight = GAME_CONSTANTS.BACKGROUND_BAKE_MAX_HEIGHT;
-        const scale = Math.min(1, maxWidth / worldWidth, maxHeight / worldHeight);
+        const width = Math.max(1, Math.min(worldWidth, GAME_CONSTANTS.BACKGROUND_BAKE_MAX_WIDTH));
+        const height = Math.max(
+            1,
+            Math.min(worldHeight, GAME_CONSTANTS.BACKGROUND_BAKE_MAX_HEIGHT)
+        );
         return {
-            scale,
-            width: Math.max(1, Math.round(worldWidth * scale)),
-            height: Math.max(1, Math.round(worldHeight * scale)),
+            width,
+            height,
+            scaleX: width / Math.max(1, worldWidth),
+            scaleY: height / Math.max(1, worldHeight),
         };
     }
 
     render(worldWidth, worldHeight) {
         const background = (this.levelConfig && this.levelConfig.background) || {};
-        const bake = this.resolveBakeSize(worldWidth, worldHeight);
         const layoutKey = `${this.level}_background_${background.type || 'space'}_${
             background.style || 'default'
         }_${worldWidth}x${worldHeight}`;
-        const textureKey =
-            bake.scale < 1
-                ? `space-chicken-bg-${layoutKey}_b${bake.width}x${bake.height}`
-                : `space-chicken-bg-${layoutKey}`;
+        this.worldWidth = worldWidth;
+        this.worldHeight = worldHeight;
+        this.destroyPlacedLayers();
+        const layers = parallaxLayersForLevel(this.level);
+        for (let i = 0; i < layers.length; i++) {
+            this.renderLayer(layers[i], background, layoutKey, worldWidth, worldHeight);
+        }
+        this.createTwinkleStars();
+        this.viewKey = '';
+        this.syncToCamera();
+        return this.image || this.graphics;
+    }
 
+    renderLayer(layer, background, layoutKey, worldWidth, worldHeight) {
+        const bake = this.resolveBakeSize(worldWidth, worldHeight);
+        const textureKey = this.textureKeyFor(layer, layoutKey, bake);
         if (this.textures?.exists?.(textureKey)) {
-            this.placeBakedBackground(textureKey, worldWidth, worldHeight);
-            this.createTwinkleStars(worldWidth, worldHeight);
-            return this.image;
+            this.placeBakedLayer(layer, textureKey);
+            return;
         }
 
         this.graphics = this.createScratchGraphics();
-        this.drawBackground(background, layoutKey, worldWidth, worldHeight);
-
+        this.drawLayer(layer.id, background, layoutKey, worldWidth, worldHeight);
         if (this.tryBakeTexture(textureKey, bake)) {
-            this.placeBakedBackground(textureKey, worldWidth, worldHeight);
-        } else {
-            this.placeLiveGraphics();
+            this.placeBakedLayer(layer, textureKey);
+            return;
         }
-        this.createTwinkleStars(worldWidth, worldHeight);
-        return this.image || this.graphics;
+        this.placeLiveLayer(layer);
+    }
+
+    textureKeyFor(layer, layoutKey, bake) {
+        const base = `space-chicken-bg-${layoutKey}_${layer.id}`;
+        if (bake.scaleX < 1 || bake.scaleY < 1) {
+            return `${base}_b${bake.width}x${bake.height}`;
+        }
+        return base;
+    }
+
+    // Width tracks camera travel so the whole painting scrolls through the view.
+    // Height stays at least the world height so horizons are not squashed.
+    parallaxSpan(worldSize, viewSize, scrollFactor) {
+        return this.axisSpan(worldSize, viewSize, 1, scrollFactor);
+    }
+
+    // Zoomed cameras look at a point inset from the scroll origin, so a layer
+    // sized only to the visible world width ends before the right edge.
+    axisSpan(worldSize, pixels, zoom, scrollFactor) {
+        const world = Math.max(1, Number(worldSize) || 1);
+        const safePixels = Math.max(1, Number(pixels) || world);
+        const safeZoom = Number(zoom) > 0 ? Number(zoom) : 1;
+        const visible = safePixels / safeZoom;
+        const factor = Number.isFinite(scrollFactor) ? scrollFactor : 1;
+        const edge = (safePixels + visible) / 2;
+        return Math.ceil(
+            factor * world + (1 - factor) * edge + GAME_CONSTANTS.BACKGROUND_PARALLAX_PADDING
+        );
+    }
+
+    worldCameras() {
+        const cameras = [];
+        const main = this.scene.getMainCamera?.() || this.scene.cameras?.main || null;
+        if (main?.width > 0 && main?.height > 0) {
+            cameras.push(main);
+        }
+        const second = this.scene.player2Camera;
+        if (second?.width > 0 && second?.height > 0) {
+            cameras.push(second);
+        }
+        return cameras;
+    }
+
+    resolveView() {
+        const camera = this.scene.getMainCamera?.() || this.scene.cameras?.main || null;
+        const zoom = Number(camera?.zoom) > 0 ? Number(camera.zoom) : 1;
+        const cameraWidth = Number(camera?.width) > 0 ? Number(camera.width) / zoom : 0;
+        const cameraHeight = Number(camera?.height) > 0 ? Number(camera.height) / zoom : 0;
+        const fallbackWidth =
+            Number(this.scene.viewportWidth) > 0
+                ? Number(this.scene.viewportWidth)
+                : this.worldWidth;
+        const fallbackHeight =
+            Number(this.scene.viewportHeight) > 0
+                ? Number(this.scene.viewportHeight)
+                : this.worldHeight;
+        return {
+            width: cameraWidth > 0 ? cameraWidth : Math.max(1, fallbackWidth || 1),
+            height: cameraHeight > 0 ? cameraHeight : Math.max(1, fallbackHeight || 1),
+        };
+    }
+
+    syncToCamera() {
+        if (!this.layerSprites.length || !this.worldWidth || !this.worldHeight) {
+            return;
+        }
+        const cameras = this.worldCameras();
+        const viewKey = cameras.length
+            ? cameras
+                  .map((camera) => {
+                      const zoom = Number(camera.zoom) > 0 ? Number(camera.zoom) : 1;
+                      return `${camera.width}x${camera.height}@${Math.round(zoom * 1000)}`;
+                  })
+                  .join('|')
+            : (() => {
+                  const view = this.resolveView();
+                  return `${Math.round(view.width)}x${Math.round(view.height)}`;
+              })();
+        if (viewKey === this.viewKey) {
+            return;
+        }
+        this.viewKey = viewKey;
+        this.layoutParallax();
+    }
+
+    layoutParallax() {
+        for (let i = 0; i < this.layerSprites.length; i++) {
+            this.applySpan(this.layerSprites[i]);
+        }
+        this.layoutTwinkles();
+    }
+
+    applySpan(record) {
+        if (!record?.image || record.live) {
+            return;
+        }
+        const cameras = this.worldCameras();
+        let width = 0;
+        let height = 0;
+        if (cameras.length) {
+            for (let i = 0; i < cameras.length; i++) {
+                const camera = cameras[i];
+                const zoom = Number(camera.zoom) > 0 ? Number(camera.zoom) : 1;
+                width = Math.max(
+                    width,
+                    this.axisSpan(this.worldWidth, camera.width, zoom, record.scrollX)
+                );
+            }
+        } else {
+            const view = this.resolveView();
+            width = this.parallaxSpan(this.worldWidth, view.width, record.scrollX);
+        }
+        // Keep the painted floor on the same vertical coordinates as the platforms.
+        height = this.worldHeight;
+        record.image.setDisplaySize?.(width, height);
+        record.image.setSize?.(width, height);
+        record.spanWidth = width;
+        record.spanHeight = height;
+    }
+
+    layoutTwinkles() {
+        const far = this.layerSprites.find((layer) => layer.id === 'far');
+        const width = far?.spanWidth || this.worldWidth;
+        const height = far?.spanHeight || this.worldHeight;
+        for (let i = 0; i < this.twinkles.length; i++) {
+            const twinkle = this.twinkles[i];
+            twinkle.star.x = twinkle.u * width;
+            twinkle.star.y = twinkle.v * height;
+        }
     }
 
     createScratchGraphics() {
@@ -78,13 +221,13 @@ export class BackgroundRenderer {
         }
         if (this.add?.graphics) {
             const graphics = this.add.graphics();
-            graphics.setDepth(-10);
+            graphics.setDepth?.(-10);
             return graphics;
         }
         return null;
     }
 
-    drawBackground(background, layoutKey, worldWidth, worldHeight) {
+    ensureLayout(background, layoutKey, worldWidth, worldHeight) {
         const layoutCache = BackgroundRenderer.layoutCache;
         if (layoutCache.size > MAX_LAYOUT_CACHE) {
             const oldest = layoutCache.keys().next().value;
@@ -114,66 +257,106 @@ export class BackgroundRenderer {
             }
             layoutCache.set(layoutKey, backgroundLayout);
         }
+        return backgroundLayout;
+    }
 
+    drawLayer(layerId, background, layoutKey, worldWidth, worldHeight) {
         if (!this.graphics?.clear) {
             return;
         }
+        const layout = this.ensureLayout(background, layoutKey, worldWidth, worldHeight);
         this.graphics.clear();
         if (background.type === 'station') {
-            this.renderStationBackground(background, backgroundLayout, worldWidth, worldHeight);
+            this.renderStationBackground(background, layout, worldWidth, worldHeight, layerId);
             return;
         }
         if (background.type === 'moon') {
-            this.renderMoonBackground(background, backgroundLayout, worldWidth, worldHeight);
+            this.renderMoonBackground(background, layout, worldWidth, worldHeight, layerId);
             return;
         }
-        this.renderSpaceBackground(background, backgroundLayout, worldWidth, worldHeight);
+        this.renderSpaceBackground(background, layout, worldWidth, worldHeight, layerId);
     }
 
     tryBakeTexture(textureKey, bake) {
         if (!this.graphics?.generateTexture || !this.textures?.exists) {
             return false;
         }
-        const camera = this.graphics.constructor?.TargetCamera;
-        const previousZoom = camera?.zoom;
+        // generateTexture snapshots the camera matrix before it can see a zoom change,
+        // so the graphics object itself is scaled to fit the bake.
+        const graphics = this.graphics;
+        const scaled =
+            (bake.scaleX !== 1 || bake.scaleY !== 1) && typeof graphics.setScale === 'function';
+        const previousScaleX = graphics.scaleX;
+        const previousScaleY = graphics.scaleY;
         try {
-            if (camera?.setZoom && bake.scale !== 1) {
-                camera.setZoom(bake.scale);
+            if (scaled) {
+                graphics.setScale(bake.scaleX, bake.scaleY);
             }
-            this.graphics.generateTexture(textureKey, bake.width, bake.height);
+            graphics.generateTexture(textureKey, bake.width, bake.height);
             return this.textures.exists(textureKey);
         } catch (_error) {
             return false;
         } finally {
-            if (camera?.setZoom && previousZoom != null) {
-                camera.setZoom(previousZoom);
+            if (scaled) {
+                graphics.setScale(previousScaleX ?? 1, previousScaleY ?? 1);
             }
         }
     }
 
-    placeBakedBackground(textureKey, worldWidth, worldHeight) {
+    placeBakedLayer(layer, textureKey) {
         this.destroyScratchGraphics();
         if (!this.add?.image) {
             return;
         }
-        this.image = this.add.image(0, 0, textureKey);
-        this.image.setOrigin?.(0, 0);
-        this.image.setDepth?.(-10);
-        this.image.setScrollFactor?.(1);
-        if (worldWidth && worldHeight) {
-            this.image.setDisplaySize?.(worldWidth, worldHeight);
-        }
+        const image = this.add.image(0, 0, textureKey);
+        this.trackLayer(layer, image, false);
     }
 
-    placeLiveGraphics() {
+    placeLiveLayer(layer) {
         if (!this.graphics) {
             return;
         }
-        this.graphics.setDepth?.(-10);
-        if (this.add?.existing && !this.graphics.displayList) {
-            this.add.existing(this.graphics);
+        const graphics = this.graphics;
+        this.graphics = null;
+        graphics.setDepth?.(layer.depth);
+        graphics.setScrollFactor?.(layer.scrollX, layer.scrollY);
+        if (this.add?.existing && !graphics.displayList) {
+            this.add.existing(graphics);
         }
+        this.trackLayer(layer, graphics, true);
+    }
+
+    trackLayer(layer, image, live) {
+        image.setOrigin?.(0, 0);
+        image.setDepth?.(layer.depth);
+        image.setScrollFactor?.(layer.scrollX, layer.scrollY);
+        const record = {
+            id: layer.id,
+            image,
+            scrollX: layer.scrollX,
+            scrollY: layer.scrollY,
+            depth: layer.depth,
+            live,
+        };
+        this.layerSprites.push(record);
+        if (layer.id === 'near') {
+            this.image = image;
+        }
+        this.applySpan(record);
+    }
+
+    destroyPlacedLayers() {
+        for (let i = 0; i < this.layerSprites.length; i++) {
+            this.layerSprites[i].image?.destroy?.();
+        }
+        for (let i = 0; i < this.twinkles.length; i++) {
+            this.twinkles[i].star?.destroy?.();
+        }
+        this.layerSprites = [];
+        this.twinkles = [];
         this.image = null;
+        this.destroyScratchGraphics();
+        this.viewKey = '';
     }
 
     destroyScratchGraphics() {
@@ -181,24 +364,27 @@ export class BackgroundRenderer {
         this.graphics = null;
     }
 
-    createTwinkleStars(worldWidth, worldHeight) {
+    createTwinkleStars() {
         if (!this.add?.image) {
             return;
         }
+        const far = parallaxLayersForLevel(this.level).find((layer) => layer.id === 'far');
         const count = GAME_CONSTANTS.TWINKLE_STAR_COUNT;
         for (let i = 0; i < count; i++) {
-            const star = this.add.image(
-                Math.random() * worldWidth,
-                Math.random() * worldHeight * 0.62,
-                'particleSoft'
-            );
-            star.setDepth(-9);
+            const star = this.add.image(0, 0, 'particleSoft');
+            star.setDepth((far?.depth ?? -32) + 1);
             star.setScale(0.18 + Math.random() * 0.28);
+            star.setScrollFactor?.(far?.scrollX ?? 0.16, far?.scrollY ?? 0.08);
             star.setTint?.(0xffffff);
             if (star.setBlendMode && Phaser.BlendModes) {
                 star.setBlendMode(Phaser.BlendModes.ADD);
             }
             star.setAlpha(0.35);
+            this.twinkles.push({
+                star,
+                u: Math.random(),
+                v: Math.random() * 0.62,
+            });
             this.tweens?.add?.({
                 targets: star,
                 alpha: { from: 0.12, to: 0.95 },
@@ -211,7 +397,18 @@ export class BackgroundRenderer {
         }
     }
 
-    renderMoonBackground(background, layout, worldWidth, worldHeight) {
+    starsFor(layout, layerId) {
+        const stars = layout?.stars || [];
+        if (layerId === 'mid') {
+            return stars.filter((_, index) => index % 3 === 0);
+        }
+        if (layerId === 'far') {
+            return stars.filter((_, index) => index % 3 !== 0);
+        }
+        return stars;
+    }
+
+    renderMoonBackground(background, layout, worldWidth, worldHeight, layerId) {
         const palette = Object.assign(
             {
                 top: 0x0a0a0f,
@@ -225,36 +422,57 @@ export class BackgroundRenderer {
             background.palette || {}
         );
 
-        this.renderVerticalGradient(
-            0,
-            0,
-            worldWidth,
-            worldHeight,
-            [palette.top, palette.mid, palette.bottom],
-            40
-        );
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                40
+            );
+            this.drawGlow(
+                worldWidth * 0.3,
+                worldHeight * 0.48,
+                worldHeight * 0.52,
+                0x729fc8,
+                0.08,
+                8
+            );
+            return;
+        }
 
-        this.drawGlow(worldWidth * 0.3, worldHeight * 0.48, worldHeight * 0.52, 0x729fc8, 0.08, 8);
-        this.renderStars(layout.stars || []);
+        if (layerId === 'far') {
+            this.renderStars(this.starsFor(layout, 'far'));
+            this.drawGlow(worldWidth * 0.08, worldHeight * 0.18, 120, 0xffd38a, 0.14, 10);
+            this.graphics
+                .fillStyle(0xfff1bd, 0.95)
+                .fillCircle(worldWidth * 0.08, worldHeight * 0.18, 9);
+            return;
+        }
 
-        // The final ascent passes beneath a huge blue world, giving the level a clear landmark.
-        const planetSize = Math.min(170, worldHeight * 0.2);
-        this.renderPlanet({
-            x: worldWidth * 0.82,
-            y: worldHeight * 0.16,
-            size: planetSize,
-            color: 0x2d6bb0,
-            shadowColor: 0x10183f,
-            highlightColor: 0x8bd8ff,
-            detailColor: 0x53a77f,
-            atmosphereColor: 0x9cecff,
-            glowColor: 0x59bfff,
-            alpha: 0.94,
-        });
-        this.drawGlow(worldWidth * 0.08, worldHeight * 0.18, 120, 0xffd38a, 0.14, 10);
-        this.graphics
-            .fillStyle(0xfff1bd, 0.95)
-            .fillCircle(worldWidth * 0.08, worldHeight * 0.18, 9);
+        if (layerId === 'mid') {
+            this.renderStars(this.starsFor(layout, 'mid'));
+            // The final ascent passes beneath a huge blue world, giving the level a clear landmark.
+            const planetSize = Math.min(170, worldHeight * 0.2);
+            this.renderPlanet({
+                x: worldWidth * 0.82,
+                y: worldHeight * 0.16,
+                size: planetSize,
+                color: 0x2d6bb0,
+                shadowColor: 0x10183f,
+                highlightColor: 0x8bd8ff,
+                detailColor: 0x53a77f,
+                atmosphereColor: 0x9cecff,
+                glowColor: 0x59bfff,
+                alpha: 0.94,
+            });
+            return;
+        }
+
+        if (layerId !== 'near') {
+            return;
+        }
 
         const surfaceY = worldHeight * 0.68;
         this.renderPolygon(
@@ -302,7 +520,7 @@ export class BackgroundRenderer {
         );
     }
 
-    renderSpaceBackground(background, layout, worldWidth, worldHeight) {
+    renderSpaceBackground(background, layout, worldWidth, worldHeight, layerId) {
         const palette = Object.assign(
             {
                 top: 0x06101f,
@@ -318,41 +536,55 @@ export class BackgroundRenderer {
             background.palette || {}
         );
 
-        this.renderVerticalGradient(
-            0,
-            0,
-            worldWidth,
-            worldHeight,
-            [palette.top, palette.mid, palette.bottom],
-            48
-        );
-        this.drawGlow(
-            worldWidth * 0.58,
-            worldHeight * 0.82,
-            Math.max(worldWidth * 0.16, 180),
-            palette.glow,
-            0.06,
-            5
-        );
-        this.renderAtmosphericRibbons(layout.ribbons);
-
-        (layout.nebulas || []).forEach((nebula) => {
-            this.drawGlow(nebula.x, nebula.y, nebula.radius, nebula.color, nebula.alpha, 6);
-        });
-
-        this.renderStars(layout.stars);
-        this.renderPlanets(layout.planets);
-        this.renderPerspectiveGrid(layout.grid, worldWidth, worldHeight);
-
-        if (layout.farRidge && layout.farRidge.length) {
-            const farPoints = [
-                { x: -80, y: worldHeight },
-                ...layout.farRidge,
-                { x: worldWidth + 80, y: worldHeight },
-            ];
-            this.renderPolygon(farPoints, palette.silhouetteFar, 0.95);
-            this.renderRidgeLight(layout.farRidge, palette.haze, 0.22);
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                48
+            );
+            this.drawGlow(
+                worldWidth * 0.58,
+                worldHeight * 0.82,
+                Math.max(worldWidth * 0.16, 180),
+                palette.glow,
+                0.06,
+                5
+            );
+            return;
         }
+
+        if (layerId === 'far') {
+            this.renderAtmosphericRibbons(layout.ribbons);
+            (layout.nebulas || []).forEach((nebula) => {
+                this.drawGlow(nebula.x, nebula.y, nebula.radius, nebula.color, nebula.alpha, 6);
+            });
+            this.renderStars(this.starsFor(layout, 'far'));
+            return;
+        }
+
+        if (layerId === 'mid') {
+            this.renderStars(this.starsFor(layout, 'mid'));
+            this.renderPlanets(layout.planets);
+            if (layout.farRidge && layout.farRidge.length) {
+                const farPoints = [
+                    { x: -80, y: worldHeight },
+                    ...layout.farRidge,
+                    { x: worldWidth + 80, y: worldHeight },
+                ];
+                this.renderPolygon(farPoints, palette.silhouetteFar, 0.95);
+                this.renderRidgeLight(layout.farRidge, palette.haze, 0.22);
+            }
+            return;
+        }
+
+        if (layerId !== 'near') {
+            return;
+        }
+
+        this.renderPerspectiveGrid(layout.grid, worldWidth, worldHeight);
 
         if (layout.nearRidge && layout.nearRidge.length) {
             const nearPoints = [
@@ -431,7 +663,7 @@ export class BackgroundRenderer {
         });
     }
 
-    renderStationBackground(background, layout, worldWidth, worldHeight) {
+    renderStationBackground(background, layout, worldWidth, worldHeight, layerId) {
         const palette = Object.assign(
             {
                 top: 0x040915,
@@ -448,35 +680,48 @@ export class BackgroundRenderer {
             background.palette || {}
         );
 
-        this.renderVerticalGradient(
-            0,
-            0,
-            worldWidth,
-            worldHeight,
-            [palette.top, palette.mid, palette.bottom],
-            52
-        );
-        this.drawGlow(
-            worldWidth * 0.68,
-            worldHeight * 0.18,
-            Math.max(worldWidth * 0.12, 150),
-            palette.haze,
-            0.05,
-            4
-        );
-        this.renderAtmosphericRibbons(layout.ribbons);
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                52
+            );
+            this.drawGlow(
+                worldWidth * 0.68,
+                worldHeight * 0.18,
+                Math.max(worldWidth * 0.12, 150),
+                palette.haze,
+                0.05,
+                4
+            );
+            return;
+        }
 
-        (layout.nebulas || []).forEach((nebula) => {
-            this.drawGlow(nebula.x, nebula.y, nebula.radius, nebula.color, nebula.alpha, 6);
-        });
+        if (layerId === 'far') {
+            this.renderAtmosphericRibbons(layout.ribbons);
+            (layout.nebulas || []).forEach((nebula) => {
+                this.drawGlow(nebula.x, nebula.y, nebula.radius, nebula.color, nebula.alpha, 6);
+            });
+            this.renderStars(this.starsFor(layout, 'far'));
+            (layout.frames || []).forEach((frame) => {
+                this.graphics.lineStyle(frame.lineWidth, frame.color, frame.alpha);
+                this.graphics.strokeEllipse(frame.x, frame.y, frame.width, frame.height);
+            });
+            return;
+        }
 
-        this.renderStars(layout.stars);
-        this.renderPlanets(layout.planets);
+        if (layerId === 'mid') {
+            this.renderStars(this.starsFor(layout, 'mid'));
+            this.renderPlanets(layout.planets);
+            return;
+        }
 
-        (layout.frames || []).forEach((frame) => {
-            this.graphics.lineStyle(frame.lineWidth, frame.color, frame.alpha);
-            this.graphics.strokeEllipse(frame.x, frame.y, frame.width, frame.height);
-        });
+        if (layerId !== 'near') {
+            return;
+        }
 
         (layout.modules || []).forEach((module) => {
             this.graphics.fillStyle(module.fill, valueOrDefault(module.alpha, 1));

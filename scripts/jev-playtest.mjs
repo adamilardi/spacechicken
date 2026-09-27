@@ -6,6 +6,8 @@
  *
  *   npm run jev:playtest
  *   LEVEL=2 SEED=42 JEV_DURATION_MS=90000 npm run jev:playtest
+ *
+ * The API key is read from TYPESAFE_API_KEY or typesafekey and stays in Node.
  */
 import { choice, TypeSafeClient } from '@typesafe-ai/sdk';
 import { chromium } from 'playwright';
@@ -59,6 +61,10 @@ function safeError(error) {
         status: Number.isFinite(error && error.status) ? error.status : undefined,
         requestId: error && error.requestId ? error.requestId : undefined,
     };
+}
+
+export function readTypeSafeApiKey(env = process.env) {
+    return String(env.TYPESAFE_API_KEY || env.typesafekey || '').trim();
 }
 
 export function fallbackAction(observation) {
@@ -306,11 +312,14 @@ async function runPlaytest(client, page) {
 }
 
 async function main() {
-    if (!process.env.TYPESAFE_API_KEY?.trim()) {
-        throw new Error('TYPESAFE_API_KEY is required and must stay in the Node environment');
+    const apiKey = readTypeSafeApiKey();
+    if (!apiKey) {
+        throw new Error(
+            'Set TYPESAFE_API_KEY or typesafekey in the environment. The key stays in Node and is not sent to the page.'
+        );
     }
     fs.mkdirSync(OUT_DIR, { recursive: true });
-    const client = new TypeSafeClient({ logLevel: 'off' });
+    const client = new TypeSafeClient({ apiKey, logLevel: 'off' });
     const gameServer = await startGameServer();
     const browser = await launchBrowser();
     const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });

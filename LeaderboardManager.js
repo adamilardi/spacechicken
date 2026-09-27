@@ -32,6 +32,8 @@ export class LeaderboardManager {
     constructor(scene) {
         this.scene = scene;
         this.firebaseEndpoint = this.getFirebaseEndpoint();
+        this.runTokens = new Map();
+        this.playerId = scene?.playerId || globalThis.crypto?.randomUUID?.() || null;
     }
 
     getFirebaseEndpoint() {
@@ -100,14 +102,19 @@ export class LeaderboardManager {
     }
 
     saveTime(level, newTime, playerName) {
-        const normalizedLevel = normalizeLevel(level);
+        const normalizedLevel = level === 0 ? 0 : normalizeLevel(level);
         const entry = normalizeLeaderboardEntry({ time: newTime, name: playerName });
         if (normalizedLevel === null || !entry) {
             return false;
         }
 
-        this.saveTimeToFirebase(normalizedLevel, entry.time, entry.name);
+        this.lastSubmission = this.saveTimeToFirebase(normalizedLevel, entry.time, entry.name);
+        this.savePersonalBest(normalizedLevel, entry.time);
         if (!this.scene.storageAvailable) {
+            return true;
+        }
+
+        if (normalizedLevel === 0) {
             return true;
         }
 
@@ -121,14 +128,27 @@ export class LeaderboardManager {
 
     saveTimeToFirebase(level, newTime, playerName) {
         if (typeof fetch !== 'function') {
-            return;
+            return Promise.resolve(null);
         }
-        fetch(this.getLeaderboardApiUrl(), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level, time: newTime, name: playerName }),
-        })
+        const token = this.runTokens.get(level);
+        const playerId = this.getPlayerId();
+        return Promise.resolve(token)
+            .then((runToken) => {
+                if (!runToken || !playerId) return null;
+                return fetch(this.getLeaderboardApiUrl(), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        level,
+                        time: newTime,
+                        name: playerName,
+                        runToken,
+                        playerId,
+                    }),
+                });
+            })
             .then((response) => {
+                if (!response) return null;
                 if (!response.ok) {
                     throw new Error(`Failed to save time: ${response.status}`);
                 }
@@ -136,10 +156,91 @@ export class LeaderboardManager {
             })
             .catch((err) => {
                 console.error('Online leaderboard save failed', err);
+                return null;
             });
     }
 
-    trimFirebaseLeaderboard(level) {
+    startRun(level) {
+        if (typeof fetch !== 'function') return Promise.resolve(null);
+        const playerId = this.getPlayerId();
+        if (!playerId) return Promise.resolve(null);
+        const url = new URL('./run', this.getLeaderboardApiUrl());
+        const request = fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ level, playerId }),
+        })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((payload) => payload?.token || null)
+            .catch((error) => {
+                console.error('Could not start online run', error);
+                return null;
+            });
+        this.runTokens.set(level, request);
+        return request;
+    }
+
+    getPlayerId() {
+        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return this.playerId;
+        }
+        try {
+            const key = 'spaceChickenPlayerId';
+            const stored = window.localStorage.getItem(key);
+            if (/^[0-9a-f-]{36}$/i.test(stored || '')) return stored;
+            const id = this.playerId;
+            if (!id) return null;
+            window.localStorage.setItem(key, id);
+            return id;
+        } catch {
+            return this.playerId;
+        }
+    }
+
+    getPersonalBest(level) {
+        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return null;
+        }
+        try {
+            const value = Number(window.localStorage.getItem(`spaceChickenBest${level}`));
+            return Number.isFinite(value) && value > 0 ? value : null;
+        } catch {
+            return null;
+        }
+    }
+
+    savePersonalBest(level, time) {
+        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return false;
+        }
+        const previous = this.getPersonalBest(level);
+        if (previous !== null && previous <= time) {
+            return false;
+        }
+        try {
+            window.localStorage.setItem(`spaceChickenBest${level}`, String(time));
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    fetchCompetition() {
+        if (typeof fetch !== 'function') {
+            return Promise.resolve(null);
+        }
+        return fetch(this.getLeaderboardApiUrl())
+            .then((response) => {
+                if (!response.ok) throw new Error(`Failed to load leaderboard: ${response.status}`);
+                return response.json();
+            })
+            .catch((err) => {
+                console.error('Online leaderboard load failed', err);
+                return null;
+            });
+    }
+
+    trimFirebaseLeaderboard(_level) {
         // D1 keeps only the fastest entries server-side.
     }
 
@@ -147,14 +248,8 @@ export class LeaderboardManager {
         if (typeof fetch !== 'function') {
             return Promise.resolve(null);
         }
-        return fetch(this.getLeaderboardApiUrl())
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Failed to load leaderboard: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((payload) => payload && payload.levels ? payload.levels : null)
+        return this.fetchCompetition()
+            .then((payload) => (payload && payload.levels ? payload.levels : null))
             .catch((err) => {
                 console.error('Online leaderboard load failed', err);
                 return null;

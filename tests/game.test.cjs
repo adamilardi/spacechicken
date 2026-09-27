@@ -112,6 +112,7 @@ test('all active JavaScript files pass the JavaScript parser', () => {
         'Viewport.js',
         'GameTestInterface.js',
         'SpaceChicken.js',
+        'SplitScreen.js',
         'server.cjs',
         'config/runtime-assets.cjs',
         'scripts/build-cloudflare.cjs',
@@ -487,41 +488,70 @@ test('the chicken faces the direction it is moving', async () => {
     assert.deepEqual(flips, [true, false]);
 });
 
-test('baked backgrounds reuse a generated texture instead of redrawing', async () => {
+test('baked backgrounds reuse generated parallax textures instead of redrawing', async () => {
     const { BackgroundRenderer } = await importModule('BackgroundRenderer.js');
+    const { parallaxLayersForLevel } = await importModule('Constants.js');
     const images = [];
+    let graphicsCreates = 0;
     const scene = {
         level: 1,
         levelConfig: { background: { type: 'space', style: 'dawn' } },
         textures: {
             exists(key) {
-                return key === 'space-chicken-bg-1_background_space_dawn_200x100';
+                return /^space-chicken-bg-1_background_space_dawn_200x100_(sky|far|mid|near)$/.test(
+                    key
+                );
             },
         },
         add: {
             image(x, y, key) {
                 const sprite = {
                     key,
+                    depth: 0,
+                    scrollFactorX: 1,
+                    scrollFactorY: 1,
                     setOrigin() {
                         return this;
                     },
-                    setDepth() {
+                    setDepth(value) {
+                        this.depth = value;
                         return this;
                     },
-                    setScrollFactor() {
+                    setScrollFactor(x, y) {
+                        this.scrollFactorX = x;
+                        this.scrollFactorY = y;
+                        return this;
+                    },
+                    setDisplaySize() {
+                        return this;
+                    },
+                    setSize() {
                         return this;
                     },
                 };
                 images.push(sprite);
                 return sprite;
             },
+            graphics() {
+                graphicsCreates += 1;
+                return {};
+            },
         },
     };
     const renderer = new BackgroundRenderer(scene);
     renderer.createTwinkleStars = () => {};
     renderer.render(200, 100);
-    assert.equal(images.length, 1);
-    assert.equal(images[0].key, 'space-chicken-bg-1_background_space_dawn_200x100');
+    const layers = parallaxLayersForLevel(scene.level);
+    assert.equal(graphicsCreates, 0);
+    assert.equal(images.length, layers.length);
+    layers.forEach((layer, index) => {
+        assert.equal(images[index].key.endsWith(`_${layer.id}`), true);
+        assert.equal(images[index].scrollFactorX, layer.scrollX);
+        assert.equal(images[index].scrollFactorY, layer.scrollY);
+        assert.equal(images[index].depth, layer.depth);
+        assert.ok(images[index].scrollFactorX < 1);
+    });
+    assert.ok(layers[0].scrollX > parallaxLayersForLevel(3)[0].scrollX);
 });
 
 test('wide worlds bake a smaller background texture and stretch it', async () => {
@@ -546,15 +576,21 @@ test('wide worlds bake a smaller background texture and stretch it', async () =>
                     setOrigin() {
                         return this;
                     },
-                    setDepth() {
+                    setDepth(value) {
+                        this.depth = value;
                         return this;
                     },
-                    setScrollFactor() {
+                    setScrollFactor(x, y) {
+                        this.scrollFactorX = x;
+                        this.scrollFactorY = y;
                         return this;
                     },
                     setDisplaySize(width, height) {
                         this.displayWidth = width;
                         this.displayHeight = height;
+                        return this;
+                    },
+                    setSize() {
                         return this;
                     },
                 };
@@ -582,15 +618,119 @@ test('wide worlds bake a smaller background texture and stretch it', async () =>
     };
     const renderer = new BackgroundRenderer(scene);
     renderer.createTwinkleStars = () => {};
-    renderer.drawBackground = () => {};
+    renderer.drawLayer = () => {};
     renderer.render(3000, 700);
 
-    assert.equal(generated.length, 1);
-    assert.ok(generated[0].width <= GAME_CONSTANTS.BACKGROUND_BAKE_MAX_WIDTH);
-    assert.ok(generated[0].width < 3000);
-    assert.equal(images.length, 1);
-    assert.equal(images[0].displayWidth, 3000);
-    assert.equal(images[0].displayHeight, 700);
+    const { parallaxLayersForLevel } = await importModule('Constants.js');
+    const layers = parallaxLayersForLevel(scene.level);
+    assert.equal(generated.length, layers.length);
+    generated.forEach((entry) => {
+        assert.ok(entry.width <= GAME_CONSTANTS.BACKGROUND_BAKE_MAX_WIDTH);
+        assert.ok(entry.width < 3000);
+        assert.equal(entry.height, 700);
+        assert.equal(entry.width, generated[0].width);
+        assert.equal(entry.height, generated[0].height);
+    });
+    assert.equal(images.length, layers.length);
+    const expectedWidth = renderer.parallaxSpan(3000, 3000, layers[0].scrollX);
+    const expectedHeight = 700;
+    images.forEach((image, index) => {
+        assert.equal(image.scrollFactorX, layers[index].scrollX);
+        assert.equal(image.displayWidth, expectedWidth);
+        assert.equal(image.displayHeight, expectedHeight);
+    });
+});
+
+test('zoomed cameras extend parallax layers past the right edge of the screen', async () => {
+    const { BackgroundRenderer } = await importModule('BackgroundRenderer.js');
+    const renderer = new BackgroundRenderer({});
+    const width = 1280;
+    const zoom = 1280 / 1244.4444444444446;
+    const world = 2000;
+    const visible = width / zoom;
+    const edge = (width + visible) / 2;
+    const scrollMax = world - edge;
+    [0.05, 0.16, 0.4, 0.7].forEach((factor) => {
+        const span = renderer.axisSpan(world, width, zoom, factor);
+        const layerRight = span - scrollMax * factor;
+        assert.ok(
+            layerRight >= edge,
+            `factor ${factor} ends at ${layerRight}, screen needs ${edge}`
+        );
+        assert.ok(span > renderer.parallaxSpan(world, visible, factor));
+    });
+});
+
+test('parallax layers are narrower than the world so the full backdrop scrolls into view', async () => {
+    const { BackgroundRenderer } = await importModule('BackgroundRenderer.js');
+    const { parallaxLayersForLevel } = await importModule('Constants.js');
+    const generated = [];
+    const images = [];
+    const scene = {
+        level: 2,
+        viewportWidth: 900,
+        viewportHeight: 400,
+        levelConfig: { background: { type: 'space', style: 'arcadeOrbit' } },
+        textures: {
+            exists(key) {
+                return generated.some((entry) => entry.key === key);
+            },
+        },
+        add: {
+            image(_x, _y, key) {
+                const sprite = {
+                    key,
+                    displayWidth: 0,
+                    displayHeight: 0,
+                    setOrigin() {
+                        return this;
+                    },
+                    setDepth() {
+                        return this;
+                    },
+                    setScrollFactor() {
+                        return this;
+                    },
+                    setDisplaySize(width, height) {
+                        this.displayWidth = width;
+                        this.displayHeight = height;
+                        return this;
+                    },
+                    setSize() {
+                        return this;
+                    },
+                };
+                images.push(sprite);
+                return sprite;
+            },
+            graphics() {
+                return {
+                    generateTexture(key, width, height) {
+                        generated.push({ key, width, height });
+                    },
+                    destroy() {},
+                };
+            },
+        },
+    };
+    const renderer = new BackgroundRenderer(scene);
+    renderer.createTwinkleStars = () => {};
+    renderer.drawLayer = () => {};
+    renderer.render(3000, 700);
+
+    const layers = parallaxLayersForLevel(scene.level);
+    assert.equal(images.length, layers.length);
+    images.forEach((image, index) => {
+        assert.equal(image.displayWidth, renderer.parallaxSpan(3000, 900, layers[index].scrollX));
+        assert.ok(image.displayWidth < 3000);
+    });
+    assert.ok(images[0].displayWidth < images[images.length - 1].displayWidth);
+    const bakedCount = generated.length;
+    scene.viewportWidth = 600;
+    renderer.syncToCamera();
+    assert.equal(generated.length, bakedCount);
+    assert.equal(images[0].displayWidth, renderer.parallaxSpan(3000, 600, layers[0].scrollX));
+    assert.ok(images[0].displayWidth < renderer.parallaxSpan(3000, 900, layers[0].scrollX));
 });
 
 test('timer text only updates when the displayed centiseconds change', async () => {
@@ -1327,6 +1467,130 @@ test('resizing a touch session stores the viewport and offsets the camera', asyn
     assert.ok(scene.playCameraZoom >= 1);
 });
 
+test('split panes sit side by side on a wide screen and stack on a tall one', async () => {
+    const { splitPanes, paneZoom, SPLIT_GAP } = await importModule('SplitScreen.js');
+    const wide = splitPanes(1280, 720);
+    assert.equal(wide.sideBySide, true);
+    assert.equal(wide.panes[0].x, 0);
+    assert.equal(wide.panes[1].x, wide.panes[0].width + SPLIT_GAP);
+    assert.equal(wide.panes[0].width + SPLIT_GAP + wide.panes[1].width, 1280);
+    assert.equal(wide.panes[0].height, 720);
+    assert.equal(wide.panes[1].height, 720);
+
+    const tall = splitPanes(390, 844);
+    assert.equal(tall.sideBySide, false);
+    assert.equal(tall.panes[0].y, 0);
+    assert.equal(tall.panes[1].y, tall.panes[0].height + SPLIT_GAP);
+    assert.equal(tall.panes[0].height + SPLIT_GAP + tall.panes[1].height, 844);
+    assert.ok(paneZoom({ width: 640, height: 900 }, 700) > 1);
+    assert.equal(paneZoom({ width: 390, height: 400 }, 700), 1);
+});
+
+test('the first chicken to the crown wins and the other is lined up for the bomb', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const bombs = [];
+    scene.awaitingStart = false;
+    scene.isTransitioning = false;
+    scene.gameOver = false;
+    scene.raceFinale = false;
+    scene.startTime = performance.now() - 2500;
+    scene.worldWidth = 2000;
+    scene.player = {
+        x: 100,
+        y: 400,
+        setVelocity(x, y) {
+            this.vx = x;
+            this.vy = y;
+        },
+        setTint() {},
+        setAngularVelocity() {},
+        setBounce() {},
+        body: { enable: true },
+    };
+    scene.player2 = {
+        x: 800,
+        y: 420,
+        setVelocity(x, y) {
+            this.vx = x;
+            this.vy = y;
+        },
+        setTint() {},
+    };
+    scene.crown = { x: 1800, y: 300 };
+    scene.coopMode = 'keyboard';
+    scene.audioManager = { playCollectSound() {}, playHazardHitSound() {} };
+    scene.uiManager = {
+        showRaceBanner(winner) {
+            scene.banner = winner;
+        },
+    };
+    scene.effectsManager = { collectBurst() {}, deathBurst() {} };
+    scene.clearBombSpawns = () => {};
+    scene.cameraFor = () => ({ flash() {}, shake() {} });
+    scene.add = {
+        image(x, y, key) {
+            const bomb = { x, y, key, setDepth() {}, setScale() {}, destroy() {} };
+            bombs.push(bomb);
+            return bomb;
+        },
+        text() {
+            return { setOrigin() {}, setDepth() {}, destroy() {} };
+        },
+    };
+    scene.tweens = {
+        add(config) {
+            scene.tween = config;
+            return config;
+        },
+    };
+    scene.time = {
+        delayedCall() {
+            return { remove() {} };
+        },
+    };
+    scene.assignCameraFilter = () => {};
+
+    scene.collectGem(scene.player2);
+    assert.equal(scene.raceWinner, 2);
+    assert.equal(scene.banner, 2);
+    assert.equal(scene.isTransitioning, true);
+    assert.equal(bombs.length, 1);
+    assert.equal(bombs[0].key, 'bomb');
+    assert.equal(bombs[0].x, 100);
+    scene.tween.onComplete();
+    assert.ok(scene.player.vy < -400);
+    assert.equal(scene.player2.vy, -150);
+
+    scene.raceFinale = false;
+    scene.isTransitioning = false;
+    scene.gameOver = false;
+    scene.raceWinner = 0;
+    let queued = false;
+    scene.player2 = null;
+    scene.queueSceneStart = () => {
+        queued = true;
+    };
+    scene.leaderboardManager = {
+        getPersonalBest() {
+            return null;
+        },
+        ensurePlayerName() {
+            return 'Ada';
+        },
+        saveTime() {},
+        lastSubmission: null,
+    };
+    scene.uiManager.updatePlayerName = () => {};
+    scene.uiManager.showLevelResult = () => {};
+    scene.level = 1;
+    scene.levelConfig = { nextLevel: 2 };
+    scene.debugMode = true;
+    scene.collectGem(scene.player);
+    assert.equal(queued, true);
+    assert.equal(scene.raceWinner, 0);
+});
+
 test('UI objects are removed from the world camera after being marked', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();
@@ -1340,6 +1604,14 @@ test('UI objects are removed from the world camera after being marked', async ()
     title.spaceChickenUi = true;
     scene.assignCameraFilter(title);
     assert.equal(title.cameraFilter, 1);
+
+    scene.player2Camera = { id: 4, ignore() {} };
+    const world = { cameraFilter: 0 };
+    scene.assignCameraFilter(world);
+    assert.equal(world.cameraFilter, 2);
+    const splitUi = { cameraFilter: 0, spaceChickenUi: true };
+    scene.assignCameraFilter(splitUi);
+    assert.equal(splitUi.cameraFilter, 5);
 });
 
 test('instructions stay hidden until the level banner has finished', async () => {
@@ -1375,6 +1647,30 @@ test('touch instructions describe the on-screen arrow controls', async () => {
     const config = new LevelConfig(1);
     assert.match(config.touchInstructions, /arrow/i);
     assert.match(config.touchInstructions, /jump/i);
+});
+
+test('the Jev playtest keeps the API key in Node and walks toward the crown', async () => {
+    const { fallbackAction, readTypeSafeApiKey } = await importModule('scripts/jev-playtest.mjs');
+    const savedOfficial = process.env.TYPESAFE_API_KEY;
+    const savedAlias = process.env.typesafekey;
+    delete process.env.TYPESAFE_API_KEY;
+    process.env.typesafekey = 'alias-key';
+    assert.equal(readTypeSafeApiKey(), 'alias-key');
+    process.env.TYPESAFE_API_KEY = 'official-key';
+    assert.equal(readTypeSafeApiKey(), 'official-key');
+    if (savedOfficial === undefined) delete process.env.TYPESAFE_API_KEY;
+    else process.env.TYPESAFE_API_KEY = savedOfficial;
+    if (savedAlias === undefined) delete process.env.typesafekey;
+    else process.env.typesafekey = savedAlias;
+
+    const action = fallbackAction({
+        availableActions: ['wait', 'move_right', 'jump_right'],
+        player: { grounded: true },
+        objective: { dx: 420, dy: 8 },
+        navigation: {},
+        nearby: { hazards: [], bombs: [] },
+    });
+    assert.equal(action, 'move_right');
 });
 
 test('the play-bot exports an in-page pilot installer', async () => {

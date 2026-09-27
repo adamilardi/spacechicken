@@ -18,6 +18,7 @@ export const GAME_CONSTANTS = {
     RESTART_DELAY: 500,
     DEATH_TRANSITION_DELAY: 320,
     LEVEL_TRANSITION_DELAY: 640,
+    RACE_FINALE_MS: 1700,
     OVERLAY_DEPTH: 10000,
     MUSIC_BUTTON_DEPTH: 10002,
     LEADERBOARD_BUTTON_DEPTH: 10002,
@@ -76,6 +77,22 @@ export const GAME_CONSTANTS = {
     TWINKLE_STAR_COUNT: 6,
     BACKGROUND_BAKE_MAX_WIDTH: 2048,
     BACKGROUND_BAKE_MAX_HEIGHT: 1024,
+    // Extra pixels so camera rounding cannot expose a gap at the layer edge.
+    BACKGROUND_PARALLAX_PADDING: 8,
+    BACKGROUND_PARALLAX_LAYERS: Object.freeze([
+        Object.freeze({ id: 'sky', scrollX: 0.05, scrollY: 1, depth: -40 }),
+        Object.freeze({ id: 'far', scrollX: 0.16, scrollY: 1, depth: -32 }),
+        Object.freeze({ id: 'mid', scrollX: 0.4, scrollY: 1, depth: -24 }),
+        Object.freeze({ id: 'near', scrollX: 0.7, scrollY: 1, depth: -16 }),
+    ]),
+    // Dawn Run and Arcade Orbit drift much closer to the playfield.
+    // Vertical factor stays locked so the floor does not slide against the platforms.
+    BACKGROUND_PARALLAX_LAYERS_GENTLE: Object.freeze([
+        Object.freeze({ id: 'sky', scrollX: 0.82, scrollY: 1, depth: -40 }),
+        Object.freeze({ id: 'far', scrollX: 0.86, scrollY: 1, depth: -32 }),
+        Object.freeze({ id: 'mid', scrollX: 0.9, scrollY: 1, depth: -24 }),
+        Object.freeze({ id: 'near', scrollX: 0.95, scrollY: 1, depth: -16 }),
+    ]),
 
     FLOOR_PLATFORM_SCALE: { x: 1.5, y: 0.3 },
     FLOOR_TILE_SIZE: 64,
@@ -111,6 +128,12 @@ export const GAME_CONSTANTS = {
     MUSIC_BUTTON_SIZE: 48,
     MUSIC_BUTTON_SIZE_COMPACT: 52,
 };
+
+export function parallaxLayersForLevel(level) {
+    return Number(level) <= 2
+        ? GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS_GENTLE
+        : GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS;
+}
 
 export const KEY_CODES = {
     M: 77,

@@ -15,6 +15,7 @@ const rootFiles = Object.freeze([
     'Viewport.js',
     'GameTestInterface.js',
     'SpaceChicken.js',
+    'SplitScreen.js',
     'PauseController.js',
 ]);
 
