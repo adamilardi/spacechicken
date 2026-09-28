@@ -97,13 +97,13 @@
             #pause-dialog {
                 box-sizing: border-box;
                 width: min(420px, calc(100% - 32px));
-                padding: 28px;
+                padding: 24px;
                 border: 1px solid #617dad;
                 border-radius: 20px;
                 background: #101b30;
                 color: #dce7ff;
                 text-align: center;
-                line-height: 1.6;
+                line-height: 1.45;
                 max-height: calc(
                     100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
                 );
@@ -116,6 +116,17 @@
             #pause-dialog h1 {
                 color: #ffe566;
                 margin-top: 0;
+            }
+            .pause-touch-help {
+                display: none;
+            }
+            @media (pointer: coarse) {
+                .pause-keyboard-help {
+                    display: none;
+                }
+                .pause-touch-help {
+                    display: block;
+                }
             }
             @media (max-height: 500px) {
                 #pause-dialog {
@@ -138,13 +149,12 @@
             Ⅱ
         </button>
         <dialog id="pause-dialog" aria-labelledby="pause-title">
-            <h1 id="pause-title">Taking a breather</h1>
-            <p>Your run is paused. Ready for the next jump?</p>
-            <p>
-                Move with ← → or A / D.<br />Jump with Space, ↑, or W. Jump again for a boost.<br />On
-                touch screens, use the arrow and jump buttons.<br />Press 2 for a split-screen race.
-                Player 2 uses the arrows and ↑ or numpad 0. First crown wins.
+            <h1 id="pause-title">Game paused</h1>
+            <p>The timer is stopped.</p>
+            <p class="pause-keyboard-help">
+                Move: ← → or A / D · Jump: Space, ↑, or W<br />Press 2 for a split-screen race.
             </p>
+            <p class="pause-touch-help">Use the arrows to move and JUMP to boost.</p>
             <button id="resume-button" class="game-button">Resume game</button>
         </dialog>
         <noscript><p class="error">Enable JavaScript to play Space Chicken.</p></noscript>

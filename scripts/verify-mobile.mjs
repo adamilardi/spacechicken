@@ -87,6 +87,26 @@ try {
         );
         await page.waitForTimeout(500);
         const controls = (await layout(page)).bounds;
+        if (viewport.width <= 360 && viewport.height > viewport.width) {
+            const deaths = controls.deathText;
+            const narrow = await page.evaluate(() => {
+                const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
+                const ui = scene.uiManager;
+                return {
+                    board: ui.leaderboardButton.getBounds(),
+                    name: ui.playerNameText.getBounds(),
+                    banner: ui.bannerTitle.getBounds(),
+                };
+            });
+            assert.ok(
+                deaths.y >= narrow.board.y + narrow.board.height,
+                'narrow phone stats must sit below the top buttons'
+            );
+            assert.ok(
+                narrow.banner.y >= narrow.name.y + narrow.name.height + 8,
+                'level banner must clear the narrow phone HUD'
+            );
+        }
         const point = (rect, id) => ({
             x: rect.x + rect.width / 2,
             y: rect.y + rect.height / 2,
@@ -135,6 +155,8 @@ try {
         await page.screenshot({ path: join(output, `${label}-play.png`) });
         await page.locator('#pause-button').tap();
         assert.equal(await page.locator('dialog').evaluate((dialog) => dialog.open), true);
+        const heading = await page.locator('#pause-title').boundingBox();
+        assert.ok(heading && heading.y >= 0, 'pause heading must be visible');
         await page.screenshot({ path: join(output, `${label}-pause.png`) });
         await page.locator('#resume-button').tap();
         const rotated = { width: viewport.height, height: viewport.width };

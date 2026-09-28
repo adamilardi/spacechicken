@@ -137,6 +137,15 @@ try {
                 ),
                 false
             );
+            assert.equal(
+                await page.evaluate(
+                    () =>
+                        window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].uiManager.playerNameText
+                            .input.enabled
+                ),
+                false,
+                'name editing must be disabled during a timed run'
+            );
             await page.evaluate(() =>
                 window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].collectGem()
             );

@@ -740,6 +740,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.awaitingStart = false;
         this.input?.off?.('pointerup', this.onTitlePointerUp, this);
         this.startTime = performance.now();
+        this.uiManager?.updatePlayerName?.(this.playerName);
         if (this.level === 1) {
             this.runElapsedMs = 0;
             this.runEligible = !this.debugMode && !this.coopMode;

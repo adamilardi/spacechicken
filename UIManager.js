@@ -17,6 +17,12 @@ export class UIManager {
         this.leaderboardButton = null;
         this.leaderboardTextObject = null;
         this.leaderboardBackdrop = null;
+        this.finishBackdrop = null;
+        this.finishDim = null;
+        this.finishTitle = null;
+        this.finishSummary = null;
+        this.finishRetryButton = null;
+        this.finishNewGameButton = null;
         this.leaderboardTextContent = '';
         this.leaderboardVisible = false;
         this.leaderboardRequestId = 0;
@@ -207,6 +213,12 @@ export class UIManager {
             this.bannerSubtitle,
             this.leaderboardTextObject,
             this.leaderboardBackdrop,
+            this.finishBackdrop,
+            this.finishDim,
+            this.finishTitle,
+            this.finishSummary,
+            this.finishRetryButton,
+            this.finishNewGameButton,
         ].filter(Boolean);
     }
 
@@ -434,6 +446,7 @@ export class UIManager {
         this.layoutUI();
         this.layoutTouchControls();
         this.layoutLeaderboard();
+        this.layoutFinishScreen();
         this.layoutTitleScreen();
         this.layoutLevelBanner();
     }
@@ -470,6 +483,7 @@ export class UIManager {
         const fonts = metrics.fonts;
         const padding = metrics.hudPadding;
         const width = metrics.width;
+        const narrowPortrait = metrics.isPortrait && metrics.innerWidth <= 360;
 
         this.applyFontSize(this.timerText, fonts.timer);
         this.applyFontSize(this.targetText, Math.max(12, fonts.death - 2));
@@ -535,7 +549,7 @@ export class UIManager {
 
         this.layoutPlayerName(metrics, insets, padding, width);
         this.wrapInstructionText(metrics, padding);
-        this.avoidHudOverlap();
+        if (!narrowPortrait) this.avoidHudOverlap();
         if (metrics.isCompact) {
             // Keep the HUD shallow in landscape and leave the playfield readable.
             this.levelText.setPosition(
@@ -560,6 +574,33 @@ export class UIManager {
             );
             this.text.setWordWrapWidth(Math.max(140, metrics.innerWidth - padding * 2), true);
         }
+        if (narrowPortrait && !this.titleText) {
+            this.layoutNarrowPortraitHud(insets, padding, width);
+        }
+    }
+
+    layoutNarrowPortraitHud(insets, padding, width) {
+        const controlsBottom = Math.max(
+            this.musicToggleButton?.y + this.musicToggleButton?.displayHeight / 2 || 0,
+            this.leaderboardButton?.y + this.leaderboardButton?.displayHeight / 2 || 0
+        );
+        this.timerText.setPosition(insets.left + padding, controlsBottom + 8);
+        this.levelText.setPosition(
+            insets.left + padding,
+            this.timerText.y + this.timerText.height + 4
+        );
+        this.deathText?.setPosition(this.levelText.x + this.levelText.width + 12, this.levelText.y);
+        const statsBottom =
+            this.levelText.y + Math.max(this.levelText.height, this.deathText?.height || 0);
+        this.targetText?.setPosition(insets.left + padding, statsBottom + 4);
+        this.playerNameText?.setPosition(
+            width - insets.right - padding,
+            this.targetText.y + this.targetText.height + 8 + this.playerNameText.displayHeight / 2
+        );
+        this.text.setPosition(
+            insets.left + padding,
+            this.playerNameText.y + this.playerNameText.displayHeight / 2 + 8
+        );
     }
 
     layoutPlayerName(metrics, insets, padding, width) {
@@ -809,6 +850,7 @@ export class UIManager {
                 this.bannerSubtitle.setText(`${ranks}${next}`);
                 this.layoutLevelBanner();
             }
+            this.updateFinishSummary();
             if (this.leaderboardVisible) this.displayLeaderboard();
         });
     }
@@ -818,6 +860,7 @@ export class UIManager {
         Promise.resolve(submission).then((result) => {
             if (this.destroyed || !result?.rank) return;
             this.fullRunSummary += `\nAll-time #${result.rank} · Weekly #${result.weeklyRank}`;
+            this.updateFinishSummary();
             if (this.leaderboardVisible) this.displayLeaderboard();
         });
     }
@@ -843,11 +886,16 @@ export class UIManager {
         this.playerNameText.setText(
             this.titleText ? `CHANGE NAME: ${this.playerName}` : `Player: ${this.playerName}`
         );
+        if (this.scene.awaitingStart) {
+            this.playerNameText.setInteractive?.({ useHandCursor: true });
+        } else {
+            this.playerNameText.disableInteractive?.();
+        }
         this.layoutUI();
     }
 
     editPlayerName() {
-        if (!this.scene || !this.scene.leaderboardManager) {
+        if (!this.scene?.awaitingStart || !this.scene.leaderboardManager) {
             return;
         }
         const playerName = this.scene.leaderboardManager.ensurePlayerName(true);
@@ -876,25 +924,19 @@ export class UIManager {
         this.leaderboardVisible = false;
         this.leaderboardRequestId = 0;
         this.refreshLeaderboardButtonStyle();
+        this.setFinishVisible(this.scene.gameOver);
     }
 
     displayLeaderboard() {
         this.clearLevelBanner();
+        this.setFinishVisible(false);
         const requestId = Date.now() + Math.random();
         this.leaderboardRequestId = requestId;
         const updateTextObject = (sectionsText) => {
             if (this.destroyed || this.leaderboardRequestId !== requestId) {
                 return;
             }
-            const leaderboardText =
-                'LEADERBOARD\n' +
-                (this.fullRunSummary && this.leaderboardPage === 0
-                    ? `${this.fullRunSummary}\n`
-                    : '') +
-                (this.completionSummary && this.leaderboardPage === this.scene.level
-                    ? `${this.completionSummary}\n`
-                    : '') +
-                sectionsText;
+            const leaderboardText = `LEADERBOARD\n${sectionsText}`;
             this.leaderboardTextContent = leaderboardText;
             if (this.leaderboardTextObject) {
                 this.leaderboardTextObject.destroy();
@@ -917,20 +959,7 @@ export class UIManager {
                 .setScrollFactor(0);
             this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
             this.leaderboardTextObject.setInteractive({ useHandCursor: true });
-            this.leaderboardTextObject.on('pointerup', (pointer) => {
-                const bounds = this.leaderboardTextObject.getBounds();
-                if (
-                    this.scene.gameOver &&
-                    this.scene.restartDelayDone &&
-                    pointer?.y >= bounds.bottom - 32
-                ) {
-                    this.scene.scene.restart({
-                        level: this.scene.level,
-                        deathCount: 0,
-                        coopMode: this.scene.coopMode,
-                    });
-                    return;
-                }
+            this.leaderboardTextObject.on('pointerup', () => {
                 this.leaderboardPage = (this.leaderboardPage + 1) % 5;
                 this.displayLeaderboard();
             });
@@ -945,7 +974,7 @@ export class UIManager {
             const level = this.leaderboardPage;
             const metrics = this.getLayoutMetrics();
             const compactLandscape = metrics.isCompact && !metrics.isPortrait;
-            const visibleCount = compactLandscape ? (this.scene.gameOver ? 2 : 3) : 5;
+            const visibleCount = metrics.isTiny ? 2 : metrics.isCompact ? 3 : 5;
             const label = level === 0 ? 'FULL RUN · ZERO DEATHS' : `LEVEL ${level}`;
             const remoteTimes = competition?.levels?.[level] || [];
             const best = this.scene.leaderboardManager.getPersonalBest(level);
@@ -967,7 +996,7 @@ export class UIManager {
             const weeklyTimes = weekly.slice(0, visibleCount);
             const past = winners.length
                 ? winners
-                      .slice(0, compactLandscape ? 1 : 2)
+                      .slice(0, metrics.isCompact ? 1 : 2)
                       .map(
                           (winner) =>
                               `${winner.week}: ${formatElapsedTime(winner.time)} - ${winner.name}`
@@ -976,11 +1005,7 @@ export class UIManager {
                 : 'No past winners yet';
             const bestLine =
                 best === null ? 'Your best: none yet' : `Your best: ${formatElapsedTime(best)}`;
-            const footer = this.scene.gameOver
-                ? compactLandscape
-                    ? `Tap board: next · Bottom / R: retry L${this.scene.level}`
-                    : `Tap board to change · Tap bottom / R to retry Level ${this.scene.level}`
-                : 'Tap board to change · LEADERBOARD closes';
+            const footer = 'Tap board: next · LEADERBOARD: close';
             const history =
                 !competition || (compactLandscape && this.scene.gameOver)
                     ? ''
@@ -989,7 +1014,7 @@ export class UIManager {
                 ? `THIS WEEK (${competition.week || 'UTC'})`
                 : 'ONLINE BOARD UNAVAILABLE';
             const weekTimes = competition ? format(weeklyTimes) : 'Try again later';
-            return `${label} · ${bestLine}\n${allTimeLabel}\n${format(allTime)}\n${weekLabel}\n${weekTimes}${history}\n${footer}`;
+            return `${label}\n${bestLine}\n${allTimeLabel}\n${format(allTime)}\n${weekLabel}\n${weekTimes}${history}\n${footer}`;
         };
 
         updateTextObject('Loading leaderboard…');
@@ -1016,6 +1041,7 @@ export class UIManager {
 
     showGameOver(finalTime) {
         this.leaderboardPage = this.fullRunSummary ? 0 : 4;
+        this.finishLevelTime = finalTime;
         this.timerText.setText(`Time: ${formatElapsedTime(finalTime)}`);
         this.levelText.setText('Completed');
         if (this.deathText) {
@@ -1023,19 +1049,135 @@ export class UIManager {
         }
         const raceWinner = this.scene.raceWinner;
         if (this.text) {
-            this.text.setAlpha(1);
-            this.text.setVisible(true);
-            const headline = raceWinner ? `Player ${raceWinner} wins the race!` : 'You win!';
-            this.text.setText(
-                `${headline}\nDeaths this run: ${this.scene.deathCount}\nSPACE / JUMP: full game · R: retry level`
-            );
+            this.text.setVisible(false);
         }
-        this.showLevelBanner(
-            raceWinner ? `PLAYER ${raceWinner} WINS` : 'YOU WIN',
-            raceWinner ? 'The other chicken is still airborne' : 'The chicken claims the cosmos'
-        );
+        this.clearLevelBanner();
+        this.createFinishScreen(raceWinner);
         this.layoutUI();
-        this.displayLeaderboard();
+    }
+
+    createFinishScreen(raceWinner) {
+        const depth = GAME_CONSTANTS.OVERLAY_DEPTH;
+        this.finishDim = this.markUi(this.scene.add.rectangle(0, 0, 1, 1, 0x020814, 0.68));
+        this.finishDim.setOrigin(0, 0).setScrollFactor(0).setDepth(depth);
+        this.finishBackdrop = this.markUi(this.scene.add.rectangle(0, 0, 1, 1, 0x101b30, 0.98));
+        this.finishBackdrop.setStrokeStyle(2, 0xffe566, 0.55);
+        this.finishBackdrop.setScrollFactor(0).setDepth(depth + 1);
+        this.finishTitle = this.markUi(
+            this.scene.add.text(0, 0, raceWinner ? `PLAYER ${raceWinner} WINS` : 'YOU WIN', {
+                fontFamily: BANNER_FONT,
+                fontSize: '30px',
+                fill: '#ffe566',
+                align: 'center',
+            })
+        );
+        this.finishTitle
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(depth + 2);
+        this.styleHudText(this.finishTitle, 5);
+        this.finishSummary = this.markUi(
+            this.scene.add.text(0, 0, '', {
+                fontFamily: HUD_FONT,
+                fontSize: '17px',
+                fill: '#e0efff',
+                align: 'center',
+                lineSpacing: 4,
+            })
+        );
+        this.finishSummary
+            .setOrigin(0.5, 0)
+            .setScrollFactor(0)
+            .setDepth(depth + 2);
+        this.finishRetryButton = this.createFinishButton(
+            `RETRY LEVEL ${this.scene.level}`,
+            this.scene.level
+        );
+        this.finishNewGameButton = this.createFinishButton('NEW FULL GAME', 1);
+        this.updateFinishSummary();
+        this.layoutFinishScreen();
+    }
+
+    createFinishButton(label, level) {
+        const button = this.markUi(
+            this.scene.add.text(0, 0, label, {
+                fontFamily: HUD_FONT,
+                fontSize: '17px',
+                fill: '#ffe566',
+                backgroundColor: '#244c65',
+                align: 'center',
+            })
+        );
+        button.setOrigin(0.5).setPadding(16, 13, 16, 13);
+        button.setScrollFactor(0).setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 4);
+        button.setInteractive({ useHandCursor: true });
+        button.on('pointerup', () => {
+            if (!this.scene.restartDelayDone) return;
+            this.scene.scene.restart({ level, deathCount: 0, coopMode: this.scene.coopMode });
+        });
+        return button;
+    }
+
+    updateFinishSummary() {
+        if (!this.finishSummary) return;
+        const lines = [
+            `Level ${this.scene.level} · ${formatElapsedTime(this.finishLevelTime)} · Deaths ${this.scene.deathCount}`,
+        ];
+        if (this.fullRunSummary) {
+            lines.push(this.fullRunSummary.split('\n')[0]);
+        } else if (this.completionSummary) {
+            lines.push(this.completionSummary.split(' · ')[0]);
+        }
+        const rank = (this.fullRunSummary || this.completionSummary)
+            .split('\n')
+            .find((line) => line.includes('All-time #'));
+        if (rank) lines.push(rank);
+        this.finishSummary.setText(lines.join('\n'));
+        this.layoutFinishScreen();
+    }
+
+    setFinishVisible(visible) {
+        [
+            this.finishDim,
+            this.finishBackdrop,
+            this.finishTitle,
+            this.finishSummary,
+            this.finishRetryButton,
+            this.finishNewGameButton,
+        ].forEach((element) => element?.setVisible?.(visible));
+        for (const button of [this.finishRetryButton, this.finishNewGameButton]) {
+            if (button?.input) button.input.enabled = visible;
+        }
+    }
+
+    layoutFinishScreen() {
+        if (!this.finishBackdrop) return;
+        const metrics = this.getLayoutMetrics();
+        const insets = this.getSafeAreaInsets();
+        const landscape = metrics.innerHeight < 500 && !metrics.isPortrait;
+        const panelWidth = Math.min(480, metrics.innerWidth - 24);
+        const panelHeight = landscape ? 206 : metrics.isTiny ? 250 : 268;
+        const controlsTop =
+            this.touchControlsEnabled && this.jumpButton
+                ? this.jumpButton.y - this.jumpButton.displayHeight / 2 - 12
+                : metrics.height - insets.bottom;
+        const panelTop = Math.max(insets.top + 70, (controlsTop - panelHeight) / 2);
+        const centerX = insets.left + metrics.innerWidth / 2;
+        this.finishDim.setSize(metrics.width, metrics.height);
+        this.finishBackdrop.setPosition(centerX, panelTop + panelHeight / 2);
+        this.finishBackdrop.setSize(panelWidth, panelHeight);
+        this.finishTitle.setPosition(centerX, panelTop + 38);
+        this.finishTitle.setFontSize(landscape || metrics.isTiny ? 26 : 30);
+        this.finishSummary.setPosition(centerX, panelTop + 70);
+        this.finishSummary.setFontSize(landscape || metrics.isTiny ? 14 : 16);
+        this.finishSummary.setWordWrapWidth(panelWidth - 28, true);
+        if (landscape) {
+            this.finishRetryButton.setPosition(centerX - panelWidth / 4, panelTop + 169);
+            this.finishNewGameButton.setPosition(centerX + panelWidth / 4, panelTop + 169);
+        } else {
+            this.finishRetryButton.setPosition(centerX, panelTop + panelHeight - 96);
+            this.finishNewGameButton.setPosition(centerX, panelTop + panelHeight - 43);
+        }
     }
 
     showTitleScreen(subtitle) {
@@ -1372,7 +1514,13 @@ export class UIManager {
         const insets = this.getSafeAreaInsets();
         const metrics = this.getLayoutMetrics();
         const centerX = insets.left + metrics.innerWidth / 2;
-        const centerY = insets.top + metrics.innerHeight * (metrics.isCompact ? 0.22 : 0.28);
+        const bannerRatio =
+            metrics.isPortrait && metrics.innerWidth <= 360
+                ? 0.38
+                : metrics.isCompact
+                  ? 0.22
+                  : 0.28;
+        const centerY = insets.top + metrics.innerHeight * bannerRatio;
         const maxWidth = Math.max(160, metrics.innerWidth - 24);
         this.applyFontSize(this.bannerTitle, metrics.fonts.banner);
         if (typeof this.bannerTitle.setWordWrapWidth === 'function') {
@@ -1489,6 +1637,12 @@ export class UIManager {
             this.leaderboardButton,
             this.leaderboardTextObject,
             this.leaderboardBackdrop,
+            this.finishDim,
+            this.finishBackdrop,
+            this.finishTitle,
+            this.finishSummary,
+            this.finishRetryButton,
+            this.finishNewGameButton,
             this.jumpButton,
             this.leftButton,
             this.rightButton,
@@ -1510,6 +1664,12 @@ export class UIManager {
         this.leaderboardButton = null;
         this.leaderboardTextObject = null;
         this.leaderboardBackdrop = null;
+        this.finishDim = null;
+        this.finishBackdrop = null;
+        this.finishTitle = null;
+        this.finishSummary = null;
+        this.finishRetryButton = null;
+        this.finishNewGameButton = null;
         this.jumpButton = null;
         this.leftButton = null;
         this.rightButton = null;

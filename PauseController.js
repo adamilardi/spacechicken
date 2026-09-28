@@ -24,7 +24,8 @@ export function attachPauseControls(game) {
         scene.scene.pause();
         game.sound.context?.suspend()?.catch(() => {});
         dialog.showModal();
-        resume.focus();
+        resume.focus({ preventScroll: true });
+        dialog.scrollTop = 0;
     }
 
     function unpause() {

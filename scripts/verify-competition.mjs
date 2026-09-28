@@ -23,6 +23,7 @@ const records = Object.fromEntries(
 try {
     for (const viewport of [
         { width: 1280, height: 720 },
+        { width: 320, height: 568 },
         { width: 390, height: 844 },
         { width: 844, height: 390 },
     ]) {
@@ -91,45 +92,51 @@ try {
         if (viewport.width !== 1280) {
             await page.evaluate(() => {
                 const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
+                scene.uiManager.hideLeaderboard();
                 scene.gameOver = true;
                 scene.restartDelayDone = true;
                 scene.uiManager.completionSummary =
                     'NEW PERSONAL BEST · 00:42.31\nAll-time #2 · Weekly #1\n0.12 behind Pilot 1';
                 scene.uiManager.fullRunSummary =
                     'FULL RUN · 03:00.00 · ZERO DEATHS\nAll-time #3 · Weekly #1';
-                scene.uiManager.displayLeaderboard();
+                scene.uiManager.showGameOver(42310);
             });
             await page.waitForFunction(() =>
                 window.SPACE_CHICKEN_GAME.scene
                     .getScenes(true)[0]
-                    .uiManager.leaderboardTextContent.includes('FULL RUN · 03:00.00')
+                    .uiManager.finishSummary.text.includes('FULL RUN · 03:00.00')
             );
             const finishBounds = await page.evaluate(() => {
                 const ui = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].uiManager;
-                const { x, y, width, height } = ui.leaderboardTextObject.getBounds();
-                return { x, y, width, height };
+                return [ui.finishBackdrop, ui.finishRetryButton, ui.finishNewGameButton].map(
+                    (object) => {
+                        const { x, y, width, height } = object.getBounds();
+                        return { x, y, width, height };
+                    }
+                );
             });
-            assert.ok(
-                finishBounds.x >= -1 &&
-                    finishBounds.x + finishBounds.width <= viewport.width + 1 &&
-                    finishBounds.y >= -1 &&
-                    finishBounds.y + finishBounds.height <= viewport.height + 1,
-                `finish board overflows ${viewport.width}×${viewport.height}: ${JSON.stringify(finishBounds)}`
-            );
+            finishBounds.forEach((bounds) => {
+                assert.ok(
+                    bounds.x >= -1 &&
+                        bounds.x + bounds.width <= viewport.width + 1 &&
+                        bounds.y >= -1 &&
+                        bounds.y + bounds.height <= viewport.height + 1,
+                    `finish controls overflow ${viewport.width}×${viewport.height}: ${JSON.stringify(bounds)}`
+                );
+            });
+            assert.ok(finishBounds[1].height >= 44 && finishBounds[2].height >= 44);
             await page.screenshot({
                 path: `/tmp/space-chicken-competition-finish-${viewport.width}.png`,
             });
             await page.evaluate(() => {
                 const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
-                scene.level = 4;
                 const ui = scene.uiManager;
-                ui.leaderboardPage = 4;
                 ui.displayLeaderboard();
             });
             await page.waitForFunction(() =>
                 window.SPACE_CHICKEN_GAME.scene
                     .getScenes(true)[0]
-                    .uiManager.leaderboardTextContent.includes('NEW PERSONAL BEST')
+                    .uiManager.leaderboardTextContent.includes('FULL RUN · ZERO DEATHS')
             );
             const levelFinish = await page.evaluate(() => {
                 const ui = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].uiManager;
@@ -165,8 +172,8 @@ try {
             await page.waitForFunction(() => {
                 const ui = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].uiManager;
                 return (
-                    ui.leaderboardTextContent.includes('FULL RUN') &&
-                    ui.leaderboardTextContent.includes('All-time #3')
+                    ui.finishSummary?.text.includes('FULL RUN') &&
+                    ui.finishSummary.text.includes('All-time #3')
                 );
             });
             await page.screenshot({ path: '/tmp/space-chicken-competition-finish.png' });
@@ -175,13 +182,29 @@ try {
             );
             const retry = await page.evaluate(() => {
                 const ui = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].uiManager;
-                const bounds = ui.leaderboardTextObject.getBounds();
-                return { x: bounds.centerX, y: bounds.bottom - 8 };
+                const bounds = ui.finishRetryButton.getBounds();
+                return { x: bounds.centerX, y: bounds.centerY };
             });
             await page.mouse.click(retry.x, retry.y);
             await page.waitForFunction(() => {
                 const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
                 return scene?.level === 4 && !scene.gameOver;
+            });
+            await page.evaluate(() =>
+                window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].collectGem()
+            );
+            await page.waitForFunction(
+                () => window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].restartDelayDone
+            );
+            const newGame = await page.evaluate(() => {
+                const ui = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].uiManager;
+                const bounds = ui.finishNewGameButton.getBounds();
+                return { x: bounds.centerX, y: bounds.centerY };
+            });
+            await page.mouse.click(newGame.x, newGame.y);
+            await page.waitForFunction(() => {
+                const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
+                return scene?.level === 1 && scene.awaitingStart;
             });
             assert.deepEqual(errors, []);
         }

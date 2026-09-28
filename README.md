@@ -101,7 +101,8 @@ For better long-term quality, ESLint + Prettier have been added (see below).
 - Weekly boards start on Monday at 00:00 UTC. Previous weekly winners appear under Past Winners.
 - The board shows the best time from each browser identity in each category. Browser storage holds that identity and personal bests; clearing it creates a new identity.
 - Online entries require a one-use run token and plausible elapsed wall time. These checks do not prove the player followed the game rules, so the board should not be presented as cheat-proof or tied to cash prizes.
-- On the final screen, Space or JUMP starts a new full game; R or the bottom line of the board retries level 4.
+- On the final screen, use NEW FULL GAME or RETRY LEVEL 4. Space or JUMP starts a new full game; R retries level 4. The LEADERBOARD button opens the standings.
+- Change your leaderboard name on the title screen before starting a timed run.
 
 ## 🛠️ Development
 
