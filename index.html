@@ -161,6 +161,7 @@
         <noscript><p class="error">Enable JavaScript to play Space Chicken.</p></noscript>
         <script type="module">
             import { attachPauseControls } from './PauseController.js';
+            import { createGameConfig } from './GameConfig.js';
             function readViewportSize() {
                 const visual = window.visualViewport;
                 const width = Math.max(
@@ -218,39 +219,7 @@
                 const parent = document.getElementById('phaser-game');
                 const initialSize = readViewportSize();
                 const { SpaceChicken } = await import('./SpaceChicken.js');
-                const config = {
-                    type: Phaser.AUTO,
-                    width: initialSize.width,
-                    height: initialSize.height,
-                    scale: {
-                        mode: Phaser.Scale.RESIZE,
-                        autoCenter: Phaser.Scale.CENTER_BOTH,
-                        expandParent: false,
-                        width: initialSize.width,
-                        height: initialSize.height,
-                    },
-                    parent: 'phaser-game',
-                    input: {
-                        activePointers: 4,
-                        gamepad: true,
-                        touch: {
-                            capture: true,
-                        },
-                    },
-                    render: {
-                        antialias: true,
-                        roundPixels: true,
-                        powerPreference: 'high-performance',
-                    },
-                    physics: {
-                        default: 'arcade',
-                        arcade: {
-                            gravity: { y: 300 },
-                            debug: false,
-                        },
-                    },
-                    scene: [SpaceChicken],
-                };
+                const config = createGameConfig(initialSize, SpaceChicken);
 
                 const game = new Phaser.Game(config);
                 window.SPACE_CHICKEN_GAME = game;

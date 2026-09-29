@@ -1871,5 +1871,7 @@ test('the game page opts into a mobile visual viewport', () => {
     assert.match(html, /visualViewport/);
     assert.match(html, /100svh/);
     assert.match(html, /apple-mobile-web-app-capable/);
-    assert.match(html, /activePointers:\s*4/);
+    const config = fs.readFileSync(path.join(projectRoot, 'GameConfig.js'), 'utf8');
+    assert.match(config, /activePointers:\s*4/);
+    assert.match(html, /createGameConfig/);
 });

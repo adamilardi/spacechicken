@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="robots" content="noindex" />
+        <title>Space Chicken · Phone Performance Test</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                min-height: 100%;
+                background: #070e1c;
+                color: #e4efff;
+                font:
+                    16px/1.5 system-ui,
+                    sans-serif;
+            }
+            #phaser-game {
+                position: fixed;
+                inset: 0;
+                touch-action: none;
+            }
+            #phaser-game canvas {
+                display: block;
+            }
+            #panel {
+                position: relative;
+                z-index: 10;
+                width: min(620px, calc(100% - 32px));
+                margin: max(24px, env(safe-area-inset-top)) auto;
+                padding: 24px;
+                border: 1px solid #405b80;
+                border-radius: 20px;
+                background: #101b30;
+            }
+            h1 {
+                margin: 0 0 8px;
+                font-size: clamp(24px, 5vw, 32px);
+                color: #fff1a6;
+            }
+            h2 {
+                margin: 24px 0 8px;
+                font-size: 21px;
+            }
+            p {
+                margin: 8px 0 16px;
+            }
+            label {
+                display: block;
+                margin: 14px 0;
+            }
+            input,
+            select {
+                display: block;
+                width: 100%;
+                margin-top: 5px;
+                padding: 12px;
+                border: 1px solid #6d89b1;
+                border-radius: 10px;
+                background: #172942;
+                color: white;
+                font: inherit;
+            }
+            button,
+            .link {
+                display: inline-block;
+                min-height: 44px;
+                padding: 11px 16px;
+                border: 1px solid #7b9dc9;
+                border-radius: 10px;
+                background: #244c65;
+                color: white;
+                font: bold 16px system-ui;
+                cursor: pointer;
+                text-decoration: none;
+            }
+            button:disabled {
+                opacity: 0.5;
+                cursor: wait;
+            }
+            button:focus-visible,
+            input:focus-visible,
+            select:focus-visible,
+            a:focus-visible {
+                outline: 3px solid #ffe566;
+                outline-offset: 3px;
+            }
+            .actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 16px;
+            }
+            .quiet {
+                color: #b4c7df;
+                font-size: 14px;
+            }
+            #toolbar {
+                position: fixed;
+                z-index: 20;
+                top: env(safe-area-inset-top, 0px);
+                left: 0;
+                right: 0;
+                padding: 8px 12px;
+                background: #070e1ce8;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+            }
+            #progress {
+                margin: 0;
+                font-size: 14px;
+            }
+            #results {
+                overflow-wrap: anywhere;
+            }
+            .result {
+                border-top: 1px solid #405b80;
+                padding: 14px 0;
+            }
+            .result h3 {
+                margin: 0 0 4px;
+                font-size: 17px;
+            }
+            details {
+                margin-top: 16px;
+            }
+            textarea {
+                width: 100%;
+                min-height: 180px;
+                margin-top: 10px;
+                padding: 10px;
+                background: #070e1c;
+                color: #e4efff;
+                border: 1px solid #405b80;
+                font: 12px monospace;
+            }
+            [hidden] {
+                display: none !important;
+            }
+        </style>
+        <script src="./vendor/phaser-arcade-physics-3.70.0.min.js"></script>
+        <script type="module" src="./PerformanceTest.js"></script>
+    </head>
+    <body>
+        <div id="phaser-game" aria-hidden="true"></div>
+        <main id="panel">
+            <h1>Phone performance test</h1>
+            <p>
+                Space Chicken plays itself through two solo levels and a split-screen race. Then you
+                can send the results back for review.
+            </p>
+            <p class="quiet">
+                Use your normal phone browser. Keep this tab visible and the phone in one
+                orientation. Run again after rotating to compare portrait and landscape.
+            </p>
+            <section id="setup">
+                <label
+                    >Phone model (optional)<input
+                        id="device-label"
+                        placeholder="e.g. iPhone 13 / Pixel 7"
+                        maxlength="80"
+                /></label>
+                <label
+                    >Test length<select id="duration">
+                        <option value="15000">Quick · about 1 minute</option>
+                        <option value="30000" selected>Standard · about 2 minutes</option>
+                        <option value="120000">Extended · about 6 minutes</option>
+                    </select></label
+                >
+                <p class="quiet">
+                    Close other apps for a consistent result. Sound starts when your browser allows
+                    it. Scores aren’t submitted, and your report isn’t uploaded automatically.
+                </p>
+                <button id="start" disabled>Loading game…</button>
+            </section>
+            <p id="status" role="status" aria-live="polite">Preparing the game.</p>
+            <section id="results" hidden>
+                <h2>Results</h2>
+                <p class="quiet">
+                    Frame timing reflects this browser on this device. Update and render times
+                    measure main-thread work, not GPU completion. Some browsers don’t expose
+                    long-task or heap measurements.
+                </p>
+                <div id="summary"></div>
+                <div class="actions">
+                    <button id="download">Download report</button
+                    ><button id="share" hidden>Share report</button
+                    ><button id="again">Run again</button>
+                </div>
+                <p class="quiet">
+                    Download or share the JSON report, then attach it to our Codex conversation.
+                </p>
+                <details>
+                    <summary>View or copy report</summary>
+                    <textarea
+                        id="report-text"
+                        readonly
+                        aria-label="Performance report JSON"
+                    ></textarea
+                    ><button id="copy">Copy report</button>
+                </details>
+            </section>
+            <div class="actions"><a class="link" href="./">Play Space Chicken</a></div>
+        </main>
+        <div id="toolbar" hidden>
+            <p id="progress" role="status" aria-live="polite"></p>
+            <button id="stop">Stop test</button>
+        </div>
+        <noscript><p>Enable JavaScript to run the test.</p></noscript>
+    </body>
+</html>

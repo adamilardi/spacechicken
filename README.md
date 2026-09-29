@@ -194,3 +194,11 @@ Intermediate level results stay visible for 2.8 seconds before fading and advanc
 ## Performance profiling
 
 See [the performance review](docs/performance-review.md) for measured runtime, delivery, resource lifetime, and the remaining physical-phone validation. Run `node scripts/profile-performance.mjs` for CPU profiles and frame/resource reports; run `node scripts/verify-polish.mjs` for controller menu, transition timing, and restart stability checks. Both create their own local server and write reports under `/tmp`.
+
+### Test on your phone
+
+Open [the phone performance test](https://space-chicken.ailardi.com/performance.html) in your normal browser. Choose Quick, Standard, or Extended, add your phone model if you know it, and tap **Start test**. Keep the tab visible and the phone in one orientation. The game automatically exercises solo levels 3 and 4 and split-screen racing, with seeded movement, jumps, hazards, and particles. Crown completion and hazard deaths are disabled to keep the workload active. It uses the same game configuration as normal play.
+
+Download or share the JSON report and attach it to the Codex conversation. Repeat in the other orientation and, if investigating slowdown as the phone warms, use Extended. Rotating, switching tabs, locking the phone, or pressing Stop produces an interrupted report. Reports include raw game-frame intervals, percentile timings, CPU update/render submission times, loading, texture estimates, errors, and optional long-task/heap metrics. Unsupported measurements are null; render submission does not measure GPU completion. Audio availability is recorded per scenario.
+
+Reports stay in page memory until you download/share them; no report upload or score submission occurs. Refreshing discards the report. The page is a separate diagnostic URL with no link added to normal gameplay. Verify it with `node scripts/verify-performance-page.mjs`.
