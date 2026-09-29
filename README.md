@@ -182,3 +182,15 @@ This is a personal/hobby project. Feel free to study the modular architecture an
 ---
 
 **The current modular version is the canonical, maintained source.** The archive exists purely for historical interest.
+
+## Race setup and controller menus
+
+Open **RACE SETUP** on the title screen to choose solo, two players on one keyboard, keyboard plus controller, or two controllers. Controller modes check the required controllers are connected; press a button on each controller to register it. Keyboard racing uses P1 A/D + Space and P2 arrows + ↑. Numeric shortcuts 2/3/4 remain available.
+
+Controller menus use D-pad/stick to select, A to confirm, B to close, and Y to open the leaderboard. On the title screen, D-pad up/down opens race setup. On the finish screen, retry is selected first; move the selection to start a new full game. Start pauses; release it, then press Start, A, or B to resume. Held buttons must be released after scene restarts.
+
+Intermediate level results stay visible for 2.8 seconds before fading and advance after 3.2 seconds.
+
+## Performance profiling
+
+See [the performance review](docs/performance-review.md) for measured runtime, delivery, resource lifetime, and the remaining physical-phone validation. Run `node scripts/profile-performance.mjs` for CPU profiles and frame/resource reports; run `node scripts/verify-polish.mjs` for controller menu, transition timing, and restart stability checks. Both create their own local server and write reports under `/tmp`.

@@ -49,6 +49,7 @@ export class InputController {
         state.pointerStartTriggered = false;
         state.gamepadJumpJustPressed = false;
         state.gamepadStartJustPressed = false;
+        state.menu = {};
         state.coopMode = null;
         if (scene.coopKeys) {
             if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboard))
@@ -114,7 +115,21 @@ export class InputController {
             return;
         }
         const buttonDown = (index) => Boolean(pad.buttons?.[index]?.pressed);
-        const previous = this.previousGamepadButtons || [];
+        // A held during a scene restart must be released before it can start another game.
+        const previous = this.previousGamepadButtons || {
+            jump: true,
+            start: true,
+            secondJump: true,
+            menu: {
+                confirm: true,
+                back: true,
+                board: true,
+                left: true,
+                right: true,
+                up: true,
+                down: true,
+            },
+        };
         const jump = buttonDown(0) || buttonDown(1) || buttonDown(12);
         const start = buttonDown(9) || buttonDown(16);
         state.gamepadJumpJustPressed = jump && !previous.jump;
@@ -126,7 +141,19 @@ export class InputController {
             scene.leftPressed ||= horizontal < 0;
             scene.rightPressed ||= horizontal > 0;
         }
-        this.previousGamepadButtons = { jump, start };
+        const menu = {
+            confirm: buttonDown(0),
+            back: buttonDown(1),
+            board: buttonDown(3),
+            left: buttonDown(14) || (pad.axes?.[0] || 0) < -0.6,
+            right: buttonDown(15) || (pad.axes?.[0] || 0) > 0.6,
+            up: buttonDown(12) || (pad.axes?.[1] || 0) < -0.6,
+            down: buttonDown(13) || (pad.axes?.[1] || 0) > 0.6,
+        };
+        for (const [key, pressed] of Object.entries(menu)) {
+            state.menu[key] = pressed && !previous.menu?.[key];
+        }
+        this.previousGamepadButtons = { jump, start, menu };
         const second = this.getGamepad(scene.coopMode === 'keyboard-controller' ? 0 : 1);
         const secondJump = Boolean(
             second?.buttons?.[0]?.pressed ||
@@ -175,9 +202,10 @@ export class InputController {
     }
 
     detectTitleStart(activePointers, controls) {
+        if (this.scene.uiManager?.raceSetupDialog?.open) return false;
         for (let i = 0; i < activePointers.length; i++) {
             const pointer = activePointers[i];
-            if (!pointer.justDown) {
+            if (!pointer.justDown || pointer.event?.target?.closest?.('button, dialog')) {
                 continue;
             }
             this.fillPointerTargets(pointer, controls);

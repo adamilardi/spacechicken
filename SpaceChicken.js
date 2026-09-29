@@ -711,6 +711,11 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     onTitlePointerUp(pointer) {
+        if (
+            this.uiManager?.raceSetupDialog?.open ||
+            pointer?.event?.target?.closest?.('button, dialog')
+        )
+            return;
         if (!this.awaitingStart) {
             return;
         }
@@ -1166,7 +1171,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.stopActiveGameplay({ pausePhysics: false });
         this.playAdvanceJuice();
-        this.time.delayedCall(Math.max(1800, GAME_CONSTANTS.LEVEL_TRANSITION_DELAY), () => {
+        this.time.delayedCall(Math.max(3200, GAME_CONSTANTS.LEVEL_TRANSITION_DELAY), () => {
             const nextSceneData = this.pendingSceneData;
             this.pendingSceneData = null;
             this.scene.start(this.scene.key, nextSceneData);
@@ -1185,6 +1190,7 @@ export class SpaceChicken extends Phaser.Scene {
         const pausePhysics = options.pausePhysics !== false;
         this.clearBombSpawns();
         this.worldBuilder?.clearHazardTimers();
+        this.effectsManager?.stopCrownIdle();
         this.tweens?.killAll();
 
         if (pausePhysics && this.physics?.world) {
@@ -1289,6 +1295,7 @@ export class SpaceChicken extends Phaser.Scene {
     update(_time, delta) {
         this.backgroundRenderer?.syncToCamera?.();
         const inputState = this.handleInput();
+        if (this.gameOver) this.effectsManager?.stepParticles?.(delta);
 
         if (inputState.gamepadStartJustPressed && typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('space-chicken-gamepad-start'));
@@ -1301,6 +1308,8 @@ export class SpaceChicken extends Phaser.Scene {
             this.debugSkipLevel();
             return;
         }
+
+        if (this.uiManager?.handleMenuInput?.(inputState)) return;
 
         this.offerCoop(inputState);
 

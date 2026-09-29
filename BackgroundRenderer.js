@@ -59,6 +59,14 @@ export class BackgroundRenderer {
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
         this.destroyPlacedLayers();
+        // Large generated canvases otherwise retain every visited level in CPU/GPU memory.
+        // Preserve this layout for retries; rebake other levels when revisiting them.
+        const currentPrefix = `space-chicken-bg-${layoutKey}_`;
+        for (const key of this.textures?.getTextureKeys?.() || []) {
+            if (key.startsWith('space-chicken-bg-') && !key.startsWith(currentPrefix)) {
+                this.textures.remove(key);
+            }
+        }
         const layers = parallaxLayersForLevel(this.level);
         for (let i = 0; i < layers.length; i++) {
             this.renderLayer(layers[i], background, layoutKey, worldWidth, worldHeight);

@@ -5,6 +5,7 @@ export function attachPauseControls(game) {
     const resume = document.getElementById('resume-button');
     let pausedScene = null;
     let pausedAt = 0;
+    let pausedPadHeld = true;
 
     function pause() {
         const scene = game.scene.getScenes(true)[0];
@@ -19,6 +20,7 @@ export function attachPauseControls(game) {
         }
         pausedScene = scene;
         pausedAt = performance.now();
+        pausedPadHeld = true;
         scene.input.keyboard.resetKeys();
         scene.jumpRequested = false;
         scene.scene.pause();
@@ -39,6 +41,8 @@ export function attachPauseControls(game) {
         for (const name of ['leftButton', 'rightButton', 'jumpButton']) {
             pausedScene.uiManager?.[name]?.clearTint();
         }
+        // Consume the resume press before gameplay input starts polling again.
+        pausedScene.inputController?.pollGamepad({ menu: {} });
         pausedScene.scene.resume();
         pausedScene = null;
         game.sound.context?.resume()?.catch(() => {});
@@ -70,6 +74,14 @@ export function attachPauseControls(game) {
     }
 
     function syncButton() {
+        if (pausedScene) {
+            const pads = navigator.getGamepads?.() || [];
+            const held = Array.from(pads).some(
+                (pad) => pad && [0, 1, 9, 16].some((index) => pad.buttons?.[index]?.pressed)
+            );
+            if (held && !pausedPadHeld) unpause();
+            pausedPadHeld = held;
+        }
         const scene = pausedScene || game.scene.getScenes(true)[0];
         button.hidden = !scene || scene.awaitingStart || scene.gameOver || scene.isTransitioning;
     }

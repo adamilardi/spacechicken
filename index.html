@@ -83,6 +83,7 @@
                     sans-serif;
                 cursor: pointer;
             }
+            #race-setup-dialog button:focus,
             .game-button:focus-visible {
                 outline: 3px solid #ffe566;
                 outline-offset: 4px;
@@ -94,7 +95,7 @@
                 z-index: 10;
                 opacity: 0.85;
             }
-            #pause-dialog {
+            :is(#pause-dialog, #race-setup-dialog) {
                 box-sizing: border-box;
                 width: min(420px, calc(100% - 32px));
                 padding: 24px;
@@ -110,10 +111,10 @@
                 overflow-y: auto;
                 touch-action: pan-y;
             }
-            #pause-dialog::backdrop {
+            :is(#pause-dialog, #race-setup-dialog)::backdrop {
                 background: #030918cc;
             }
-            #pause-dialog h1 {
+            :is(#pause-dialog, #race-setup-dialog) h1 {
                 color: #ffe566;
                 margin-top: 0;
             }
@@ -129,15 +130,15 @@
                 }
             }
             @media (max-height: 500px) {
-                #pause-dialog {
+                :is(#pause-dialog, #race-setup-dialog) {
                     padding: 12px 20px;
                     line-height: 1.35;
                 }
-                #pause-dialog h1 {
+                :is(#pause-dialog, #race-setup-dialog) h1 {
                     font-size: 24px;
                     margin-bottom: 8px;
                 }
-                #pause-dialog p {
+                :is(#pause-dialog, #race-setup-dialog) p {
                     margin: 8px 0;
                 }
             }

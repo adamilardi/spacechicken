@@ -733,7 +733,7 @@ test('parallax layers are narrower than the world so the full backdrop scrolls i
     assert.ok(images[0].displayWidth < renderer.parallaxSpan(3000, 900, layers[0].scrollX));
 });
 
-test('timer text only updates when the displayed centiseconds change', async () => {
+test('timer redraws at most 20 times per second and resets immediately', async () => {
     const { UIManager } = await importModule('UIManager.js');
     const texts = [];
     const manager = new UIManager({});
@@ -745,7 +745,9 @@ test('timer text only updates when the displayed centiseconds change', async () 
     manager.updateTimer(1000);
     manager.updateTimer(1004);
     manager.updateTimer(1010);
-    assert.deepEqual(texts, ['Time: 00:01.00', 'Time: 00:01.01']);
+    manager.updateTimer(1057);
+    manager.updateTimer(0);
+    assert.deepEqual(texts, ['Time: 00:01.00', 'Time: 00:01.05', 'Time: 00:00.00']);
 });
 
 test('effects burst particles and squash the player with a yoyo scale tween', async () => {
@@ -1339,7 +1341,12 @@ test('standard gamepad maps stick, d-pad, and jump edges', async () => {
         pad.buttons[0].pressed = true;
         const first = controller.poll();
         assert.equal(scene.rightPressed, true);
-        assert.equal(first.gamepadJumpJustPressed, true);
+        assert.equal(first.gamepadJumpJustPressed, false, 'held button cannot start after restart');
+        pad.buttons[0].pressed = false;
+        controller.poll();
+        pad.buttons[0].pressed = true;
+        assert.equal(controller.poll().gamepadJumpJustPressed, true);
+        assert.equal(controller.state.menu.confirm, true);
         const held = controller.poll();
         assert.equal(held.gamepadJumpJustPressed, false);
         pad.axes[0] = 0;
