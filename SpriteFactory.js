@@ -153,11 +153,21 @@ export class SpriteFactory {
         this.addCanvasTexture('chicken_idle', 32, 32, (ctx) => {
             drawChicken(ctx, 0, 11, 21, false);
         });
+        // Bake the breath into the artwork so squash/stretch and collision bounds stay independent.
+        this.addCanvasTexture('chicken_breathe', 32, 32, (ctx) => {
+            ctx.translate(0, 31);
+            ctx.scale(1, 1.025);
+            ctx.translate(0, -31);
+            drawChicken(ctx, 0, 11, 21, false);
+        });
         this.addCanvasTexture('chicken_blink', 32, 32, (ctx) => {
             drawChicken(ctx, 0, 11, 21, false, true);
         });
         this.addCanvasTexture('chicken_jump', 32, 32, (ctx) => {
             drawChicken(ctx, 0, 0, 0, true);
+        });
+        this.addCanvasTexture('chicken_fall', 32, 32, (ctx) => {
+            drawChicken(ctx, -Math.PI / 3, 0, 0, true);
         });
         this.addCanvasTexture('chicken_jetpack1', 32, 32, (ctx) => {
             drawChicken(ctx, 0, 0, 0, true);

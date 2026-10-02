@@ -913,7 +913,13 @@ export class SpaceChicken extends Phaser.Scene {
         if (!this.anims.exists('chicken-idle')) {
             this.anims.create({
                 key: 'chicken-idle',
-                frames: [{ key: 'chicken_idle', duration: 2600 }, { key: 'chicken_blink' }],
+                frames: [
+                    { key: 'chicken_idle', duration: 600 },
+                    { key: 'chicken_breathe', duration: 600 },
+                    { key: 'chicken_idle', duration: 600 },
+                    { key: 'chicken_breathe', duration: 600 },
+                    { key: 'chicken_blink' },
+                ],
                 frameRate: 10,
                 repeat: -1,
             });
@@ -935,6 +941,14 @@ export class SpaceChicken extends Phaser.Scene {
             this.anims.create({
                 key: 'chicken-jump',
                 frames: [{ key: 'chicken_jump' }],
+                frameRate: 1,
+                repeat: 0,
+            });
+        }
+        if (!this.anims.exists('chicken-fall')) {
+            this.anims.create({
+                key: 'chicken-fall',
+                frames: [{ key: 'chicken_fall' }],
                 frameRate: 1,
                 repeat: 0,
             });
@@ -1718,10 +1732,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.player2.y > this.killZoneFallY) this.failFromHazard();
         const grounded = Boolean(this.player2.body.blocked.down || this.player2.body.touching.down);
         if (grounded) this.player2JumpCount = 0;
-        this.player2.play(
-            grounded ? (left || right ? 'chicken-walk' : 'chicken-idle') : 'chicken-jump',
-            true
-        );
+        this.updateChickenAnimation(this.player2, grounded, false);
         this.player2.setFlipX?.(left);
     }
 
@@ -1781,22 +1792,30 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     updatePlayerAnimation(isGrounded) {
-        const currentAnimKey = this.player.anims.currentAnim
-            ? this.player.anims.currentAnim.key
-            : null;
-        if (isGrounded && this.jumpCount === 0) {
-            const animation =
-                Math.abs(this.player.body?.velocity?.x || 0) > 1 ? 'chicken-walk' : 'chicken-idle';
-            if (currentAnimKey !== animation) {
-                this.player.play(animation);
-            }
-        } else if (this.isJetpacking) {
-            if (currentAnimKey !== 'chicken-jetpack') {
-                this.player.play('chicken-jetpack');
-            }
-        } else if (currentAnimKey !== 'chicken-jump') {
-            this.player.play('chicken-jump');
+        this.updateChickenAnimation(
+            this.player,
+            isGrounded && this.jumpCount === 0,
+            this.isJetpacking
+        );
+    }
+
+    updateChickenAnimation(player, isGrounded, isJetpacking) {
+        const speed = Math.abs(player.body?.velocity?.x || 0);
+        const animation = isGrounded
+            ? speed > 1
+                ? 'chicken-walk'
+                : 'chicken-idle'
+            : isJetpacking
+              ? 'chicken-jetpack'
+              : (player.body?.velocity?.y || 0) > 20
+                ? 'chicken-fall'
+                : 'chicken-jump';
+        if (player.anims.currentAnim?.key !== animation) {
+            player.play(animation);
         }
+        // Keep the stride tied to actual motion; restore normal timing for other poses.
+        player.anims.timeScale =
+            animation === 'chicken-walk' ? speed / GAME_CONSTANTS.PLAYER_VELOCITY_X : 1;
     }
 
     cleanupOffscreenBombs() {

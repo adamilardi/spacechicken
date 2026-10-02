@@ -37,6 +37,31 @@ try {
         });
     const idle = await state();
     assert.equal(idle.animation, 'chicken-idle', 'stationary chicken must stop walking');
+    await page.waitForFunction(() => {
+        const player = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].player;
+        return player.texture.key === 'chicken_breathe';
+    });
+    assert.deepEqual(
+        (await state()).hitbox,
+        idle.hitbox,
+        'breathing must preserve collision dimensions'
+    );
+    const stride = await page.evaluate(() => {
+        const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
+        const player = scene.player;
+        const originalVelocity = player.body.velocity.x;
+        const scales = [];
+        for (const speed of [80, 160, 240]) {
+            player.body.velocity.x = speed;
+            scene.updateChickenAnimation(player, true, false);
+            scales.push(player.anims.timeScale);
+        }
+        player.body.velocity.x = originalVelocity;
+        scene.updateChickenAnimation(player, true, false);
+        return { scales, idleScale: player.anims.timeScale };
+    });
+    assert.deepEqual(stride.scales, [0.5, 1, 1.5], 'stride must follow movement speed');
+    assert.equal(stride.idleScale, 1, 'idle must restore normal playback speed');
     await page.keyboard.down('ArrowRight');
     await page.waitForTimeout(120);
     const walking = await state();
@@ -67,6 +92,15 @@ try {
         () => !window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].wasGrounded
     );
     assert.equal((await state()).animation, 'chicken-jump');
+    await page.waitForFunction(() => {
+        const player = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].player;
+        return player.anims.currentAnim?.key === 'chicken-fall';
+    });
+    assert.deepEqual(
+        (await state()).hitbox,
+        idle.hitbox,
+        'falling must preserve collision dimensions'
+    );
     await page.waitForFunction(
         () => window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].wasGrounded
     );
@@ -85,7 +119,7 @@ try {
     );
     assert.deepEqual(errors, []);
     console.log(
-        `PASS idle, walk, stop, jump, landing; particles ${JSON.stringify(counts)}; no page errors`
+        `PASS idle breathing, variable stride, walk, stop, jump, fall, landing; particles ${JSON.stringify(counts)}; no page errors`
     );
 } finally {
     await browser.close();
