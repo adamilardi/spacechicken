@@ -177,7 +177,7 @@ Use `npm run lint:fix` or `npm run format` for automatic fixes. See `package.jso
 
 ## 📜 License
 
-This is a personal/hobby project. Feel free to study the modular architecture and procedural graphics techniques.
+Copyright © 2026 Adam Ailardi. The original game materials are available under the [Space Chicken Noncommercial License](LICENSE.txt). You may study, modify, and share them for noncommercial purposes with the required notices. Commercial use and monetization of the game or derivative versions are reserved to Adam Ailardi and require his prior written permission. Third-party dependencies retain their own licenses.
 
 ---
 

@@ -1,0 +1,60 @@
+Space Chicken Noncommercial License 1.0
+
+Copyright (c) 2026 Adam Ailardi. All rights reserved except as expressly
+provided below.
+
+1. Scope
+
+This license applies to the Space Chicken code, original artwork, audio,
+documentation, and other original materials in this repository owned by
+Adam Ailardi (the "Game"). Third-party materials are excluded and remain
+subject to their respective licenses.
+
+2. Noncommercial permission
+
+You may use, study, copy, modify, and share the Game and works derived from
+it solely for noncommercial purposes, provided that you include this license
+and the copyright notice with every copy or substantial portion. Modified
+copies must clearly identify that they have been modified. Recipients receive
+only the permissions granted by this license, including for the original
+Game materials contained in modified or derivative versions.
+
+3. Commercial rights reserved
+
+Only Adam Ailardi may commercially exploit or monetize the Game or authorize
+others to do so. No commercial rights are granted to anyone else under this
+license. Any commercial use requires a separate, prior written permission
+from Adam Ailardi.
+
+Without that permission, you may not sell, rent, license for a fee, charge
+for access to, or otherwise monetize the Game or a modified or derivative
+version. You may not offer such a version through advertising-supported,
+sponsored, subscription-based, paid, or other revenue-generating distribution
+or hosting. You may not monetize in-game purchases, solicit donations tied
+to offering the Game, or incorporate the Game into a commercial product or
+service. These restrictions apply to individuals and organizations alike,
+including nonprofit, educational, and government organizations.
+
+Adam Ailardi retains the right to use, distribute, license, and monetize the
+Game under other terms. This license does not restrict that right.
+
+4. Other rights
+
+No rights to the owner's trademarks, names, or endorsement are granted.
+Rights not expressly granted are reserved. This license does not restrict
+fair use or other rights that applicable law provides independently of a
+license. It does not change the licenses of third-party dependencies.
+
+5. Termination
+
+Your permissions under this license terminate automatically if you violate
+its terms. After termination, you must cease uses that require permission
+under this license. Reinstatement requires written permission from Adam Ailardi.
+
+6. Disclaimer
+
+TO THE EXTENT PERMITTED BY LAW, THE GAME IS PROVIDED "AS IS", WITHOUT ANY
+WARRANTY, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THE COPYRIGHT OWNER
+IS NOT LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM OR
+IN CONNECTION WITH THE GAME OR ITS USE.

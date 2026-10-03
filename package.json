@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "Space Chicken - Modular Phaser 3 platformer",
     "private": true,
+    "license": "SEE LICENSE IN LICENSE.txt",
     "type": "module",
     "scripts": {
         "start": "node server.cjs",
