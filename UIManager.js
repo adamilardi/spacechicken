@@ -30,6 +30,7 @@ export class UIManager {
         this.completionSummary = '';
         this.fullRunSummary = '';
         this.jumpButton = null;
+        this.phaserButton = null;
         this.leftButton = null;
         this.rightButton = null;
         this.touchControlsEnabled = false;
@@ -201,6 +202,7 @@ export class UIManager {
             this.musicToggleButton,
             this.leaderboardButton,
             this.jumpButton,
+            this.phaserButton,
             this.leftButton,
             this.rightButton,
             this.titleDim,
@@ -223,9 +225,11 @@ export class UIManager {
     }
 
     setTouchControlsVisible(visible) {
-        [this.leftButton, this.rightButton, this.jumpButton].forEach((button) => {
-            button?.setVisible?.(visible);
-        });
+        [this.leftButton, this.rightButton, this.jumpButton, this.phaserButton].forEach(
+            (button) => {
+                button?.setVisible?.(visible);
+            }
+        );
     }
 
     showRaceBanner(winner) {
@@ -341,6 +345,9 @@ export class UIManager {
         this.leftButton = this.markUi(this.createMoveButton('leftBtn'));
         this.rightButton = this.markUi(this.createMoveButton('rightBtn'));
         this.jumpButton = this.markUi(this.createJumpButton());
+        if (this.scene.levelConfig?.phaser) {
+            this.phaserButton = this.markUi(this.createPhaserButton());
+        }
         this.layoutTouchControls();
         if (this.scene.player2Camera) {
             this.setTouchControlsVisible(false);
@@ -396,6 +403,30 @@ export class UIManager {
             this.onJumpButtonUp(pointer);
         });
         return jumpButton;
+    }
+
+    createPhaserButton() {
+        const button = this.scene.add.image(0, 0, 'phaserBtn');
+        button.setScrollFactor(0);
+        button.setDepth(GAME_CONSTANTS.JUMP_BUTTON_DEPTH);
+        button.setAlpha(0.9);
+        button.setInteractive({ useHandCursor: false });
+        button.on('pointerdown', (pointer) => {
+            this.scene.phaserPointerId = pointer.id;
+            this.scene.phaserHeld = true;
+            button.setTint(0x99ffff);
+        });
+        const release = (pointer) => {
+            if (!pointer || pointer.id === this.scene.phaserPointerId) {
+                this.scene.phaserPointerId = null;
+                this.scene.phaserHeld = false;
+            }
+            button.clearTint();
+        };
+        button.on('pointerup', release);
+        button.on('pointerout', release);
+        button.on('pointerupoutside', release);
+        return button;
     }
 
     expandControlHitArea(button, displaySize, maxPadding = GAME_CONSTANTS.TOUCH_HIT_PADDING) {
@@ -688,7 +719,7 @@ export class UIManager {
         this.touchMovementMidpoint =
             insets.left + metrics.innerWidth * GAME_CONSTANTS.MOVEMENT_MIDPOINT_RATIO;
 
-        if (!this.jumpButton && !this.leftButton && !this.rightButton) {
+        if (!this.jumpButton && !this.leftButton && !this.rightButton && !this.phaserButton) {
             return;
         }
 
@@ -720,6 +751,11 @@ export class UIManager {
             this.jumpButton.setDisplaySize(controlSize, controlSize);
             this.jumpButton.setPosition(width - insets.right - controlSize / 2 - margin, buttonY);
             this.expandControlHitArea(this.jumpButton, controlSize, hitPadding);
+        }
+        if (this.phaserButton && this.jumpButton) {
+            this.phaserButton.setDisplaySize(controlSize, controlSize);
+            this.phaserButton.setPosition(this.jumpButton.x, buttonY - controlSize - gap);
+            this.expandControlHitArea(this.phaserButton, controlSize, hitPadding);
         }
     }
 
@@ -1776,6 +1812,7 @@ export class UIManager {
             this.finishRetryButton,
             this.finishNewGameButton,
             this.jumpButton,
+            this.phaserButton,
             this.leftButton,
             this.rightButton,
         ];
@@ -1803,6 +1840,7 @@ export class UIManager {
         this.finishRetryButton = null;
         this.finishNewGameButton = null;
         this.jumpButton = null;
+        this.phaserButton = null;
         this.leftButton = null;
         this.rightButton = null;
     }

@@ -32,6 +32,7 @@ export const SCENARIOS = {
     'l4-play': { level: 4, durationMs: 30000, description: 'Moon platforms, rovers, rays' },
     'l5-play': { level: 5, durationMs: 30000, description: 'Research facility, bonk, beams, acid' },
     'l6-play': { level: 6, durationMs: 30000, description: 'Mars mesas, beetles, dust devils' },
+    'l7-play': { level: 7, durationMs: 30000, description: 'Station hull, boarders, space phaser' },
     'death-gap': {
         level: 1,
         durationMs: 12000,

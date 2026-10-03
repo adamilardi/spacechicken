@@ -608,6 +608,49 @@ const LEVEL_CONTENT = {
             },
         ],
     },
+    7: {
+        instructions:
+            'EARTHWATCH - On the station hull, with Earth below. Aliens run at you. Face them and press F or J to fire the space phaser. Gamepad uses the left face button. (M toggles music)',
+        touchInstructions:
+            'EARTHWATCH - On the station. Aliens run at you. The bolt button fires the space phaser. Arrows move, jump leaps.',
+        background: {
+            type: 'iss',
+            style: 'earthwatch',
+            starCount: 90,
+            color: 0x071018,
+            palette: {
+                top: 0x02040c,
+                mid: 0x0a1c33,
+                ocean: 0x1a6cae,
+                land: 0x3f9a45,
+                landDeep: 0x1f6a32,
+                cloud: 0xf4fbff,
+                atmosphere: 0x9ad7ff,
+                hull: 0xc5d0dc,
+                array: 0x1d4e89,
+            },
+        },
+        staticPlatforms: [
+            { x: 520, y: 616, key: 'issHull', scaleX: 8.2 },
+            { x: 1540, y: 616, key: 'issHull', scaleX: 8.2 },
+            { x: 2560, y: 616, key: 'issHull', scaleX: 8.2 },
+            { x: 3480, y: 616, key: 'issHull', scaleX: 6.4 },
+            { x: 3520, y: 470, key: 'issHull', scaleX: 4.5 },
+        ],
+        floor: null,
+        moving: [],
+        rocks: [],
+        dynamic: [
+            { type: 'boarder', x: 700, y: 540 },
+            { type: 'boarder', x: 1120, y: 540 },
+            { type: 'boarder', x: 1560, y: 540 },
+            { type: 'boarder', x: 2040, y: 540 },
+            { type: 'boarder', x: 2480, y: 540 },
+            { type: 'boarder', x: 2920, y: 540 },
+            { type: 'boarder', x: 3320, y: 540 },
+            { type: 'boarder', x: 3600, y: 400 },
+        ],
+    },
 };
 
 export class LevelConfig {
@@ -655,6 +698,7 @@ export class LevelConfig {
             rocks: content.rocks || [],
             dynamic: content.dynamic || [],
         };
+        this.phaser = def.PHASER === true;
         this.bombs = {
             speed: def.BOMB_SPEED ?? GAME_CONSTANTS.BOMB_DEFAULT_SPEED,
             delayMin: GAME_CONSTANTS.BOMB_DEFAULT_DELAY_MIN,

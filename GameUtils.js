@@ -35,6 +35,21 @@ export function canBonkFromAbove(chicken, hazard, minFallSpeed = 30) {
     return playerBottom <= hazardTop + headRoom;
 }
 
+export function boarderSteering(alienX, alienY, targetX, targetY, grounded, options) {
+    const dx = targetX - alienX;
+    const dir = dx < -4 ? -1 : dx > 4 ? 1 : 0;
+    const hop =
+        Boolean(grounded) &&
+        dir !== 0 &&
+        targetY < alienY - options.hopClearance &&
+        Math.abs(dx) <= options.hopRange;
+    return {
+        velocityX: dir * options.speed,
+        velocityY: hop ? options.hopVelocity : null,
+        flipX: dir === 0 ? null : dir < 0,
+    };
+}
+
 export function addLoopingTween(tweens, target, config) {
     if (!tweens || typeof tweens.add !== 'function' || !config) {
         return null;

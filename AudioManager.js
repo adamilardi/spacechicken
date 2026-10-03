@@ -651,6 +651,59 @@ export class AudioManager {
         });
     }
 
+    playPhaserSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        this.playTone({
+            freqStart: 720,
+            freqEnd: 1680,
+            duration: 0.09,
+            type: 'square',
+            volume: 0.12,
+            attackTime: 0.002,
+            decayTime: 0.03,
+            sustain: 0.2,
+            releaseTime: 0.05,
+            filter: { type: 'bandpass', frequency: 1800, Q: 0.8 },
+            startTime: now,
+        });
+        this.playNoise({
+            duration: 0.04,
+            volume: 0.05,
+            attackTime: 0.001,
+            releaseTime: 0.03,
+            filter: { type: 'highpass', frequency: 2400, Q: 0.6 },
+            startTime: now,
+        });
+    }
+
+    playBoarderPop() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        this.playTone({
+            freqStart: 220,
+            freqEnd: 90,
+            duration: 0.12,
+            type: 'triangle',
+            volume: 0.16,
+            attackTime: 0.002,
+            releaseTime: 0.08,
+            startTime: now,
+        });
+        this.playNoise({
+            duration: 0.08,
+            volume: 0.08,
+            attackTime: 0.002,
+            releaseTime: 0.06,
+            filter: { type: 'bandpass', frequency: 900, Q: 0.7 },
+            startTime: now,
+        });
+    }
+
     playJetpackSound() {
         if (!this.canUseWebAudio()) {
             return;

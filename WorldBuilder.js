@@ -79,8 +79,12 @@ export class WorldBuilder {
         this.buildFloorPlatforms(levelConfig.platforms.floor);
         const movingPlatforms = this.setupMovingPlatforms(levelConfig.platforms.moving);
         this.buildStaticHazards(levelConfig.hazards.rocks);
-        const dynamicHazardsGroup = this.setupDynamicHazards(levelConfig.hazards.dynamic);
-        return { movingPlatforms, dynamicHazardsGroup };
+        const dynamic = levelConfig.hazards.dynamic || [];
+        const boarderConfigs = dynamic.filter((config) => config.type === 'boarder');
+        const otherDynamic = dynamic.filter((config) => config.type !== 'boarder');
+        const dynamicHazardsGroup = this.setupDynamicHazards(otherDynamic);
+        const boardersGroup = this.setupBoarders(boarderConfigs);
+        return { movingPlatforms, dynamicHazardsGroup, boardersGroup };
     }
 
     clearHazardTimers() {
@@ -674,6 +678,34 @@ export class WorldBuilder {
         if (tint != null && sprite?.setTint) {
             sprite.setTint(tint);
         }
+    }
+
+    setupBoarders(configs) {
+        if (!configs || configs.length === 0) {
+            return null;
+        }
+        const group = this.physics.add.group();
+        configs.forEach((config) => this.createBoarder(group, config));
+        return group;
+    }
+
+    createBoarder(group, config) {
+        const alien = group.create(config.x, config.y, 'boarder');
+        if (!alien) {
+            return;
+        }
+        alien.shootable = true;
+        alien.setDepth(7);
+        alien.setBounce(0);
+        alien.setCollideWorldBounds(false);
+        alien.body.allowGravity = true;
+        alien.body.setSize(22, 36, true);
+        this.tagTestEntity(alien, {
+            kind: 'hazard',
+            type: 'boarder',
+            shootable: true,
+            origin: { x: config.x, y: config.y },
+        });
     }
 
     createBonkEnemy(group, config) {

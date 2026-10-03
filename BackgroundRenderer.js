@@ -3,6 +3,16 @@ import { valueOrDefault } from './GameUtils.js';
 
 const MAX_LAYOUT_CACHE = 12;
 
+const TWINKLE_TINT = {
+    facility: 0x7dffe2,
+    mars: 0xffc27a,
+    iss: 0xb7e3ff,
+};
+
+function twinkleTint(backgroundType) {
+    return TWINKLE_TINT[backgroundType] || 0xffffff;
+}
+
 export class BackgroundRenderer {
     static layoutCache = new Map();
 
@@ -268,6 +278,12 @@ export class BackgroundRenderer {
                     worldWidth,
                     worldHeight
                 );
+            } else if (background.type === 'iss') {
+                backgroundLayout = this.createIssBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
             } else {
                 backgroundLayout = this.createSpaceBackgroundLayout(
                     background,
@@ -300,6 +316,10 @@ export class BackgroundRenderer {
         }
         if (background.type === 'mars') {
             this.renderMarsBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'iss') {
+            this.renderIssBackground(background, layout, worldWidth, worldHeight, layerId);
             return;
         }
         this.renderSpaceBackground(background, layout, worldWidth, worldHeight, layerId);
@@ -403,14 +423,7 @@ export class BackgroundRenderer {
             star.setDepth((far?.depth ?? -32) + 1);
             star.setScale(0.18 + Math.random() * 0.28);
             star.setScrollFactor?.(far?.scrollX ?? 0.16, far?.scrollY ?? 0.08);
-            const backgroundType = this.levelConfig?.background?.type;
-            star.setTint?.(
-                backgroundType === 'facility'
-                    ? 0x7dffe2
-                    : backgroundType === 'mars'
-                      ? 0xffc27a
-                      : 0xffffff
-            );
+            star.setTint?.(twinkleTint(this.levelConfig?.background?.type));
             if (star.setBlendMode && Phaser.BlendModes) {
                 star.setBlendMode(Phaser.BlendModes.ADD);
             }
@@ -2056,6 +2069,167 @@ export class BackgroundRenderer {
             floorBands,
             deckLights: background.showDeckLights === false ? [] : deckLights,
             beacons,
+        };
+    }
+
+    renderIssBackground(_background, layout, worldWidth, worldHeight, layerId) {
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [0x02040c, 0x071426, 0x10283f],
+                36
+            );
+            return;
+        }
+        if (layerId === 'far') {
+            this.renderStars(this.starsFor(layout, 'far'));
+            this.drawEarth(layout.earth);
+            return;
+        }
+        if (layerId === 'mid') {
+            this.renderIssArrays(layout.arrays);
+            return;
+        }
+        if (layerId === 'near') {
+            this.renderIssHullBelly(layout, worldWidth, worldHeight);
+        }
+    }
+
+    drawEarth(earth) {
+        if (!earth || !this.graphics?.fillCircle) {
+            return;
+        }
+        const graphics = this.graphics;
+        this.drawGlow(earth.x, earth.y, earth.r * 1.08, 0x7ec8ff, 0.22, 8);
+        graphics.fillStyle(0x2f86d6, 1).fillCircle(earth.x, earth.y, earth.r);
+        (earth.lands || []).forEach((land) => {
+            graphics.fillStyle(land.color, 1);
+            graphics.fillEllipse(earth.x + land.dx, earth.y + land.dy, land.rx * 2, land.ry * 2);
+        });
+        (earth.clouds || []).forEach((cloud) => {
+            graphics.fillStyle(0xf7fbff, 0.82);
+            graphics.fillEllipse(
+                earth.x + cloud.dx,
+                earth.y + cloud.dy,
+                cloud.rx * 2,
+                cloud.ry * 2
+            );
+        });
+        graphics.fillStyle(0x071422, 0.62);
+        graphics.fillCircle(earth.x + earth.r * 1.35, earth.y - earth.r * 0.05, earth.r * 0.72);
+        graphics.lineStyle(12, 0x9ad7ff, 0.5);
+        graphics.strokeCircle(earth.x, earth.y, earth.r + 8);
+    }
+
+    renderIssArrays(arrays) {
+        (arrays || []).forEach((panel) => {
+            this.graphics.fillStyle(0x8d97a6, 0.9);
+            this.graphics.fillRect(panel.x, panel.y + panel.h * 0.4, panel.w, 3);
+            this.graphics.fillStyle(0x163e78, 0.92);
+            this.graphics.fillRect(panel.x, panel.y, panel.w * 0.42, panel.h);
+            this.graphics.fillRect(panel.x + panel.w * 0.5, panel.y, panel.w * 0.42, panel.h);
+            this.graphics.fillStyle(0x8fd0ff, 0.35);
+            this.graphics.fillRect(panel.x + 4, panel.y + 3, panel.w * 0.28, 3);
+        });
+    }
+
+    renderIssHullBelly(layout, worldWidth, worldHeight) {
+        const bellyY = Math.round(worldHeight * 0.86);
+        this.graphics.fillStyle(0x1a2433, 1).fillRect(0, bellyY, worldWidth, worldHeight - bellyY);
+        (layout.modules || []).forEach((module) => {
+            this.graphics.fillStyle(0xb7c3d1, 0.95);
+            this.graphics.fillRect(module.x, module.y, module.w, module.h);
+            this.graphics.fillStyle(0x6e7c8d, 0.9);
+            this.graphics.fillRect(module.x, module.y + module.h - 8, module.w, 8);
+            this.graphics.fillStyle(0x173e68, 0.95);
+            this.graphics.fillRect(module.x + 12, module.y + 10, 22, 12);
+        });
+        if (layout.cupola) {
+            this.graphics.fillStyle(0xd5dee8, 0.95);
+            this.graphics.fillCircle(layout.cupola.x, layout.cupola.y, layout.cupola.r);
+            this.graphics.fillStyle(0x8fd4ff, 0.55);
+            this.graphics.fillCircle(
+                layout.cupola.x - 8,
+                layout.cupola.y - 6,
+                layout.cupola.r * 0.55
+            );
+        }
+    }
+
+    createIssBackgroundLayout(background, worldWidth, worldHeight) {
+        const starCount = background.starCount || 90;
+        const stars = [];
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: ((i * 211) % worldWidth) + 6,
+                y: ((i * 97) % Math.round(worldHeight * 0.55)) + 8,
+                size: (i % 3) + 1,
+                color: 0xf7fbff,
+                alpha: 0.4 + (i % 5) * 0.1,
+            });
+        }
+        const earthR = Math.round(worldHeight * 0.62);
+        const earth = {
+            x: Math.round(worldWidth * 0.22),
+            y: Math.round(worldHeight * 0.34),
+            r: earthR,
+            lands: [
+                {
+                    dx: -earthR * 0.22,
+                    dy: -earthR * 0.08,
+                    rx: earthR * 0.16,
+                    ry: earthR * 0.1,
+                    color: 0x3fa84a,
+                },
+                {
+                    dx: -earthR * 0.05,
+                    dy: earthR * 0.16,
+                    rx: earthR * 0.2,
+                    ry: earthR * 0.11,
+                    color: 0x2f8a3c,
+                },
+                {
+                    dx: earthR * 0.2,
+                    dy: -earthR * 0.02,
+                    rx: earthR * 0.14,
+                    ry: earthR * 0.16,
+                    color: 0x49b255,
+                },
+                {
+                    dx: earthR * 0.02,
+                    dy: -earthR * 0.22,
+                    rx: earthR * 0.1,
+                    ry: earthR * 0.06,
+                    color: 0xd2b36a,
+                },
+            ],
+            clouds: [
+                { dx: -earthR * 0.12, dy: earthR * 0.02, rx: earthR * 0.16, ry: earthR * 0.035 },
+                { dx: earthR * 0.1, dy: -earthR * 0.16, rx: earthR * 0.12, ry: earthR * 0.03 },
+                { dx: earthR * 0.16, dy: earthR * 0.2, rx: earthR * 0.14, ry: earthR * 0.028 },
+            ],
+        };
+        const arrays = [];
+        for (let x = 40; x < worldWidth; x += 280) {
+            arrays.push({ x, y: Math.round(worldHeight * 0.5), w: 168, h: 22 });
+        }
+        const modules = [];
+        for (let x = 30; x < worldWidth; x += 240) {
+            modules.push({ x, y: Math.round(worldHeight * 0.9), w: 180, h: 52 });
+        }
+        return {
+            stars,
+            earth,
+            arrays,
+            modules,
+            cupola: {
+                x: worldWidth - 280,
+                y: Math.round(worldHeight * 0.78),
+                r: 48,
+            },
         };
     }
 }

@@ -143,7 +143,7 @@ test('weekly standings reset while past winners and full run remain visible', as
         env: { DB },
     });
     const data = await response.json();
-    assert.deepEqual(Object.keys(data.levels), ['0', '1', '2', '3', '4', '5', '6']);
+    assert.deepEqual(Object.keys(data.levels), ['0', '1', '2', '3', '4', '5', '6', '7']);
     assert.equal(data.levels[1][0].name, 'Old champion');
     assert.equal(data.weekly[1][0].name, 'New challenger');
     assert.equal(data.weekly[1].length, 2);

@@ -1,4 +1,4 @@
-const LEVELS = [0, 1, 2, 3, 4, 5, 6];
+const LEVELS = [0, 1, 2, 3, 4, 5, 6, 7];
 const LEADERBOARD_LIMIT = 5;
 const MAX_REQUEST_BODY_BYTES = 8 * 1024;
 const MIN_TIME_MS = 1000;

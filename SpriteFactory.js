@@ -258,6 +258,72 @@ function paintBoulder(ctx) {
     ctx.fill();
 }
 
+function paintIssHull(ctx) {
+    ctx.fillStyle = '#9aa6b5';
+    ctx.fillRect(0, 4, 128, 20);
+    ctx.fillStyle = '#f4f7fb';
+    ctx.fillRect(0, 4, 128, 5);
+    ctx.fillStyle = '#d7a441';
+    ctx.fillRect(0, 9, 128, 2);
+    ctx.fillStyle = '#6d7888';
+    for (let x = 0; x < 128; x += 32) {
+        ctx.fillRect(x, 4, 2, 20);
+    }
+    ctx.fillStyle = '#173e68';
+    ctx.fillRect(10, 13, 16, 6);
+    ctx.fillRect(54, 13, 16, 6);
+    ctx.fillRect(98, 13, 16, 6);
+    ctx.fillStyle = '#8fd4ff';
+    ctx.fillRect(12, 14, 6, 3);
+    ctx.fillRect(56, 14, 6, 3);
+    ctx.fillRect(100, 14, 6, 3);
+}
+
+function paintBoarder(ctx) {
+    ctx.fillStyle = '#1d8a45';
+    ctx.fillRect(12, 22, 16, 16);
+    ctx.fillStyle = '#39c46a';
+    ctx.beginPath();
+    ctx.arc(20, 14, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f4fff6';
+    ctx.beginPath();
+    ctx.ellipse(24, 13, 4, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#102016';
+    ctx.beginPath();
+    ctx.arc(26, 13, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#146b36';
+    ctx.fillRect(6, 24, 6, 4);
+    ctx.fillRect(28, 24, 6, 4);
+    ctx.fillStyle = '#0e4a26';
+    ctx.fillRect(13, 38, 6, 8);
+    ctx.fillRect(23, 38, 6, 8);
+}
+
+function paintSpacePhaser(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 16, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 16, 2);
+    ctx.fillStyle = '#39f3ff';
+    ctx.fillRect(16, 4, 6, 5);
+    ctx.fillStyle = '#e8fdff';
+    ctx.fillRect(20, 5, 3, 3);
+}
+
+function paintPhaserBolt(ctx) {
+    ctx.fillStyle = '#7af6ff';
+    ctx.fillRect(0, 2, 28, 4);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(4, 3, 18, 2);
+    ctx.fillStyle = '#d8fbff';
+    ctx.beginPath();
+    ctx.arc(26, 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+}
+
 export class SpriteFactory {
     constructor(scene) {
         this.scene = scene;
@@ -962,6 +1028,10 @@ export class SpriteFactory {
             ['acidDrop', 18, 28, paintAcidDrop],
             ['dustDevil', 36, 100, paintDustDevil],
             ['boulder', 40, 40, paintBoulder],
+            ['issHull', 128, 28, paintIssHull],
+            ['boarder', 40, 48, paintBoarder],
+            ['spacePhaser', 24, 12, paintSpacePhaser],
+            ['phaserBolt', 28, 8, paintPhaserBolt],
         ];
         sprites.forEach(([key, width, height, paint]) => {
             this.addCanvasTexture(key, width, height, paint);
@@ -1011,6 +1081,7 @@ export class SpriteFactory {
         this.createLeftBtn();
         this.createRightBtn();
         this.createJumpBtn();
+        this.createPhaserBtn();
         this.createMusicToggleButtons();
     }
 
@@ -1035,6 +1106,31 @@ export class SpriteFactory {
         ctx.beginPath();
         ctx.arc(size * 0.5, size * 0.5, radius - size * 0.07, 0, Math.PI * 2);
         ctx.stroke();
+    }
+
+    createPhaserBtn() {
+        if (this.scene.textures.exists('phaserBtn')) {
+            return;
+        }
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        this.drawCircularControl(ctx, size, 'rgba(12, 48, 72, 0.86)', 'rgba(140, 245, 255, 0.95)');
+        ctx.fillStyle = '#d7e6f2';
+        ctx.fillRect(size * 0.24, size * 0.46, size * 0.28, size * 0.1);
+        ctx.fillStyle = '#39f3ff';
+        ctx.beginPath();
+        ctx.moveTo(size * 0.48, size * 0.3);
+        ctx.lineTo(size * 0.66, size * 0.48);
+        ctx.lineTo(size * 0.5, size * 0.48);
+        ctx.lineTo(size * 0.7, size * 0.72);
+        ctx.lineTo(size * 0.52, size * 0.54);
+        ctx.lineTo(size * 0.66, size * 0.54);
+        ctx.closePath();
+        ctx.fill();
+        this.scene.textures.addCanvas('phaserBtn', canvas);
     }
 
     createLeftBtn() {

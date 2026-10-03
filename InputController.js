@@ -12,6 +12,7 @@ export class InputController {
             pointerStartTriggered: false,
             gamepadJumpJustPressed: false,
             gamepadStartJustPressed: false,
+            phaserHeld: false,
             coopMode: null,
         };
         this.pointerBuffer = [];
@@ -34,6 +35,7 @@ export class InputController {
             music: false,
             leaderboard: false,
             name: false,
+            phaser: false,
         };
         this.hitBounds = { x: 0, y: 0, width: 0, height: 0 };
     }
@@ -49,6 +51,7 @@ export class InputController {
         state.pointerStartTriggered = false;
         state.gamepadJumpJustPressed = false;
         state.gamepadStartJustPressed = false;
+        state.phaserHeld = false;
         state.menu = {};
         state.coopMode = null;
         if (scene.coopKeys) {
@@ -75,20 +78,26 @@ export class InputController {
         controls.musicButton = ui ? ui.musicToggleButton : null;
         controls.leaderboardButton = ui ? ui.leaderboardButton : null;
         controls.playerNameText = ui ? ui.playerNameText : null;
+        controls.phaserButton = ui ? ui.phaserButton : null;
 
         const movementMidpoint =
             ui && ui.touchMovementMidpoint
                 ? ui.touchMovementMidpoint
                 : scene.getViewportWidth() / 2;
 
+        let phaserPointerDown = false;
         for (let i = 0; i < activePointers.length; i++) {
             const pointer = activePointers[i];
             this.fillPointerTargets(pointer, controls);
+            if (pointer.isDown && this.targets.phaser) {
+                phaserPointerDown = true;
+            }
             if (this.recordPointerTap(pointer, this.targets)) {
                 state.doubleTapJumpTriggered = true;
             }
             this.applyPointerMovement(pointer, this.targets, movementMidpoint, controls);
         }
+        this.syncPhaserHeld(state, phaserPointerDown);
 
         state.pointerJumpTriggered = this.detectPointerJump(activePointers, controls, ui);
         state.pointerStartTriggered = this.detectTitleStart(activePointers, controls);
@@ -134,6 +143,9 @@ export class InputController {
         const start = buttonDown(9) || buttonDown(16);
         state.gamepadJumpJustPressed = jump && !previous.jump;
         state.gamepadStartJustPressed = start && !previous.start;
+        if (scene.coopMode !== 'keyboard' && scene.coopMode !== 'keyboard-controller') {
+            state.phaserHeld = buttonDown(2);
+        }
         const axis = (value) => (Math.abs(value || 0) >= 0.22 ? value : 0);
         const horizontal =
             axis(pad.axes?.[0]) || (buttonDown(15) ? 1 : 0) || (buttonDown(14) ? -1 : 0);
@@ -162,6 +174,17 @@ export class InputController {
         );
         this.gamepadJumpEdges = [jump && !previous.jump, secondJump && !previous.secondJump];
         this.previousGamepadButtons.secondJump = secondJump;
+    }
+
+    syncPhaserHeld(state, pointerDown) {
+        const scene = this.scene;
+        state.phaserHeld = Boolean(
+            state.phaserHeld ||
+            scene.phaserKey?.isDown ||
+            scene.phaserKeyAlt?.isDown ||
+            pointerDown ||
+            scene.phaserHeld
+        );
     }
 
     getGamepad(index = 0) {
@@ -216,7 +239,8 @@ export class InputController {
                 !this.targets.right &&
                 !this.targets.music &&
                 !this.targets.leaderboard &&
-                !this.targets.name
+                !this.targets.name &&
+                !this.targets.phaser
             ) {
                 return true;
             }
@@ -305,6 +329,14 @@ export class InputController {
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.leaderboardButton);
         targets.name =
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.playerNameText);
+        targets.phaser =
+            hasCoordinates &&
+            this.isPointerOverGameObject(
+                x,
+                y,
+                controls.phaserButton,
+                controls.phaserButton?.touchHitPadding ?? pad
+            );
         return targets;
     }
 
@@ -315,7 +347,8 @@ export class InputController {
             targets.right ||
             targets.music ||
             targets.leaderboard ||
-            targets.name
+            targets.name ||
+            targets.phaser
         );
     }
 
@@ -385,7 +418,14 @@ export class InputController {
             return false;
         }
         const targets = this.fillPointerTargets(pointer, controls);
-        if (targets.music || targets.leaderboard || targets.name || targets.left || targets.right) {
+        if (
+            targets.music ||
+            targets.leaderboard ||
+            targets.name ||
+            targets.left ||
+            targets.right ||
+            targets.phaser
+        ) {
             return false;
         }
         const downTime = pointer.downTime || 0;
