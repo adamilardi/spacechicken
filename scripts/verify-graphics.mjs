@@ -17,7 +17,7 @@ const browser = await chromium.launch({
 });
 try {
     for (const mobile of [false, true]) {
-        for (const level of [1, 2, 3, 4]) {
+        for (const level of [1, 2, 3, 4, 5, 6]) {
             const context = await browser.newContext({
                 viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 720 },
                 hasTouch: mobile,

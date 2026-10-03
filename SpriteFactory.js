@@ -1,3 +1,263 @@
+function paintLabDeck(ctx) {
+    ctx.fillStyle = '#16343a';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#2f8f86';
+    ctx.fillRect(0, 0, 96, 4);
+    ctx.fillStyle = '#9ef6e2';
+    ctx.fillRect(0, 4, 96, 2);
+    for (let x = 0; x < 96; x += 12) {
+        ctx.fillStyle = x % 24 === 0 ? '#f2d15a' : '#1a1c22';
+        ctx.fillRect(x, 18, 12, 6);
+    }
+    ctx.fillStyle = '#d7fff4';
+    ctx.fillRect(8, 9, 18, 5);
+    ctx.fillRect(70, 9, 18, 5);
+}
+
+function paintMesa(ctx) {
+    const rock = ctx.createLinearGradient(0, 0, 0, 32);
+    rock.addColorStop(0, '#e7a36a');
+    rock.addColorStop(0.45, '#c45a32');
+    rock.addColorStop(1, '#6e2b22');
+    ctx.fillStyle = rock;
+    ctx.fillRect(0, 6, 96, 26);
+    ctx.fillStyle = '#f0c39a';
+    ctx.fillRect(0, 6, 96, 4);
+    ctx.fillStyle = '#4a1c18';
+    ctx.fillRect(18, 16, 22, 3);
+    ctx.fillRect(58, 20, 26, 3);
+    ctx.fillStyle = '#ffd7a8';
+    ctx.fillRect(8, 12, 10, 2);
+}
+
+function paintLabTech(ctx) {
+    ctx.fillStyle = '#f4f7fb';
+    ctx.fillRect(10, 24, 24, 22);
+    ctx.fillStyle = '#c5d0de';
+    ctx.fillRect(12, 28, 20, 12);
+    ctx.fillStyle = '#6a45e0';
+    ctx.beginPath();
+    ctx.arc(22, 16, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f6ef9a';
+    ctx.beginPath();
+    ctx.arc(17, 16, 3, 0, Math.PI * 2);
+    ctx.arc(27, 16, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1a1030';
+    ctx.beginPath();
+    ctx.arc(18, 16, 1.4, 0, Math.PI * 2);
+    ctx.arc(28, 16, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#d7cbff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(16, 8);
+    ctx.lineTo(12, 2);
+    ctx.moveTo(28, 8);
+    ctx.lineTo(33, 2);
+    ctx.stroke();
+    ctx.fillStyle = '#67ffd2';
+    ctx.beginPath();
+    ctx.arc(12, 2, 2, 0, Math.PI * 2);
+    ctx.arc(33, 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#3a2d6b';
+    ctx.beginPath();
+    ctx.moveTo(16, 46);
+    ctx.lineTo(14, 51);
+    ctx.moveTo(28, 46);
+    ctx.lineTo(30, 51);
+    ctx.stroke();
+}
+
+function paintSpecimen(ctx) {
+    ctx.fillStyle = '#3a1460';
+    ctx.beginPath();
+    ctx.ellipse(20, 24, 16, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#b06bff';
+    ctx.beginPath();
+    ctx.ellipse(20, 22, 12, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7d2dff';
+    ctx.beginPath();
+    ctx.arc(14, 20, 3, 0, Math.PI * 2);
+    ctx.arc(24, 28, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff4a8';
+    ctx.beginPath();
+    ctx.arc(15, 18, 2.2, 0, Math.PI * 2);
+    ctx.arc(25, 18, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#241033';
+    ctx.beginPath();
+    ctx.arc(16, 18, 1, 0, Math.PI * 2);
+    ctx.arc(26, 18, 1, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintSentryOrb(ctx) {
+    ctx.fillStyle = '#1c2430';
+    ctx.beginPath();
+    ctx.arc(22, 22, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8ef6ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(22, 22, 16, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#d9fbff';
+    ctx.beginPath();
+    ctx.arc(22, 22, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#12343a';
+    ctx.beginPath();
+    ctx.arc(22, 22, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff5bd2';
+    ctx.fillRect(20, 4, 4, 6);
+    ctx.fillRect(20, 34, 4, 6);
+}
+
+function paintBeetle(ctx) {
+    ctx.fillStyle = '#6a1d14';
+    ctx.beginPath();
+    ctx.ellipse(26, 16, 20, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e25b32';
+    ctx.beginPath();
+    ctx.ellipse(28, 15, 14, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f2c14d';
+    ctx.fillRect(24, 14, 10, 2);
+    ctx.fillStyle = '#2a0c08';
+    ctx.fillRect(8, 20, 8, 3);
+    ctx.fillRect(18, 22, 8, 3);
+    ctx.fillRect(32, 22, 8, 3);
+    ctx.fillRect(42, 20, 8, 3);
+    ctx.fillStyle = '#fff1a8';
+    ctx.beginPath();
+    ctx.arc(40, 12, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintHopper(ctx) {
+    ctx.fillStyle = '#c46a3a';
+    ctx.fillRect(14, 18, 8, 16);
+    ctx.fillStyle = '#f0b27a';
+    ctx.beginPath();
+    ctx.arc(18, 12, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a120c';
+    ctx.beginPath();
+    ctx.arc(15, 11, 1.5, 0, Math.PI * 2);
+    ctx.arc(21, 11, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8a3d22';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(14, 34);
+    ctx.lineTo(8, 44);
+    ctx.lineTo(16, 44);
+    ctx.moveTo(22, 34);
+    ctx.lineTo(28, 44);
+    ctx.lineTo(18, 44);
+    ctx.stroke();
+}
+
+function paintCrusher(ctx) {
+    ctx.fillStyle = '#2b313c';
+    ctx.fillRect(0, 4, 72, 22);
+    ctx.fillStyle = '#8d97a8';
+    ctx.fillRect(0, 4, 72, 4);
+    for (let x = 0; x < 72; x += 12) {
+        ctx.fillStyle = x % 24 === 0 ? '#f2d15a' : '#15181f';
+        ctx.fillRect(x, 18, 12, 8);
+    }
+    ctx.fillStyle = '#d5dde8';
+    ctx.beginPath();
+    ctx.arc(12, 12, 3, 0, Math.PI * 2);
+    ctx.arc(60, 12, 3, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintSpecimenJar(ctx) {
+    ctx.fillStyle = '#9fd7e8';
+    ctx.fillRect(6, 8, 16, 32);
+    ctx.fillStyle = '#39e07a';
+    ctx.fillRect(8, 20, 12, 18);
+    ctx.fillStyle = '#d8fff0';
+    ctx.beginPath();
+    ctx.arc(12, 26, 2, 0, Math.PI * 2);
+    ctx.arc(17, 32, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#24515c';
+    ctx.fillRect(4, 6, 20, 5);
+    ctx.strokeStyle = '#e7fbff';
+    ctx.strokeRect(6.5, 8.5, 15, 31);
+}
+
+function paintMarsSpike(ctx) {
+    ctx.fillStyle = '#8a4630';
+    ctx.fillRect(2, 16, 24, 8);
+    ctx.fillStyle = '#ff5a3c';
+    ctx.beginPath();
+    ctx.moveTo(6, 16);
+    ctx.lineTo(10, 2);
+    ctx.lineTo(14, 16);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(14, 16);
+    ctx.lineTo(20, 4);
+    ctx.lineTo(24, 16);
+    ctx.fill();
+}
+
+function paintAcidDrop(ctx) {
+    ctx.fillStyle = '#7dff4a';
+    ctx.beginPath();
+    ctx.moveTo(9, 2);
+    ctx.quadraticCurveTo(18, 14, 9, 26);
+    ctx.quadraticCurveTo(0, 14, 9, 2);
+    ctx.fill();
+    ctx.fillStyle = '#eaffc4';
+    ctx.fillRect(7, 12, 3, 6);
+}
+
+function paintDustDevil(ctx) {
+    ctx.fillStyle = 'rgba(255, 156, 74, 0.18)';
+    ctx.beginPath();
+    ctx.ellipse(18, 50, 16, 46, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 214, 150, 0.85)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(18, 24, 8, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(18, 48, 12, 6, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(18, 74, 15, 6, 0, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
+function paintBoulder(ctx) {
+    ctx.fillStyle = '#a35332';
+    ctx.beginPath();
+    ctx.arc(20, 20, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e39a62';
+    ctx.beginPath();
+    ctx.arc(14, 14, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6a2e1c';
+    ctx.beginPath();
+    ctx.arc(24, 24, 4, 0, Math.PI * 2);
+    ctx.fill();
+}
+
 export class SpriteFactory {
     constructor(scene) {
         this.scene = scene;
@@ -685,6 +945,27 @@ export class SpriteFactory {
 
             this.scene.textures.addCanvas('rover', roverCanvas);
         }
+    }
+
+    createExpeditionSprites() {
+        const sprites = [
+            ['labDeck', 96, 24, paintLabDeck],
+            ['mesa', 96, 32, paintMesa],
+            ['labTech', 44, 52, paintLabTech],
+            ['specimen', 40, 44, paintSpecimen],
+            ['sentryOrb', 44, 44, paintSentryOrb],
+            ['beetle', 52, 30, paintBeetle],
+            ['hopper', 36, 48, paintHopper],
+            ['crusher', 72, 30, paintCrusher],
+            ['specimenJar', 28, 44, paintSpecimenJar],
+            ['marsSpike', 28, 24, paintMarsSpike],
+            ['acidDrop', 18, 28, paintAcidDrop],
+            ['dustDevil', 36, 100, paintDustDevil],
+            ['boulder', 40, 40, paintBoulder],
+        ];
+        sprites.forEach(([key, width, height, paint]) => {
+            this.addCanvasTexture(key, width, height, paint);
+        });
     }
 
     createParticleTextures() {

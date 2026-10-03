@@ -65,6 +65,9 @@ function relativeItem(item, player) {
         top: round(item.top - player.y),
         active: item.active !== false && item.enable !== false,
     };
+    if (item.bonkable) {
+        result.bonkable = true;
+    }
     const moving =
         item.type === 'moving_platform' || item.type === 'drone' || item.type === 'rover';
     if (moving || Math.abs(vx) > 5 || Math.abs(vy) > 5) {

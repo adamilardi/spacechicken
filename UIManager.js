@@ -1,4 +1,4 @@
-import { GAME_CONSTANTS } from './Constants.js';
+import { GAME_CONSTANTS, LEVEL_IDS } from './Constants.js';
 import { formatElapsedTime } from './GameUtils.js';
 
 const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';
@@ -964,7 +964,7 @@ export class UIManager {
             this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
             this.leaderboardTextObject.setInteractive({ useHandCursor: true });
             this.leaderboardTextObject.on('pointerup', () => {
-                this.leaderboardPage = (this.leaderboardPage + 1) % 5;
+                this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
                 this.displayLeaderboard();
             });
             this.styleHudText(this.leaderboardTextObject, 4);
@@ -1043,8 +1043,12 @@ export class UIManager {
             });
     }
 
+    leaderboardPageCount() {
+        return LEVEL_IDS.length + 1;
+    }
+
     showGameOver(finalTime) {
-        this.leaderboardPage = this.fullRunSummary ? 0 : 4;
+        this.leaderboardPage = this.fullRunSummary ? 0 : this.scene.level;
         this.finishLevelTime = finalTime;
         this.timerText.setText(`Time: ${formatElapsedTime(finalTime)}`);
         this.levelText.setText('Completed');
@@ -1497,7 +1501,9 @@ export class UIManager {
         if (this.leaderboardVisible) {
             if (menu.back || menu.board) this.hideLeaderboard();
             else if (menu.left || menu.right || menu.confirm) {
-                this.leaderboardPage = ((this.leaderboardPage || 0) + (menu.left ? -1 : 1) + 5) % 5;
+                const pageCount = this.leaderboardPageCount();
+                this.leaderboardPage =
+                    ((this.leaderboardPage || 0) + (menu.left ? -1 : 1) + pageCount) % pageCount;
                 this.displayLeaderboard();
             }
             return this.scene.awaitingStart || this.scene.gameOver;

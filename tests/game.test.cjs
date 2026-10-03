@@ -136,7 +136,7 @@ test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('Constants.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
 
-    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4]);
+    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6]);
     LEVEL_IDS.forEach((level) => {
         const config = new LevelConfig(level);
         assert.ok(config.world.width > 0);
@@ -144,15 +144,51 @@ test('level configuration exposes every playable level', async () => {
         assert.ok(Number.isFinite(config.gravity));
     });
     assert.equal(new LevelConfig(3).nextLevel, 4);
-    assert.equal(new LevelConfig(4).nextLevel, null);
+    assert.equal(new LevelConfig(4).nextLevel, 5);
+    assert.equal(new LevelConfig(5).nextLevel, 6);
+    assert.equal(new LevelConfig(6).nextLevel, null);
     assert.equal(new LevelConfig(1).title, 'Dawn Run');
     assert.equal(new LevelConfig(2).title, 'Arcade Orbit');
     assert.equal(new LevelConfig(3).title, 'Orbital Gauntlet');
     assert.equal(new LevelConfig(4).title, 'Moonfall Citadel');
+    assert.equal(new LevelConfig(5).title, 'Specimen Wing');
+    assert.equal(new LevelConfig(6).title, 'Red Reach');
+    assert.equal(new LevelConfig(5).background.type, 'facility');
+    assert.equal(new LevelConfig(6).background.type, 'mars');
+    assert.ok(new LevelConfig(5).hazards.dynamic.some((hazard) => hazard.type === 'bonk'));
+    assert.ok(new LevelConfig(6).hazards.dynamic.some((hazard) => hazard.type === 'dustDevil'));
     const levelThree = new LevelConfig(3);
     assert.equal(levelThree.platforms, levelThree.platforms);
     assert.equal(levelThree.background.type, 'station');
     assert.throws(() => new LevelConfig(99), /configuration not found/);
+});
+
+test('a falling chicken bonks only the top of a bonkable enemy', async () => {
+    const { canBonkFromAbove } = await importModule('GameUtils.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const chicken = { x: 100, y: 80, body: { velocity: { y: 120 }, height: 32 } };
+    const hazard = {
+        x: 100,
+        y: 110,
+        bonkable: true,
+        displayHeight: 40,
+        body: { height: 40 },
+    };
+    assert.equal(canBonkFromAbove(chicken, hazard, GAME_CONSTANTS.BONK_MIN_FALL_SPEED), true);
+    assert.equal(
+        canBonkFromAbove(
+            { ...chicken, body: { velocity: { y: 0 }, height: 32 } },
+            hazard,
+            GAME_CONSTANTS.BONK_MIN_FALL_SPEED
+        ),
+        false
+    );
+    assert.equal(
+        canBonkFromAbove({ ...chicken, y: 110 }, hazard, GAME_CONSTANTS.BONK_MIN_FALL_SPEED),
+        false
+    );
+    hazard.bonkLock = true;
+    assert.equal(canBonkFromAbove(chicken, hazard, GAME_CONSTANTS.BONK_MIN_FALL_SPEED), false);
 });
 
 test('elapsed times use one stable display format', async () => {
@@ -232,7 +268,7 @@ test('all levels have distinct, layered music arrangements', async () => {
     const identities = new Set();
 
     assert.equal(midiToFrequency(69), 440);
-    for (let level = 1; level <= 4; level++) {
+    for (let level = 1; level <= 6; level++) {
         const definition = MUSIC_DEFINITIONS[level];
         identities.add(definition.id);
         assert.ok(definition.pattern.length >= 40, `level ${level} should have a full arrangement`);
@@ -241,7 +277,7 @@ test('all levels have distinct, layered music arrangements', async () => {
         assert.ok(definition.pattern.some((event) => event.kind === 'kick'));
         assert.ok(definition.pattern.some((event) => event.kind === 'hat'));
     }
-    assert.equal(identities.size, 4);
+    assert.equal(identities.size, 6);
 });
 
 test('audio scheduling routes melodic and percussion events', async () => {

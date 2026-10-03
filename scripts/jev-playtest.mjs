@@ -125,6 +125,7 @@ export async function chooseJevAction(client, observation, recentActions = []) {
                             'Use velocity, direction, and path endpoints for moving platforms, drones, and rovers.',
                             'For lasers and cosmic rays, cooldown is safe, warning means leave the column, and active means do not cross; use timeUntilPhaseChangeMs.',
                             'Jump to cross a gap, reach a higher landing window, or avoid an immediate threat.',
+                            'A hazard with bonkable true grants a boost jump when stomped from above. Touching its side still fails the run.',
                             'Do not invent actions or assume hidden game state.',
                         ],
                     },

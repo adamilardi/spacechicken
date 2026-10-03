@@ -355,6 +355,21 @@ export class WorldBuilder {
                 case 'cosmicRay':
                     this.createCosmicRayHazard(group, config);
                     break;
+                case 'bonk':
+                    this.createBonkEnemy(group, config);
+                    break;
+                case 'crusher':
+                    this.createCrusherHazard(group, config);
+                    break;
+                case 'drip':
+                    this.createDripHazard(group, config);
+                    break;
+                case 'roller':
+                    this.createRollerHazard(group, config);
+                    break;
+                case 'dustDevil':
+                    this.createDustDevilHazard(group, config);
+                    break;
                 default: {
                     const hazard = group.create(config.x, config.y, config.key || 'rock');
                     this.tagTestEntity(hazard, {
@@ -405,6 +420,7 @@ export class WorldBuilder {
         beam.setImmovable(true);
         beam.setBlendMode(Phaser.BlendModes.ADD);
         beam.setDepth(config.depth ?? 6);
+        this.tintHazard(beam, config.tint);
 
         if (orientation === 'horizontal') {
             beam.setDisplaySize(length, width);
@@ -451,6 +467,8 @@ export class WorldBuilder {
             const emitterDepth = (config.depth ?? 6) - 1;
             emitterStart.setDepth(emitterDepth);
             emitterEnd.setDepth(emitterDepth);
+            this.tintHazard(emitterStart, config.tint);
+            this.tintHazard(emitterEnd, config.tint);
         }
 
         const scheduleCycle = (state, delay) => {
@@ -650,5 +668,190 @@ export class WorldBuilder {
                 callback: spawnRay,
             })
         );
+    }
+
+    tintHazard(sprite, tint) {
+        if (tint != null && sprite?.setTint) {
+            sprite.setTint(tint);
+        }
+    }
+
+    createBonkEnemy(group, config) {
+        const enemy = group.create(config.x, config.y, config.key || 'labTech');
+        enemy.bonkable = true;
+        enemy.bonkLock = false;
+        enemy.body.allowGravity = false;
+        enemy.setImmovable(true);
+        enemy.setDepth(config.depth ?? 7);
+        const frameWidth = enemy.width || enemy.displayWidth || 32;
+        const frameHeight = enemy.height || enemy.displayHeight || 32;
+        enemy.body.setSize(
+            config.bodyWidth ?? Math.round(frameWidth * 0.72),
+            config.bodyHeight ?? Math.round(frameHeight * 0.82),
+            true
+        );
+        enemy.bonkScaleX = enemy.scaleX || 1;
+        enemy.bonkScaleY = enemy.scaleY || 1;
+        this.tagTestEntity(enemy, {
+            kind: 'hazard',
+            type: config.enemy || 'bonk',
+            bonkable: true,
+            origin: { x: config.x, y: config.y },
+            target: config.patrol
+                ? { x: config.patrol.x ?? config.x, y: config.patrol.y ?? config.y }
+                : null,
+            durationMs: config.patrol?.duration ?? null,
+            delayMs: config.patrol?.delay ?? 0,
+        });
+        if (config.patrol && this.tweens?.add) {
+            addLoopingTween(this.tweens, enemy, {
+                ...config.patrol,
+                onUpdate: () => {
+                    const previous = enemy.bonkPrevX ?? enemy.x;
+                    if (Math.abs(enemy.x - previous) > 0.2) {
+                        enemy.setFlipX(enemy.x < previous);
+                    }
+                    enemy.bonkPrevX = enemy.x;
+                },
+            });
+        }
+        if (config.bobAmplitude != null && this.tweens?.add) {
+            this.tweens.add({
+                targets: enemy,
+                y: enemy.y - config.bobAmplitude,
+                duration: config.bobDuration ?? GAME_CONSTANTS.BOB_DEFAULT_DURATION,
+                yoyo: true,
+                repeat: -1,
+                ease: GAME_CONSTANTS.BOB_DEFAULT_EASE,
+                delay: config.bobDelay ?? 0,
+            });
+        }
+    }
+
+    createCrusherHazard(group, config) {
+        const crusher = group.create(config.x, config.y, config.key || 'crusher');
+        this.tagTestEntity(crusher, {
+            kind: 'hazard',
+            type: 'crusher',
+            origin: { x: config.x, y: config.y },
+            target: { x: config.x, y: config.slamY ?? config.y + 120 },
+            durationMs: config.duration ?? 780,
+            delayMs: config.delay ?? 0,
+        });
+        crusher.body.allowGravity = false;
+        crusher.setImmovable(true);
+        crusher.setDepth(8);
+        crusher.body.setSize(64, 22, true);
+        if (config.slamY != null) {
+            addLoopingTween(this.tweens, crusher, {
+                y: config.slamY,
+                duration: config.duration ?? 780,
+                ease: 'Quad.easeIn',
+                delay: config.delay ?? 0,
+                hold: config.hold ?? 280,
+            });
+        }
+    }
+
+    createDripHazard(group, config) {
+        const interval = config.interval ?? 1500;
+        const spawn = () => {
+            const drop = group.create(config.x, config.y, config.key || 'acidDrop');
+            if (!drop) {
+                return;
+            }
+            this.tagTestEntity(drop, { kind: 'hazard', type: 'acid_drip' });
+            drop.body.allowGravity = true;
+            drop.setImmovable(false);
+            drop.setVelocity(0, config.speed ?? 90);
+            drop.body.setGravityY?.(config.gravityY ?? 900);
+            drop.setDepth(6);
+            const watch = this.time.addEvent({
+                delay: 100,
+                loop: true,
+                callback: () => {
+                    if (!drop.scene || drop.y > this.worldHeight + 40) {
+                        watch.remove(false);
+                        Phaser.Utils.Array.Remove(this.dynamicHazardEvents, watch);
+                        drop.destroy();
+                    }
+                },
+            });
+            this.dynamicHazardEvents.push(watch);
+        };
+        const starter = this.time.delayedCall(config.delay ?? 0, () => {
+            Phaser.Utils.Array.Remove(this.dynamicHazardEvents, starter);
+            spawn();
+        });
+        this.dynamicHazardEvents.push(starter);
+        this.dynamicHazardEvents.push(
+            this.time.addEvent({
+                delay: interval,
+                loop: true,
+                callback: spawn,
+            })
+        );
+    }
+
+    createRollerHazard(group, config) {
+        const roller = group.create(config.x, config.y, config.key || 'boulder');
+        this.tagTestEntity(roller, {
+            kind: 'hazard',
+            type: 'boulder',
+            origin: { x: config.x, y: config.y },
+            target: config.patrol
+                ? { x: config.patrol.x ?? config.x, y: config.patrol.y ?? config.y }
+                : null,
+            durationMs: config.patrol?.duration ?? null,
+            delayMs: config.patrol?.delay ?? 0,
+        });
+        roller.body.allowGravity = false;
+        roller.setImmovable(true);
+        roller.setDepth(6);
+        roller.body.setCircle(16, 4, 4);
+        if (config.patrol) {
+            addLoopingTween(this.tweens, roller, config.patrol);
+        }
+        if (this.tweens?.add) {
+            this.tweens.add({
+                targets: roller,
+                angle: 360,
+                duration: config.spinDuration ?? 700,
+                repeat: -1,
+                ease: 'Linear',
+            });
+        }
+    }
+
+    createDustDevilHazard(group, config) {
+        const devil = group.create(config.x, config.y, config.key || 'dustDevil');
+        this.tagTestEntity(devil, {
+            kind: 'hazard',
+            type: 'dust_devil',
+            origin: { x: config.x, y: config.y },
+            target: config.patrol
+                ? { x: config.patrol.x ?? config.x, y: config.patrol.y ?? config.y }
+                : null,
+            durationMs: config.patrol?.duration ?? null,
+            delayMs: config.patrol?.delay ?? 0,
+        });
+        devil.body.allowGravity = false;
+        devil.setImmovable(true);
+        devil.setDepth(6);
+        devil.setBlendMode?.(Phaser.BlendModes.ADD);
+        devil.body.setSize(18, 78, true);
+        if (config.patrol) {
+            addLoopingTween(this.tweens, devil, config.patrol);
+        }
+        if (this.tweens?.add) {
+            this.tweens.add({
+                targets: devil,
+                angle: { from: -8, to: 8 },
+                duration: 420,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+            });
+        }
     }
 }

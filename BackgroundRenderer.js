@@ -256,6 +256,18 @@ export class BackgroundRenderer {
                     worldWidth,
                     worldHeight
                 );
+            } else if (background.type === 'facility') {
+                backgroundLayout = this.createFacilityBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'mars') {
+                backgroundLayout = this.createMarsBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
             } else {
                 backgroundLayout = this.createSpaceBackgroundLayout(
                     background,
@@ -280,6 +292,14 @@ export class BackgroundRenderer {
         }
         if (background.type === 'moon') {
             this.renderMoonBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'facility') {
+            this.renderFacilityBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'mars') {
+            this.renderMarsBackground(background, layout, worldWidth, worldHeight, layerId);
             return;
         }
         this.renderSpaceBackground(background, layout, worldWidth, worldHeight, layerId);
@@ -383,7 +403,14 @@ export class BackgroundRenderer {
             star.setDepth((far?.depth ?? -32) + 1);
             star.setScale(0.18 + Math.random() * 0.28);
             star.setScrollFactor?.(far?.scrollX ?? 0.16, far?.scrollY ?? 0.08);
-            star.setTint?.(0xffffff);
+            const backgroundType = this.levelConfig?.background?.type;
+            star.setTint?.(
+                backgroundType === 'facility'
+                    ? 0x7dffe2
+                    : backgroundType === 'mars'
+                      ? 0xffc27a
+                      : 0xffffff
+            );
             if (star.setBlendMode && Phaser.BlendModes) {
                 star.setBlendMode(Phaser.BlendModes.ADD);
             }
@@ -1333,6 +1360,174 @@ export class BackgroundRenderer {
                 color: palette.accent,
                 alpha: 0.08,
             },
+        };
+    }
+
+    renderFacilityBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x071016,
+                mid: 0x12343c,
+                bottom: 0x1c4d46,
+                metal: 0x1a3038,
+                glow: 0x67ffd2,
+                accent: 0xd6ff4a,
+                glass: 0x8ee7ff,
+                shadow: 0x060d12,
+            },
+            background.palette || {}
+        );
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                40
+            );
+            this.renderScanlines(worldWidth, worldHeight, palette.shadow, 0.08, 8, 1);
+            return;
+        }
+        if (layerId === 'far') {
+            (layout.lights || []).forEach((light) => {
+                this.drawGlow(light.x, light.y, 36, palette.glow, 0.16, 6);
+                this.graphics.fillStyle(palette.glow, 0.9).fillCircle(light.x, light.y, 4);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            (layout.vats || []).forEach((vat) => {
+                this.graphics.fillStyle(palette.metal, 0.92).fillRect(vat.x, vat.y, vat.w, vat.h);
+                this.graphics
+                    .fillStyle(palette.accent, 0.55)
+                    .fillRect(vat.x + 14, vat.y + vat.h * 0.35, vat.w - 28, vat.h * 0.55);
+                this.graphics
+                    .fillStyle(palette.glass, 0.35)
+                    .fillRect(vat.x + 8, vat.y + 10, vat.w - 16, vat.h * 0.2);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        const ceiling = layout.pipes || 80;
+        this.graphics.fillStyle(palette.shadow, 0.95).fillRect(0, 0, worldWidth, ceiling);
+        for (let x = 0; x < worldWidth; x += 180) {
+            this.graphics.fillStyle(palette.metal, 1).fillRect(x + 40, ceiling - 16, 70, 16);
+            this.graphics.fillStyle(palette.glow, 0.8).fillRect(x + 64, ceiling - 8, 22, 4);
+        }
+        this.graphics.fillStyle(palette.metal, 1).fillRect(0, worldHeight - 70, worldWidth, 70);
+        for (let x = 0; x < worldWidth; x += 24) {
+            this.graphics.fillStyle(x % 48 === 0 ? palette.accent : palette.shadow, 0.9);
+            this.graphics.fillRect(x, worldHeight - 16, 24, 16);
+        }
+    }
+
+    renderMarsBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x2a0c14,
+                mid: 0xc45a3a,
+                bottom: 0xf0b56a,
+                surface: 0xc4623a,
+                dune: 0x9a3d28,
+                highlight: 0xffd0a4,
+                shadow: 0x4a1c16,
+                dust: 0xffb15a,
+            },
+            background.palette || {}
+        );
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                42
+            );
+            this.drawGlow(worldWidth * 0.7, worldHeight * 0.2, 160, palette.dust, 0.08, 8);
+            return;
+        }
+        if (layerId === 'far') {
+            this.renderStars(this.starsFor(layout, 'far'));
+            (layout.moons || []).forEach((moon) => {
+                this.graphics.fillStyle(palette.highlight, 0.95).fillCircle(moon.x, moon.y, moon.r);
+                this.graphics
+                    .fillStyle(palette.shadow, 0.45)
+                    .fillCircle(moon.x + moon.r * 0.3, moon.y, moon.r * 0.72);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            (layout.ridges || []).forEach((ridge) => {
+                this.renderPolygon(
+                    [
+                        { x: ridge.x, y: worldHeight },
+                        { x: ridge.x + 40, y: ridge.y },
+                        { x: ridge.x + ridge.w, y: worldHeight },
+                    ],
+                    palette.shadow,
+                    0.9
+                );
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        (layout.dunes || []).forEach((dune) => {
+            this.graphics.fillStyle(palette.dune, 0.95);
+            this.graphics.fillEllipse(dune.x, dune.y, 260, dune.h);
+            this.graphics.fillStyle(palette.highlight, 0.28);
+            this.graphics.fillEllipse(dune.x - 20, dune.y - 8, 160, dune.h * 0.4);
+        });
+        this.graphics
+            .fillStyle(palette.surface, 1)
+            .fillRect(0, worldHeight * 0.78, worldWidth, worldHeight);
+    }
+
+    createFacilityBackgroundLayout(_background, worldWidth, worldHeight) {
+        const vats = [];
+        for (let x = 160; x < worldWidth; x += 480) {
+            vats.push({ x, y: worldHeight * 0.58, w: 130, h: 190 });
+        }
+        const lights = [];
+        for (let x = 90; x < worldWidth; x += 240) {
+            lights.push({ x, y: 78 });
+        }
+        return { vats, lights, pipes: Math.round(worldHeight * 0.16) };
+    }
+
+    createMarsBackgroundLayout(background, worldWidth, worldHeight) {
+        const starCount = background.starCount || 70;
+        const stars = [];
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: ((i * 197) % worldWidth) + 8,
+                y: ((i * 89) % Math.round(worldHeight * 0.45)) + 12,
+                size: (i % 3) + 1,
+                color: 0xfff1d6,
+                alpha: 0.45 + (i % 5) * 0.1,
+            });
+        }
+        const dunes = [];
+        for (let x = 80; x < worldWidth + 40; x += 300) {
+            dunes.push({ x, y: worldHeight * 0.74, h: 54 + (x % 90) });
+        }
+        const ridges = [];
+        for (let x = 40; x < worldWidth; x += 420) {
+            ridges.push({ x, y: worldHeight * 0.5, w: 260 });
+        }
+        return {
+            stars,
+            dunes,
+            ridges,
+            moons: [
+                { x: worldWidth * 0.16, y: worldHeight * 0.16, r: 16 },
+                { x: worldWidth * 0.74, y: worldHeight * 0.12, r: 9 },
+            ],
         };
     }
 

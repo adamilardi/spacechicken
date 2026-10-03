@@ -15,6 +15,26 @@ export function valueOrDefault(value, fallback) {
     return value === undefined || value === null ? fallback : value;
 }
 
+export function canBonkFromAbove(chicken, hazard, minFallSpeed = 30) {
+    if (!hazard?.bonkable || hazard.bonkLock) {
+        return false;
+    }
+    const body = chicken?.body;
+    if (!body) {
+        return false;
+    }
+    const fallSpeed = body.velocity?.y ?? 0;
+    if (fallSpeed < minFallSpeed) {
+        return false;
+    }
+    const playerHalf = (body.height || chicken.displayHeight || 32) / 2;
+    const playerBottom = chicken.y + playerHalf;
+    const hazardHalf = (hazard.body?.height || hazard.displayHeight || 32) / 2;
+    const hazardTop = hazard.y - hazardHalf;
+    const headRoom = Math.max(14, hazardHalf * 0.9);
+    return playerBottom <= hazardTop + headRoom;
+}
+
 export function addLoopingTween(tweens, target, config) {
     if (!tweens || typeof tweens.add !== 'function' || !config) {
         return null;

@@ -157,11 +157,11 @@ try {
                 scene.uiManager.hideLeaderboard();
                 scene.beginPlay();
             });
-            for (let level = 1; level <= 4; level++) {
+            for (let level = 1; level <= 6; level++) {
                 await page.evaluate(() =>
                     window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].collectGem()
                 );
-                if (level < 4) {
+                if (level < 6) {
                     await page.waitForFunction(
                         (next) =>
                             window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0]?.level === next,
@@ -188,7 +188,7 @@ try {
             await page.mouse.click(retry.x, retry.y);
             await page.waitForFunction(() => {
                 const scene = window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0];
-                return scene?.level === 4 && !scene.gameOver;
+                return scene?.level === 6 && !scene.gameOver;
             });
             await page.evaluate(() =>
                 window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].collectGem()

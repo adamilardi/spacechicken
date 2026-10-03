@@ -10,6 +10,7 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
+import { canBonkFromAbove } from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
 
 function readLaunchQuery() {
@@ -72,6 +73,7 @@ function listGroupBodies(group, now = 0, defaults = {}, timeScale = 1) {
             active: sprite.active !== false,
             enable: !sprite.body || sprite.body.enable !== false,
             phase: meta.phase || null,
+            bonkable: Boolean(sprite.bonkable || meta.bonkable),
             timeUntilPhaseChangeMs: Number.isFinite(meta.nextChangeAt)
                 ? Math.max(0, Math.round(meta.nextChangeAt - now))
                 : null,
@@ -275,6 +277,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.spriteFactory.createLaserEmitter();
         this.spriteFactory.createDrone();
         this.spriteFactory.createRover();
+        this.spriteFactory.createExpeditionSprites();
         this.spriteFactory.createVirtualButtons();
         this.spriteFactory.createParticleTextures();
     }
@@ -363,12 +366,12 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.movingPlatforms) {
             this.physics.add.collider(this.player, this.movingPlatforms);
         }
-        this.physics.add.overlap(this.player, this.hazards, this.failFromHazard, null, this);
+        this.physics.add.overlap(this.player, this.hazards, this.resolveHazardContact, null, this);
         if (this.dynamicHazardsGroup) {
             this.physics.add.overlap(
                 this.player,
                 this.dynamicHazardsGroup,
-                this.failFromHazard,
+                this.resolveHazardContact,
                 null,
                 this
             );
@@ -1057,6 +1060,60 @@ export class SpaceChicken extends Phaser.Scene {
         this.uiManager.showGameOver(this.finalTime);
     }
 
+    resolveHazardContact(chicken, hazard) {
+        if (this.awaitingStart || this.isTransitioning || this.gameOver || this.raceFinale) {
+            return;
+        }
+        if (canBonkFromAbove(chicken, hazard, GAME_CONSTANTS.BONK_MIN_FALL_SPEED)) {
+            this.boostFromBonk(chicken, hazard);
+            return;
+        }
+        if (hazard?.bonkable && hazard.bonkLock) {
+            return;
+        }
+        this.failFromHazard();
+    }
+
+    boostFromBonk(chicken, hazard) {
+        if (!chicken || !hazard?.bonkable || hazard.bonkLock) {
+            return;
+        }
+        hazard.bonkLock = true;
+        chicken.setVelocityY?.(GAME_CONSTANTS.BONK_JUMP_VELOCITY_Y);
+        if (chicken === this.player2) {
+            this.player2JumpCount = 1;
+        } else {
+            this.jumpCount = 1;
+            this.isJetpacking = false;
+        }
+        chicken.play?.('chicken-jump', true);
+        this.effectsManager?.stretchPlayer?.(chicken);
+        this.effectsManager?.emitJumpPuff?.(chicken.x, chicken.y + 14);
+        this.audioManager?.playJumpSound?.();
+        this.cameraFor(chicken)?.shake?.(90, 0.005);
+        this.showBonk(hazard.x, hazard.y - 8, 28);
+        this.squashBonkTarget(hazard);
+    }
+
+    squashBonkTarget(hazard) {
+        const motion = this.tweens?.getTweensOf?.(hazard) || [];
+        motion.forEach((tween) => tween.pause?.());
+        const scaleX = hazard.bonkScaleX ?? hazard.scaleX ?? 1;
+        const scaleY = hazard.bonkScaleY ?? hazard.scaleY ?? 1;
+        this.tweens?.add?.({
+            targets: hazard,
+            scaleX: scaleX * 1.28,
+            scaleY: scaleY * 0.62,
+            duration: 80,
+            yoyo: true,
+            onComplete: () => hazard.setScale?.(scaleX, scaleY),
+        });
+        this.time?.delayedCall?.(GAME_CONSTANTS.BONK_STUN_MS, () => {
+            hazard.bonkLock = false;
+            motion.forEach((tween) => tween.resume?.());
+        });
+    }
+
     failFromHazard() {
         if (this.awaitingStart || this.isTransitioning || this.gameOver) {
             return;
@@ -1497,12 +1554,12 @@ export class SpaceChicken extends Phaser.Scene {
         this.player2.setTint?.(0x9fd4ff);
         this.physics.add.collider(this.player2, this.platforms);
         if (this.movingPlatforms) this.physics.add.collider(this.player2, this.movingPlatforms);
-        this.physics.add.overlap(this.player2, this.hazards, this.failFromHazard, null, this);
+        this.physics.add.overlap(this.player2, this.hazards, this.resolveHazardContact, null, this);
         if (this.dynamicHazardsGroup) {
             this.physics.add.overlap(
                 this.player2,
                 this.dynamicHazardsGroup,
-                this.failFromHazard,
+                this.resolveHazardContact,
                 null,
                 this
             );
@@ -1635,13 +1692,13 @@ export class SpaceChicken extends Phaser.Scene {
         this.audioManager?.playHazardHitSound?.();
     }
 
-    showBonk(x, y) {
+    showBonk(x, y, size = 42) {
         if (!this.add?.text) {
             return;
         }
         const bonk = this.add.text(x, y - 28, 'BONK!', {
             fontFamily: 'Trebuchet MS, Courier New, monospace',
-            fontSize: '42px',
+            fontSize: `${size}px`,
             fontStyle: 'bold',
             fill: '#ffe566',
             stroke: '#3a1408',
