@@ -161,7 +161,14 @@ test('level configuration exposes every playable level', async () => {
     assert.equal(new LevelConfig(7).phaser, true);
     assert.equal(new LevelConfig(1).phaser, false);
     assert.ok(new LevelConfig(5).hazards.dynamic.some((hazard) => hazard.type === 'bonk'));
+    assert.ok(new LevelConfig(5).props.some((prop) => prop.key === 'bonkSign'));
     assert.ok(new LevelConfig(6).hazards.dynamic.some((hazard) => hazard.type === 'dustDevil'));
+    assert.ok(new LevelConfig(6).props.some((prop) => prop.key === 'bonkSign'));
+    assert.ok(
+        new LevelConfig(6).hazards.dynamic.some(
+            (hazard) => hazard.type === 'bonk' && hazard.key === 'beetle'
+        )
+    );
     assert.ok(new LevelConfig(7).hazards.dynamic.some((hazard) => hazard.type === 'boarder'));
     assert.ok(new LevelConfig(7).platforms.static.some((platform) => platform.key === 'issHull'));
     const levelThree = new LevelConfig(3);
@@ -171,7 +178,7 @@ test('level configuration exposes every playable level', async () => {
 });
 
 test('a falling chicken bonks only the top of a bonkable enemy', async () => {
-    const { canBonkFromAbove, boarderSteering } = await importModule('GameUtils.js');
+    const { canBonkFromAbove, boarderSteering, boarderYields } = await importModule('GameUtils.js');
     const { GAME_CONSTANTS } = await importModule('Constants.js');
     const chicken = { x: 100, y: 80, body: { velocity: { y: 120 }, height: 32 } };
     const hazard = {
@@ -211,6 +218,7 @@ test('a falling chicken bonks only the top of a bonkable enemy', async () => {
         hopVelocity: -320,
         hopRange: 230,
         hopClearance: 28,
+        targetGrounded: true,
     });
     assert.equal(hop.velocityY, -320);
     assert.equal(hop.flipX, true);
@@ -221,6 +229,46 @@ test('a falling chicken bonks only the top of a bonkable enemy', async () => {
         hopClearance: 28,
     });
     assert.equal(groundedPast.velocityY, null);
+
+    const leash = {
+        speed: 190,
+        hopVelocity: -320,
+        hopRange: 230,
+        hopClearance: 48,
+        aggroX: 280,
+        aggroY: 260,
+        homeX: 700,
+        homeY: 540,
+        targetGrounded: false,
+    };
+    const jumped = boarderSteering(700, 540, 620, 360, true, leash);
+    assert.equal(jumped.velocityY, null);
+    assert.equal(jumped.velocityX, -190);
+    const posted = boarderSteering(640, 540, 150, 560, true, {
+        ...leash,
+        targetGrounded: true,
+    });
+    assert.equal(posted.velocityX, 190);
+    assert.equal(posted.goalX, 700);
+    const onDeck = boarderSteering(3520, 540, 3600, 400, true, {
+        ...leash,
+        homeX: 3320,
+        homeY: 540,
+        targetGrounded: true,
+    });
+    assert.equal(onDeck.velocityY, -320);
+    const homeHop = boarderSteering(3580, 540, 150, 560, true, {
+        ...leash,
+        homeX: 3600,
+        homeY: 400,
+        targetGrounded: true,
+    });
+    assert.equal(homeHop.velocityY, -320);
+    assert.equal(homeHop.goalX, 3600);
+
+    assert.equal(boarderYields(100, 540, 40, [{ x: 80, y: 540 }], 42), true);
+    assert.equal(boarderYields(80, 540, 40, [{ x: 100, y: 540 }], 42), false);
+    assert.equal(boarderYields(100, 540, 40, [{ x: 200, y: 540 }], 42), false);
 });
 
 test('elapsed times use one stable display format', async () => {
@@ -1064,6 +1112,32 @@ test('dying respawns in place without rebuilding the scene', async () => {
     scene.recycleAllBombs = () => {
         scene.bombsRecycled = true;
     };
+    scene.alien = {
+        active: true,
+        defeated: false,
+        x: 160,
+        y: 450,
+        homeX: 700,
+        homeY: 540,
+        body: {
+            velocity: { x: -190, y: 0 },
+            reset(x, y) {
+                scene.alien.x = x;
+                scene.alien.y = y;
+                this.velocity.x = 0;
+                this.velocity.y = 0;
+            },
+        },
+        setVelocity(x, y) {
+            this.body.velocity.x = x;
+            this.body.velocity.y = y;
+        },
+    };
+    scene.boardersGroup = {
+        getChildren() {
+            return [scene.alien];
+        },
+    };
 
     scene.failFromHazard();
     assert.equal(scene.isTransitioning, true);
@@ -1074,6 +1148,9 @@ test('dying respawns in place without rebuilding the scene', async () => {
     assert.equal(scene.bombsRecycled, true);
     assert.equal(scene.player.body.enable, false);
 
+    assert.equal(scene.alien.body.velocity.x, 0);
+    assert.equal(scene.alien.x, 160);
+
     scene.queuedCallback();
     assert.equal(started, 0);
     assert.equal(scene.isTransitioning, false);
@@ -1082,6 +1159,15 @@ test('dying respawns in place without rebuilding the scene', async () => {
     assert.equal(scene.player.body.enable, true);
     assert.equal(scene.bombRestarted, true);
     assert.deepEqual(scene.centered, [100, 450]);
+    assert.equal(scene.alien.x, 700);
+    assert.equal(scene.alien.y, 540);
+    assert.ok(scene.boarderGraceUntil > scene.getGameTime());
+
+    scene.touchBoarder();
+    assert.equal(scene.deathCount, 3);
+    scene.boarderGraceUntil = 0;
+    scene.touchBoarder();
+    assert.equal(scene.deathCount, 4);
 });
 
 test('floor tiles share one collider per contiguous run', async () => {

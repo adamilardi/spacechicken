@@ -36,18 +36,51 @@ export function canBonkFromAbove(chicken, hazard, minFallSpeed = 30) {
 }
 
 export function boarderSteering(alienX, alienY, targetX, targetY, grounded, options) {
-    const dx = targetX - alienX;
+    const homeX = options.homeX ?? alienX;
+    const homeY = options.homeY ?? alienY;
+    const aggroX = options.aggroX ?? Number.POSITIVE_INFINITY;
+    const aggroY = options.aggroY ?? Number.POSITIVE_INFINITY;
+    const dxHome = targetX - homeX;
+    const dyHome = targetY - homeY;
+    const inAggro = Math.abs(dxHome) <= aggroX && Math.abs(dyHome) <= aggroY;
+    const goalX = inAggro ? targetX : homeX;
+    const goalY = inAggro ? targetY : homeY;
+    const dx = goalX - alienX;
     const dir = dx < -4 ? -1 : dx > 4 ? 1 : 0;
+    const targetGrounded = options.targetGrounded !== false;
     const hop =
         Boolean(grounded) &&
         dir !== 0 &&
-        targetY < alienY - options.hopClearance &&
-        Math.abs(dx) <= options.hopRange;
+        goalY < alienY - options.hopClearance &&
+        Math.abs(dx) <= options.hopRange &&
+        (inAggro ? targetGrounded : true);
     return {
         velocityX: dir * options.speed,
         velocityY: hop ? options.hopVelocity : null,
         flipX: dir === 0 ? null : dir < 0,
+        goalX,
     };
+}
+
+export function boarderYields(alienX, alienY, goalX, allies, separation) {
+    const alienDist = Math.abs(goalX - alienX);
+    for (let i = 0; i < allies.length; i++) {
+        const ally = allies[i];
+        if (Math.abs(ally.x - alienX) >= separation) {
+            continue;
+        }
+        if (Math.abs(ally.y - alienY) >= 48) {
+            continue;
+        }
+        const allyDist = Math.abs(goalX - ally.x);
+        if (allyDist < alienDist - 1) {
+            return true;
+        }
+        if (Math.abs(allyDist - alienDist) <= 1 && ally.x < alienX) {
+            return true;
+        }
+    }
+    return false;
 }
 
 export function addLoopingTween(tweens, target, config) {

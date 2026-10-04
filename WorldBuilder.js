@@ -77,6 +77,7 @@ export class WorldBuilder {
     build(levelConfig) {
         this.buildStaticPlatforms(levelConfig.platforms.static);
         this.buildFloorPlatforms(levelConfig.platforms.floor);
+        this.placeProps(levelConfig.props);
         const movingPlatforms = this.setupMovingPlatforms(levelConfig.platforms.moving);
         this.buildStaticHazards(levelConfig.hazards.rocks);
         const dynamic = levelConfig.hazards.dynamic || [];
@@ -145,6 +146,23 @@ export class WorldBuilder {
         if (graphic.destroy) {
             graphic.destroy();
         }
+    }
+
+    placeProps(props) {
+        if (!props || props.length === 0 || !this.add?.image) {
+            return;
+        }
+        props.forEach((prop) => {
+            const image = this.add.image(prop.x, prop.y, prop.key);
+            if (!image) {
+                return;
+            }
+            image.setDepth(prop.depth ?? 2);
+            const scale = prop.scale ?? 1;
+            if (scale !== 1) {
+                image.setScale(scale);
+            }
+        });
     }
 
     buildStaticPlatforms(platformConfigs) {
@@ -695,6 +713,8 @@ export class WorldBuilder {
             return;
         }
         alien.shootable = true;
+        alien.homeX = config.x;
+        alien.homeY = config.y;
         alien.setDepth(7);
         alien.setBounce(0);
         alien.setCollideWorldBounds(false);
@@ -758,6 +778,21 @@ export class WorldBuilder {
                 delay: config.bobDelay ?? 0,
             });
         }
+        this.attachBonkMarker(enemy);
+    }
+
+    attachBonkMarker(enemy) {
+        if (!enemy || !this.add?.image) {
+            return;
+        }
+        const lift = Math.round((enemy.displayHeight || enemy.height || 48) * 0.5 + 8);
+        const marker = this.add.image(enemy.x, enemy.y - lift, 'bonkMarker');
+        if (!marker) {
+            return;
+        }
+        marker.setDepth((enemy.depth || 7) + 4);
+        enemy.bonkMarker = marker;
+        enemy.bonkMarkerLift = lift;
     }
 
     createCrusherHazard(group, config) {

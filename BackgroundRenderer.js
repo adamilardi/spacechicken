@@ -1403,6 +1403,14 @@ export class BackgroundRenderer {
             return;
         }
         if (layerId === 'far') {
+            (layout.windows || []).forEach((row) => {
+                this.graphics.fillStyle(palette.shadow, 0.55).fillRect(row.x, row.y, row.w, row.h);
+                for (let x = row.x + 8; x < row.x + row.w - 8; x += 28) {
+                    this.graphics
+                        .fillStyle(palette.glass, 0.35)
+                        .fillRect(x, row.y + 6, 16, row.h - 12);
+                }
+            });
             (layout.lights || []).forEach((light) => {
                 this.drawGlow(light.x, light.y, 36, palette.glow, 0.16, 6);
                 this.graphics.fillStyle(palette.glow, 0.9).fillCircle(light.x, light.y, 4);
@@ -1410,15 +1418,7 @@ export class BackgroundRenderer {
             return;
         }
         if (layerId === 'mid') {
-            (layout.vats || []).forEach((vat) => {
-                this.graphics.fillStyle(palette.metal, 0.92).fillRect(vat.x, vat.y, vat.w, vat.h);
-                this.graphics
-                    .fillStyle(palette.accent, 0.55)
-                    .fillRect(vat.x + 14, vat.y + vat.h * 0.35, vat.w - 28, vat.h * 0.55);
-                this.graphics
-                    .fillStyle(palette.glass, 0.35)
-                    .fillRect(vat.x + 8, vat.y + 10, vat.w - 16, vat.h * 0.2);
-            });
+            this.renderFacilityVats(layout.vats, palette);
             return;
         }
         if (layerId !== 'near') {
@@ -1426,15 +1426,43 @@ export class BackgroundRenderer {
         }
         const ceiling = layout.pipes || 80;
         this.graphics.fillStyle(palette.shadow, 0.95).fillRect(0, 0, worldWidth, ceiling);
-        for (let x = 0; x < worldWidth; x += 180) {
-            this.graphics.fillStyle(palette.metal, 1).fillRect(x + 40, ceiling - 16, 70, 16);
-            this.graphics.fillStyle(palette.glow, 0.8).fillRect(x + 64, ceiling - 8, 22, 4);
+        for (let x = 0; x < worldWidth; x += 140) {
+            this.graphics.fillStyle(palette.metal, 1).fillRect(x + 18, ceiling - 18, 86, 18);
+            this.graphics.fillStyle(palette.glow, 0.85).fillRect(x + 36, ceiling - 8, 28, 4);
+            this.graphics.fillStyle(palette.metal, 0.9).fillRect(x + 54, ceiling, 8, 36);
         }
         this.graphics.fillStyle(palette.metal, 1).fillRect(0, worldHeight - 70, worldWidth, 70);
         for (let x = 0; x < worldWidth; x += 24) {
-            this.graphics.fillStyle(x % 48 === 0 ? palette.accent : palette.shadow, 0.9);
+            this.graphics.fillStyle(x % 48 === 0 ? palette.glow : palette.shadow, 0.9);
             this.graphics.fillRect(x, worldHeight - 16, 24, 16);
         }
+    }
+
+    renderFacilityVats(vats, palette) {
+        (vats || []).forEach((vat) => {
+            this.graphics.fillStyle(palette.metal, 0.95).fillRect(vat.x, vat.y, vat.w, vat.h);
+            this.graphics
+                .fillStyle(palette.shadow, 1)
+                .fillRect(vat.x + 8, vat.y + 16, vat.w - 16, vat.h - 28);
+            this.graphics
+                .fillStyle(palette.accent, 0.5)
+                .fillRect(vat.x + 14, vat.y + vat.h * 0.42, vat.w - 28, vat.h * 0.4);
+            this.graphics
+                .fillStyle(palette.glass, 0.28)
+                .fillRect(vat.x + 14, vat.y + 22, vat.w - 28, 18);
+            this.graphics
+                .fillStyle(palette.glow, 0.9)
+                .fillCircle(vat.x + 28, vat.y + vat.h * 0.62, 5);
+            this.graphics
+                .fillStyle(palette.glass, 0.8)
+                .fillCircle(vat.x + vat.w - 30, vat.y + vat.h * 0.7, 3);
+            this.graphics
+                .fillStyle(palette.metalAlt || palette.metal, 1)
+                .fillRect(vat.x - 6, vat.y, vat.w + 12, 10);
+            this.graphics
+                .fillStyle(palette.metal, 1)
+                .fillRect(vat.x + vat.w * 0.5 - 4, vat.y - 28, 8, 28);
+        });
     }
 
     renderMarsBackground(background, layout, worldWidth, worldHeight, layerId) {
@@ -1460,7 +1488,11 @@ export class BackgroundRenderer {
                 [palette.top, palette.mid, palette.bottom],
                 42
             );
-            this.drawGlow(worldWidth * 0.7, worldHeight * 0.2, 160, palette.dust, 0.08, 8);
+            const sun = layout.sun;
+            if (sun) {
+                this.drawGlow(sun.x, sun.y, sun.r * 2.4, palette.dust, 0.12, 8);
+                this.graphics.fillStyle(palette.highlight, 0.95).fillCircle(sun.x, sun.y, sun.r);
+            }
             return;
         }
         if (layerId === 'far') {
@@ -1474,16 +1506,22 @@ export class BackgroundRenderer {
             return;
         }
         if (layerId === 'mid') {
-            (layout.ridges || []).forEach((ridge) => {
+            (layout.buttes || []).forEach((butte) => {
                 this.renderPolygon(
                     [
-                        { x: ridge.x, y: worldHeight },
-                        { x: ridge.x + 40, y: ridge.y },
-                        { x: ridge.x + ridge.w, y: worldHeight },
+                        { x: butte.x, y: worldHeight },
+                        { x: butte.x + butte.w * 0.18, y: butte.y + 30 },
+                        { x: butte.x + butte.w * 0.22, y: butte.y },
+                        { x: butte.x + butte.w * 0.78, y: butte.y },
+                        { x: butte.x + butte.w * 0.82, y: butte.y + 30 },
+                        { x: butte.x + butte.w, y: worldHeight },
                     ],
                     palette.shadow,
-                    0.9
+                    0.92
                 );
+                this.graphics
+                    .fillStyle(palette.dune, 0.55)
+                    .fillRect(butte.x + butte.w * 0.28, butte.y + 8, butte.w * 0.44, 8);
             });
             return;
         }
@@ -1492,25 +1530,44 @@ export class BackgroundRenderer {
         }
         (layout.dunes || []).forEach((dune) => {
             this.graphics.fillStyle(palette.dune, 0.95);
-            this.graphics.fillEllipse(dune.x, dune.y, 260, dune.h);
-            this.graphics.fillStyle(palette.highlight, 0.28);
-            this.graphics.fillEllipse(dune.x - 20, dune.y - 8, 160, dune.h * 0.4);
+            this.graphics.fillEllipse(dune.x, dune.y, dune.w || 280, dune.h);
+            this.graphics.fillStyle(palette.highlight, 0.22);
+            this.graphics.fillEllipse(
+                dune.x - 30,
+                dune.y - 10,
+                (dune.w || 280) * 0.55,
+                dune.h * 0.35
+            );
         });
         this.graphics
             .fillStyle(palette.surface, 1)
-            .fillRect(0, worldHeight * 0.78, worldWidth, worldHeight);
+            .fillRect(0, worldHeight * 0.95, worldWidth, worldHeight);
+        (layout.rocks || []).forEach((rock) => {
+            this.graphics.fillStyle(palette.shadow, 0.9);
+            this.graphics.fillEllipse(rock.x, rock.y, rock.w, rock.h);
+        });
     }
 
     createFacilityBackgroundLayout(_background, worldWidth, worldHeight) {
         const vats = [];
-        for (let x = 160; x < worldWidth; x += 480) {
-            vats.push({ x, y: worldHeight * 0.58, w: 130, h: 190 });
+        for (let x = 180; x < worldWidth; x += 460) {
+            const tall = x % 920 < 460;
+            vats.push({
+                x,
+                y: tall ? worldHeight * 0.5 : worldHeight * 0.58,
+                w: tall ? 150 : 120,
+                h: tall ? 230 : 170,
+            });
         }
         const lights = [];
-        for (let x = 90; x < worldWidth; x += 240) {
-            lights.push({ x, y: 78 });
+        for (let x = 90; x < worldWidth; x += 220) {
+            lights.push({ x, y: 92 + (x % 440 === 90 ? 0 : 18) });
         }
-        return { vats, lights, pipes: Math.round(worldHeight * 0.16) };
+        const windows = [];
+        for (let x = 40; x < worldWidth; x += 520) {
+            windows.push({ x, y: worldHeight * 0.28, w: 220, h: 70 });
+        }
+        return { vats, lights, windows, pipes: Math.round(worldHeight * 0.14) };
     }
 
     createMarsBackgroundLayout(background, worldWidth, worldHeight) {
@@ -1526,21 +1583,29 @@ export class BackgroundRenderer {
             });
         }
         const dunes = [];
-        for (let x = 80; x < worldWidth + 40; x += 300) {
-            dunes.push({ x, y: worldHeight * 0.74, h: 54 + (x % 90) });
+        for (let x = 120; x < worldWidth + 80; x += 280) {
+            dunes.push({
+                x,
+                y: worldHeight * 0.93,
+                h: 36 + (x % 40),
+                w: 240 + (x % 110),
+            });
         }
-        const ridges = [];
-        for (let x = 40; x < worldWidth; x += 420) {
-            ridges.push({ x, y: worldHeight * 0.5, w: 260 });
+        const buttes = [];
+        for (let x = 60; x < worldWidth; x += 520) {
+            buttes.push({ x, y: worldHeight * 0.42, w: 280 });
+        }
+        const rocks = [];
+        for (let x = 200; x < worldWidth; x += 360) {
+            rocks.push({ x, y: worldHeight * 0.96, w: 36 + (x % 24), h: 14 });
         }
         return {
             stars,
             dunes,
-            ridges,
-            moons: [
-                { x: worldWidth * 0.16, y: worldHeight * 0.16, r: 16 },
-                { x: worldWidth * 0.74, y: worldHeight * 0.12, r: 9 },
-            ],
+            buttes,
+            rocks,
+            sun: { x: worldWidth * 0.72, y: worldHeight * 0.16, r: 28 },
+            moons: [{ x: worldWidth * 0.18, y: worldHeight * 0.14, r: 14 }],
         };
     }
 

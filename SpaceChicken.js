@@ -10,7 +10,7 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
-import { boarderSteering, canBonkFromAbove } from './GameUtils.js';
+import { boarderSteering, boarderYields, canBonkFromAbove } from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
 
 function readLaunchQuery() {
@@ -225,6 +225,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.bombTestCounter = 0;
         this.deathResetEvent = null;
         this.deathResetWall = null;
+        this.boarderGraceUntil = 0;
         this.hasCleanedUp = false;
         this.awaitingStart =
             this.level === LEVEL_IDS[0] && this.deathCount === 0 && !this.launchBot;
@@ -1132,7 +1133,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (!chicken || !this.boardersGroup) {
             return;
         }
-        this.physics.add.overlap(chicken, this.boardersGroup, this.failFromHazard, null, this);
+        this.physics.add.overlap(chicken, this.boardersGroup, this.touchBoarder, null, this);
     }
 
     setupPhaser() {
@@ -1307,6 +1308,13 @@ export class SpaceChicken extends Phaser.Scene {
         });
     }
 
+    touchBoarder() {
+        if (this.getGameTime() < (this.boarderGraceUntil || 0)) {
+            return;
+        }
+        this.failFromHazard();
+    }
+
     updateBoarders() {
         const aliens = this.boardersGroup?.getChildren?.() || [];
         if (!aliens.length) {
@@ -1315,15 +1323,21 @@ export class SpaceChicken extends Phaser.Scene {
         const targets = [this.player, this.player2].filter(
             (chicken) => chicken?.active && chicken.body?.enable !== false
         );
-        if (!targets.length) {
-            return;
-        }
         const options = {
             speed: GAME_CONSTANTS.BOARDER_SPEED,
             hopVelocity: GAME_CONSTANTS.BOARDER_HOP_VELOCITY_Y,
             hopRange: GAME_CONSTANTS.BOARDER_HOP_RANGE_X,
             hopClearance: GAME_CONSTANTS.BOARDER_HOP_CLEARANCE,
+            aggroX: GAME_CONSTANTS.BOARDER_AGGRO_X,
+            aggroY: GAME_CONSTANTS.BOARDER_AGGRO_Y,
         };
+        const allies = [];
+        for (let i = 0; i < aliens.length; i++) {
+            const alien = aliens[i];
+            if (alien?.active && !alien.defeated) {
+                allies.push(alien);
+            }
+        }
         for (let i = 0; i < aliens.length; i++) {
             const alien = aliens[i];
             if (!alien?.active || alien.defeated) {
@@ -1333,21 +1347,87 @@ export class SpaceChicken extends Phaser.Scene {
                 this.defeatBoarder(alien);
                 continue;
             }
-            let target = targets[0];
-            for (let t = 1; t < targets.length; t++) {
-                if (Math.abs(targets[t].x - alien.x) < Math.abs(target.x - alien.x)) {
-                    target = targets[t];
+            const homeX = alien.homeX ?? alien.x;
+            const homeY = alien.homeY ?? alien.y;
+            let target = null;
+            let best = Infinity;
+            for (let t = 0; t < targets.length; t++) {
+                const chicken = targets[t];
+                const dist = Math.abs(chicken.x - homeX) + Math.abs(chicken.y - homeY);
+                if (dist < best) {
+                    best = dist;
+                    target = chicken;
                 }
             }
             const grounded = Boolean(alien.body?.blocked?.down || alien.body?.touching?.down);
-            const steer = boarderSteering(alien.x, alien.y, target.x, target.y, grounded, options);
-            alien.setVelocityX?.(steer.velocityX);
-            if (steer.velocityY != null) {
+            const targetGrounded = Boolean(
+                target && (target.body?.blocked?.down || target.body?.touching?.down)
+            );
+            const steer = boarderSteering(
+                alien.x,
+                alien.y,
+                target ? target.x : homeX,
+                target ? target.y : homeY,
+                grounded,
+                {
+                    ...options,
+                    homeX,
+                    homeY,
+                    targetGrounded,
+                }
+            );
+            const others = [];
+            for (let a = 0; a < allies.length; a++) {
+                if (allies[a] !== alien) {
+                    others.push(allies[a]);
+                }
+            }
+            const yields = boarderYields(
+                alien.x,
+                alien.y,
+                steer.goalX,
+                others,
+                GAME_CONSTANTS.BOARDER_SEPARATION
+            );
+            alien.setVelocityX?.(yields ? 0 : steer.velocityX);
+            if (!yields && steer.velocityY != null) {
                 alien.setVelocityY?.(steer.velocityY);
             }
             if (steer.flipX != null) {
                 alien.setFlipX?.(steer.flipX);
             }
+        }
+    }
+
+    haltBoarders() {
+        const aliens = this.boardersGroup?.getChildren?.() || [];
+        for (let i = 0; i < aliens.length; i++) {
+            const alien = aliens[i];
+            if (!alien?.active || alien.defeated) {
+                continue;
+            }
+            alien.setVelocity?.(0, 0);
+        }
+    }
+
+    resetBoarders() {
+        const aliens = this.boardersGroup?.getChildren?.() || [];
+        for (let i = 0; i < aliens.length; i++) {
+            const alien = aliens[i];
+            if (!alien || alien.defeated) {
+                continue;
+            }
+            const x = alien.homeX;
+            const y = alien.homeY;
+            if (x == null || y == null) {
+                continue;
+            }
+            if (alien.body?.reset) {
+                alien.body.reset(x, y);
+            }
+            alien.x = x;
+            alien.y = y;
+            alien.setVelocity?.(0, 0);
         }
     }
 
@@ -1382,6 +1462,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.isTransitioning = true;
         this.deathCount += 1;
         this.runEligible = false;
+        this.haltBoarders();
         if (this.player?.body) {
             this.player.body.enable = false;
         }
@@ -1418,6 +1499,8 @@ export class SpaceChicken extends Phaser.Scene {
             window.clearTimeout(this.deathResetWall);
             this.deathResetWall = null;
         }
+        this.resetBoarders();
+        this.boarderGraceUntil = this.getGameTime() + GAME_CONSTANTS.BOARDER_GRACE_MS;
         const start = this.levelCheckpoint || this.levelConfig.playerStart;
         const player = this.player;
         if (player) {
@@ -1686,7 +1769,30 @@ export class SpaceChicken extends Phaser.Scene {
         }
 
         this.updateCombat(inputState);
+        this.syncBonkMarkers();
         this.cleanupOffscreenBombs();
+    }
+
+    syncBonkMarkers() {
+        const children = this.dynamicHazardsGroup?.getChildren?.();
+        if (!children) {
+            return;
+        }
+        const wave = Math.sin(this.getGameTime() / 160);
+        for (let i = 0; i < children.length; i++) {
+            const hazard = children[i];
+            const marker = hazard?.bonkMarker;
+            if (!marker?.setPosition) {
+                continue;
+            }
+            const lift = hazard.bonkMarkerLift || 28;
+            marker.setPosition(hazard.x, hazard.y - lift + wave * 5);
+            marker.setScale?.(1 + (wave + 1) * 0.05);
+            const show = hazard.active !== false && hazard.visible !== false && !hazard.bonkLock;
+            if (marker.visible !== show) {
+                marker.setVisible?.(show);
+            }
+        }
     }
 
     updateGroundedState() {
