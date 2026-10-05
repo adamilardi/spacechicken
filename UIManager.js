@@ -1295,8 +1295,8 @@ export class UIManager {
         this.styleHudText(this.titlePrompt, 4);
         this.markUi(this.titlePrompt);
         const controls = this.touchControlsEnabled
-            ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nGOAL  Reach the golden crown'
-            : 'MOVE  ← / → or A / D\nJUMP  Space / ↑ / W; press again in air\nPAUSE  Esc / P or gamepad Start\nRACE  Open RACE SETUP or press D-pad ↓';
+            ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nMODES  Gold button for a 2-player race\nGOAL  Reach the golden crown'
+            : 'MOVE  ← / → or A / D\nJUMP  Space / ↑ / W; press again in air\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓';
         this.titleControls = this.scene.add
             .text(0, 0, controls, {
                 fontSize: `${metrics.fonts.instructions}px`,
@@ -1342,8 +1342,8 @@ export class UIManager {
             });
         }
         this.setHudVisible(false);
-        this.layoutTitleScreen();
         this.createRaceSetup();
+        this.layoutTitleScreen();
     }
 
     setHudVisible(visible) {
@@ -1370,7 +1370,7 @@ export class UIManager {
         const message = !supportsGamepads
             ? 'Gamepad unavailable in this browser'
             : connected.length
-              ? `GAMEPAD CONNECTED (${connected.length})  ·  A start · ↓ race setup · Y leaderboard`
+              ? `GAMEPAD CONNECTED (${connected.length})  ·  A start · ↓ other modes · Y leaderboard`
               : 'No gamepad connected';
         if (this.titleGamepadStatus.text !== message) {
             this.titleGamepadStatus.setText(message);
@@ -1426,8 +1426,13 @@ export class UIManager {
                 this.titleDim.fillRect(0, 0, width, height);
             }
         }
+        this.placeTitleCluster(centerX, centerY, metrics);
+    }
+
+    placeTitleCluster(centerX, centerY, metrics) {
         const titleOffset = metrics.isCompact ? 36 : 46;
-        this.titleText.setPosition(centerX, centerY - titleOffset);
+        const modeLift = this.titleModeLift(metrics);
+        this.titleText.setPosition(centerX, centerY - titleOffset - modeLift);
         if (this.titleSubtitle) {
             const subtitleY =
                 this.titleText.y +
@@ -1439,37 +1444,82 @@ export class UIManager {
             const subtitleBottom = this.titleSubtitle
                 ? this.titleSubtitle.y + this.titleSubtitle.displayHeight / 2
                 : centerY + 8;
-            const gap = 14;
             this.titlePrompt.setPosition(
                 centerX,
-                subtitleBottom + gap + this.titlePrompt.displayHeight / 2
+                subtitleBottom + 14 + this.titlePrompt.displayHeight / 2
             );
         }
-        if (this.titleControls) {
-            this.titleControls.setPosition(
-                centerX,
-                this.titlePrompt.y + this.titlePrompt.displayHeight / 2 + (metrics.isTiny ? 12 : 20)
-            );
+        const shortLandscape = metrics.isCompact && !metrics.isPortrait;
+        if (this.titleControls && this.titlePrompt) {
+            const belowPrompt = this.titlePrompt.y + this.titlePrompt.displayHeight / 2;
+            const modeSpace = this.positionRaceSetupButton(metrics);
+            const fallbackGap = metrics.isTiny ? 12 : 20;
+            this.titleControls.setPosition(centerX, belowPrompt + (modeSpace || fallbackGap));
+            this.titleControls.setVisible(!shortLandscape);
         }
-        if (this.titleGamepadStatus) {
+        if (this.titleGamepadStatus && this.titleControls) {
+            const gap = metrics.isTiny ? 8 : 14;
             this.titleGamepadStatus.setPosition(
                 centerX,
-                this.titleControls.y + this.titleControls.displayHeight + (metrics.isTiny ? 8 : 14)
+                this.titleControls.y + this.titleControls.displayHeight + gap
             );
+            this.titleGamepadStatus.setVisible(!shortLandscape);
         }
+    }
+
+    titleModeLift(metrics) {
+        if (!this.raceSetupButton) {
+            return 0;
+        }
+        if (!metrics.isCompact) {
+            return 96;
+        }
+        return metrics.isPortrait ? 22 : 0;
+    }
+
+    positionRaceSetupButton(metrics) {
+        const button = this.raceSetupButton;
+        if (!button || !this.titlePrompt) {
+            return 0;
+        }
+        const gapAbove = metrics.isTiny ? 8 : 14;
+        const gapBelow = metrics.isTiny ? 8 : 12;
+        const top = this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2 + gapAbove;
+        button.style.top = `${Math.round(top)}px`;
+        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 50 : 68);
+        return gapAbove + height + gapBelow;
+    }
+
+    setRaceSetupLabel() {
+        const button = this.raceSetupButton;
+        if (!button) {
+            return;
+        }
+        const coop = Boolean(this.scene.coopMode);
+        const kicker = document.createElement('span');
+        kicker.className = 'race-setup-kicker';
+        kicker.textContent = 'OTHER MODES';
+        const mode = document.createElement('span');
+        mode.className = 'race-setup-mode';
+        mode.textContent = coop ? 'Now: 2 players' : 'Now: solo · 2-player race';
+        button.replaceChildren(kicker, mode);
+        button.setAttribute(
+            'aria-label',
+            coop
+                ? 'Other modes. Current game is 2 players.'
+                : 'Other modes. Current game is solo. Choose a 2-player race.'
+        );
     }
 
     createRaceSetup() {
         const button = document.createElement('button');
         button.id = 'race-setup-button';
         button.className = 'game-button';
-        button.style.cssText =
-            'position:fixed;top:calc(env(safe-area-inset-top, 0px) + 65px);left:50%;transform:translateX(-50%);z-index:20;white-space:nowrap;font-size:14px;max-width:90%';
-        button.textContent = this.scene.coopMode ? 'RACE SETUP · 2 PLAYERS' : 'RACE SETUP · SOLO';
+        button.type = 'button';
         const dialog = document.createElement('dialog');
         dialog.id = 'race-setup-dialog';
         dialog.setAttribute('aria-label', 'Race setup');
-        dialog.innerHTML = `<h2>Choose your game</h2>
+        dialog.innerHTML = `<h2>Other modes</h2>
             <p>Race modes split the screen. First to the crown wins.</p>
             <button data-mode="solo">Solo</button>
             <button data-mode="keyboard">Two players · keyboard</button>
@@ -1518,6 +1568,7 @@ export class UIManager {
         document.body.append(button, dialog);
         this.raceSetupButton = button;
         this.raceSetupDialog = dialog;
+        this.setRaceSetupLabel();
     }
 
     handleMenuInput(input) {
