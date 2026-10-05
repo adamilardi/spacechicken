@@ -483,15 +483,6 @@ const LEVEL_CONTENT = {
                 bodyHeight: 56,
             },
             {
-                type: 'crusher',
-                x: 1940,
-                y: 250,
-                slamY: 340,
-                duration: 760,
-                hold: 280,
-                delay: 200,
-            },
-            {
                 type: 'bonk',
                 enemy: 'specimen',
                 key: 'specimen',
@@ -598,9 +589,9 @@ const LEVEL_CONTENT = {
     },
     7: {
         instructions:
-            'EARTHWATCH - On the station hull, with Earth below. Aliens run at you. Face them and press F or J to fire the space phaser. Gamepad uses the left face button. (M toggles music)',
+            'EARTHWATCH - On the station hull, with Earth below. Aliens arrive in waves and run at you. Face them and press F or J to fire the space phaser. Gamepad uses the left face button. (M toggles music)',
         touchInstructions:
-            'EARTHWATCH - On the station. Aliens run at you. The bolt button fires the space phaser. Arrows move, jump leaps.',
+            'EARTHWATCH - On the station. Aliens arrive in waves. The bolt button fires the space phaser. Arrows move, jump leaps.',
         background: {
             type: 'iss',
             style: 'earthwatch',
@@ -629,14 +620,14 @@ const LEVEL_CONTENT = {
         moving: [],
         rocks: [],
         dynamic: [
-            { type: 'boarder', x: 700, y: 540 },
-            { type: 'boarder', x: 1120, y: 540 },
-            { type: 'boarder', x: 1560, y: 540 },
-            { type: 'boarder', x: 2040, y: 540 },
-            { type: 'boarder', x: 2480, y: 540 },
-            { type: 'boarder', x: 2920, y: 540 },
-            { type: 'boarder', x: 3320, y: 540 },
-            { type: 'boarder', x: 3600, y: 400 },
+            { type: 'boarder', x: 700, y: 540, wave: 1 },
+            { type: 'boarder', x: 1120, y: 540, wave: 1 },
+            { type: 'boarder', x: 1560, y: 540, wave: 2 },
+            { type: 'boarder', x: 2040, y: 540, wave: 2 },
+            { type: 'boarder', x: 2480, y: 540, wave: 3 },
+            { type: 'boarder', x: 2920, y: 540, wave: 3 },
+            { type: 'boarder', x: 3320, y: 540, wave: 4 },
+            { type: 'boarder', x: 3600, y: 400, wave: 4 },
         ],
     },
 };

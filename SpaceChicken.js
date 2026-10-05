@@ -10,7 +10,13 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
-import { boarderSteering, boarderYields, canBonkFromAbove } from './GameUtils.js';
+import {
+    boarderEntryY,
+    boarderSteering,
+    boarderYields,
+    canBonkFromAbove,
+    nextBoarderWave,
+} from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
 
 function readLaunchQuery() {
@@ -226,6 +232,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.deathResetEvent = null;
         this.deathResetWall = null;
         this.boarderGraceUntil = 0;
+        this.boardersDisarmed = false;
+        this.boarderWave = 1;
         this.hasCleanedUp = false;
         this.awaitingStart =
             this.level === LEVEL_IDS[0] && this.deathCount === 0 && !this.launchBot;
@@ -1308,14 +1316,33 @@ export class SpaceChicken extends Phaser.Scene {
         });
     }
 
-    touchBoarder() {
-        if (this.getGameTime() < (this.boarderGraceUntil || 0)) {
+    touchBoarder(_chicken, alien) {
+        if (this.isTransitioning || this.getGameTime() < (this.boarderGraceUntil || 0)) {
+            return;
+        }
+        if (alien?.body && alien.body.enable === false) {
             return;
         }
         this.failFromHazard();
     }
 
+    holdDisarmedBoarders() {
+        if (!this.boardersDisarmed) {
+            return false;
+        }
+        if (this.getGameTime() < (this.boarderGraceUntil || 0)) {
+            this.resetBoarders();
+            return true;
+        }
+        this.armBoarders();
+        return false;
+    }
+
     updateBoarders() {
+        if (this.holdDisarmedBoarders()) {
+            return;
+        }
+        this.updateBoarderWaves();
         const aliens = this.boardersGroup?.getChildren?.() || [];
         if (!aliens.length) {
             return;
@@ -1339,63 +1366,72 @@ export class SpaceChicken extends Phaser.Scene {
             }
         }
         for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (!alien?.active || alien.defeated) {
-                continue;
+            this.stepBoarder(aliens[i], targets, allies, options);
+        }
+    }
+
+    stepBoarder(alien, targets, allies, options) {
+        if (!alien?.active || alien.defeated) {
+            return;
+        }
+        if (alien.y > this.killZoneFallY) {
+            this.defeatBoarder(alien);
+            return;
+        }
+        const homeX = alien.homeX ?? alien.x;
+        const homeY = alien.homeY ?? alien.y;
+        let target = null;
+        let best = Infinity;
+        for (let t = 0; t < targets.length; t++) {
+            const chicken = targets[t];
+            const dist = Math.abs(chicken.x - homeX) + Math.abs(chicken.y - homeY);
+            if (dist < best) {
+                best = dist;
+                target = chicken;
             }
-            if (alien.y > this.killZoneFallY) {
-                this.defeatBoarder(alien);
-                continue;
+        }
+        const grounded = Boolean(alien.body?.blocked?.down || alien.body?.touching?.down);
+        const targetGrounded = Boolean(
+            target && (target.body?.blocked?.down || target.body?.touching?.down)
+        );
+        const steer = boarderSteering(
+            alien.x,
+            alien.y,
+            target ? target.x : homeX,
+            target ? target.y : homeY,
+            grounded,
+            {
+                ...options,
+                homeX,
+                homeY,
+                targetGrounded,
             }
-            const homeX = alien.homeX ?? alien.x;
-            const homeY = alien.homeY ?? alien.y;
-            let target = null;
-            let best = Infinity;
-            for (let t = 0; t < targets.length; t++) {
-                const chicken = targets[t];
-                const dist = Math.abs(chicken.x - homeX) + Math.abs(chicken.y - homeY);
-                if (dist < best) {
-                    best = dist;
-                    target = chicken;
-                }
+        );
+        const others = [];
+        for (let a = 0; a < allies.length; a++) {
+            if (allies[a] !== alien) {
+                others.push(allies[a]);
             }
-            const grounded = Boolean(alien.body?.blocked?.down || alien.body?.touching?.down);
-            const targetGrounded = Boolean(
-                target && (target.body?.blocked?.down || target.body?.touching?.down)
-            );
-            const steer = boarderSteering(
-                alien.x,
-                alien.y,
-                target ? target.x : homeX,
-                target ? target.y : homeY,
-                grounded,
-                {
-                    ...options,
-                    homeX,
-                    homeY,
-                    targetGrounded,
-                }
-            );
-            const others = [];
-            for (let a = 0; a < allies.length; a++) {
-                if (allies[a] !== alien) {
-                    others.push(allies[a]);
-                }
-            }
-            const yields = boarderYields(
-                alien.x,
-                alien.y,
-                steer.goalX,
-                others,
-                GAME_CONSTANTS.BOARDER_SEPARATION
-            );
-            alien.setVelocityX?.(yields ? 0 : steer.velocityX);
-            if (!yields && steer.velocityY != null) {
-                alien.setVelocityY?.(steer.velocityY);
-            }
-            if (steer.flipX != null) {
-                alien.setFlipX?.(steer.flipX);
-            }
+        }
+        const yields = boarderYields(
+            alien.x,
+            alien.y,
+            steer.goalX,
+            others,
+            GAME_CONSTANTS.BOARDER_SEPARATION
+        );
+        alien.setVelocityX?.(yields ? 0 : steer.velocityX);
+        if (!yields && steer.velocityY != null) {
+            alien.setVelocityY?.(steer.velocityY);
+        }
+        if (steer.flipX != null) {
+            alien.setFlipX?.(steer.flipX);
+        }
+    }
+
+    parkBoardersWhileDying() {
+        if (this.deathResetEvent || this.deathResetWall) {
+            this.resetBoarders();
         }
     }
 
@@ -1410,25 +1446,155 @@ export class SpaceChicken extends Phaser.Scene {
         }
     }
 
-    resetBoarders() {
+    boarderHome(alien) {
+        const origin = alien?.testMeta?.origin;
+        const x = alien?.homeX ?? origin?.x;
+        const y = alien?.homeY ?? origin?.y;
+        if (x == null || y == null) {
+            return null;
+        }
+        return { x, y };
+    }
+
+    boarderWaveNumber(alien) {
+        const wave = Number(alien?.wave ?? alien?.testMeta?.wave);
+        return wave > 1 ? wave : 1;
+    }
+
+    leadChickenX() {
+        const chickens = [this.player, this.player2];
+        let lead = 0;
+        for (let i = 0; i < chickens.length; i++) {
+            const chicken = chickens[i];
+            if (!chicken?.active || chicken.body?.enable === false) {
+                continue;
+            }
+            if (chicken.x > lead) {
+                lead = chicken.x;
+            }
+        }
+        return lead;
+    }
+
+    updateBoarderWaves() {
+        const next = nextBoarderWave(
+            this.boarderWave || 1,
+            this.leadChickenX(),
+            GAME_CONSTANTS.BOARDER_WAVES
+        );
+        if (next <= (this.boarderWave || 1)) {
+            return;
+        }
+        for (let wave = (this.boarderWave || 1) + 1; wave <= next; wave++) {
+            this.releaseBoarderWave(wave);
+        }
+        this.boarderWave = next;
+        this.uiManager?.showLevelBanner?.(`WAVE ${next}`, 'Aliens dropping in');
+    }
+
+    releaseBoarderWave(wave) {
         const aliens = this.boardersGroup?.getChildren?.() || [];
         for (let i = 0; i < aliens.length; i++) {
             const alien = aliens[i];
-            if (!alien || alien.defeated) {
+            if (!alien || alien.arrived || this.boarderWaveNumber(alien) !== wave) {
                 continue;
             }
-            const x = alien.homeX;
-            const y = alien.homeY;
-            if (x == null || y == null) {
+            const home = this.boarderHome(alien);
+            if (!home) {
                 continue;
             }
+            const dropY = boarderEntryY(home.x, home.y);
+            alien.homeX = home.x;
+            alien.homeY = home.y;
+            alien.arrived = true;
+            alien.defeated = false;
+            alien.setActive?.(true);
+            alien.setVisible?.(true);
+            alien.setAlpha?.(1);
             if (alien.body?.reset) {
-                alien.body.reset(x, y);
+                alien.body.reset(home.x, dropY);
             }
-            alien.x = x;
-            alien.y = y;
+            alien.x = home.x;
+            alien.y = dropY;
             alien.setVelocity?.(0, 0);
+            if (alien.body) {
+                alien.body.enable = true;
+            }
         }
+    }
+
+    stowBoarder(alien) {
+        const home = this.boarderHome(alien);
+        alien.arrived = false;
+        alien.defeated = false;
+        alien.setActive?.(false);
+        alien.setVisible?.(false);
+        alien.setAlpha?.(1);
+        alien.setVelocity?.(0, 0);
+        if (home) {
+            alien.homeX = home.x;
+            alien.homeY = home.y;
+            if (alien.body?.reset) {
+                alien.body.reset(home.x, home.y);
+            }
+            alien.x = home.x;
+            alien.y = home.y;
+        }
+        if (alien.body) {
+            alien.body.enable = false;
+        }
+    }
+
+    resetBoarders() {
+        const aliens = this.boardersGroup?.getChildren?.() || [];
+        const activeWave = this.boarderWave || 1;
+        let parked = false;
+        for (let i = 0; i < aliens.length; i++) {
+            const alien = aliens[i];
+            if (!alien) {
+                continue;
+            }
+            const home = this.boarderHome(alien);
+            if (!home) {
+                continue;
+            }
+            if (this.boarderWaveNumber(alien) > activeWave) {
+                this.stowBoarder(alien);
+                continue;
+            }
+            alien.homeX = home.x;
+            alien.homeY = home.y;
+            alien.arrived = true;
+            alien.defeated = false;
+            alien.setActive?.(true);
+            alien.setVisible?.(true);
+            alien.setAlpha?.(1);
+            if (alien.body?.reset) {
+                alien.body.reset(home.x, home.y);
+            }
+            alien.x = home.x;
+            alien.y = home.y;
+            alien.setVelocity?.(0, 0);
+            if (alien.body) {
+                alien.body.enable = false;
+            }
+            parked = true;
+        }
+        if (parked) {
+            this.boardersDisarmed = true;
+        }
+    }
+
+    armBoarders() {
+        const aliens = this.boardersGroup?.getChildren?.() || [];
+        for (let i = 0; i < aliens.length; i++) {
+            const alien = aliens[i];
+            if (!alien || alien.defeated || !alien.arrived || !alien.body) {
+                continue;
+            }
+            alien.body.enable = true;
+        }
+        this.boardersDisarmed = false;
     }
 
     failFromHazard() {
@@ -1462,7 +1628,9 @@ export class SpaceChicken extends Phaser.Scene {
         this.isTransitioning = true;
         this.deathCount += 1;
         this.runEligible = false;
+        this.boarderWave = 1;
         this.haltBoarders();
+        this.resetBoarders();
         if (this.player?.body) {
             this.player.body.enable = false;
         }
@@ -1734,6 +1902,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         if (this.isTransitioning) {
             this.jumpRequested = false;
+            this.parkBoardersWhileDying();
             if (this.raceFinale) {
                 this.effectsManager?.stepParticles?.(delta);
             }

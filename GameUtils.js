@@ -62,6 +62,25 @@ export function boarderSteering(alienX, alienY, targetX, targetY, grounded, opti
     };
 }
 
+export function nextBoarderWave(currentWave, leadX, waves) {
+    let wave = currentWave > 0 ? currentWave : 1;
+    const list = waves || [];
+    for (let i = 0; i < list.length; i++) {
+        const entry = list[i];
+        if (entry.wave > wave && leadX >= entry.x) {
+            wave = entry.wave;
+        }
+    }
+    return wave;
+}
+
+// The crown deck hangs over the last hull post, so that post drops in just
+// under the deck. Open posts fall in from above.
+export function boarderEntryY(homeX, homeY) {
+    const underCrownDeck = homeX >= 3232 && homeX <= 3808 && homeY > 484;
+    return underCrownDeck ? homeY - 28 : homeY - 140;
+}
+
 export function boarderYields(alienX, alienY, goalX, allies, separation) {
     const alienDist = Math.abs(goalX - alienX);
     for (let i = 0; i < allies.length; i++) {

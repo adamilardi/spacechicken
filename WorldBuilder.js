@@ -715,6 +715,8 @@ export class WorldBuilder {
         alien.shootable = true;
         alien.homeX = config.x;
         alien.homeY = config.y;
+        alien.wave = config.wave > 1 ? config.wave : 1;
+        alien.arrived = alien.wave === 1;
         alien.setDepth(7);
         alien.setBounce(0);
         alien.setCollideWorldBounds(false);
@@ -724,8 +726,14 @@ export class WorldBuilder {
             kind: 'hazard',
             type: 'boarder',
             shootable: true,
+            wave: alien.wave,
             origin: { x: config.x, y: config.y },
         });
+        if (!alien.arrived) {
+            alien.body.enable = false;
+            alien.setActive(false);
+            alien.setVisible(false);
+        }
     }
 
     createBonkEnemy(group, config) {

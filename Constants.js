@@ -18,6 +18,12 @@ export const GAME_CONSTANTS = {
     BOARDER_AGGRO_Y: 260,
     BOARDER_SEPARATION: 42,
     BOARDER_GRACE_MS: 700,
+    BOARDER_WAVES: Object.freeze([
+        Object.freeze({ wave: 1, x: 0 }),
+        Object.freeze({ wave: 2, x: 1300 }),
+        Object.freeze({ wave: 3, x: 2200 }),
+        Object.freeze({ wave: 4, x: 3000 }),
+    ]),
     MAX_JUMPS: 2,
     PLAYER_CLAMP_OFFSET: 0.5,
     PLAYER_BOUNCE: 0,

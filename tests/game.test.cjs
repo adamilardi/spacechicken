@@ -169,7 +169,13 @@ test('level configuration exposes every playable level', async () => {
             (hazard) => hazard.type === 'bonk' && hazard.key === 'beetle'
         )
     );
-    assert.ok(new LevelConfig(7).hazards.dynamic.some((hazard) => hazard.type === 'boarder'));
+    const boarders = new LevelConfig(7).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        boarders.map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3, 4, 4]
+    );
     assert.ok(new LevelConfig(7).platforms.static.some((platform) => platform.key === 'issHull'));
     const levelThree = new LevelConfig(3);
     assert.equal(levelThree.platforms, levelThree.platforms);
@@ -178,7 +184,8 @@ test('level configuration exposes every playable level', async () => {
 });
 
 test('a falling chicken bonks only the top of a bonkable enemy', async () => {
-    const { canBonkFromAbove, boarderSteering, boarderYields } = await importModule('GameUtils.js');
+    const { canBonkFromAbove, boarderSteering, boarderYields, nextBoarderWave, boarderEntryY } =
+        await importModule('GameUtils.js');
     const { GAME_CONSTANTS } = await importModule('Constants.js');
     const chicken = { x: 100, y: 80, body: { velocity: { y: 120 }, height: 32 } };
     const hazard = {
@@ -269,6 +276,20 @@ test('a falling chicken bonks only the top of a bonkable enemy', async () => {
     assert.equal(boarderYields(100, 540, 40, [{ x: 80, y: 540 }], 42), true);
     assert.equal(boarderYields(80, 540, 40, [{ x: 100, y: 540 }], 42), false);
     assert.equal(boarderYields(100, 540, 40, [{ x: 200, y: 540 }], 42), false);
+
+    const waves = [
+        { wave: 1, x: 0 },
+        { wave: 2, x: 1300 },
+        { wave: 3, x: 2200 },
+        { wave: 4, x: 3000 },
+    ];
+    assert.equal(nextBoarderWave(1, 200, waves), 1);
+    assert.equal(nextBoarderWave(1, 1300, waves), 2);
+    assert.equal(nextBoarderWave(1, 3400, waves), 4);
+    assert.equal(nextBoarderWave(3, 3400, waves), 4);
+    assert.equal(boarderEntryY(700, 540), 400);
+    assert.equal(boarderEntryY(3320, 540), 512);
+    assert.equal(boarderEntryY(3600, 400), 260);
 });
 
 test('elapsed times use one stable display format', async () => {
@@ -1149,7 +1170,18 @@ test('dying respawns in place without rebuilding the scene', async () => {
     assert.equal(scene.player.body.enable, false);
 
     assert.equal(scene.alien.body.velocity.x, 0);
-    assert.equal(scene.alien.x, 160);
+    assert.equal(scene.alien.x, 700);
+    assert.equal(scene.alien.y, 540);
+    assert.equal(scene.alien.body.enable, false);
+
+    scene.inputController = { poll: () => ({}) };
+    scene.alien.x = 160;
+    scene.alien.y = 450;
+    scene.alien.body.enable = true;
+    scene.update(0, 16);
+    assert.equal(scene.alien.x, 700);
+    assert.equal(scene.alien.y, 540);
+    assert.equal(scene.alien.body.enable, false);
 
     scene.queuedCallback();
     assert.equal(started, 0);
@@ -1163,9 +1195,18 @@ test('dying respawns in place without rebuilding the scene', async () => {
     assert.equal(scene.alien.y, 540);
     assert.ok(scene.boarderGraceUntil > scene.getGameTime());
 
+    scene.player.x = 700;
+    scene.player.y = 540;
+    scene.updateBoarders();
+    assert.equal(scene.alien.x, 700);
+    assert.equal(scene.alien.body.enable, false);
     scene.touchBoarder();
     assert.equal(scene.deathCount, 3);
+
     scene.boarderGraceUntil = 0;
+    scene.killZoneFallY = 1000;
+    scene.updateBoarders();
+    assert.equal(scene.alien.body.enable, true);
     scene.touchBoarder();
     assert.equal(scene.deathCount, 4);
 });
