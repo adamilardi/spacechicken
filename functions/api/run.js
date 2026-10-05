@@ -11,7 +11,7 @@ export async function onRequest(context) {
     }
     const level = Number(body?.level);
     const playerId = typeof body?.playerId === 'string' ? body.playerId : '';
-    if (!Number.isInteger(level) || level < 0 || level > 4 || !/^[0-9a-f-]{36}$/i.test(playerId)) {
+    if (!Number.isInteger(level) || level < 0 || level > 7 || !/^[0-9a-f-]{36}$/i.test(playerId)) {
         return Response.json({ error: 'Invalid level' }, { status: 400 });
     }
     await env.DB.prepare('DELETE FROM leaderboard_entries WHERE level = -1 AND created_at < ?')

@@ -1,6 +1,6 @@
 # 🚀 Space Chicken Game
 
-A modular, browser-based Phaser 3 platformer with 4 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
+A modular, browser-based Phaser 3 platformer with 7 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
 
 ## 📁 Project Structure
 
@@ -82,7 +82,7 @@ For better long-term quality, ESLint + Prettier have been added (see below).
 
 ## 🎵 Game Features
 
-- 4 levels with increasing difficulty and distinct visual/audio themes
+- 7 levels with increasing difficulty and distinct visual/audio themes
 - Title screen, level banners, and a camera that eases, flashes, and shakes with the action
 - Landing dust, jump stretch, jetpack trails, and crown sparkles
 - Web Audio API music + sound effects (with mute toggle)
@@ -100,11 +100,11 @@ For better long-term quality, ESLint + Prettier have been added (see below).
 ### Competition rules
 
 - Each level ranks its fastest completion times. A death restarts that level's timer.
-- The full-run board requires a solo, zero-death run through all four levels. Its time is the sum of the four level times, so transitions and pauses do not count.
+- The full-run board requires a solo, zero-death run through all seven levels. Its time is the sum of the seven level times, so transitions and pauses do not count.
 - Weekly boards start on Monday at 00:00 UTC. Previous weekly winners appear under Past Winners.
 - The board shows the best time from each browser identity in each category. Browser storage holds that identity and personal bests; clearing it creates a new identity.
 - Online entries require a one-use run token and plausible elapsed wall time. These checks do not prove the player followed the game rules, so the board should not be presented as cheat-proof or tied to cash prizes.
-- On the final screen, use NEW FULL GAME or RETRY LEVEL 4. Space or JUMP starts a new full game; R retries level 4. The LEADERBOARD button opens the standings.
+- On the final screen, use NEW FULL GAME or RETRY LEVEL 7. Space or JUMP starts a new full game; R retries level 7. The LEADERBOARD button opens the standings.
 - Change your leaderboard name on the title screen before starting a timed run.
 
 ## 🛠️ Development
@@ -155,7 +155,7 @@ control bounds, and rotation across phone and tablet viewports. Mobile HUD text 
 readable minimum sizes, and neighboring controls have separate touch regions.
 Browser emulation does not replace checking performance and audio on physical devices.
 
-`node scripts/verify-graphics.mjs` checks all four levels at desktop and phone sizes,
+`node scripts/verify-graphics.mjs` checks all seven levels at desktop and phone sizes,
 verifies generated textures and background size limits, and saves screenshots under
 `/tmp/space-chicken-graphics-after` (override with `GRAPHICS_SCREENSHOT_DIR`). Artwork is
 generated at startup: shaded metal platforms, warning mines, gold chicken frames,

@@ -35,6 +35,24 @@ function d1Database() {
     };
 }
 
+test('run tokens cover the full game and every campaign level', async () => {
+    const [{ onRequest: startRun }] = await apiPromise;
+    const playerId = '123e4567-e89b-42d3-a456-426614174000';
+    const start = (level) =>
+        startRun({
+            request: new Request('https://example.test/api/run', {
+                method: 'POST',
+                body: JSON.stringify({ level, playerId }),
+            }),
+            env: { DB: d1Database() },
+        });
+    for (const level of [0, 1, 4, 5, 6, 7]) {
+        assert.equal((await start(level)).status, 200, `level ${level}`);
+    }
+    assert.equal((await start(8)).status, 400);
+    assert.equal((await start(-1)).status, 400);
+});
+
 test('run tokens are required, time checked, and single use', async () => {
     const [{ onRequest: startRun }, { onRequest: leaderboard }] = await apiPromise;
     const DB = d1Database();
