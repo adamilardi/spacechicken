@@ -139,7 +139,7 @@ local game server unless `SPACE_CHICKEN_URL` is set, reads `TYPESAFE_API_KEY` on
 the Node environment, and writes its action history, assertions, token usage, API
 errors, and final screenshot under `.jev-runs/`. Use `LEVEL=2`, `SEED=42`,
 `JEV_DURATION_MS=90000`, or `HEADLESS=0` to adjust a run. Jev can only select the
-published movement actions; collisions, deaths, checkpoints, and crown collection
+published movement actions; collisions, deaths, and crown collection
 still use the same controller and game rules as human play. Jev runs the simulation at
 quarter speed by default for finer control while normal gameplay stays at full speed.
 Set `JEV_TIME_SCALE=0.5` to override it (accepted range: `0.1` through `1`).

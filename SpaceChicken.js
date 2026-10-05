@@ -219,8 +219,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.raceFinaleEvent = null;
         this.splitDivider = null;
         this.splitLabels = null;
-        this.levelCheckpoint = null;
         this.startTime = 0;
+        this.bonkHitStopUntil = 0;
         this.gameOver = false;
         this.isTransitioning = false;
         this.pendingSceneData = null;
@@ -400,7 +400,13 @@ export class SpaceChicken extends Phaser.Scene {
             null,
             this
         );
-        this.physics.add.overlap(this.player, killZone, () => this.failFromHazard(), null, this);
+        this.physics.add.overlap(
+            this.player,
+            killZone,
+            () => this.failFromHazard('fall'),
+            null,
+            this
+        );
 
         this.bombs = this.physics.add.group({
             maxSize: GAME_CONSTANTS.BOMB_POOL_SIZE,
@@ -1037,6 +1043,8 @@ export class SpaceChicken extends Phaser.Scene {
                 ? 'NEW PERSONAL BEST'
                 : `LEVEL ${this.level} COMPLETE`;
         this.audioManager.playCollectSound();
+        this.audioManager.duckMusic?.();
+        this.pulsePads(GAME_CONSTANTS.HAPTIC_CROWN_MS, 0.25, 0.55);
 
         if (this.levelConfig.nextLevel) {
             this.queueSceneStart({
@@ -1095,7 +1103,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (hazard?.bonkable && hazard.bonkLock) {
             return;
         }
-        this.failFromHazard();
+        this.failFromHazard(hazard?.testMeta?.type === 'laser' ? 'laser' : 'hazard');
     }
 
     boostFromBonk(chicken, hazard) {
@@ -1113,7 +1121,10 @@ export class SpaceChicken extends Phaser.Scene {
         chicken.play?.('chicken-jump', true);
         this.effectsManager?.stretchPlayer?.(chicken);
         this.effectsManager?.emitJumpPuff?.(chicken.x, chicken.y + 14);
-        this.audioManager?.playJumpSound?.();
+        this.audioManager?.playBonkSound?.();
+        this.audioManager?.duckMusic?.();
+        this.pulsePads(GAME_CONSTANTS.HAPTIC_BONK_MS, 0.35, 0.7);
+        this.holdBonkHitStop();
         this.cameraFor(chicken)?.shake?.(90, 0.005);
         this.showBonk(hazard.x, hazard.y - 8, 28);
         this.squashBonkTarget(hazard);
@@ -1324,7 +1335,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (alien?.body && alien.body.enable === false) {
             return;
         }
-        this.failFromHazard();
+        this.failFromHazard('boarder');
     }
 
     holdDisarmedBoarders() {
@@ -1491,6 +1502,8 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.boarderWave = next;
         this.uiManager?.showLevelBanner?.(`WAVE ${next}`, 'Aliens dropping in');
+        this.audioManager?.playWaveSound?.();
+        this.audioManager?.duckMusic?.(160);
     }
 
     releaseBoarderWave(wave) {
@@ -1598,12 +1611,55 @@ export class SpaceChicken extends Phaser.Scene {
         this.boardersDisarmed = false;
     }
 
-    failFromHazard() {
+    failFromHazard(reason = 'hazard') {
         if (this.awaitingStart || this.isTransitioning || this.gameOver) {
             return;
         }
-        this.audioManager.playHazardHitSound();
+        const kind =
+            reason === 'fall' || reason === 'laser' || reason === 'boarder' ? reason : 'hazard';
+        this.playDeathStinger(kind);
+        this.pulsePads(GAME_CONSTANTS.HAPTIC_DEATH_MS, 0.85, 0.4);
         this.restartLevel();
+    }
+
+    playDeathStinger(reason) {
+        const audio = this.audioManager;
+        if (!audio) {
+            return;
+        }
+        if (reason === 'fall' && typeof audio.playFallDeathSound === 'function') {
+            audio.playFallDeathSound();
+        } else if (reason === 'laser' && typeof audio.playLaserDeathSound === 'function') {
+            audio.playLaserDeathSound();
+        } else if (reason === 'boarder' && typeof audio.playBoarderThud === 'function') {
+            audio.playBoarderThud();
+        } else {
+            audio.playHazardHitSound?.();
+        }
+        audio.duckMusic?.();
+    }
+
+    pulsePads(duration, strongMagnitude, weakMagnitude) {
+        this.inputController?.pulsePads?.(duration, strongMagnitude, weakMagnitude);
+    }
+
+    holdBonkHitStop() {
+        const world = this.physics?.world;
+        const ms = GAME_CONSTANTS.BONK_HITSTOP_MS;
+        if (!world || world.isPaused || this.bonkHitStopUntil || !this.time?.delayedCall) {
+            return;
+        }
+        const started = performance.now();
+        world.isPaused = true;
+        this.bonkHitStopUntil = started + ms;
+        this.time.delayedCall(ms, () => {
+            if (!this.bonkHitStopUntil) {
+                return;
+            }
+            this.bonkHitStopUntil = 0;
+            world.isPaused = false;
+            this.startTime += performance.now() - started;
+        });
     }
 
     hitHazard() {
@@ -1611,7 +1667,7 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     hitKillZone() {
-        this.failFromHazard();
+        this.failFromHazard('fall');
     }
 
     hitBomb(_bomb, _player) {
@@ -1670,7 +1726,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.resetBoarders();
         this.boarderGraceUntil = this.getGameTime() + GAME_CONSTANTS.BOARDER_GRACE_MS;
-        const start = this.levelCheckpoint || this.levelConfig.playerStart;
+        const start = this.levelConfig.playerStart;
         const player = this.player;
         if (player) {
             if (player.enableBody) {
@@ -1915,6 +1971,7 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
 
+        this.maybeShowCoach();
         this.uiManager.updateTimer(performance.now() - this.startTime);
 
         const isGrounded = this.updateGroundedState();
@@ -1926,7 +1983,6 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.updatePlayerMovement();
         this.updatePlayerAnimation(isGrounded);
-        this.updateLevelCheckpoint();
         if (this.player2) {
             this.updatePlayer2(inputState);
         }
@@ -1935,7 +1991,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
 
         if (this.player.y > this.killZoneFallY) {
-            this.hitKillZone();
+            this.failFromHazard('fall');
         }
 
         this.updateCombat(inputState);
@@ -1979,7 +2035,7 @@ export class SpaceChicken extends Phaser.Scene {
             }
         } else {
             if (!this.wasGrounded && this.shouldPlayLandingFx(now)) {
-                this.onPlayerLanded();
+                this.onPlayerLanded(this.maxAirSpeedY);
             }
             this.airborneSince = 0;
             this.maxAirSpeedY = 0;
@@ -1996,22 +2052,69 @@ export class SpaceChicken extends Phaser.Scene {
         return this.time?.now > 0 ? this.time.now : performance.now();
     }
 
-    updateLevelCheckpoint() {
-        if (this.level !== 4 || !this.player || this.isTransitioning) return;
-        const furthestX = Math.max(this.player.x, this.player2?.x || 0);
-        const checkpoints = [
-            { trigger: 950, x: 1000, y: 500, label: 'CRATER GATE SECURED' },
-            { trigger: 1780, x: 1840, y: 370, label: 'SUMMIT APPROACH SECURED' },
-        ];
-        const next = checkpoints.find(
-            (checkpoint) =>
-                furthestX >= checkpoint.trigger &&
-                (!this.levelCheckpoint || checkpoint.trigger > this.levelCheckpoint.trigger)
-        );
-        if (!next) return;
-        this.levelCheckpoint = next;
-        this.uiManager?.showLevelBanner?.('CHECKPOINT', next.label);
-        this.audioManager?.playCollectSound?.();
+    coachSeen(key) {
+        if (this.coachMemory?.has(key)) {
+            return true;
+        }
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return false;
+        }
+        try {
+            return window.localStorage.getItem(key) === '1';
+        } catch {
+            return false;
+        }
+    }
+
+    markCoach(key) {
+        if (!this.coachMemory) {
+            this.coachMemory = new Set();
+        }
+        this.coachMemory.add(key);
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(key, '1');
+        } catch {
+            this.storageAvailable = false;
+        }
+    }
+
+    maybeShowCoach() {
+        if (
+            this.awaitingStart ||
+            this.isTransitioning ||
+            this.gameOver ||
+            this.uiManager?.bannerTitle
+        ) {
+            return;
+        }
+        if (this.levelConfig?.phaser && !this.coachSeen(GAME_CONSTANTS.COACH_PHASER_KEY)) {
+            this.markCoach(GAME_CONSTANTS.COACH_PHASER_KEY);
+            this.uiManager?.showLevelBanner?.('PHASER', 'F, J, or the bolt button', 2200);
+            return;
+        }
+        if (this.coachSeen(GAME_CONSTANTS.COACH_BONK_KEY) || !this.bonkCapInView()) {
+            return;
+        }
+        this.markCoach(GAME_CONSTANTS.COACH_BONK_KEY);
+        this.uiManager?.showLevelBanner?.('BONK', 'Drop on the gold cap', 2200);
+    }
+
+    bonkCapInView() {
+        const children = this.dynamicHazardsGroup?.getChildren?.() || [];
+        const view = this.getMainCamera()?.worldView;
+        for (let i = 0; i < children.length; i++) {
+            const hazard = children[i];
+            if (!hazard?.bonkable || hazard.visible === false) {
+                continue;
+            }
+            if (view?.contains?.(hazard.x, hazard.y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     shouldPlayLandingFx(now) {
@@ -2089,7 +2192,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.physics.add.overlap(
             this.player2,
             this.killZone,
-            () => this.failFromHazard(),
+            () => this.failFromHazard('fall'),
             null,
             this
         );
@@ -2143,6 +2246,8 @@ export class SpaceChicken extends Phaser.Scene {
         finisher?.setTint?.(0xb6ff9a);
         this.cameraFor(finisher)?.flash?.(240, 255, 214, 90);
         this.audioManager?.playCollectSound?.();
+        this.audioManager?.duckMusic?.();
+        this.pulsePads(GAME_CONSTANTS.HAPTIC_CROWN_MS, 0.25, 0.55);
         this.effectsManager?.collectBurst?.(
             this.crown?.x ?? finisher?.x,
             this.crown?.y ?? finisher?.y
@@ -2303,7 +2408,7 @@ export class SpaceChicken extends Phaser.Scene {
             (usePad && this.inputController.gamepadJumpEdges?.[1])
         )
             this.attemptPlayer2Jump();
-        if (this.player2.y > this.killZoneFallY) this.failFromHazard();
+        if (this.player2.y > this.killZoneFallY) this.failFromHazard('fall');
         const grounded = Boolean(this.player2.body.blocked.down || this.player2.body.touching.down);
         if (grounded) this.player2JumpCount = 0;
         this.updateChickenAnimation(this.player2, grounded, false);
@@ -2319,7 +2424,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.audioManager?.playJumpSound?.();
     }
 
-    onPlayerLanded() {
+    onPlayerLanded(impact = 0) {
         if (!this.player) {
             return;
         }
@@ -2327,7 +2432,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.effectsManager.squashPlayer(this.player);
             this.effectsManager.emitDust(this.player.x, this.player.y + 14);
         }
-        this.audioManager?.playLandSound?.();
+        this.audioManager?.playLandSound?.(impact);
     }
 
     updatePlayerMovement() {
@@ -2386,6 +2491,9 @@ export class SpaceChicken extends Phaser.Scene {
                 : 'chicken-jump';
         if (player.anims.currentAnim?.key !== animation) {
             player.play(animation);
+        }
+        if (animation === 'chicken-walk') {
+            this.audioManager?.maybePlayFootstep?.(player, speed);
         }
         // Keep the stride tied to actual motion; restore normal timing for other poses.
         player.anims.timeScale =

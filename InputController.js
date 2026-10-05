@@ -195,6 +195,33 @@ export class InputController {
         return pad && pad.connected !== false ? pad : null;
     }
 
+    pulsePads(duration, strongMagnitude, weakMagnitude) {
+        if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
+            return;
+        }
+        const pads = navigator.getGamepads();
+        if (!pads) {
+            return;
+        }
+        for (let i = 0; i < pads.length; i++) {
+            const actuator = pads[i]?.vibrationActuator;
+            if (typeof actuator?.playEffect !== 'function') {
+                continue;
+            }
+            try {
+                const pending = actuator.playEffect('dual-rumble', {
+                    startDelay: 0,
+                    duration,
+                    strongMagnitude,
+                    weakMagnitude,
+                });
+                pending?.catch?.(() => {});
+            } catch {
+                // A pad can advertise rumble and still reject the effect.
+            }
+        }
+    }
+
     syncJumpPointer(activePointers) {
         const scene = this.scene;
         if (scene.jumpPointerId === null) {

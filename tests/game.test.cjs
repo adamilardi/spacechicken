@@ -363,6 +363,11 @@ test('all levels have distinct, layered music arrangements', async () => {
         assert.ok(definition.pattern.some((event) => event.kind === 'tone'));
         assert.ok(definition.pattern.some((event) => event.kind === 'kick'));
         assert.ok(definition.pattern.some((event) => event.kind === 'hat'));
+        const lastOffset = Math.max(...definition.pattern.map((event) => event.offset));
+        assert.ok(
+            lastOffset > definition.loopDuration * 0.75,
+            `${definition.id} should keep playing through the loop`
+        );
     }
     assert.equal(identities.size, 7);
 });
@@ -401,6 +406,18 @@ test('audio scheduling routes melodic and percussion events', async () => {
     assert.equal(scheduled[0].options.startTime, 10.5);
     assert.deepEqual(scheduled[0].options.filter, { type: 'lowpass', frequency: 900 });
     assert.equal(manager.getMusicDefinitionForLevel(4).id, 'lunar-horizon');
+
+    manager.audioUnlocked = true;
+    manager.backgroundPatternDuration = 2;
+    manager.nextMusicTime = 5;
+    scene.sound.context.currentTime = 4.8;
+    scene.sound.context.state = 'running';
+    manager.pumpMusicScheduler();
+    assert.equal(scheduled.length, 6);
+    assert.equal(scheduled[3].options.startTime, 5.5);
+    assert.equal(manager.nextMusicTime, 7);
+    manager.pumpMusicScheduler();
+    assert.equal(scheduled.length, 6);
 });
 
 test('sound effects use distinct layered voices', async () => {
@@ -446,6 +463,150 @@ test('sound effects use distinct layered voices', async () => {
     calls.length = 0;
     manager.playStartSound();
     assert.equal(calls.filter((call) => call.voice === 'tone').length, 4);
+
+    calls.length = 0;
+    manager.playBonkSound();
+    assert.deepEqual(
+        calls.map((call) => call.voice),
+        ['tone', 'tone', 'noise']
+    );
+    assert.equal(calls[0].options.freqStart, 150);
+    assert.notEqual(calls[0].options.freqStart, 285);
+
+    calls.length = 0;
+    manager.playFallDeathSound();
+    assert.equal(calls[0].options.freqEnd, 36);
+    assert.deepEqual(
+        calls.map((call) => call.voice),
+        ['tone', 'noise']
+    );
+
+    calls.length = 0;
+    manager.playLaserDeathSound();
+    assert.equal(calls[0].options.type, 'square');
+    assert.equal(calls[0].options.freqStart, 1680);
+
+    calls.length = 0;
+    manager.playBoarderThud();
+    assert.deepEqual(
+        calls.map((call) => call.voice),
+        ['noise', 'tone']
+    );
+    assert.ok(calls[1].options.freqStart < 120);
+
+    const ramps = [];
+    manager.musicMuted = false;
+    manager.musicVolume = 0.18;
+    manager.musicGainNode = {
+        gain: {
+            cancelScheduledValues() {},
+            setValueAtTime(value, time) {
+                ramps.push(['set', value, time]);
+            },
+            linearRampToValueAtTime(value, time) {
+                ramps.push(['ramp', value, time]);
+            },
+        },
+    };
+    manager.duckMusic(200);
+    assert.equal(ramps[0][1], 0.18);
+    assert.ok(ramps[1][1] < 0.18);
+    assert.equal(ramps[ramps.length - 1][1], 0.18);
+});
+
+test('deaths use a different stinger for a fall, a laser, and an alien', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const played = [];
+    scene.awaitingStart = false;
+    scene.audioManager = {
+        playFallDeathSound() {
+            played.push('fall');
+        },
+        playLaserDeathSound() {
+            played.push('laser');
+        },
+        playBoarderThud() {
+            played.push('boarder');
+        },
+        playHazardHitSound() {
+            played.push('hazard');
+        },
+        duckMusic() {
+            played.push('duck');
+        },
+    };
+    scene.restartLevel = () => {};
+    scene.failFromHazard('fall');
+    scene.failFromHazard('laser');
+    scene.failFromHazard('boarder');
+    scene.failFromHazard();
+    scene.isTransitioning = false;
+    scene.failFromHazard({ x: 1 });
+    assert.deepEqual(played, [
+        'fall',
+        'duck',
+        'laser',
+        'duck',
+        'boarder',
+        'duck',
+        'hazard',
+        'duck',
+        'hazard',
+        'duck',
+    ]);
+});
+
+test('bonk hit-stop is left out of the speedrun clock', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const scene = new SpaceChicken();
+    scene.physics = { world: { isPaused: false } };
+    scene.startTime = 5000;
+    scene.time = {
+        delayedCall(ms, callback) {
+            scene.hitStopMs = ms;
+            scene.releaseHitStop = callback;
+            return { remove() {} };
+        },
+    };
+    scene.holdBonkHitStop();
+    assert.equal(scene.physics.world.isPaused, true);
+    assert.equal(scene.hitStopMs, GAME_CONSTANTS.BONK_HITSTOP_MS);
+    scene.releaseHitStop();
+    assert.equal(scene.physics.world.isPaused, false);
+    assert.ok(scene.startTime > 5000);
+    assert.ok(scene.startTime - 5000 < 1000);
+});
+
+test('coach lines show once for the phaser and a gold cap', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    global.window = { localStorage: createStorage() };
+    const scene = new SpaceChicken();
+    const banners = [];
+    scene.uiManager = {
+        showLevelBanner(title, subtitle) {
+            banners.push(`${title}:${subtitle}`);
+            this.bannerTitle = { title };
+        },
+    };
+    scene.levelConfig = { phaser: true };
+    scene.maybeShowCoach();
+    scene.uiManager.bannerTitle = null;
+    scene.maybeShowCoach();
+    scene.levelConfig = {};
+    scene.dynamicHazardsGroup = {
+        getChildren() {
+            return [{ bonkable: true, x: 20, y: 30, visible: true }];
+        },
+    };
+    scene.cameras = { main: { worldView: { contains: () => false } } };
+    scene.maybeShowCoach();
+    scene.cameras.main.worldView.contains = () => true;
+    scene.maybeShowCoach();
+    scene.uiManager.bannerTitle = null;
+    scene.maybeShowCoach();
+    assert.deepEqual(banners, ['PHASER:F, J, or the bolt button', 'BONK:Drop on the gold cap']);
 });
 
 test('vertical laser visuals and hitboxes have the same orientation', async () => {

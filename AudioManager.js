@@ -28,10 +28,15 @@ export class AudioManager {
         this.masterCompressorNode = null;
         this.musicFilterNode = null;
         this.musicDelayNode = null;
+        this.musicDelayFilterNode = null;
         this.musicDelayFeedbackNode = null;
         this.musicDelayWetNode = null;
         this.noiseBuffer = null;
         this.backgroundLoopEvent = null;
+        this.musicScheduler = null;
+        this.nextMusicTime = 0;
+        this.musicBpm = 112;
+        this.stepAt = new WeakMap();
         this.backgroundPattern = [];
         this.backgroundPatternDuration = 0;
         this.backgroundSources = new Set();
@@ -79,11 +84,11 @@ export class AudioManager {
 
         if (!this.masterCompressorNode && typeof context.createDynamicsCompressor === 'function') {
             this.masterCompressorNode = context.createDynamicsCompressor();
-            this.setAudioParam(this.masterCompressorNode.threshold, -16, context.currentTime);
-            this.setAudioParam(this.masterCompressorNode.knee, 18, context.currentTime);
-            this.setAudioParam(this.masterCompressorNode.ratio, 4, context.currentTime);
-            this.setAudioParam(this.masterCompressorNode.attack, 0.006, context.currentTime);
-            this.setAudioParam(this.masterCompressorNode.release, 0.22, context.currentTime);
+            this.setAudioParam(this.masterCompressorNode.threshold, -14, context.currentTime);
+            this.setAudioParam(this.masterCompressorNode.knee, 20, context.currentTime);
+            this.setAudioParam(this.masterCompressorNode.ratio, 3, context.currentTime);
+            this.setAudioParam(this.masterCompressorNode.attack, 0.004, context.currentTime);
+            this.setAudioParam(this.masterCompressorNode.release, 0.16, context.currentTime);
             this.masterCompressorNode.connect(destination);
         }
         const mixDestination = this.masterCompressorNode || destination;
@@ -98,8 +103,8 @@ export class AudioManager {
 
             this.musicFilterNode = context.createBiquadFilter();
             this.musicFilterNode.type = 'lowpass';
-            this.setAudioParam(this.musicFilterNode.frequency, 12500, context.currentTime);
-            this.setAudioParam(this.musicFilterNode.Q, 0.35, context.currentTime);
+            this.setAudioParam(this.musicFilterNode.frequency, 9200, context.currentTime);
+            this.setAudioParam(this.musicFilterNode.Q, 0.45, context.currentTime);
             this.musicGainNode.connect(this.musicFilterNode);
             this.musicFilterNode.connect(mixDestination);
             this.setupMusicDelay(mixDestination);
@@ -120,6 +125,7 @@ export class AudioManager {
         if (!this.backgroundPattern.length) {
             this.configureLevelMusic();
         }
+        this.applyMusicSpace();
         this.installAudioUnlockHandler(skipAutoStart);
     }
 
@@ -130,17 +136,36 @@ export class AudioManager {
         }
 
         this.musicDelayNode = context.createDelay(1);
+        this.musicDelayFilterNode = context.createBiquadFilter();
+        this.musicDelayFilterNode.type = 'highpass';
         this.musicDelayFeedbackNode = context.createGain();
         this.musicDelayWetNode = context.createGain();
-        this.setAudioParam(this.musicDelayNode.delayTime, 0.285, context.currentTime);
-        this.setAudioParam(this.musicDelayFeedbackNode.gain, 0.19, context.currentTime);
-        this.setAudioParam(this.musicDelayWetNode.gain, 0.12, context.currentTime);
+        this.setAudioParam(this.musicDelayNode.delayTime, 0.24, context.currentTime);
+        this.setAudioParam(this.musicDelayFilterNode.frequency, 520, context.currentTime);
+        this.setAudioParam(this.musicDelayFilterNode.Q, 0.5, context.currentTime);
+        this.setAudioParam(this.musicDelayFeedbackNode.gain, 0.16, context.currentTime);
+        this.setAudioParam(this.musicDelayWetNode.gain, 0.09, context.currentTime);
 
         this.musicGainNode.connect(this.musicDelayNode);
-        this.musicDelayNode.connect(this.musicDelayFeedbackNode);
+        this.musicDelayNode.connect(this.musicDelayFilterNode);
+        this.musicDelayFilterNode.connect(this.musicDelayFeedbackNode);
         this.musicDelayFeedbackNode.connect(this.musicDelayNode);
-        this.musicDelayNode.connect(this.musicDelayWetNode);
+        this.musicDelayFilterNode.connect(this.musicDelayWetNode);
         this.musicDelayWetNode.connect(destination);
+    }
+
+    applyMusicSpace() {
+        if (!this.canUseWebAudio() || !this.musicDelayNode) {
+            return;
+        }
+        const bpm = this.musicBpm || 112;
+        const dottedEighth = (60 / bpm) * 0.75;
+        const delayTime = Math.max(0.14, Math.min(0.42, dottedEighth));
+        this.setAudioParam(
+            this.musicDelayNode.delayTime,
+            delayTime,
+            this.scene.sound.context.currentTime
+        );
     }
 
     installAudioUnlockHandler(skipAutoStart) {
@@ -234,22 +259,36 @@ export class AudioManager {
         if (!this.musicGainNode) {
             this.setupAudioPipeline({ skipAutoStart: true });
         }
-        if (!this.musicGainNode || this.backgroundLoopEvent || !this.backgroundPattern.length) {
+        if (!this.musicGainNode || this.musicScheduler || !this.backgroundPattern.length) {
             return;
         }
 
         const context = this.scene.sound.context;
-        const schedule = () => {
-            this.scheduleBackgroundPattern(
-                context.currentTime + GAME_CONSTANTS.AUDIO_UNLOCK_TOLERANCE
-            );
-        };
-        schedule();
-        this.backgroundLoopEvent = this.scene.time.addEvent({
-            delay: Math.max(1000, this.backgroundPatternDuration * 1000),
-            loop: true,
-            callback: schedule,
-        });
+        this.nextMusicTime = context.currentTime + GAME_CONSTANTS.AUDIO_UNLOCK_TOLERANCE;
+        const pump = () => this.pumpMusicScheduler();
+        pump();
+        this.musicScheduler = setInterval(pump, 250);
+    }
+
+    pumpMusicScheduler() {
+        if (this.destroyed || !this.audioUnlocked || !this.canUseWebAudio()) {
+            return;
+        }
+        const context = this.scene.sound.context;
+        if (context.state && context.state !== 'running') {
+            return;
+        }
+        const duration = this.backgroundPatternDuration;
+        if (!(duration > 0)) {
+            return;
+        }
+        const horizon = context.currentTime + 1;
+        let guard = 0;
+        while (this.nextMusicTime < horizon && guard < 3) {
+            this.scheduleBackgroundPattern(this.nextMusicTime);
+            this.nextMusicTime += duration;
+            guard += 1;
+        }
     }
 
     scheduleBackgroundPattern(baseTime) {
@@ -262,7 +301,10 @@ export class AudioManager {
     scheduleMusicEvent(event, baseTime) {
         const options = {
             ...event,
-            startTime: baseTime + event.offset,
+            startTime:
+                baseTime +
+                event.offset +
+                (event.kind === 'hat' ? (Math.random() - 0.5) * 0.006 : 0),
             destination: this.musicGainNode,
             trackSet: this.backgroundSources,
         };
@@ -296,10 +338,15 @@ export class AudioManager {
     }
 
     stopBackgroundMusic() {
+        if (this.musicScheduler) {
+            clearInterval(this.musicScheduler);
+            this.musicScheduler = null;
+        }
         if (this.backgroundLoopEvent) {
             this.backgroundLoopEvent.remove();
             this.backgroundLoopEvent = null;
         }
+        this.nextMusicTime = 0;
         this.stopTrackedSources(this.backgroundSources);
     }
 
@@ -332,6 +379,7 @@ export class AudioManager {
             this.effectsGainNode,
             this.musicFilterNode,
             this.musicDelayNode,
+            this.musicDelayFilterNode,
             this.musicDelayFeedbackNode,
             this.musicDelayWetNode,
             this.masterCompressorNode,
@@ -341,6 +389,7 @@ export class AudioManager {
         this.effectsGainNode = null;
         this.musicFilterNode = null;
         this.musicDelayNode = null;
+        this.musicDelayFilterNode = null;
         this.musicDelayFeedbackNode = null;
         this.musicDelayWetNode = null;
         this.masterCompressorNode = null;
@@ -498,8 +547,8 @@ export class AudioManager {
         let previous = 0;
         for (let i = 0; i < samples.length; i++) {
             const white = Math.random() * 2 - 1;
-            previous = previous * 0.86 + white * 0.14;
-            samples[i] = optionsForNoiseColor(white, previous);
+            previous = previous * 0.82 + white * 0.18;
+            samples[i] = white * 0.86 + previous * 0.14;
         }
         this.noiseBuffer = buffer;
         return buffer;
@@ -544,24 +593,25 @@ export class AudioManager {
         };
         this.playTone({
             ...common,
-            freqStart: 138,
-            freqEnd: 43,
-            duration: 0.24,
+            freqStart: 176,
+            freqEnd: 46,
+            duration: 0.16,
             type: 'sine',
             volume,
-            attackTime: 0.002,
-            decayTime: 0.035,
-            sustain: 0.32,
-            releaseTime: 0.16,
-            drive: 1.8,
+            attackTime: 0.001,
+            decayTime: 0.028,
+            sustain: 0.2,
+            releaseTime: 0.1,
+            drive: 2.2,
+            harmonics: [{ ratio: 0.5, gain: 0.62, type: 'sine' }],
         });
         this.playNoise({
             ...common,
-            duration: 0.028,
-            volume: volume * 0.24,
+            duration: 0.014,
+            volume: volume * 0.4,
             attackTime: 0.001,
-            releaseTime: 0.022,
-            filter: { type: 'highpass', frequency: 3200, Q: 0.4 },
+            releaseTime: 0.01,
+            filter: { type: 'highpass', frequency: 1500, Q: 0.35 },
         });
     }
 
@@ -576,37 +626,192 @@ export class AudioManager {
         };
         this.playNoise({
             ...common,
-            duration: 0.18,
+            duration: 0.13,
             volume,
-            attackTime: 0.002,
-            decayTime: 0.025,
-            sustain: 0.38,
-            releaseTime: 0.13,
-            filter: { type: 'bandpass', frequency: 1850, Q: 0.72 },
-            drive: 1.35,
+            attackTime: 0.001,
+            decayTime: 0.02,
+            sustain: 0.28,
+            releaseTime: 0.09,
+            filter: { type: 'bandpass', frequency: 2400, Q: 0.9 },
+            drive: 1.7,
         });
         this.playTone({
             ...common,
-            freqStart: 205,
-            freqEnd: 132,
-            duration: 0.12,
+            freqStart: 198,
+            freqEnd: 146,
+            duration: 0.07,
             type: 'triangle',
-            volume: volume * 0.44,
-            attackTime: 0.002,
-            releaseTime: 0.09,
+            volume: volume * 0.36,
+            attackTime: 0.001,
+            releaseTime: 0.05,
         });
     }
 
     playHat(options = {}) {
         return this.playNoise({
             ...options,
-            duration: options.duration || 0.055,
+            duration: options.duration || 0.045,
             volume: options.volume ?? 0.04,
             attackTime: 0.001,
-            decayTime: 0.012,
-            sustain: 0.18,
-            releaseTime: Math.max(0.018, (options.duration || 0.055) * 0.72),
-            filter: { type: 'highpass', frequency: 6200, Q: 0.45 },
+            decayTime: 0.01,
+            sustain: 0.14,
+            releaseTime: Math.max(0.014, (options.duration || 0.045) * 0.7),
+            playbackRate: 1.25,
+            filter: { type: 'highpass', frequency: 7400, Q: 0.5 },
+        });
+    }
+
+    duckMusic(holdMs = GAME_CONSTANTS.MUSIC_DUCK_MS) {
+        if (this.destroyed || this.musicMuted || !this.musicGainNode || !this.canUseWebAudio()) {
+            return;
+        }
+        const gain = this.musicGainNode.gain;
+        if (
+            typeof gain?.cancelScheduledValues !== 'function' ||
+            typeof gain.setValueAtTime !== 'function' ||
+            typeof gain.linearRampToValueAtTime !== 'function'
+        ) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        const quiet = this.musicVolume * 0.2;
+        const hold = Math.max(0.05, holdMs / 1000);
+        try {
+            gain.cancelScheduledValues(now);
+            gain.setValueAtTime(this.musicVolume, now);
+            gain.linearRampToValueAtTime(quiet, now + 0.02);
+            gain.setValueAtTime(quiet, now + hold);
+            gain.linearRampToValueAtTime(this.musicVolume, now + hold + 0.06);
+        } catch {
+            this.fadeMusicBus(this.musicVolume);
+        }
+    }
+
+    playBonkSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        this.playTone({
+            freqStart: 150,
+            freqEnd: 520,
+            duration: 0.09,
+            type: 'sine',
+            volume: 0.22,
+            attackTime: 0.001,
+            releaseTime: 0.06,
+            harmonics: [{ ratio: 2.01, gain: 0.28, type: 'triangle' }],
+            startTime: now,
+        });
+        this.playTone({
+            freqStart: 680,
+            freqEnd: 190,
+            duration: 0.22,
+            type: 'triangle',
+            volume: 0.15,
+            attackTime: 0.003,
+            releaseTime: 0.15,
+            harmonics: [{ ratio: 2.5, gain: 0.08, detune: 6 }],
+            startTime: now + 0.055,
+        });
+        this.playNoise({
+            duration: 0.035,
+            volume: 0.07,
+            attackTime: 0.001,
+            releaseTime: 0.025,
+            filter: { type: 'highpass', frequency: 2200, Q: 0.5 },
+            startTime: now,
+        });
+    }
+
+    playFallDeathSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        this.playTone({
+            freqStart: 310,
+            freqEnd: 36,
+            duration: 0.62,
+            type: 'sine',
+            volume: 0.22,
+            attackTime: 0.003,
+            decayTime: 0.12,
+            sustain: 0.55,
+            releaseTime: 0.28,
+            harmonics: [{ ratio: 2, gain: 0.16, detune: -4 }],
+            filter: { type: 'lowpass', frequency: 1400, endFrequency: 220, Q: 0.7 },
+            startTime: now,
+        });
+        this.playNoise({
+            duration: 0.36,
+            volume: 0.09,
+            attackTime: 0.002,
+            releaseTime: 0.24,
+            filter: { type: 'lowpass', frequency: 900, endFrequency: 140, Q: 0.6 },
+            startTime: now,
+        });
+    }
+
+    playLaserDeathSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        this.playTone({
+            freqStart: 1680,
+            freqEnd: 140,
+            duration: 0.16,
+            type: 'square',
+            volume: 0.09,
+            attackTime: 0.001,
+            releaseTime: 0.1,
+            filter: { type: 'bandpass', frequency: 1800, endFrequency: 420, Q: 2.2 },
+            startTime: now,
+        });
+        this.playTone({
+            freqStart: 840,
+            freqEnd: 90,
+            duration: 0.22,
+            type: 'sawtooth',
+            volume: 0.05,
+            attackTime: 0.002,
+            releaseTime: 0.14,
+            filter: { type: 'lowpass', frequency: 1200, Q: 0.8 },
+            startTime: now + 0.02,
+        });
+        this.playNoise({
+            duration: 0.07,
+            volume: 0.06,
+            attackTime: 0.001,
+            releaseTime: 0.05,
+            filter: { type: 'highpass', frequency: 4000, Q: 0.5 },
+            startTime: now,
+        });
+    }
+
+    playBoarderThud() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        this.playNoise({
+            duration: 0.16,
+            volume: 0.18,
+            attackTime: 0.002,
+            releaseTime: 0.12,
+            filter: { type: 'lowpass', frequency: 420, endFrequency: 140, Q: 0.7 },
+            startTime: now,
+        });
+        this.playTone({
+            freqStart: 96,
+            freqEnd: 42,
+            duration: 0.22,
+            type: 'sine',
+            volume: 0.18,
+            attackTime: 0.002,
+            releaseTime: 0.16,
+            startTime: now,
         });
     }
 
@@ -615,18 +820,20 @@ export class AudioManager {
             return;
         }
         const now = this.scene.sound.context.currentTime;
+        const wobble = (Math.random() - 0.5) * 36;
         this.playTone({
-            freqStart: 285,
-            freqEnd: 760,
-            duration: 0.2,
+            freqStart: 300,
+            freqEnd: 820,
+            duration: 0.18,
             type: 'triangle',
-            volume: 0.22,
-            attackTime: 0.003,
-            decayTime: 0.045,
-            sustain: 0.48,
-            releaseTime: 0.11,
-            filter: { type: 'lowpass', frequency: 3100, endFrequency: 1850, Q: 1.1 },
-            harmonics: [{ ratio: 2, gain: 0.12, detune: 5 }],
+            volume: 0.2,
+            attackTime: 0.002,
+            decayTime: 0.04,
+            sustain: 0.42,
+            releaseTime: 0.1,
+            detune: wobble,
+            filter: { type: 'lowpass', frequency: 3400, endFrequency: 1600, Q: 1.2 },
+            harmonics: [{ ratio: 2, gain: 0.16, detune: 7 }],
             pan: -0.08,
             startTime: now,
         });
@@ -657,24 +864,25 @@ export class AudioManager {
         }
         const now = this.scene.sound.context.currentTime;
         this.playTone({
-            freqStart: 720,
-            freqEnd: 1680,
-            duration: 0.09,
+            freqStart: 420,
+            freqEnd: 1960,
+            duration: 0.07,
             type: 'square',
-            volume: 0.12,
-            attackTime: 0.002,
-            decayTime: 0.03,
-            sustain: 0.2,
-            releaseTime: 0.05,
-            filter: { type: 'bandpass', frequency: 1800, Q: 0.8 },
+            volume: 0.16,
+            attackTime: 0.001,
+            decayTime: 0.02,
+            sustain: 0.16,
+            releaseTime: 0.04,
+            filter: { type: 'bandpass', frequency: 2400, endFrequency: 900, Q: 2.4 },
+            harmonics: [{ ratio: 0.5, gain: 0.35, type: 'sawtooth' }],
             startTime: now,
         });
         this.playNoise({
-            duration: 0.04,
-            volume: 0.05,
+            duration: 0.05,
+            volume: 0.08,
             attackTime: 0.001,
-            releaseTime: 0.03,
-            filter: { type: 'highpass', frequency: 2400, Q: 0.6 },
+            releaseTime: 0.035,
+            filter: { type: 'highpass', frequency: 3200, Q: 0.55 },
             startTime: now,
         });
     }
@@ -761,7 +969,7 @@ export class AudioManager {
             return;
         }
         const now = this.scene.sound.context.currentTime;
-        [76, 80, 83, 88].forEach((midiNote, index) => {
+        [76, 79, 83, 88].forEach((midiNote, index) => {
             const frequency = 440 * 2 ** ((midiNote - 69) / 12);
             this.playTone({
                 freqStart: frequency,
@@ -795,29 +1003,101 @@ export class AudioManager {
         });
     }
 
-    playLandSound() {
+    playLandSound(impact = 0) {
         if (!this.canUseWebAudio()) {
             return;
         }
+        const weight = Math.max(0, Math.min(1, (impact - 180) / 520));
         const now = this.scene.sound.context.currentTime;
         this.playNoise({
-            duration: 0.07,
-            volume: 0.07,
+            duration: 0.06 + weight * 0.05,
+            volume: 0.07 + weight * 0.08,
             attackTime: 0.001,
-            releaseTime: 0.055,
-            filter: { type: 'lowpass', frequency: 1400, endFrequency: 420, Q: 0.6 },
+            releaseTime: 0.05 + weight * 0.04,
+            filter: {
+                type: 'lowpass',
+                frequency: 1600 - weight * 400,
+                endFrequency: 380,
+                Q: 0.6,
+            },
             pan: 0.06,
             startTime: now,
         });
         this.playTone({
-            freqStart: 148,
-            freqEnd: 72,
-            duration: 0.09,
+            freqStart: 156 - weight * 28,
+            freqEnd: 64,
+            duration: 0.08 + weight * 0.06,
             type: 'sine',
-            volume: 0.07,
-            attackTime: 0.002,
-            releaseTime: 0.07,
+            volume: 0.07 + weight * 0.1,
+            attackTime: 0.001,
+            releaseTime: 0.06 + weight * 0.05,
             startTime: now,
+        });
+    }
+
+    maybePlayFootstep(player, speed) {
+        if (!this.audioUnlocked || !player || speed < 30 || !this.canUseWebAudio()) {
+            return;
+        }
+        const context = this.scene.sound.context;
+        if (context.state && context.state !== 'running') {
+            return;
+        }
+        const now = context.currentTime;
+        if (now < (this.stepAt.get(player) || 0)) {
+            return;
+        }
+        const pace = 0.26 * (160 / Math.max(speed, 80));
+        this.stepAt.set(player, now + Math.max(0.16, Math.min(0.46, pace)));
+        this.playFootstep(player.flipX ? -0.22 : 0.22);
+    }
+
+    playFootstep(pan = 0) {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        const chip = 180 + Math.random() * 40;
+        this.playNoise({
+            duration: 0.035,
+            volume: 0.065,
+            attackTime: 0.001,
+            releaseTime: 0.025,
+            filter: { type: 'bandpass', frequency: 700 + Math.random() * 500, Q: 0.8 },
+            pan,
+            startTime: now,
+        });
+        this.playTone({
+            freqStart: chip,
+            freqEnd: 80,
+            duration: 0.04,
+            type: 'sine',
+            volume: 0.04,
+            attackTime: 0.001,
+            releaseTime: 0.028,
+            pan,
+            startTime: now,
+        });
+    }
+
+    playWaveSound() {
+        if (!this.canUseWebAudio()) {
+            return;
+        }
+        const now = this.scene.sound.context.currentTime;
+        [740, 988, 1480].forEach((frequency, index) => {
+            this.playTone({
+                freqStart: frequency,
+                freqEnd: frequency * 0.94,
+                duration: 0.07,
+                type: 'square',
+                volume: 0.07,
+                attackTime: 0.001,
+                releaseTime: 0.045,
+                filter: { type: 'bandpass', frequency: 1600, Q: 1.5 },
+                pan: index === 1 ? 0.2 : -0.15,
+                startTime: now + index * 0.08,
+            });
         });
     }
 
@@ -839,8 +1119,17 @@ export class AudioManager {
                 sustain: 0.5,
                 releaseTime: 0.16,
                 pan: -0.28 + index * 0.18,
+                harmonics: index === 3 ? [{ ratio: 2, gain: 0.2, detune: 4 }] : [],
                 startTime: now + index * 0.05,
             });
+        });
+        this.playNoise({
+            duration: 0.28,
+            volume: 0.04,
+            attackTime: 0.01,
+            releaseTime: 0.18,
+            filter: { type: 'highpass', frequency: 5000, Q: 0.4 },
+            startTime: now + 0.08,
         });
     }
 
@@ -858,20 +1147,20 @@ export class AudioManager {
             sustain: 0.42,
             releaseTime: 0.44,
             filter: { type: 'lowpass', frequency: 2100, endFrequency: 260, Q: 0.8 },
-            drive: 2.4,
+            drive: 1.7,
             startTime: now,
         });
         this.playTone({
-            freqStart: 196,
-            freqEnd: 38,
-            duration: 0.72,
+            freqStart: 174,
+            freqEnd: 42,
+            duration: 0.64,
             type: 'sawtooth',
-            volume: 0.2,
-            attackTime: 0.003,
-            decayTime: 0.07,
-            sustain: 0.44,
-            releaseTime: 0.5,
-            filter: { type: 'lowpass', frequency: 780, endFrequency: 180, Q: 2.1 },
+            volume: 0.18,
+            attackTime: 0.002,
+            decayTime: 0.06,
+            sustain: 0.4,
+            releaseTime: 0.42,
+            filter: { type: 'lowpass', frequency: 640, endFrequency: 160, Q: 1.4 },
             harmonics: [
                 { ratio: 0.5, gain: 0.42, detune: -9 },
                 { ratio: 1.414, gain: 0.12, detune: 11 },
@@ -911,14 +1200,20 @@ export class AudioManager {
     configureLevelMusic() {
         const definition = this.getMusicDefinitionForLevel(this.scene.level);
         this.levelMusicId = definition.id;
+        this.musicBpm = definition.bpm || 112;
         this.backgroundPattern = definition.pattern.slice();
         this.backgroundPatternDuration =
             definition.loopDuration ||
             this.computePatternDuration(this.backgroundPattern) +
                 AUDIO_SETTINGS.BACKGROUND_LOOP_PADDING;
         this.musicVolume = definition.musicVolume ?? GAME_CONSTANTS.MUSIC_VOLUME;
+        this.applyMusicSpace();
         this.fadeMusicBus(this.musicMuted ? 0 : this.musicVolume);
+        const wasPlaying = Boolean(this.musicScheduler);
         this.stopBackgroundMusic();
+        if (wasPlaying && this.audioUnlocked) {
+            this.startBackgroundMusic();
+        }
         this.updateMusicToggleVisual();
     }
 
@@ -966,8 +1261,4 @@ export class AudioManager {
     updateMusicToggleVisual() {
         this.scene?.uiManager?.updateMusicToggleVisual?.(this.musicMuted);
     }
-}
-
-function optionsForNoiseColor(white, smoothed) {
-    return white * 0.72 + smoothed * 0.28;
 }
