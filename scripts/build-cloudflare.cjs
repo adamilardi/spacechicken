@@ -23,9 +23,11 @@ async function buildStaticSite() {
     await fs.mkdir(path.join(outputDirectory, 'vendor'), { recursive: true });
 
     await Promise.all(
-        rootFiles.map((file) =>
-            fs.copyFile(path.join(projectRoot, file), path.join(outputDirectory, file))
-        )
+        rootFiles.map(async (file) => {
+            const destination = path.join(outputDirectory, file);
+            await fs.mkdir(path.dirname(destination), { recursive: true });
+            await fs.copyFile(path.join(projectRoot, file), destination);
+        })
     );
     await Promise.all(
         Object.entries(vendorFiles).map(([destination, source]) =>

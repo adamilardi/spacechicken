@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { Linter } = require('eslint');
+const { rootFiles } = require('../config/runtime-assets.cjs');
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -97,22 +98,7 @@ function request(server, requestPath, options = {}) {
 test('all active JavaScript files pass the JavaScript parser', () => {
     const linter = new Linter();
     const files = [
-        'Constants.js',
-        'GameUtils.js',
-        'MusicConfig.js',
-        'AudioManager.js',
-        'LevelConfig.js',
-        'UIManager.js',
-        'LeaderboardManager.js',
-        'SpriteFactory.js',
-        'EffectsManager.js',
-        'BackgroundRenderer.js',
-        'WorldBuilder.js',
-        'InputController.js',
-        'Viewport.js',
-        'GameTestInterface.js',
-        'SpaceChicken.js',
-        'SplitScreen.js',
+        ...rootFiles.filter((file) => file.endsWith('.js')),
         'server.cjs',
         'config/runtime-assets.cjs',
         'scripts/build-cloudflare.cjs',
@@ -133,7 +119,7 @@ test('all active JavaScript files pass the JavaScript parser', () => {
 });
 
 test('level configuration exposes every playable level', async () => {
-    const { LEVEL_IDS } = await importModule('Constants.js');
+    const { LEVEL_IDS } = await importModule('levels/index.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
 
     assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7]);
@@ -1368,6 +1354,9 @@ test('the development server serves only game assets', async () => {
     assert.equal((await request(server, '/EffectsManager.js')).statusCode, 200);
     assert.equal((await request(server, '/BackgroundRenderer.js')).statusCode, 200);
     assert.equal((await request(server, '/WorldBuilder.js')).statusCode, 200);
+    assert.equal((await request(server, '/levels/index.js')).statusCode, 200);
+    assert.equal((await request(server, '/enemies/laser.js')).statusCode, 200);
+    assert.equal((await request(server, '/music/score.js')).statusCode, 200);
     assert.equal((await request(server, '/InputController.js')).statusCode, 200);
     assert.equal((await request(server, '/Viewport.js')).statusCode, 200);
     assert.equal((await request(server, '/GameTestInterface.js')).statusCode, 200);

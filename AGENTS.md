@@ -28,3 +28,5 @@ Use `npx wrangler whoami` before Cloudflare operations. NovaWing is deployed sep
 ## Assistant workflow
 
 This file is for Codex, Grok, and other coding assistants. The game itself should not gain navigation/setup links unless explicitly requested. Cross-project context belongs here and in the Ailardi Arcade hub. Preserve unrelated existing working-tree changes when editing this repository.
+
+Level, enemy, animation, and weapon work goes through `skills/`. Read `docs/ART_SKILLS.md` and the matching `SKILL.md`. Paint new art in canvas code. Do not generate images.

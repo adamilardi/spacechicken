@@ -1,4 +1,5 @@
-import { GAME_CONSTANTS, KEY_CODES, LEVEL_IDS } from './Constants.js';
+import { GAME_CONSTANTS, KEY_CODES } from './Constants.js';
+import { LEVEL_IDS } from './levels/index.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';

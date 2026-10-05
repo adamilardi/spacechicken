@@ -1,4 +1,5 @@
-import { AUDIO_SETTINGS, GAME_CONSTANTS, LEVEL_IDS } from './Constants.js';
+import { AUDIO_SETTINGS, GAME_CONSTANTS } from './Constants.js';
+import { LEVEL_IDS } from './levels/index.js';
 import { formatElapsedTime } from './GameUtils.js';
 
 export function normalizePlayerName(name) {

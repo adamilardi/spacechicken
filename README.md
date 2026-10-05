@@ -9,13 +9,16 @@ spacechicken/
 ├── index.html              # Entry point (loads modular ES6 scripts)
 ├── server.cjs              # Lightweight dev server for ES modules
 ├── SpaceChicken.js         # Phaser Scene orchestrator (input, collisions, flow)
-├── Constants.js            # All game constants & level definitions
+├── Constants.js            # Shared game constants
+├── levels/                 # One module per campaign level, plus the registry
+├── enemies/                # One spawn module per hazard type
+├── music/                  # One track per level, plus the score helpers
 ├── GameUtils.js            # Shared helpers (time format, defaults, tweens)
 ├── Viewport.js             # Scale / viewport size helpers
-├── LevelConfig.js          # Per-level data (platforms, hazards, gravity, etc.)
+├── LevelConfig.js          # LevelConfig constructor (reads levels/)
 ├── SpriteFactory.js        # Procedural canvas-based sprite generation
 ├── BackgroundRenderer.js   # Cached, baked parallax backgrounds
-├── WorldBuilder.js         # Platforms, floors, and hazards
+├── WorldBuilder.js         # Platforms, floors, and hazard dispatch
 ├── InputController.js      # Keyboard + touch polling
 ├── EffectsManager.js       # Pooled particles, squash/stretch, combat juice
 ├── AudioManager.js         # Web Audio API music + SFX
@@ -27,7 +30,7 @@ spacechicken/
     └── old-versions/       # Historical monolithic code (see archive README)
 ```
 
-**Active game code is entirely in the root modular files.** The `archive/` directory contains pre-refactor artifacts for reference only.
+**Active game code is the root modules plus `levels/`, `enemies/`, and `music/`.** The `archive/` directory contains pre-refactor artifacts for reference only.
 
 ## 🎯 Refactoring History
 
@@ -119,7 +122,7 @@ Set `SPACE_CHICKEN_URL` to test another local server and `PLAYWRIGHT_CHROME` to 
 specific browser executable.
 
 For testing, add `?debug=1` to the URL. Press N to skip to the next level, or use
-`window.__spaceChickenDebug.goToLevel(1)` through `goToLevel(4)` in the browser console.
+`window.__spaceChickenDebug.goToLevel(1)` through `goToLevel(7)` in the browser console.
 The bug-hunt bot opens each scenario directly at its target level.
 
 The debug build also exposes a constrained gameplay-testing API:
@@ -168,10 +171,11 @@ Use `npm run lint:fix` or `npm run format` for automatic fixes. See `package.jso
 
 ### Future Enhancements (easy with current architecture)
 
-- New levels → edit `LevelConfig.js`
-- New hazards/sprites → extend `SpriteFactory.js` + `WorldBuilder.js` + `LevelConfig`
+- New levels → add `levels/<name>.js` and register it in `levels/index.js`
+- New hazards/sprites → extend `SpriteFactory.js` and add `enemies/<type>.js`
+- New music → add `music/<id>.js` and register it in `music/index.js`
 - Background themes → `BackgroundRenderer.js`
-- Audio improvements → `AudioManager.js`
+- Audio playback → `AudioManager.js`
 - UI polish → `UIManager.js`
 - Different persistence backends → `LeaderboardManager.js`
 

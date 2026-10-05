@@ -1,4 +1,5 @@
-import { GAME_CONSTANTS, LEVEL_IDS } from './Constants.js';
+import { GAME_CONSTANTS } from './Constants.js';
+import { LEVEL_IDS } from './levels/index.js';
 import { formatElapsedTime } from './GameUtils.js';
 
 const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';

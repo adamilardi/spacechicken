@@ -15,13 +15,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { LEVEL_IDS } from '../levels/index.js';
 import { installInPageWatchdog } from './playtest-bot.mjs';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../server.cjs');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const LEVEL = boundedNumber(process.env.LEVEL, 1, 1, 4);
+const LEVEL = boundedNumber(
+    process.env.LEVEL,
+    LEVEL_IDS[0],
+    LEVEL_IDS[0],
+    LEVEL_IDS[LEVEL_IDS.length - 1]
+);
 const SEED = boundedNumber(process.env.SEED, 1, 0, 2_147_483_647);
 const DURATION_MS = boundedNumber(process.env.JEV_DURATION_MS, 60_000, 2_000, 600_000);
 const DECISION_MS = boundedNumber(process.env.JEV_DECISION_MS, 450, 100, 5_000);
