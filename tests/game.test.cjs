@@ -706,6 +706,7 @@ test('a held bot jump is edge-triggered like human input', async () => {
     const scene = new SpaceChicken();
     scene.inputController = { poll: () => ({}) };
     scene.awaitingStart = false;
+    scene.debugMode = true;
     scene.botJumpWasDown = false;
     global.window = {
         __spaceChickenBotInput: { left: false, right: true, jump: true, start: false },
@@ -722,6 +723,49 @@ test('a held bot jump is edge-triggered like human input', async () => {
     global.window.__spaceChickenBotInput.jump = true;
     scene.handleInput();
     assert.equal(scene.jumpRequested, true);
+});
+
+test('bot input is ignored outside debug mode', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.inputController = { poll: () => ({}) };
+    scene.awaitingStart = false;
+    scene.debugMode = false;
+    scene.leftPressed = false;
+    scene.rightPressed = false;
+    global.window = {
+        __spaceChickenBotInput: { left: true, right: false, jump: true, start: false },
+    };
+    scene.handleInput();
+    assert.ok(!scene.jumpRequested);
+    assert.equal(scene.leftPressed, false);
+    assert.equal(scene.rightPressed, false);
+    delete global.window.__spaceChickenBotInput;
+});
+
+test('run token URL stays under the leaderboard API path', async () => {
+    const { LeaderboardManager } = await importModule('LeaderboardManager.js');
+    const manager = new LeaderboardManager({ storageAvailable: false });
+    manager.getLeaderboardApiUrl = () => 'https://example.test/api/leaderboard';
+    assert.equal(manager.getRunApiUrl(), 'https://example.test/api/leaderboard/run');
+});
+
+test('bot debug APIs are only exposed in debug mode', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const prod = new SpaceChicken();
+    prod.debugMode = false;
+    global.window = {};
+    prod.bindBotDebugApi();
+    assert.equal(global.window.__spaceChickenDebug, undefined);
+    assert.equal(global.window.__spaceChickenTest, undefined);
+    const debugScene = new SpaceChicken();
+    debugScene.debugMode = true;
+    global.window = {};
+    debugScene.bindBotDebugApi();
+    assert.ok(global.window.__spaceChickenDebug);
+    assert.ok(global.window.__spaceChickenTest);
+    delete global.window.__spaceChickenDebug;
+    delete global.window.__spaceChickenTest;
 });
 
 test('the opening scene waits for a title start on a fresh run only', async () => {

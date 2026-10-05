@@ -67,9 +67,16 @@ export async function onRequest(context) {
         .bind(token)
         .first();
     const elapsed = session ? Date.now() - Date.parse(session.created_at) : -1;
+    // elapsed is server wall time since token mint; time is the client-measured
+    // level duration. Legit runs have elapsed >= time - network slack (token mint
+    // round-trip). Reject claims longer than wall time AND instant min-time
+    // submits (elapsed ~0, time = MIN_TIME) by keeping the grace below MIN_TIME_MS.
+    // Note: elapsed >> time is allowed (pauses are excluded from the timer).
+    // This is not cheat-proof (an attacker can mint then wait before submitting),
+    // but it closes the free instant-record hole.
     if (
         session?.name !== `run:${level}:${playerId}` ||
-        elapsed < time - 3000 ||
+        elapsed < time - 750 ||
         elapsed > maxTime + 60000
     ) {
         return jsonResponse(request, { error: 'Run timing could not be validated' }, 400);

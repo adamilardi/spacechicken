@@ -1,8 +1,5 @@
 const rootFiles = Object.freeze([
     'index.html',
-    'performance.html',
-    'PerformanceTest.js',
-    'PerformanceMetrics.js',
     'GameConfig.js',
     'Constants.js',
     'GameUtils.js',
@@ -47,6 +44,10 @@ const rootFiles = Object.freeze([
     'enemies/index.js',
     'InputController.js',
     'Viewport.js',
+    // GameTestInterface.js ships because SpaceChicken.js statically imports it
+    // (normalizeTestSeed). Its window APIs are gated on debugMode (see
+    // SpaceChicken.bindBotDebugApi). performance.html + PerformanceTest.js are
+    // intentionally excluded from prod deploys.
     'GameTestInterface.js',
     'SpaceChicken.js',
     'SplitScreen.js',

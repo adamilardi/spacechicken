@@ -217,6 +217,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.raceWinner = 0;
         this.raceLevelTime = 0;
         this.raceFinaleEvent = null;
+        this.levelTransitionEvent = null;
         this.splitDivider = null;
         this.splitLabels = null;
         this.startTime = 0;
@@ -227,6 +228,11 @@ export class SpaceChicken extends Phaser.Scene {
         this.maxJumps = GAME_CONSTANTS.MAX_JUMPS;
         this.jumpCount = 0;
         this.isJetpacking = false;
+        this.lastGroundedAt = 0;
+        this.bufferedJumpAt = 0;
+        this.player2LastGroundedAt = 0;
+        this.player2BufferedAt = 0;
+        this.lastBombTrailAt = 0;
         this.restartDelayDone = true;
         this.bombSpawnEvent = null;
         this.bombTestCounter = 0;
@@ -998,7 +1004,7 @@ export class SpaceChicken extends Phaser.Scene {
 
     attemptJump() {
         if (this.gameOver || this.jumpCount >= this.maxJumps) {
-            return;
+            return false;
         }
         this.player.setVelocityY(GAME_CONSTANTS.JUMP_VELOCITY_Y);
         this.jumpCount += 1;
@@ -1017,6 +1023,34 @@ export class SpaceChicken extends Phaser.Scene {
                 this.effectsManager.emitJumpPuff(this.player.x, this.player.y + 14);
             }
         }
+        return true;
+    }
+
+    isCoyoteActive(now) {
+        if (!this.lastGroundedAt) {
+            return false;
+        }
+        return now - this.lastGroundedAt <= GAME_CONSTANTS.COYOTE_MS;
+    }
+
+    consumeBufferedJump(isGrounded, now) {
+        if (!this.bufferedJumpAt) {
+            return false;
+        }
+        if (now - this.bufferedJumpAt > GAME_CONSTANTS.JUMP_BUFFER_MS) {
+            this.bufferedJumpAt = 0;
+            return false;
+        }
+        const coyote = isGrounded || this.isCoyoteActive(now);
+        if (!coyote && this.jumpCount >= this.maxJumps) {
+            return false;
+        }
+        const jumped = this.attemptJump();
+        if (jumped) {
+            this.bufferedJumpAt = 0;
+            return true;
+        }
+        return false;
     }
 
     collectGem(chicken) {
@@ -1264,6 +1298,7 @@ export class SpaceChicken extends Phaser.Scene {
         bolt.setVelocity?.(dir * GAME_CONSTANTS.PHASER_BOLT_SPEED, 0);
         bolt.bornX = bolt.x;
         bolt.setFlipX?.(dir < 0);
+        this.effectsManager?.emitMuzzle?.(chicken.x + dir * 22, chicken.y + 2, dir);
         this.audioManager?.playPhaserSound?.();
     }
 
@@ -1280,6 +1315,7 @@ export class SpaceChicken extends Phaser.Scene {
                 bolt.x < -20 ||
                 bolt.x > this.worldWidth + 20
             ) {
+                this.effectsManager?.emitPhaserImpact?.(bolt.x, bolt.y);
                 this.recycleBolt(bolt);
             }
         }
@@ -1302,7 +1338,12 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     phaserHitsBoarder(bolt, alien) {
+        const impactX = bolt?.x ?? alien?.x;
+        const impactY = bolt?.y ?? alien?.y;
         this.recycleBolt(bolt);
+        if (impactX != null && impactY != null) {
+            this.effectsManager?.emitPhaserImpact?.(impactX, impactY);
+        }
         this.defeatBoarder(alien);
     }
 
@@ -1311,6 +1352,8 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
         alien.defeated = true;
+        alien.aggro = false;
+        alien.clearTint?.();
         if (alien.body) {
             alien.body.enable = false;
         }
@@ -1439,6 +1482,71 @@ export class SpaceChicken extends Phaser.Scene {
         if (steer.flipX != null) {
             alien.setFlipX?.(steer.flipX);
         }
+        this.updateBoarderAggro(alien, target, homeX, homeY, options);
+    }
+
+    updateBoarderAggro(alien, target, homeX, homeY, options) {
+        const aggroX = options?.aggroX ?? GAME_CONSTANTS.BOARDER_AGGRO_X;
+        const aggroY = options?.aggroY ?? GAME_CONSTANTS.BOARDER_AGGRO_Y;
+        const inAggro = Boolean(
+            target && Math.abs(target.x - homeX) <= aggroX && Math.abs(target.y - homeY) <= aggroY
+        );
+        if (inAggro && !alien.aggro) {
+            alien.aggro = true;
+            this.showBoarderAggro(alien);
+        } else if (!inAggro && alien.aggro) {
+            alien.aggro = false;
+        }
+    }
+
+    showBoarderAggro(alien) {
+        if (!alien) {
+            return;
+        }
+        this.effectsManager?.emitAggroTell?.(alien.x, alien.y);
+        if (typeof alien.setTint === 'function') {
+            alien.setTint(0xff8a8a);
+            this.time?.delayedCall?.(GAME_CONSTANTS.BOARDER_AGGRO_FLASH_MS, () => {
+                if (alien?.active && !alien.defeated) {
+                    alien.clearTint?.();
+                }
+            });
+        }
+        if (alien.scaleX != null && this.tweens?.add) {
+            const baseX = alien.bonkScaleX ?? alien.scaleX ?? 1;
+            const baseY = alien.bonkScaleY ?? alien.scaleY ?? 1;
+            this.tweens.add({
+                targets: alien,
+                scaleX: baseX * 1.18,
+                scaleY: baseY * 1.18,
+                duration: 110,
+                yoyo: true,
+                ease: 'Quad.easeOut',
+                onComplete: () => alien.setScale?.(baseX, baseY),
+            });
+        }
+    }
+
+    updateBombTrails() {
+        if (!this.bombs?.children || !this.effectsManager) {
+            return;
+        }
+        const now = this.getGameTime();
+        if (now - (this.lastBombTrailAt || 0) < GAME_CONSTANTS.BOMB_TRAIL_INTERVAL_MS) {
+            return;
+        }
+        this.lastBombTrailAt = now;
+        const entries = this.bombs.children.entries;
+        if (!Array.isArray(entries)) {
+            return;
+        }
+        for (let i = 0; i < entries.length; i++) {
+            const bomb = entries[i];
+            if (!bomb || bomb.active === false || bomb.visible === false) {
+                continue;
+            }
+            this.effectsManager.emitBombTrail(bomb.x, bomb.y);
+        }
     }
 
     parkBoardersWhileDying() {
@@ -1522,6 +1630,8 @@ export class SpaceChicken extends Phaser.Scene {
             alien.homeY = home.y;
             alien.arrived = true;
             alien.defeated = false;
+            alien.aggro = false;
+            alien.clearTint?.();
             alien.setActive?.(true);
             alien.setVisible?.(true);
             alien.setAlpha?.(1);
@@ -1541,6 +1651,8 @@ export class SpaceChicken extends Phaser.Scene {
         const home = this.boarderHome(alien);
         alien.arrived = false;
         alien.defeated = false;
+        alien.aggro = false;
+        alien.clearTint?.();
         alien.setActive?.(false);
         alien.setVisible?.(false);
         alien.setAlpha?.(1);
@@ -1580,6 +1692,8 @@ export class SpaceChicken extends Phaser.Scene {
             alien.homeY = home.y;
             alien.arrived = true;
             alien.defeated = false;
+            alien.aggro = false;
+            alien.clearTint?.();
             alien.setActive?.(true);
             alien.setVisible?.(true);
             alien.setAlpha?.(1);
@@ -1761,6 +1875,10 @@ export class SpaceChicken extends Phaser.Scene {
         this.isJetpacking = false;
         this.jumpRequested = false;
         this.jumpPointerId = null;
+        this.bufferedJumpAt = 0;
+        this.lastGroundedAt = 0;
+        this.player2BufferedAt = 0;
+        this.player2LastGroundedAt = 0;
         this.wasGrounded = false;
         this.airborneSince = 0;
         this.maxAirSpeedY = 0;
@@ -1787,11 +1905,21 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.stopActiveGameplay({ pausePhysics: false });
         this.playAdvanceJuice();
-        this.time.delayedCall(Math.max(3200, GAME_CONSTANTS.LEVEL_TRANSITION_DELAY), () => {
-            const nextSceneData = this.pendingSceneData;
-            this.pendingSceneData = null;
-            this.scene.start(this.scene.key, nextSceneData);
-        });
+        if (this.levelTransitionEvent?.remove) {
+            this.levelTransitionEvent.remove(false);
+        }
+        this.levelTransitionEvent = this.time.delayedCall(
+            Math.max(3200, GAME_CONSTANTS.LEVEL_TRANSITION_DELAY),
+            () => {
+                if (this.hasCleanedUp) {
+                    return;
+                }
+                const nextSceneData = this.pendingSceneData;
+                this.pendingSceneData = null;
+                this.levelTransitionEvent = null;
+                this.scene.start(this.scene.key, nextSceneData);
+            }
+        );
     }
 
     clearBombSpawns() {
@@ -1959,6 +2087,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         if (this.isTransitioning) {
             this.jumpRequested = false;
+            this.bufferedJumpAt = 0;
             this.parkBoardersWhileDying();
             if (this.raceFinale) {
                 this.effectsManager?.stepParticles?.(delta);
@@ -1968,6 +2097,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         if (this.physics.world.isPaused) {
             this.jumpRequested = false;
+            this.bufferedJumpAt = 0;
             return;
         }
 
@@ -1978,8 +2108,9 @@ export class SpaceChicken extends Phaser.Scene {
         const jumpTriggered = this.isJumpInput(inputState);
         this.jumpRequested = false;
         if (jumpTriggered) {
-            this.attemptJump();
+            this.bufferedJumpAt = this.getGameTime();
         }
+        this.consumeBufferedJump(isGrounded, this.getGameTime());
 
         this.updatePlayerMovement();
         this.updatePlayerAnimation(isGrounded);
@@ -1996,6 +2127,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.updateCombat(inputState);
         this.syncBonkMarkers();
+        this.updateBombTrails();
         this.cleanupOffscreenBombs();
     }
 
@@ -2044,6 +2176,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (isGrounded) {
             this.jumpCount = 0;
             this.isJetpacking = false;
+            this.lastGroundedAt = now;
         }
         return isGrounded;
     }
@@ -2366,12 +2499,19 @@ export class SpaceChicken extends Phaser.Scene {
             };
             this.playAdvanceJuice();
             const startNext = () => {
+                if (this.hasCleanedUp) {
+                    return;
+                }
                 const nextSceneData = this.pendingSceneData;
                 this.pendingSceneData = null;
+                this.levelTransitionEvent = null;
                 this.scene?.start?.(this.scene.key, nextSceneData);
             };
             if (this.time?.delayedCall) {
-                this.time.delayedCall(
+                if (this.levelTransitionEvent?.remove) {
+                    this.levelTransitionEvent.remove(false);
+                }
+                this.levelTransitionEvent = this.time.delayedCall(
                     Math.max(900, GAME_CONSTANTS.LEVEL_TRANSITION_DELAY),
                     startNext
                 );
@@ -2402,12 +2542,34 @@ export class SpaceChicken extends Phaser.Scene {
         );
         const upJump =
             !usePad && this.cursors?.up && Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const now = this.getGameTime();
+        const groundedBefore = Boolean(
+            this.player2.body.blocked.down || this.player2.body.touching.down
+        );
+        if (groundedBefore) {
+            this.player2LastGroundedAt = now;
+        }
         if (
             upJump ||
             (this.player2Keys.jump.justDown && !usePad) ||
             (usePad && this.inputController.gamepadJumpEdges?.[1])
-        )
-            this.attemptPlayer2Jump();
+        ) {
+            this.player2BufferedAt = now;
+        }
+        if (this.player2BufferedAt) {
+            const fresh = now - this.player2BufferedAt <= GAME_CONSTANTS.JUMP_BUFFER_MS;
+            const coyote =
+                groundedBefore ||
+                (this.player2LastGroundedAt &&
+                    now - this.player2LastGroundedAt <= GAME_CONSTANTS.COYOTE_MS);
+            if (!fresh) {
+                this.player2BufferedAt = 0;
+            } else if (coyote || this.player2JumpCount < this.maxJumps) {
+                if (this.attemptPlayer2Jump()) {
+                    this.player2BufferedAt = 0;
+                }
+            }
+        }
         if (this.player2.y > this.killZoneFallY) this.failFromHazard('fall');
         const grounded = Boolean(this.player2.body.blocked.down || this.player2.body.touching.down);
         if (grounded) this.player2JumpCount = 0;
@@ -2416,12 +2578,13 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     attemptPlayer2Jump() {
-        if (this.player2JumpCount >= this.maxJumps) return;
+        if (this.player2JumpCount >= this.maxJumps) return false;
         this.player2.setVelocityY(GAME_CONSTANTS.JUMP_VELOCITY_Y);
         this.player2JumpCount += 1;
         this.effectsManager?.stretchPlayer(this.player2);
         this.effectsManager?.emitJumpPuff(this.player2.x, this.player2.y + 14);
         this.audioManager?.playJumpSound?.();
+        return true;
     }
 
     onPlayerLanded(impact = 0) {
@@ -2554,6 +2717,10 @@ export class SpaceChicken extends Phaser.Scene {
             this.raceFinaleEvent.remove(false);
             this.raceFinaleEvent = null;
         }
+        if (this.levelTransitionEvent?.remove) {
+            this.levelTransitionEvent.remove(false);
+            this.levelTransitionEvent = null;
+        }
         if (this.player2Camera && this.cameras?.remove) {
             this.cameras.remove(this.player2Camera);
             this.player2Camera = null;
@@ -2571,6 +2738,9 @@ export class SpaceChicken extends Phaser.Scene {
         }
         if (this.effectsManager) {
             this.effectsManager.cleanup();
+        }
+        if (this.backgroundRenderer) {
+            this.backgroundRenderer.cleanup?.();
         }
 
         if (this.deathResetEvent?.remove) {
@@ -2608,8 +2778,11 @@ export class SpaceChicken extends Phaser.Scene {
 
     handleInput() {
         const state = this.inputController.poll();
+        // Bot input is debug-only. In production the window hook is never set
+        // (see bindBotDebugApi), so a manually-injected value is ignored and
+        // the touch/keyboard flags from poll() stand untouched.
         const bot =
-            typeof window !== 'undefined' && window.__spaceChickenBotInput
+            this.debugMode && typeof window !== 'undefined' && window.__spaceChickenBotInput
                 ? window.__spaceChickenBotInput
                 : null;
         if (!bot) {
@@ -2619,12 +2792,8 @@ export class SpaceChicken extends Phaser.Scene {
         if (bot.start && this.awaitingStart) {
             this.beginPlay();
         }
-        if (bot.left) {
-            this.leftPressed = true;
-        }
-        if (bot.right) {
-            this.rightPressed = true;
-        }
+        this.leftPressed = Boolean(bot.left);
+        this.rightPressed = Boolean(bot.right);
         if (bot.shoot) {
             state.phaserHeld = true;
         }
@@ -2638,6 +2807,13 @@ export class SpaceChicken extends Phaser.Scene {
 
     bindBotDebugApi() {
         if (typeof window === 'undefined') {
+            return;
+        }
+        // Never expose bot/debug hooks in production. The test interface module
+        // still ships (static import), but window entry points only exist with
+        // ?debug=1 or ?bot=1.
+        if (!this.debugMode) {
+            this.gameTestInterface = null;
             return;
         }
         this.gameTestInterface = new GameTestInterface(this, window);

@@ -165,7 +165,7 @@ export class LeaderboardManager {
         if (typeof fetch !== 'function') return Promise.resolve(null);
         const playerId = this.getPlayerId();
         if (!playerId) return Promise.resolve(null);
-        const url = new URL('./run', this.getLeaderboardApiUrl());
+        const url = this.getRunApiUrl();
         const request = fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -255,6 +255,15 @@ export class LeaderboardManager {
                 console.error('Online leaderboard load failed', err);
                 return null;
             });
+    }
+
+    getRunApiUrl() {
+        const base = this.getLeaderboardApiUrl();
+        try {
+            return new URL('run', `${base.replace(/\/+$/, '')}/`).toString();
+        } catch {
+            return '/api/leaderboard/run';
+        }
     }
 
     getLeaderboardApiUrl() {

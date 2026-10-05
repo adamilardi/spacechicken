@@ -77,6 +77,13 @@ test('run tokens are required, time checked, and single use', async () => {
         });
     assert.equal((await submit(10_000)).status, 400);
     assert.equal((await submit(1_000, '')).status, 400);
+    // Instant min-time submit must fail: token is brand new (elapsed ~0) so a
+    // 1000ms claim is implausible (elapsed < time - 750).
+    assert.equal((await submit(1_000)).status, 400);
+    // Backdate the token so elapsed covers the claimed time, then it is accepted.
+    DB.sqlite
+        .prepare('UPDATE leaderboard_entries SET created_at = ? WHERE id = ?')
+        .run(new Date(Date.now() - 5000).toISOString(), token);
     const accepted = await submit(1_000);
     assert.equal(accepted.status, 201);
     assert.equal((await accepted.json()).rank, 1);

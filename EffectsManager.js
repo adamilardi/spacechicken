@@ -106,6 +106,94 @@ export class EffectsManager {
         });
     }
 
+    emitMuzzle(x, y, direction = 1) {
+        const spread = direction < 0 ? Math.PI : 0;
+        return this.burst({
+            x,
+            y,
+            count: 4,
+            texture: 'particleSpark',
+            tint: [0x7af6ff, 0xe8fdff, 0xffffff],
+            speedMin: 60,
+            speedMax: 150,
+            lifeMin: 110,
+            lifeMax: 200,
+            scale: 0.8,
+            endScale: 0.1,
+            angleMin: spread - 0.45,
+            angleMax: spread + 0.45,
+            blend: true,
+        });
+    }
+
+    emitPhaserImpact(x, y) {
+        this.burst({
+            x,
+            y,
+            count: 7,
+            texture: 'particleSpark',
+            tint: [0x7af6ff, 0xffffff, 0xffe066],
+            speedMin: 40,
+            speedMax: 150,
+            lifeMin: 180,
+            lifeMax: 340,
+            scale: 0.9,
+            endScale: 0.1,
+            blend: true,
+        });
+        return this.burst({
+            x,
+            y,
+            count: 4,
+            texture: 'particleSoft',
+            tint: [0x7af6ff, 0xe8fdff],
+            speedMin: 20,
+            speedMax: 70,
+            lifeMin: 200,
+            lifeMax: 360,
+            scale: 1,
+            endScale: 0.1,
+            blend: true,
+        });
+    }
+
+    emitBombTrail(x, y) {
+        return this.burst({
+            x,
+            y,
+            count: 1,
+            texture: 'particleSoft',
+            tint: [0xff9933, 0xff5522, 0x9a9aa2],
+            speedMin: 8,
+            speedMax: 28,
+            lifeMin: 260,
+            lifeMax: 420,
+            scale: 0.7,
+            endScale: 0.1,
+            blend: true,
+        });
+    }
+
+    emitAggroTell(x, y) {
+        return this.burst({
+            x,
+            y: y - 18,
+            count: 6,
+            texture: 'particleSpark',
+            tint: [0xff4a4a, 0xffe14a, 0xffffff],
+            speedMin: 30,
+            speedMax: 90,
+            lifeMin: 220,
+            lifeMax: 340,
+            scale: 0.8,
+            endScale: 0.1,
+            angleMin: Math.PI * 1.1,
+            angleMax: Math.PI * 1.9,
+            velocityScaleY: 0.7,
+            blend: true,
+        });
+    }
+
     deathBurst(x, y) {
         this.burst({
             x,

@@ -22,6 +22,7 @@ export class BackgroundRenderer {
         this.image = null;
         this.layerSprites = [];
         this.twinkles = [];
+        this.twinkleTweens = [];
         this.worldWidth = 0;
         this.worldHeight = 0;
         this.viewKey = '';
@@ -394,17 +395,34 @@ export class BackgroundRenderer {
     }
 
     destroyPlacedLayers() {
+        for (let i = 0; i < this.twinkleTweens.length; i++) {
+            const tween = this.twinkleTweens[i];
+            if (tween?.stop) {
+                tween.stop();
+            } else {
+                this.tweens?.killTweensOf?.(tween?.targets || tween);
+            }
+        }
+        this.twinkleTweens = [];
         for (let i = 0; i < this.layerSprites.length; i++) {
             this.layerSprites[i].image?.destroy?.();
         }
         for (let i = 0; i < this.twinkles.length; i++) {
-            this.twinkles[i].star?.destroy?.();
+            const star = this.twinkles[i].star;
+            if (star) {
+                this.tweens?.killTweensOf?.(star);
+                star.destroy?.();
+            }
         }
         this.layerSprites = [];
         this.twinkles = [];
         this.image = null;
         this.destroyScratchGraphics();
         this.viewKey = '';
+    }
+
+    cleanup() {
+        this.destroyPlacedLayers();
     }
 
     destroyScratchGraphics() {
@@ -433,7 +451,7 @@ export class BackgroundRenderer {
                 u: Math.random(),
                 v: Math.random() * 0.62,
             });
-            this.tweens?.add?.({
+            const twinkle = this.tweens?.add?.({
                 targets: star,
                 alpha: { from: 0.12, to: 0.95 },
                 duration: 700 + Math.random() * 1100,
@@ -442,6 +460,9 @@ export class BackgroundRenderer {
                 delay: Math.random() * 900,
                 ease: 'Sine.easeInOut',
             });
+            if (twinkle) {
+                this.twinkleTweens.push(twinkle);
+            }
         }
     }
 

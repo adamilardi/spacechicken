@@ -352,7 +352,11 @@ export class GameTestInterface {
             observation: createTestObservation(snapshot, this.scene.testSeed),
             objective: checkTestObjectives(snapshot),
         };
-        this.scene.physics?.pause?.();
+        // Pausing physics from console in production would let a pasted snippet
+        // freeze another player's game, so only pause in debug mode.
+        if (this.scene.debugMode) {
+            this.scene.physics?.pause?.();
+        }
         return result;
     }
 

@@ -81,7 +81,63 @@ try {
         checkLayout(await layout(page), viewport);
         const label = `${viewport.width}x${viewport.height}`;
         await page.screenshot({ path: join(output, `${label}-title.png`) });
-        await page.touchscreen.tap(viewport.width / 2, viewport.height / 2);
+        // Tap a point the canvas receives: centered DOM buttons (race setup)
+        // swallow touches on larger viewports, and tappable Phaser HUD objects
+        // intentionally ignore title-start taps.
+        const startPoint = await page.evaluate(() => {
+            const game = window.SPACE_CHICKEN_GAME;
+            const scene = game.scene.getScenes(true)[0];
+            const ui = scene.uiManager;
+            const width = game.scale.width;
+            const height = game.scale.height;
+            const avoid = [
+                'playerNameText',
+                'leaderboardButton',
+                'musicToggleButton',
+                'jumpButton',
+                'leftButton',
+                'rightButton',
+                'phaserButton',
+            ]
+                .map((name) => {
+                    try {
+                        return ui[name]?.getBounds?.();
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter(Boolean)
+                .map((rect) => ({
+                    x: rect.x - 8,
+                    y: rect.y - 8,
+                    width: rect.width + 16,
+                    height: rect.height + 16,
+                }));
+            const titleTop = ui.titleText?.getBounds?.()?.y ?? height * 0.3;
+            const candidates = [
+                { x: width / 2, y: Math.max(40, titleTop - 70) },
+                { x: width / 2, y: height * 0.22 },
+                { x: width * 0.25, y: height * 0.3 },
+                { x: width / 2, y: height * 0.7 },
+            ];
+            const blocked = (candidate) =>
+                avoid.some(
+                    (rect) =>
+                        candidate.x >= rect.x &&
+                        candidate.x <= rect.x + rect.width &&
+                        candidate.y >= rect.y &&
+                        candidate.y <= rect.y + rect.height
+                );
+            for (const candidate of candidates) {
+                if (
+                    !blocked(candidate) &&
+                    document.elementFromPoint(candidate.x, candidate.y)?.tagName === 'CANVAS'
+                )
+                    return candidate;
+            }
+            return candidates[0];
+        });
+        await page.touchscreen.tap(startPoint.x, startPoint.y);
         await page.waitForFunction(
             () => !window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].awaitingStart
         );

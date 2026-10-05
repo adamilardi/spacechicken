@@ -55,6 +55,29 @@ Game code uses relative ES modules. The local module dependency waterfall finish
 
 No bundler or renderer change was justified by these samples. Cold loading over a constrained connection and first-time background baking remain useful hardware checks.
 
+## Budgets enforced in CI
+
+`PerformanceBudgets.js` is the single source of truth shared by the unit
+tests and the Playwright device matrix. Emulated runs (SwiftShader) cannot
+measure real frame pacing, so they gate what emulation can prove:
+
+- Update/render submission: mean ≤ 6 ms, no single sample > 30 ms.
+- No hard freeze: no frame gap > 2000 ms, run stays alive.
+- Textures < 30 MiB estimated RGBA, ≤ 60 textures, ≤ 400 scene objects,
+  ≤ 60 physics bodies, live particles within the 64-sprite pool.
+- HUD timer rasterizes at ≤ 20 Hz (50 ms buckets).
+
+Real-device reports from `performance.html` are graded strictly:
+55 fps+ average, under 5% of frames over 50 ms, zero freezes over 100 ms.
+
+```bash
+npm test                                   # unit: layout matrix + budgets
+npm run verify:devices                     # Playwright: 8 devices, input, perf
+ALL_DEVICES=1 npm run verify:devices       # full 12-device matrix
+npm run verify:mobile                      # phones/tablets, multitouch, pause
+npm run verify:perf-page                   # performance.html end to end
+```
+
 ## Reproduce
 
 ```bash
