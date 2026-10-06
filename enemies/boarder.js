@@ -1,5 +1,5 @@
 export function spawn(builder, group, config) {
-    const alien = group.create(config.x, config.y, 'boarder');
+    const alien = group.create(config.x, config.y, config.key || 'boarder');
     if (!alien) {
         return;
     }

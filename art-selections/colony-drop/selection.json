@@ -1,0 +1,48 @@
+{
+    "schema_version": 1,
+    "level_id": "colony-drop",
+    "decision_status": "confirmed",
+    "decision_by": "user",
+    "brief_path": "../../art-candidates/alien-colony/brief.md",
+    "choices": [
+        {
+            "role": "background-layout",
+            "source_manifest": "../../art-candidates/alien-colony/manifest.json",
+            "candidate_id": "level-colony-drop-a",
+            "asset_path": "../../art-candidates/alien-colony/level-colony-drop-a/layout.js",
+            "reason": "Violet dusk with dome silhouettes reads as the beachhead landing zone and stays quieter than the chicken.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Port to a createColonyBackgroundLayout with sky/far/mid/near layers."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/alien-colony/manifest.json",
+            "candidate_id": "level-colony-drop-a",
+            "asset_path": "../../art-candidates/alien-colony/level-colony-drop-a/deck.js",
+            "reason": "Orange hazard top edge reads as walkable next to labDeck-class decks; 96x24 matches the deck format.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register colonyDeck texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "prop",
+            "source_manifest": "../../art-candidates/alien-colony/manifest.json",
+            "candidate_id": "level-colony-drop-a",
+            "asset_path": "../../art-candidates/alien-colony/level-colony-drop-a/beacon.js",
+            "reason": "Thin tall landing light; cannot be confused with a deck.",
+            "production_status": "needs-work",
+            "remaining_work": ["Register beacon texture key as decor only."],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["ordinary-enemy", "crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Enemies reuse shipped boarders (paintBoarder in SpriteFactory.js) plus drone/roller; crown approach goes through boss-creator (shootable gate)."
+}

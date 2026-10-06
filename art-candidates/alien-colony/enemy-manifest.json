@@ -1,0 +1,176 @@
+{
+    "schema_version": 1,
+    "brief_id": "alien-colony",
+    "kind": "enemy",
+    "brief_path": "enemy-brief.md",
+    "candidates": [
+        {
+            "id": "enemy-skitterling-a",
+            "title": "Skitterling",
+            "status": "painted",
+            "summary": "Low magenta runner with six legs and a cyan chest lens.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-skitterling-a/paint.js",
+                    "width_px": 40,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy-skitterling-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "shootable",
+                "palette": ["#5e1440", "#d63c8c", "#9af6ff"],
+                "target_display": "40x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 20, "y": 44 }
+            },
+            "animation_handoff_path": "enemy-skitterling-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "enemy-spore-floater-a",
+            "title": "Spore Floater",
+            "status": "painted",
+            "summary": "Spiked puffball drone with one flank eye, unmarked lethal.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-spore-floater-a/paint.js",
+                    "width_px": 48,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy-spore-floater-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "hazard",
+                "palette": ["#8a5a1c", "#e8a83c", "#fff4e0"],
+                "target_display": "48x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 24, "y": 44 }
+            },
+            "animation_handoff_path": "enemy-spore-floater-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "enemy-hive-brute-a",
+            "title": "Hive Brute",
+            "status": "painted",
+            "summary": "Bulky chitin spring with a gold bonk cap.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-hive-brute-a/paint.js",
+                    "width_px": 56,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy-hive-brute-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#3d1c4e", "#7a3a8e", "#ffe14a"],
+                "target_display": "56x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 28, "y": 46 }
+            },
+            "animation_handoff_path": "enemy-hive-brute-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "enemy-gnawer-a",
+            "title": "Gnawer",
+            "status": "painted",
+            "summary": "Toothy maw-walker with a cyan lens, shootable.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-gnawer-a/paint.js",
+                    "width_px": 40,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy-gnawer-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "shootable",
+                "palette": ["#3d1c4e", "#12081e", "#9af6ff"],
+                "target_display": "40x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 20, "y": 46 }
+            },
+            "animation_handoff_path": "enemy-gnawer-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "enemy-spire-warden-a",
+            "title": "Spire Warden",
+            "status": "painted",
+            "summary": "Tall gold elite guardsman with a cyan lens, shootable.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-spire-warden-a/paint.js",
+                    "width_px": 40,
+                    "height_px": 56,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy-spire-warden-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "shootable",
+                "palette": ["#9aa6b5", "#d7a441", "#9af6ff"],
+                "target_display": "40x56",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 20, "y": 54 }
+            },
+            "animation_handoff_path": "enemy-spire-warden-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "enemy-volt-orb-a",
+            "title": "Volt Orb",
+            "status": "painted",
+            "summary": "Crackling dark orb, unmarked lethal drone.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-volt-orb-a/paint.js",
+                    "width_px": 48,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy-volt-orb-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "hazard",
+                "palette": ["#1c2430", "#ffe14a", "#d9fbff"],
+                "target_display": "48x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 24, "y": 44 }
+            },
+            "animation_handoff_path": "enemy-volt-orb-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "unverified" },
+            "limitations": []
+        }
+    ]
+}

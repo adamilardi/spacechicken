@@ -1,0 +1,38 @@
+{
+    "schema_version": 1,
+    "level_id": "spire-crown",
+    "decision_status": "confirmed",
+    "decision_by": "user",
+    "brief_path": "../../art-candidates/alien-colony/brief.md",
+    "choices": [
+        {
+            "role": "background-layout",
+            "source_manifest": "../../art-candidates/alien-colony/manifest.json",
+            "candidate_id": "level-spire-crown-c",
+            "asset_path": "../../art-candidates/alien-colony/level-spire-crown-c/layout.js",
+            "reason": "Black-gold spire with ringed planet gives the finale a landmark no other level has.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Port to a createSpireBackgroundLayout with sky/far/mid/near layers."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/alien-colony/manifest.json",
+            "candidate_id": "level-spire-crown-c",
+            "asset_path": "../../art-candidates/alien-colony/level-spire-crown-c/deck.js",
+            "reason": "Chevron-notched alloy deck is a new silhouette vs issHull; 128x28 matches the hull format.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register spireAlloy texture key."
+            ],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["ordinary-enemy", "crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Enemies reuse shipped boarders plus lasers/dustDevil elites; crown approach goes through boss-creator (moving deck lineup)."
+}

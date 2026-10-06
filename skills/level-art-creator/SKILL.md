@@ -9,7 +9,7 @@ Paint scenery that can sit behind a Space Chicken level. Read [the authoring ref
 
 ## Read the place
 
-Read the user's brief and the nearest `create*BackgroundLayout` in `BackgroundRenderer.js`, plus the platform paints in `SpriteFactory.js` (`paintLabDeck`, `paintMesa`, `paintIssHull`, cliff, station panel). Record theme, palette, world height, and which edges the chicken stands on.
+Read the user's brief and the nearest `create*BackgroundLayout` in `BackgroundRenderer.js`, plus the platform paints in `SpriteFactory.js` (`paintLabDeck`, `paintMesa`, `paintIssHull`, `cliff`, `stationPanel`). Record theme, palette, world height, and which edges the chicken stands on.
 
 The view is a side-scrolling platformer. Background layers are sky, far, mid, and near. They scroll horizontally. `scrollFactorY` stays 1 so the floor does not tear away from the platforms. Keep distant paint quieter than the chicken, hazards, and platform edges.
 

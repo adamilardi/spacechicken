@@ -48,16 +48,21 @@ export function boarderSteering(alienX, alienY, targetX, targetY, grounded, opti
     const dx = goalX - alienX;
     const dir = dx < -4 ? -1 : dx > 4 ? 1 : 0;
     const targetGrounded = options.targetGrounded !== false;
+    // A grounded alien holds its ground while its target is airborne instead
+    // of sliding underneath the jump. This keeps jump-overs dodgeable: the
+    // alien only chases and hops once the target lands.
+    const holdingForJump = Boolean(grounded) && inAggro && !targetGrounded;
     const hop =
         Boolean(grounded) &&
+        !holdingForJump &&
         dir !== 0 &&
         goalY < alienY - options.hopClearance &&
         Math.abs(dx) <= options.hopRange &&
         (inAggro ? targetGrounded : true);
     return {
-        velocityX: dir * options.speed,
+        velocityX: holdingForJump ? 0 : dir * options.speed,
         velocityY: hop ? options.hopVelocity : null,
-        flipX: dir === 0 ? null : dir < 0,
+        flipX: holdingForJump || dir === 0 ? null : dir < 0,
         goalX,
     };
 }
@@ -117,4 +122,63 @@ export function addLoopingTween(tweens, target, config) {
         tweenConfig.ease = 'Sine.easeInOut';
     }
     return tweens.add(tweenConfig);
+}
+
+// Player arsenal. The space phaser is the default everywhere; each colony
+// level unlocks one more gun. Guns share cooldown, pool, range, and the
+// boarders-only hit rule — they differ in coverage shape, Contra-style.
+export const WEAPON_DEFS = Object.freeze({
+    phaser: Object.freeze({
+        id: 'phaser',
+        name: 'Phaser',
+        gun: 'spacePhaser',
+        bolt: 'phaserBolt',
+        boltWidth: 28,
+        boltHeight: 8,
+        spread: 0,
+        pierce: 0,
+    }),
+    scatter: Object.freeze({
+        id: 'scatter',
+        name: 'Scatter',
+        gun: 'scatterGun',
+        bolt: 'scatterBolt',
+        boltWidth: 20,
+        boltHeight: 6,
+        spread: 140,
+        pierce: 0,
+    }),
+    piercer: Object.freeze({
+        id: 'piercer',
+        name: 'Piercer',
+        gun: 'piercerGun',
+        bolt: 'piercerBolt',
+        boltWidth: 34,
+        boltHeight: 4,
+        spread: 0,
+        pierce: 99,
+    }),
+    nova: Object.freeze({
+        id: 'nova',
+        name: 'Nova',
+        gun: 'novaGun',
+        bolt: 'novaOrb',
+        boltWidth: 16,
+        boltHeight: 16,
+        spread: 0,
+        pierce: 0,
+    }),
+});
+
+export function weaponsForLevel(level) {
+    if (Number(level) >= 10) return ['phaser', 'scatter', 'piercer', 'nova'];
+    if (Number(level) >= 9) return ['phaser', 'scatter', 'piercer'];
+    if (Number(level) >= 8) return ['phaser', 'scatter'];
+    return ['phaser'];
+}
+
+export function nextWeaponId(current, level) {
+    const list = weaponsForLevel(level);
+    const index = list.indexOf(current);
+    return list[(index + 1) % list.length] || 'phaser';
 }

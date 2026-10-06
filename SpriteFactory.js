@@ -337,6 +337,91 @@ function paintIssHull(ctx) {
     ctx.fillRect(100, 14, 6, 3);
 }
 
+function paintColonyDeck(ctx) {
+    ctx.fillStyle = '#232838';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#ff9a3c';
+    ctx.fillRect(0, 0, 96, 4);
+    ctx.fillStyle = '#ffe6b0';
+    ctx.fillRect(0, 4, 96, 2);
+    ctx.fillStyle = '#313a4e';
+    ctx.fillRect(0, 6, 96, 2);
+    for (let x = 8; x < 96; x += 32) {
+        ctx.fillStyle = '#12161f';
+        ctx.fillRect(x, 6, 2, 10);
+    }
+    ctx.fillStyle = '#8fd4ff';
+    ctx.fillRect(8, 9, 18, 4);
+    ctx.fillRect(70, 9, 18, 4);
+    ctx.fillStyle = '#e8fbff';
+    ctx.fillRect(8, 9, 18, 1);
+    ctx.fillRect(70, 9, 18, 1);
+    ctx.fillStyle = '#12161f';
+    for (let x = 0; x < 96; x += 16) {
+        ctx.fillRect(x, 16, 8, 8);
+    }
+    ctx.fillStyle = '#ffcf7a';
+    for (let x = 2; x < 96; x += 16) {
+        ctx.fillRect(x, 18, 4, 2);
+    }
+    ctx.fillStyle = '#aeb9c9';
+    for (const x of [5, 47, 89]) {
+        ctx.fillRect(x, 11, 2, 2);
+    }
+}
+
+function paintColonyBeacon(ctx) {
+    ctx.fillStyle = '#0e1420';
+    ctx.fillRect(6, 38, 12, 6);
+    ctx.fillStyle = '#1a2233';
+    ctx.fillRect(10, 14, 4, 26);
+    ctx.fillStyle = '#2c3a52';
+    ctx.fillRect(10, 14, 4, 3);
+    ctx.fillStyle = 'rgba(255, 90, 74, 0.25)';
+    ctx.beginPath();
+    ctx.arc(12, 8, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff5a4a';
+    ctx.beginPath();
+    ctx.arc(12, 8, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd7a8';
+    ctx.beginPath();
+    ctx.arc(12, 8, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff4e0';
+    ctx.fillRect(11, 3, 2, 2);
+}
+
+function paintHiveChitin(ctx) {
+    ctx.fillStyle = '#3d1c4e';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#67ffd2';
+    ctx.fillRect(0, 0, 96, 4);
+    ctx.fillStyle = '#d7fff4';
+    ctx.fillRect(0, 4, 96, 2);
+    ctx.fillStyle = '#2c1238';
+    for (let x = 0; x < 96; x += 24) {
+        ctx.fillRect(x, 6, 2, 18);
+    }
+    ctx.fillStyle = '#24122e';
+    for (let x = 6; x < 96; x += 24) {
+        ctx.beginPath();
+        ctx.arc(x, 16, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.fillStyle = '#c78bff';
+    ctx.fillRect(40, 10, 16, 4);
+    ctx.fillStyle = '#8ef6ff';
+    for (const x of [16, 64, 88]) {
+        ctx.fillRect(x, 12, 3, 3);
+    }
+    ctx.fillStyle = '#e9d4ff';
+    for (const x of [16, 64, 88]) {
+        ctx.fillRect(x, 12, 3, 1);
+    }
+}
+
 function paintBoarder(ctx) {
     ctx.fillStyle = '#1d8a45';
     ctx.fillRect(12, 22, 16, 16);
@@ -369,6 +454,310 @@ function paintBoarder(ctx) {
     ctx.fillRect(23, 38, 6, 8);
 }
 
+function paintSkitterling(ctx) {
+    ctx.strokeStyle = '#4a1030';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+        const x = 10 + i * 9;
+        ctx.beginPath();
+        ctx.moveTo(x, 30);
+        ctx.lineTo(x - 3, 42);
+        ctx.moveTo(x + 9, 30);
+        ctx.lineTo(x + 12, 42);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#5e1440';
+    ctx.beginPath();
+    ctx.ellipse(20, 26, 15, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d63c8c';
+    ctx.beginPath();
+    ctx.ellipse(21, 24, 11, 6.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff9ac2';
+    for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(10 + i * 7, 18);
+        ctx.lineTo(13 + i * 7, 10);
+        ctx.lineTo(16 + i * 7, 18);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.fillStyle = '#2a0a1c';
+    ctx.beginPath();
+    ctx.moveTo(32, 22);
+    ctx.lineTo(39, 25);
+    ctx.lineTo(32, 28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(20, 27, 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(20, 27, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintSporeFloater(ctx) {
+    ctx.fillStyle = '#6a4a12';
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const tipX = 24 + Math.cos(angle) * 20;
+        const tipY = 24 + Math.sin(angle) * 20;
+        const baseX = 24 + Math.cos(angle) * 12;
+        const baseY = 24 + Math.sin(angle) * 12;
+        ctx.beginPath();
+        ctx.moveTo(baseX - 3, baseY);
+        ctx.lineTo(tipX, tipY);
+        ctx.lineTo(baseX + 3, baseY);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.fillStyle = '#8a5a1c';
+    ctx.beginPath();
+    ctx.arc(24, 24, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e8a83c';
+    ctx.beginPath();
+    ctx.arc(24, 24, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff4e0';
+    ctx.beginPath();
+    ctx.arc(30, 22, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1a0e04';
+    ctx.beginPath();
+    ctx.arc(31, 22, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffe6b0';
+    ctx.fillRect(14, 15, 4, 3);
+}
+
+function paintHiveBrute(ctx) {
+    ctx.strokeStyle = '#fff6c2';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(20, 13);
+    ctx.lineTo(25, 9);
+    ctx.lineTo(20, 6);
+    ctx.lineTo(27, 3);
+    ctx.moveTo(36, 13);
+    ctx.lineTo(31, 9);
+    ctx.lineTo(36, 6);
+    ctx.lineTo(29, 3);
+    ctx.stroke();
+    ctx.fillStyle = '#6a4a12';
+    ctx.beginPath();
+    ctx.ellipse(28, 5, 13, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffe14a';
+    ctx.beginPath();
+    ctx.ellipse(28, 4, 12, 4.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff8c4';
+    ctx.fillRect(21, 3, 14, 2);
+    ctx.fillStyle = '#3d1c4e';
+    ctx.beginPath();
+    ctx.ellipse(28, 28, 19, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7a3a8e';
+    ctx.beginPath();
+    ctx.ellipse(29, 26, 13, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#67ffd2';
+    ctx.fillRect(14, 24, 8, 3);
+    ctx.fillRect(34, 30, 8, 3);
+    ctx.fillStyle = '#2c1238';
+    ctx.beginPath();
+    ctx.moveTo(44, 20);
+    ctx.lineTo(54, 14);
+    ctx.lineTo(48, 24);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff4e0';
+    ctx.beginPath();
+    ctx.arc(40, 24, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#24122e';
+    ctx.beginPath();
+    ctx.arc(41, 24, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2c1238';
+    ctx.fillRect(14, 40, 8, 4);
+    ctx.fillRect(34, 40, 8, 4);
+}
+
+function paintGnawer(ctx) {
+    ctx.strokeStyle = '#1c0f2e';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(14, 36);
+    ctx.lineTo(11, 46);
+    ctx.moveTo(26, 36);
+    ctx.lineTo(29, 46);
+    ctx.stroke();
+    ctx.fillStyle = '#3d1c4e';
+    ctx.beginPath();
+    ctx.ellipse(20, 26, 12, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#12081e';
+    ctx.beginPath();
+    ctx.ellipse(24, 28, 7, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e9d4ff';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(18 + i * 4, 20);
+        ctx.lineTo(20 + i * 4, 25);
+        ctx.lineTo(22 + i * 4, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(18 + i * 4, 36);
+        ctx.lineTo(20 + i * 4, 31);
+        ctx.lineTo(22 + i * 4, 36);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(16, 14, 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(16, 14, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7a3a8e';
+    ctx.beginPath();
+    ctx.arc(12, 34, 3, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintSpireWarden(ctx) {
+    ctx.fillStyle = '#8a6a1c';
+    ctx.fillRect(14, 4, 12, 10);
+    ctx.fillStyle = '#ffe14a';
+    ctx.fillRect(14, 4, 12, 3);
+    ctx.fillStyle = '#3a2c08';
+    ctx.fillRect(24, 8, 4, 3);
+    ctx.fillStyle = '#9aa6b5';
+    ctx.fillRect(8, 16, 24, 20);
+    ctx.strokeStyle = '#3a4356';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8, 16, 24, 20);
+    ctx.fillStyle = '#d7a441';
+    ctx.fillRect(8, 24, 24, 3);
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(20, 26, 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(20, 26, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6d7888';
+    ctx.beginPath();
+    ctx.moveTo(8, 36);
+    ctx.lineTo(32, 36);
+    ctx.lineTo(28, 46);
+    ctx.lineTo(12, 46);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#3a4356';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(15, 46);
+    ctx.lineTo(14, 54);
+    ctx.moveTo(25, 46);
+    ctx.lineTo(26, 54);
+    ctx.stroke();
+    ctx.strokeStyle = '#8a6a1c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(30, 30);
+    ctx.lineTo(38, 12);
+    ctx.stroke();
+    ctx.fillStyle = '#ffe14a';
+    ctx.beginPath();
+    ctx.moveTo(38, 6);
+    ctx.lineTo(40, 13);
+    ctx.lineTo(36, 13);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function paintVoltOrb(ctx) {
+    ctx.fillStyle = '#1c2430';
+    ctx.beginPath();
+    ctx.arc(24, 24, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8a6a1c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(24, 24, 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = '#ffe14a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(12, 18);
+    ctx.lineTo(20, 22);
+    ctx.lineTo(16, 28);
+    ctx.lineTo(26, 30);
+    ctx.moveTo(36, 16);
+    ctx.lineTo(30, 22);
+    ctx.lineTo(34, 30);
+    ctx.stroke();
+    ctx.fillStyle = '#d9fbff';
+    ctx.beginPath();
+    ctx.arc(24, 24, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#173e68';
+    ctx.beginPath();
+    ctx.arc(24, 24, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#3a4356';
+    ctx.fillRect(4, 22, 5, 4);
+    ctx.fillRect(39, 22, 5, 4);
+}
+
+function paintSpireAlloy(ctx) {
+    ctx.fillStyle = '#9aa6b5';
+    ctx.fillRect(0, 0, 128, 28);
+    ctx.fillStyle = '#f4f7fb';
+    ctx.fillRect(0, 0, 128, 5);
+    ctx.fillStyle = '#d7a441';
+    ctx.fillRect(0, 5, 128, 3);
+    ctx.fillStyle = '#3a4356';
+    for (let x = 12; x < 128; x += 32) {
+        ctx.beginPath();
+        ctx.moveTo(x, 12);
+        ctx.lineTo(x + 8, 18);
+        ctx.lineTo(x, 24);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.fillStyle = '#6d7888';
+    for (let x = 0; x < 128; x += 32) {
+        ctx.fillRect(x, 5, 2, 23);
+    }
+    ctx.fillStyle = '#173e68';
+    ctx.fillRect(10, 14, 16, 6);
+    ctx.fillRect(102, 14, 16, 6);
+    ctx.fillStyle = '#8fd4ff';
+    ctx.fillRect(12, 15, 6, 3);
+    ctx.fillRect(104, 15, 6, 3);
+}
+
 function paintSpacePhaser(ctx) {
     ctx.fillStyle = '#d7e2ee';
     ctx.fillRect(2, 4, 16, 5);
@@ -388,6 +777,82 @@ function paintPhaserBolt(ctx) {
     ctx.fillStyle = '#d8fbff';
     ctx.beginPath();
     ctx.arc(26, 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintScatterGun(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 16, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 16, 2);
+    ctx.fillStyle = '#ffb15a';
+    ctx.fillRect(16, 2, 6, 3);
+    ctx.fillRect(16, 4, 6, 5);
+    ctx.fillRect(16, 9, 6, 3);
+    ctx.fillStyle = '#fff4e0';
+    ctx.fillRect(20, 5, 3, 3);
+}
+
+function paintScatterBolt(ctx) {
+    ctx.fillStyle = '#ffc46a';
+    ctx.fillRect(0, 2, 20, 3);
+    ctx.fillStyle = '#fff8e8';
+    ctx.fillRect(3, 2, 12, 1);
+    ctx.fillStyle = '#ffe6b0';
+    ctx.beginPath();
+    ctx.arc(18, 3, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintPiercerGun(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 12, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillStyle = '#8ef6ff';
+    ctx.fillRect(12, 5, 12, 3);
+    ctx.fillStyle = '#e8fdff';
+    ctx.fillRect(12, 5, 12, 1);
+}
+
+function paintPiercerBolt(ctx) {
+    ctx.fillStyle = '#8ef6ff';
+    ctx.fillRect(0, 2, 34, 2);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(6, 2, 22, 1);
+    ctx.fillStyle = '#d8fbff';
+    ctx.beginPath();
+    ctx.arc(32, 3, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintNovaGun(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 14, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 14, 2);
+    ctx.fillStyle = '#d7a441';
+    ctx.beginPath();
+    ctx.arc(19, 6, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff3b0';
+    ctx.beginPath();
+    ctx.arc(19, 6, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintNovaOrb(ctx) {
+    ctx.fillStyle = 'rgba(255, 209, 74, 0.35)';
+    ctx.beginPath();
+    ctx.arc(8, 8, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd74f';
+    ctx.beginPath();
+    ctx.arc(8, 8, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff9c8';
+    ctx.beginPath();
+    ctx.arc(8, 8, 3, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -1098,9 +1563,25 @@ export class SpriteFactory {
             ['dustDevil', 36, 100, paintDustDevil],
             ['boulder', 40, 40, paintBoulder],
             ['issHull', 128, 28, paintIssHull],
+            ['colonyDeck', 96, 24, paintColonyDeck],
+            ['colonyBeacon', 24, 44, paintColonyBeacon],
+            ['hiveChitin', 96, 24, paintHiveChitin],
             ['boarder', 40, 48, paintBoarder],
+            ['skitterling', 40, 48, paintSkitterling],
+            ['sporeFloater', 48, 48, paintSporeFloater],
+            ['hiveBrute', 56, 48, paintHiveBrute],
+            ['gnawer', 40, 48, paintGnawer],
+            ['spireWarden', 40, 56, paintSpireWarden],
+            ['voltOrb', 48, 48, paintVoltOrb],
+            ['spireAlloy', 128, 28, paintSpireAlloy],
             ['spacePhaser', 24, 12, paintSpacePhaser],
             ['phaserBolt', 28, 8, paintPhaserBolt],
+            ['scatterGun', 24, 12, paintScatterGun],
+            ['scatterBolt', 20, 6, paintScatterBolt],
+            ['piercerGun', 24, 12, paintPiercerGun],
+            ['piercerBolt', 34, 4, paintPiercerBolt],
+            ['novaGun', 24, 12, paintNovaGun],
+            ['novaOrb', 16, 16, paintNovaOrb],
         ];
         sprites.forEach(([key, width, height, paint]) => {
             this.addCanvasTexture(key, width, height, paint);
@@ -1151,6 +1632,7 @@ export class SpriteFactory {
         this.createRightBtn();
         this.createJumpBtn();
         this.createPhaserBtn();
+        this.createWeaponBtn();
         this.createMusicToggleButtons();
     }
 
@@ -1200,6 +1682,30 @@ export class SpriteFactory {
         ctx.closePath();
         ctx.fill();
         this.scene.textures.addCanvas('phaserBtn', canvas);
+    }
+
+    createWeaponBtn() {
+        if (this.scene.textures.exists('weaponBtn')) {
+            return;
+        }
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        this.drawCircularControl(ctx, size, 'rgba(48, 40, 12, 0.86)', 'rgba(255, 214, 120, 0.95)');
+        ctx.strokeStyle = '#ffe6b0';
+        ctx.lineWidth = size * 0.05;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(size * 0.3, size * 0.32);
+        ctx.lineTo(size * 0.52, size * 0.5);
+        ctx.lineTo(size * 0.3, size * 0.68);
+        ctx.moveTo(size * 0.56, size * 0.32);
+        ctx.lineTo(size * 0.78, size * 0.5);
+        ctx.lineTo(size * 0.56, size * 0.68);
+        ctx.stroke();
+        this.scene.textures.addCanvas('weaponBtn', canvas);
     }
 
     createLeftBtn() {

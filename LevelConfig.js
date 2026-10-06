@@ -57,5 +57,6 @@ export class LevelConfig {
             spread: GAME_CONSTANTS.BOMB_DEFAULT_SPREAD,
             gravityY: GAME_CONSTANTS.BOMB_DEFAULT_GRAVITY_Y,
         };
+        this.crownShield = def.CROWN_SHIELD === true;
     }
 }

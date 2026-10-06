@@ -86,18 +86,29 @@ export function readTypeSafeApiKey(env = process.env) {
 const PHASER_RANGE = 820;
 const PHASER_LANE = 70;
 
-function shootableAhead(observation, direction) {
-    if (observation.canShoot === false) return false;
+function shootableSides(observation) {
+    if (observation.canShoot === false) return [];
     const hazards = observation.nearby?.hazards || [];
+    const sides = [];
+    for (const sign of [1, -1]) {
+        const found = hazards.some(
+            (item) =>
+                item &&
+                item.type === 'boarder' &&
+                item.active !== false &&
+                item.dx * sign > 0 &&
+                item.dx * sign <= PHASER_RANGE &&
+                Math.abs(item.dy) < PHASER_LANE
+        );
+        if (found) sides.push(sign > 0 ? 'right' : 'left');
+    }
+    return sides;
+}
+
+function shootableAhead(observation, direction) {
     const sign = direction === 'left' ? -1 : 1;
-    return hazards.some(
-        (item) =>
-            item &&
-            item.type === 'boarder' &&
-            item.active !== false &&
-            item.dx * sign > 0 &&
-            item.dx * sign <= PHASER_RANGE &&
-            Math.abs(item.dy) < PHASER_LANE
+    return shootableSides(observation).some((side) =>
+        sign > 0 ? side === 'right' : side === 'left'
     );
 }
 
@@ -109,9 +120,17 @@ export function fallbackAction(observation) {
     if (!player || !objective || !Number.isFinite(objective.dx)) return 'wait';
 
     const direction = objective.dx < 0 ? 'left' : 'right';
-    if (shootableAhead(observation, direction)) {
-        const firing = `fire_${direction}`;
-        if (actions.includes(firing)) return firing;
+    // Fire only at boarders on our facing side with a hot gun; turning to
+    // face a target is a move action, and a cooling gun wastes the slot.
+    if (observation.combat?.ready !== false) {
+        const sides = shootableSides(observation);
+        const facing = player.facing === 'left' ? 'left' : 'right';
+        if (sides.includes(facing) && actions.includes(`fire_${facing}`)) {
+            return `fire_${facing}`;
+        }
+        if (shootableAhead(observation, direction) && actions.includes(`fire_${direction}`)) {
+            return `fire_${direction}`;
+        }
     }
     const navigation = observation.navigation || {};
     const forwardHazard = (observation.nearby?.hazards || [])
@@ -164,8 +183,10 @@ export async function chooseJevAction(client, observation, recentActions = []) {
                             'For lasers and cosmic rays, cooldown is safe, warning means leave the column, and active means do not cross; use timeUntilPhaseChangeMs.',
                             'Jump to cross a gap, reach a higher landing window, or avoid an immediate threat.',
                             'A hazard with bonkable true grants a boost jump when stomped from above. Touching its side still fails the run.',
-                            'A hazard with type boarder (cyan chest ring) dies to phaser bolts; touching one fails the run. Bolts fly horizontally ~820px, so use a fire action when canShoot is true and a boarder is ahead of you and roughly level.',
-                            'Gold-capped bonk enemies cannot be shot. Stomp them from above.',
+                            'A hazard with type boarder (cyan chest ring, with wave and chasing flags) dies to phaser bolts; touching one fails the run. Bolts leave horizontally from player.facing with ~820px range, so fire toward the facing side only when combat.ready is true and a boarder is on that side and roughly level.',
+                            'Gold-capped bonk enemies cannot be shot. Stomp them from above exactly when stompableNow is true: falling with your feet above the cap.',
+                            'navigation.nearestThreat tracks the closest live danger in any direction, including behind and above; immediateThreat only covers the path ahead.',
+                            'physics differs per level: gravityY, jumpVelocityY, runSpeedX and maxJumps set how far a leap carries. Heavy-gravity levels need earlier jumps.',
                             'Do not invent actions or assume hidden game state.',
                         ],
                     },

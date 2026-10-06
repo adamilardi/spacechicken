@@ -1,6 +1,6 @@
 import { GAME_CONSTANTS } from './Constants.js';
 import { LEVEL_IDS } from './levels/index.js';
-import { formatElapsedTime } from './GameUtils.js';
+import { formatElapsedTime, weaponsForLevel } from './GameUtils.js';
 
 const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';
 const BANNER_FONT = 'Trebuchet MS, Arial, sans-serif';
@@ -32,6 +32,7 @@ export class UIManager {
         this.fullRunSummary = '';
         this.jumpButton = null;
         this.phaserButton = null;
+        this.weaponButton = null;
         this.leftButton = null;
         this.rightButton = null;
         this.touchControlsEnabled = false;
@@ -54,6 +55,8 @@ export class UIManager {
     }
 
     createUI(levelConfig, level, playerName) {
+        this.currentLevel = level;
+        this.weaponName = null;
         this.timerText = this.scene.add.text(0, 0, 'Time: 00:00.00', {
             fontSize: '32px',
             fontFamily: 'Courier New, Courier, monospace',
@@ -226,11 +229,15 @@ export class UIManager {
     }
 
     setTouchControlsVisible(visible) {
-        [this.leftButton, this.rightButton, this.jumpButton, this.phaserButton].forEach(
-            (button) => {
-                button?.setVisible?.(visible);
-            }
-        );
+        [
+            this.leftButton,
+            this.rightButton,
+            this.jumpButton,
+            this.phaserButton,
+            this.weaponButton,
+        ].forEach((button) => {
+            button?.setVisible?.(visible);
+        });
     }
 
     showRaceBanner(winner) {
@@ -348,6 +355,9 @@ export class UIManager {
         this.jumpButton = this.markUi(this.createJumpButton());
         if (this.scene.levelConfig?.phaser) {
             this.phaserButton = this.markUi(this.createPhaserButton());
+            if (weaponsForLevel(this.scene.level).length > 1) {
+                this.weaponButton = this.markUi(this.createWeaponButton());
+            }
         }
         this.layoutTouchControls();
         if (this.scene.player2Camera) {
@@ -422,6 +432,25 @@ export class UIManager {
                 this.scene.phaserPointerId = null;
                 this.scene.phaserHeld = false;
             }
+            button.clearTint();
+        };
+        button.on('pointerup', release);
+        button.on('pointerout', release);
+        button.on('pointerupoutside', release);
+        return button;
+    }
+
+    createWeaponButton() {
+        const button = this.scene.add.image(0, 0, 'weaponBtn');
+        button.setScrollFactor(0);
+        button.setDepth(GAME_CONSTANTS.JUMP_BUTTON_DEPTH);
+        button.setAlpha(0.9);
+        button.setInteractive({ useHandCursor: false });
+        button.on('pointerdown', () => {
+            this.scene.switchPlayerWeapon(0);
+            button.setTint(0xffe6b0);
+        });
+        const release = () => {
             button.clearTint();
         };
         button.on('pointerup', release);
@@ -758,6 +787,15 @@ export class UIManager {
             this.phaserButton.setPosition(this.jumpButton.x, buttonY - controlSize - gap);
             this.expandControlHitArea(this.phaserButton, controlSize, hitPadding);
         }
+        if (this.weaponButton && this.phaserButton) {
+            const small = controlSize * 0.62;
+            this.weaponButton.setDisplaySize(small, small);
+            this.weaponButton.setPosition(
+                this.phaserButton.x - controlSize / 2 - gap - small / 2,
+                this.phaserButton.y
+            );
+            this.expandControlHitArea(this.weaponButton, small, hitPadding);
+        }
     }
 
     layoutLeaderboard() {
@@ -907,8 +945,23 @@ export class UIManager {
     }
 
     updateLevelText(level) {
-        if (this.levelText) {
-            this.levelText.setText(`Level ${level}`);
+        this.currentLevel = level;
+        this.refreshLevelText();
+    }
+
+    updateWeaponLabel(name) {
+        this.weaponName = name || null;
+        this.refreshLevelText();
+    }
+
+    refreshLevelText() {
+        if (!this.levelText) {
+            return;
+        }
+        if (this.weaponName && this.scene.levelConfig?.phaser) {
+            this.levelText.setText(`Level ${this.currentLevel} · ${this.weaponName}`);
+        } else {
+            this.levelText.setText(`Level ${this.currentLevel}`);
         }
     }
 
@@ -1865,6 +1918,7 @@ export class UIManager {
             this.finishNewGameButton,
             this.jumpButton,
             this.phaserButton,
+            this.weaponButton,
             this.leftButton,
             this.rightButton,
         ];
@@ -1893,6 +1947,7 @@ export class UIManager {
         this.finishNewGameButton = null;
         this.jumpButton = null;
         this.phaserButton = null;
+        this.weaponButton = null;
         this.leftButton = null;
         this.rightButton = null;
     }

@@ -279,6 +279,24 @@ export class BackgroundRenderer {
                     worldWidth,
                     worldHeight
                 );
+            } else if (background.type === 'colony') {
+                backgroundLayout = this.createColonyBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'hive') {
+                backgroundLayout = this.createHiveBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'spire') {
+                backgroundLayout = this.createSpireBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
             } else if (background.type === 'iss') {
                 backgroundLayout = this.createIssBackgroundLayout(
                     background,
@@ -317,6 +335,18 @@ export class BackgroundRenderer {
         }
         if (background.type === 'mars') {
             this.renderMarsBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'colony') {
+            this.renderColonyBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'hive') {
+            this.renderHiveBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'spire') {
+            this.renderSpireBackground(background, layout, worldWidth, worldHeight, layerId);
             return;
         }
         if (background.type === 'iss') {
@@ -1569,6 +1599,284 @@ export class BackgroundRenderer {
         });
     }
 
+    renderColonyBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x0b0e22,
+                mid: 0x3a2a5e,
+                bottom: 0xff8a4a,
+                silhouette: 0x1c1740,
+                tower: 0x2a2352,
+                signal: 0xff5a4a,
+                strip: 0xffb15a,
+                ground: 0x0d0b1e,
+            },
+            background.palette || {}
+        );
+        const horizon = worldHeight * 0.62;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            this.drawGlow(
+                worldWidth * 0.58,
+                worldHeight * 0.82,
+                Math.max(worldWidth * 0.16, 180),
+                palette.strip,
+                0.06,
+                5
+            );
+            return;
+        }
+        if (layerId === 'far') {
+            this.renderStars(this.starsFor(layout, 'far'));
+            if (layout.moon) {
+                this.drawGlow(layout.moon.x, layout.moon.y, layout.moon.r * 3, 0xcfd8ff, 0.1, 6);
+                this.graphics.fillStyle(0xe8edff, 0.9);
+                this.graphics.fillCircle(layout.moon.x, layout.moon.y, layout.moon.r);
+                this.graphics.fillStyle(palette.silhouette, 0.35);
+                this.graphics.fillCircle(
+                    layout.moon.x + layout.moon.r * 0.3,
+                    layout.moon.y,
+                    layout.moon.r * 0.7
+                );
+            }
+            (layout.domes || []).forEach((dome) => {
+                this.graphics.fillStyle(palette.silhouette, 0.95);
+                this.graphics.beginPath();
+                this.graphics.arc(dome.x, horizon, dome.r, Math.PI, 0);
+                this.graphics.fillPath();
+                this.graphics.fillRect(dome.x - 4, horizon - 66, 8, 66);
+                this.graphics.fillStyle(palette.signal, 0.8);
+                this.graphics.fillCircle(dome.x, horizon - 66, 2);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            this.renderStars(this.starsFor(layout, 'mid'));
+            (layout.beams || []).forEach((beam) => {
+                this.renderPolygon(
+                    [
+                        { x: beam.x - 6, y: horizon },
+                        { x: beam.x + 6, y: horizon },
+                        { x: beam.x + beam.spread, y: beam.top },
+                        { x: beam.x - beam.spread, y: beam.top },
+                    ],
+                    0xffe6b0,
+                    0.05
+                );
+            });
+            (layout.towers || []).forEach((tower) => {
+                this.graphics.fillStyle(palette.tower, 0.95);
+                this.graphics.fillRect(tower.x, horizon - tower.h, tower.w, tower.h);
+                this.graphics.fillStyle(palette.tower, 1);
+                this.graphics.fillRect(tower.x - 4, horizon - tower.h, tower.w + 8, 6);
+                this.graphics.fillStyle(palette.signal, 0.9);
+                this.graphics.fillRect(tower.x + 8, horizon - tower.h + 14, 8, 4);
+                this.graphics.fillStyle(palette.strip, 0.5);
+                this.graphics.fillRect(tower.x + 8, horizon - tower.h + 22, 8, 2);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        this.graphics.fillStyle(palette.ground, 1);
+        this.graphics.beginPath();
+        this.graphics.moveTo(0, worldHeight);
+        this.graphics.lineTo(0, horizon + 40);
+        for (let x = 0; x <= worldWidth; x += 80) {
+            this.graphics.lineTo(x, horizon + 34 + ((x / 80) % 2 === 0 ? 0 : 14));
+        }
+        this.graphics.lineTo(worldWidth, worldHeight);
+        this.graphics.closePath();
+        this.graphics.fillPath();
+        this.graphics.fillStyle(palette.strip, 0.9);
+        this.graphics.fillRect(0, horizon + 52, worldWidth, 3);
+        for (let x = 40; x < worldWidth; x += 200) {
+            this.drawGlow(x, horizon + 52, 14, palette.strip, 0.2, 3);
+            this.graphics.fillStyle(0xfff4e0, 0.95);
+            this.graphics.fillRect(x - 3, horizon + 50, 6, 3);
+        }
+    }
+
+    renderHiveBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x0a1412,
+                mid: 0x1c4d46,
+                bottom: 0x3d1c4e,
+                flesh: 0x24122e,
+                chitin: 0x5e2a6e,
+                chitinDark: 0x2c1238,
+                glow: 0x67ffd2,
+                spore: 0xc78bff,
+            },
+            background.palette || {}
+        );
+        const floorY = worldHeight * 0.72;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            this.drawGlow(
+                worldWidth * 0.5,
+                worldHeight * 0.4,
+                Math.max(worldWidth * 0.1, 140),
+                palette.glow,
+                0.05,
+                5
+            );
+            return;
+        }
+        if (layerId === 'far') {
+            (layout.ribs || []).forEach((rib) => {
+                this.graphics.fillStyle(palette.chitinDark, 0.9);
+                this.graphics.fillEllipse(rib.x, worldHeight * 0.5, rib.w, rib.h);
+                this.graphics.fillStyle(palette.chitin, 0.5);
+                this.graphics.fillEllipse(rib.x - 4, worldHeight * 0.5, rib.w * 0.6, rib.h * 0.8);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            (layout.motes || []).forEach((mote) => {
+                this.drawGlow(mote.x, mote.y, mote.r * 4, palette.glow, 0.12, 3);
+                this.graphics.fillStyle(palette.glow, 0.5);
+                this.graphics.fillCircle(mote.x, mote.y, mote.r);
+            });
+            (layout.teeth || []).forEach((tooth) => {
+                this.renderPolygon(
+                    [
+                        { x: tooth.x - 18, y: tooth.y },
+                        { x: tooth.x + 18, y: tooth.y },
+                        { x: tooth.x, y: tooth.y + tooth.h },
+                    ],
+                    palette.chitin,
+                    0.95
+                );
+                this.graphics.fillStyle(palette.glow, 0.85);
+                this.graphics.fillRect(tooth.x - 2, tooth.y + tooth.h - 8, 4, 4);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        this.graphics.fillStyle(palette.flesh, 1);
+        this.graphics.fillRect(0, floorY, worldWidth, worldHeight - floorY);
+        this.graphics.fillStyle(palette.glow, 0.9);
+        this.graphics.fillRect(0, floorY, worldWidth, 3);
+        this.graphics.fillStyle(palette.chitinDark, 1);
+        for (let x = 0; x < worldWidth; x += 48) {
+            this.graphics.fillRect(x, floorY + 24, 24, 10);
+        }
+        (layout.pools || []).forEach((pool) => {
+            this.drawGlow(pool.x, pool.y, pool.w * 0.4, palette.spore, 0.14, 4);
+            this.graphics.fillStyle(palette.spore, 0.55);
+            this.graphics.fillEllipse(pool.x, pool.y, pool.w, 14);
+            this.graphics.fillStyle(palette.glow, 0.5);
+            this.graphics.fillEllipse(pool.x - pool.w * 0.2, pool.y - 2, pool.w * 0.3, 6);
+        });
+    }
+
+    renderSpireBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x060818,
+                mid: 0x1a2a5e,
+                bottom: 0x0a0d20,
+                planet: 0x2d6bb0,
+                ring: 0x9cecff,
+                gold: 0x8a6a1c,
+                bright: 0xffe14a,
+                hull: 0x101828,
+                seam: 0xf4f7fb,
+            },
+            background.palette || {}
+        );
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            return;
+        }
+        if (layerId === 'far') {
+            this.renderStars(this.starsFor(layout, 'far'));
+            if (layout.planet) {
+                const planet = layout.planet;
+                this.drawGlow(planet.x, planet.y, planet.r * 1.8, palette.planet, 0.16, 6);
+                this.graphics.fillStyle(palette.planet, 0.95);
+                this.graphics.fillCircle(planet.x, planet.y, planet.r);
+                this.graphics.fillStyle(palette.bottom, 0.45);
+                this.graphics.fillCircle(planet.x + planet.r * 0.3, planet.y, planet.r * 0.72);
+                this.graphics.lineStyle(2, palette.ring, 0.5);
+                this.graphics.strokeEllipse(planet.x, planet.y, planet.r * 3.2, planet.r * 0.6);
+            }
+            return;
+        }
+        if (layerId === 'mid') {
+            this.renderStars(this.starsFor(layout, 'mid'));
+            if (layout.spire) {
+                const spire = layout.spire;
+                const baseY = worldHeight * 0.75;
+                const tipY = worldHeight * 0.2;
+                this.renderPolygon(
+                    [
+                        { x: spire.x - spire.w * 0.5, y: baseY },
+                        { x: spire.x - 12, y: tipY },
+                        { x: spire.x + 12, y: tipY },
+                        { x: spire.x + spire.w * 0.5, y: baseY },
+                    ],
+                    palette.gold,
+                    0.9
+                );
+                this.graphics.fillStyle(palette.bright, 0.95);
+                this.graphics.fillRect(spire.x - 4, tipY + 40, 8, 60);
+                this.drawGlow(spire.x, tipY, 30, palette.bright, 0.2, 4);
+                this.graphics.fillStyle(palette.bright, 0.95);
+                this.graphics.fillCircle(spire.x, tipY, 5);
+            }
+            (layout.fins || []).forEach((fin) => {
+                this.renderPolygon(
+                    [
+                        { x: fin.x - fin.w * 0.5, y: worldHeight * 0.78 },
+                        { x: fin.x, y: worldHeight * 0.78 - fin.h },
+                        { x: fin.x + fin.w * 0.5, y: worldHeight * 0.78 },
+                    ],
+                    palette.hull,
+                    0.92
+                );
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        this.graphics.fillStyle(palette.hull, 1);
+        this.graphics.fillRect(0, worldHeight * 0.78, worldWidth, worldHeight);
+        this.graphics.fillStyle(palette.seam, 0.9);
+        this.graphics.fillRect(0, worldHeight * 0.78, worldWidth, 3);
+        this.graphics.fillStyle(palette.gold, 0.85);
+        for (let x = 60; x < worldWidth; x += 240) {
+            this.graphics.fillRect(x, worldHeight * 0.78 + 12, 20, 4);
+        }
+    }
+
     createFacilityBackgroundLayout(_background, worldWidth, worldHeight) {
         const vats = [];
         for (let x = 180; x < worldWidth; x += 460) {
@@ -1627,6 +1935,92 @@ export class BackgroundRenderer {
             rocks,
             sun: { x: worldWidth * 0.72, y: worldHeight * 0.16, r: 28 },
             moons: [{ x: worldWidth * 0.18, y: worldHeight * 0.14, r: 14 }],
+        };
+    }
+
+    createColonyBackgroundLayout(background, worldWidth, worldHeight) {
+        const starCount = background.starCount || 90;
+        const stars = [];
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: ((i * 197) % worldWidth) + 8,
+                y: ((i * 89) % Math.round(worldHeight * 0.45)) + 12,
+                size: (i % 3) + 1,
+                color: 0xcfd8ff,
+                alpha: 0.45 + (i % 5) * 0.1,
+            });
+        }
+        const domes = [];
+        for (let x = 120; x < worldWidth; x += 480) {
+            domes.push({ x, y: worldHeight * 0.62, r: 90 + (x % 60) });
+        }
+        const towers = [];
+        for (let x = 20; x < worldWidth; x += 180) {
+            towers.push({
+                x,
+                w: 46,
+                h: worldHeight * (0.18 + ((x * 7) % 10) / 100),
+            });
+        }
+        const beams = [];
+        for (let x = 300; x < worldWidth; x += 900) {
+            beams.push({ x, top: worldHeight * 0.08, spread: 60 + (x % 40) });
+        }
+        return {
+            stars,
+            domes,
+            towers,
+            beams,
+            moon: { x: worldWidth * 0.8, y: worldHeight * 0.14, r: 16 },
+        };
+    }
+
+    createHiveBackgroundLayout(background, worldWidth, worldHeight) {
+        const ribs = [];
+        for (let x = 60; x < worldWidth; x += 200) {
+            ribs.push({ x, w: 30 + (x % 40), h: worldHeight * (0.3 + ((x * 3) % 10) / 50) });
+        }
+        const teeth = [];
+        for (let x = 100; x < worldWidth; x += 140) {
+            teeth.push({ x, y: worldHeight * 0.3, h: 50 + (x % 40) });
+        }
+        const motes = [];
+        const moteCount = 60;
+        for (let i = 0; i < moteCount; i++) {
+            motes.push({
+                x: ((i * 173) % worldWidth) + 8,
+                y: ((i * 97) % Math.round(worldHeight * 0.6)) + 20,
+                r: 1 + (i % 3),
+            });
+        }
+        const pools = [];
+        for (let x = 200; x < worldWidth; x += 560) {
+            pools.push({ x, y: worldHeight * 0.86, w: 130 + (x % 70) });
+        }
+        return { ribs, teeth, motes, pools };
+    }
+
+    createSpireBackgroundLayout(background, worldWidth, worldHeight) {
+        const starCount = background.starCount || 90;
+        const stars = [];
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: ((i * 197) % worldWidth) + 8,
+                y: ((i * 89) % Math.round(worldHeight * 0.45)) + 12,
+                size: (i % 3) + 1,
+                color: 0xcfd8ff,
+                alpha: 0.45 + (i % 5) * 0.1,
+            });
+        }
+        const fins = [];
+        for (let x = 200; x < worldWidth; x += 620) {
+            fins.push({ x, w: 90 + (x % 60), h: worldHeight * (0.2 + ((x * 5) % 10) / 80) });
+        }
+        return {
+            stars,
+            fins,
+            planet: { x: worldWidth * 0.8, y: worldHeight * 0.24, r: 40 },
+            spire: { x: worldWidth * 0.5, w: 80 },
         };
     }
 

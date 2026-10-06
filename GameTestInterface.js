@@ -1,3 +1,5 @@
+import { GAME_CONSTANTS } from './Constants.js';
+
 export const GAME_TEST_ACTIONS = Object.freeze([
     'start',
     'wait',
@@ -74,6 +76,17 @@ function availableActionsFor(phase, snapshot) {
     return actions;
 }
 
+function stompableNow(item, player) {
+    if (!item?.bonkable) return false;
+    // Advisory mirror of the bonk rule: falling fast with our feet above
+    // the cap means a stomp scores right now (the game resolves the rest).
+    const falling = (player.vy ?? 0) >= GAME_CONSTANTS.BONK_MIN_FALL_SPEED;
+    const playerBottom = player.y + 16;
+    const hazardHalf = (item.h ?? 32) / 2;
+    const hazardTop = item.top ?? item.y - hazardHalf;
+    return Boolean(falling && playerBottom <= hazardTop + Math.max(14, hazardHalf * 0.9));
+}
+
 function relativeItem(item, player) {
     const vx = round(item.vx) ?? 0;
     const vy = round(item.vy) ?? 0;
@@ -91,6 +104,7 @@ function relativeItem(item, player) {
     };
     if (item.bonkable) {
         result.bonkable = true;
+        result.stompableNow = stompableNow(item, player);
     }
     const moving =
         item.type === 'moving_platform' || item.type === 'drone' || item.type === 'rover';
@@ -100,6 +114,8 @@ function relativeItem(item, player) {
         result.direction = item.direction || directionOf(vx, vy);
     }
     if (item.phase) result.phase = item.phase;
+    if (Number.isFinite(item.wave)) result.wave = item.wave;
+    if (item.chasing === true) result.chasing = true;
     if (Number.isFinite(item.timeUntilPhaseChangeMs)) {
         result.timeUntilPhaseChangeMs = round(item.timeUntilPhaseChangeMs);
     }
@@ -195,6 +211,14 @@ function buildNavigation(snapshot, player) {
             return ahead > 0 && ahead < 180 && verticalOverlap && dangerousPhase;
         })
         .sort((a, b) => Math.abs(a.x - player.x) - Math.abs(b.x - player.x));
+    const closestAnyDirection = (snapshot.hazards || [])
+        .concat(snapshot.bombs || [])
+        .filter((hazard) => hazard.active !== false && hazard.phase !== 'cooldown')
+        .map((hazard) => ({
+            hazard,
+            distance: Math.hypot(hazard.x - player.x, hazard.y - player.y),
+        }))
+        .sort((a, b) => a.distance - b.distance)[0];
     return {
         directionToGoal: direction > 0 ? 'right' : 'left',
         supportPlatformId: support?.id || null,
@@ -216,6 +240,12 @@ function buildNavigation(snapshot, player) {
               }
             : null,
         immediateThreat: threats[0] ? relativeItem(threats[0], player) : null,
+        nearestThreat: closestAnyDirection
+            ? {
+                  ...relativeItem(closestAnyDirection.hazard, player),
+                  distance: round(closestAnyDirection.distance),
+              }
+            : null,
     };
 }
 
@@ -253,9 +283,21 @@ export function createTestObservation(snapshot, seed = null) {
         vx: round(player.vx),
         vy: round(player.vy),
         grounded: Boolean(player.grounded),
+        facing: player.facing === 'left' ? 'left' : 'right',
         jumpsRemaining: Math.max(0, (snapshot.maxJumps || 0) - (snapshot.jumpCount || 0)),
     };
     observation.canShoot = snapshot.phaser === true;
+    observation.combat = {
+        ready: snapshot.combat ? snapshot.combat.ready !== false : true,
+        msUntilReady: snapshot.combat?.msUntilReady ?? 0,
+        boltsInFlight: snapshot.combat?.boltsInFlight ?? 0,
+    };
+    observation.physics = {
+        gravityY: snapshot.physics?.gravityY ?? null,
+        jumpVelocityY: snapshot.physics?.jumpVelocityY ?? null,
+        runSpeedX: snapshot.physics?.runSpeedX ?? null,
+        maxJumps: snapshot.physics?.maxJumps ?? snapshot.maxJumps ?? null,
+    };
     observation.objective = crown
         ? {
               kind: 'collect_crown',

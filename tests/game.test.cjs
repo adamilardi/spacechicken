@@ -122,7 +122,7 @@ test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('levels/index.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
 
-    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7]);
+    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     LEVEL_IDS.forEach((level) => {
         const config = new LevelConfig(level);
         assert.ok(config.world.width > 0);
@@ -133,7 +133,10 @@ test('level configuration exposes every playable level', async () => {
     assert.equal(new LevelConfig(4).nextLevel, 5);
     assert.equal(new LevelConfig(5).nextLevel, 6);
     assert.equal(new LevelConfig(6).nextLevel, 7);
-    assert.equal(new LevelConfig(7).nextLevel, null);
+    assert.equal(new LevelConfig(7).nextLevel, 8);
+    assert.equal(new LevelConfig(8).nextLevel, 9);
+    assert.equal(new LevelConfig(9).nextLevel, 10);
+    assert.equal(new LevelConfig(10).nextLevel, null);
     assert.equal(new LevelConfig(1).title, 'Dawn Run');
     assert.equal(new LevelConfig(2).title, 'Arcade Orbit');
     assert.equal(new LevelConfig(3).title, 'Orbital Gauntlet');
@@ -141,10 +144,19 @@ test('level configuration exposes every playable level', async () => {
     assert.equal(new LevelConfig(5).title, 'Specimen Wing');
     assert.equal(new LevelConfig(6).title, 'Red Reach');
     assert.equal(new LevelConfig(7).title, 'Earthwatch');
+    assert.equal(new LevelConfig(8).title, 'Colony Drop');
+    assert.equal(new LevelConfig(9).title, 'Hive Warrens');
+    assert.equal(new LevelConfig(10).title, 'Spire Crown');
     assert.equal(new LevelConfig(5).background.type, 'facility');
     assert.equal(new LevelConfig(6).background.type, 'mars');
     assert.equal(new LevelConfig(7).background.type, 'iss');
+    assert.equal(new LevelConfig(8).background.type, 'colony');
+    assert.equal(new LevelConfig(9).background.type, 'hive');
+    assert.equal(new LevelConfig(10).background.type, 'spire');
     assert.equal(new LevelConfig(7).phaser, true);
+    assert.equal(new LevelConfig(8).phaser, true);
+    assert.equal(new LevelConfig(9).phaser, true);
+    assert.equal(new LevelConfig(10).phaser, true);
     assert.equal(new LevelConfig(1).phaser, false);
     assert.ok(new LevelConfig(5).hazards.dynamic.some((hazard) => hazard.type === 'bonk'));
     assert.ok(new LevelConfig(5).props.some((prop) => prop.key === 'bonkSign'));
@@ -163,6 +175,54 @@ test('level configuration exposes every playable level', async () => {
         [1, 1, 2, 2, 3, 3, 4, 4]
     );
     assert.ok(new LevelConfig(7).platforms.static.some((platform) => platform.key === 'issHull'));
+    const colonyBoarders = new LevelConfig(8).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        colonyBoarders.map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3]
+    );
+    assert.ok(
+        new LevelConfig(8).platforms.static.some((platform) => platform.key === 'colonyDeck')
+    );
+    assert.ok(new LevelConfig(8).props.some((prop) => prop.key === 'colonyBeacon'));
+    const hiveBoarders = new LevelConfig(9).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        hiveBoarders.map((hazard) => hazard.wave),
+        [1, 2, 2, 3, 3, 4]
+    );
+    assert.ok(hiveBoarders.every((hazard) => hazard.key === 'gnawer'));
+    assert.ok(
+        new LevelConfig(9).platforms.static.some((platform) => platform.key === 'hiveChitin')
+    );
+    assert.ok(
+        new LevelConfig(9).hazards.dynamic.some(
+            (hazard) => hazard.type === 'bonk' && hazard.key === 'hiveBrute'
+        )
+    );
+    assert.ok(
+        new LevelConfig(8).hazards.dynamic.some(
+            (hazard) => hazard.type === 'boarder' && hazard.key === 'skitterling'
+        )
+    );
+    const spireBoarders = new LevelConfig(10).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        spireBoarders.map((hazard) => hazard.wave),
+        [1, 2, 2, 3, 3, 4]
+    );
+    assert.ok(spireBoarders.every((hazard) => hazard.key === 'spireWarden'));
+    assert.ok(
+        new LevelConfig(10).platforms.static.some((platform) => platform.key === 'spireAlloy')
+    );
+    assert.ok(
+        new LevelConfig(10).hazards.dynamic.some(
+            (hazard) => hazard.type === 'drone' && hazard.key === 'voltOrb'
+        )
+    );
     const levelThree = new LevelConfig(3);
     assert.equal(levelThree.platforms, levelThree.platforms);
     assert.equal(levelThree.background.type, 'station');
@@ -236,7 +296,10 @@ test('a falling chicken bonks only the top of a bonkable enemy', async () => {
     };
     const jumped = boarderSteering(700, 540, 620, 360, true, leash);
     assert.equal(jumped.velocityY, null);
-    assert.equal(jumped.velocityX, -190);
+    assert.equal(jumped.velocityX, 0);
+    assert.equal(jumped.flipX, null);
+    const jumpedAirborne = boarderSteering(700, 500, 620, 360, false, leash);
+    assert.equal(jumpedAirborne.velocityX, -190);
     const posted = boarderSteering(640, 540, 150, 560, true, {
         ...leash,
         targetGrounded: true,
@@ -355,7 +418,7 @@ test('all levels have distinct, layered music arrangements', async () => {
     const identities = new Set();
 
     assert.equal(midiToFrequency(69), 440);
-    for (let level = 1; level <= 7; level++) {
+    for (let level = 1; level <= 10; level++) {
         const definition = MUSIC_DEFINITIONS[level];
         identities.add(definition.id);
         assert.ok(definition.pattern.length >= 40, `level ${level} should have a full arrangement`);
@@ -369,7 +432,7 @@ test('all levels have distinct, layered music arrangements', async () => {
             `${definition.id} should keep playing through the loop`
         );
     }
-    assert.equal(identities.size, 7);
+    assert.equal(identities.size, 10);
 });
 
 test('audio scheduling routes melodic and percussion events', async () => {
@@ -2104,6 +2167,195 @@ test('the Jev fallback fires at a level boarder instead of walking into it', asy
     assert.equal(noGun, 'move_right');
 });
 
+test('colony guns unlock by level and cycle past the phaser', async () => {
+    const { WEAPON_DEFS, nextWeaponId, weaponsForLevel } = await importModule('GameUtils.js');
+    assert.deepEqual(weaponsForLevel(7), ['phaser']);
+    assert.deepEqual(weaponsForLevel(8), ['phaser', 'scatter']);
+    assert.deepEqual(weaponsForLevel(9), ['phaser', 'scatter', 'piercer']);
+    assert.deepEqual(weaponsForLevel(10), ['phaser', 'scatter', 'piercer', 'nova']);
+    assert.equal(nextWeaponId('phaser', 8), 'scatter');
+    assert.equal(nextWeaponId('scatter', 8), 'phaser');
+    assert.equal(nextWeaponId('nova', 10), 'phaser');
+    assert.equal(nextWeaponId('nova', 8), 'phaser');
+    assert.equal(WEAPON_DEFS.scatter.spread > 0, true);
+    assert.equal(WEAPON_DEFS.piercer.pierce > 0, true);
+    assert.equal(WEAPON_DEFS.phaser.pierce, 0);
+});
+
+test('scatter fires a three-bolt volley through the single fire path', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const scene = new SpaceChicken();
+    scene.level = 8;
+    scene.levelConfig = { phaser: true };
+    const created = [];
+    const group = {
+        getFirstDead: () => null,
+        getLength: () => created.length,
+        create(x, y, _key) {
+            const bolt = {
+                x,
+                y,
+                active: false,
+                velocities: [],
+                setActive(v) {
+                    this.active = v;
+                },
+                setVisible() {},
+                setDepth() {},
+                setTexture() {},
+                body: {
+                    enable: false,
+                    allowGravity: true,
+                    setAllowGravity(v) {
+                        this.allowGravity = v;
+                    },
+                    setSize() {},
+                },
+                setVelocity(vx, vy) {
+                    this.velocities.push([vx, vy]);
+                    this.vx = vx;
+                    this.vy = vy;
+                },
+                setFlipX() {},
+            };
+            created.push(bolt);
+            return bolt;
+        },
+    };
+    scene.phaserBolts = group;
+    const chicken = {
+        active: true,
+        body: { enable: true },
+        flipX: false,
+        x: 100,
+        y: 200,
+        weapon: 'scatter',
+    };
+    scene.tryFirePhaser(chicken, 1000);
+    assert.equal(created.length, 3);
+    assert.deepEqual(
+        created.map((bolt) => bolt.vy),
+        [-140, 0, 140]
+    );
+    assert.ok(created.every((bolt) => bolt.vx === GAME_CONSTANTS.PHASER_BOLT_SPEED));
+    assert.equal(chicken.lastPhaserAt, 1000);
+    scene.tryFirePhaser(chicken, 1000 + GAME_CONSTANTS.PHASER_COOLDOWN_MS - 1);
+    assert.equal(created.length, 3);
+});
+
+test('piercer bolts pass through boarders until range recycles them', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.level = 9;
+    scene.levelConfig = { phaser: true };
+    scene.phaserBolts = { killAndHide: (bolt) => ({ ...bolt, active: false }) };
+    const kills = [];
+    scene.defeatBoarder = (alien) => {
+        kills.push(alien.id);
+        alien.defeated = true;
+    };
+    const bolt = { x: 100, y: 200, active: true, pierceLeft: 99 };
+    const first = { id: 'a', x: 120, y: 200, defeated: false };
+    const second = { id: 'b', x: 160, y: 200, defeated: false };
+    scene.phaserHitsBoarder(bolt, first);
+    assert.deepEqual(kills, ['a']);
+    assert.equal(bolt.active, true);
+    scene.phaserHitsBoarder(bolt, second);
+    assert.deepEqual(kills, ['a', 'b']);
+    assert.equal(bolt.active, true);
+});
+
+test('switching cycles one gun per press and names it in the HUD', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.level = 8;
+    scene.levelConfig = { phaser: true };
+    scene.awaitingStart = false;
+    scene.gameOver = false;
+    const labels = [];
+    const textures = [];
+    scene.player = {
+        active: true,
+        phaserSprite: {
+            setTexture: (key) => textures.push(key),
+        },
+    };
+    scene.uiManager = {
+        updateWeaponLabel: (name) => labels.push(name),
+    };
+    assert.equal(scene.switchPlayerWeapon(0), true);
+    assert.equal(scene.player.weapon, 'scatter');
+    assert.deepEqual(textures, ['scatterGun']);
+    assert.deepEqual(labels, ['Scatter']);
+    assert.equal(scene.switchPlayerWeapon(0), true);
+    assert.equal(scene.player.weapon, 'phaser');
+    scene.level = 7;
+    assert.equal(scene.switchPlayerWeapon(0), false);
+    scene.levelConfig = {};
+    assert.equal(scene.switchPlayerWeapon(0), false);
+    scene.level = 9;
+    scene.levelConfig = { phaser: true };
+    scene.player2 = {
+        active: true,
+        phaserSprite: {
+            setTexture: (key) => textures.push(`p2:${key}`),
+        },
+    };
+    assert.equal(scene.switchPlayerWeapon(1), true);
+    assert.equal(scene.player2.weapon, 'scatter');
+    assert.equal(scene.player.weapon, 'phaser');
+    assert.deepEqual(textures.slice(-1), ['p2:scatterGun']);
+    assert.equal(scene.switchPlayerWeapon(1), true);
+    assert.equal(scene.player2.weapon, 'piercer');
+});
+
+test('the colony crown shield gates the clear on dead boarders', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { LevelConfig } = await importModule('LevelConfig.js');
+    assert.equal(new LevelConfig(8).crownShield, true);
+    assert.equal(new LevelConfig(1).crownShield, false);
+
+    const scene = new SpaceChicken();
+    scene.level = 8;
+    scene.levelConfig = { crownShield: true };
+    scene.awaitingStart = false;
+    scene.isTransitioning = false;
+    scene.gameOver = false;
+    scene.raceFinale = false;
+    scene.crownShielded = true;
+    const shaken = [];
+    const banners = [];
+    scene.cameraFor = () => ({ shake: (ms, i) => shaken.push([ms, i]) });
+    scene.audioManager = { playBonkSound: () => shaken.push('bonk') };
+    scene.uiManager = { showLevelBanner: (t, s) => banners.push([t, s]) };
+    scene.crown = { x: 3900, y: 400, clearTint: () => {} };
+    const live = { active: true, arrived: true, defeated: false };
+    const dead = { active: true, arrived: true, defeated: true };
+    const stowed = { active: false, arrived: false, defeated: false };
+    scene.boardersGroup = { getChildren: () => [live, dead, stowed] };
+    assert.equal(scene.liveBoarderCount(), 1);
+
+    scene.collectGem(scene.player);
+    assert.deepEqual(shaken[0], [90, 0.005]);
+    assert.equal(banners.length, 0);
+
+    const victim = {
+        active: true,
+        arrived: true,
+        defeated: false,
+        aggro: true,
+        clearTint: () => {},
+        body: { enable: true },
+        setVelocity: () => {},
+    };
+    scene.boardersGroup = { getChildren: () => [victim] };
+    scene.defeatBoarder(victim);
+    assert.equal(victim.defeated, true);
+    assert.equal(scene.crownShielded, false);
+    assert.deepEqual(banners, [['CROWN OPEN', 'Pad clear — take it']]);
+});
+
 test('the test interface fire action holds the phaser trigger', async () => {
     const { GameTestInterface } = await importModule('GameTestInterface.js');
     const target = {};
@@ -2223,6 +2475,21 @@ test('the game test interface exposes compact observations and game-rule objecti
                 right: 176,
                 top: 184,
             },
+            {
+                id: 'boarder-1',
+                type: 'boarder',
+                wave: 2,
+                chasing: true,
+                x: 500,
+                y: 200,
+                vx: -190,
+                vy: 0,
+                w: 22,
+                h: 36,
+                left: 489,
+                right: 511,
+                top: 182,
+            },
         ],
         hazardSchedules: [
             {
@@ -2239,6 +2506,8 @@ test('the game test interface exposes compact observations and game-rule objecti
         ],
         bombs: [],
         columns: [],
+        combat: { ready: false, msUntilReady: 120, boltsInFlight: 2 },
+        physics: { gravityY: 300, jumpVelocityY: -330, runSpeedX: 160, maxJumps: 2 },
     };
 
     const observation = createTestObservation(snapshot, 42);
@@ -2252,6 +2521,17 @@ test('the game test interface exposes compact observations and game-rule objecti
     assert.equal(observation.nearby.hazards[0].left, 44);
     assert.equal(observation.nearby.hazards[0].type, 'rover');
     assert.equal(observation.nearby.hazards[0].direction, 'left');
+    assert.equal(observation.nearby.hazards[1].wave, 2);
+    assert.equal(observation.nearby.hazards[1].chasing, true);
+    assert.equal(observation.nearby.hazards[1].direction, 'left');
+    assert.equal(observation.navigation.nearestThreat.dx, 60);
+    assert.equal(observation.navigation.nearestThreat.type, 'rover');
+    assert.equal(observation.player.facing, 'right');
+    assert.equal(observation.combat.ready, false);
+    assert.equal(observation.combat.msUntilReady, 120);
+    assert.equal(observation.combat.boltsInFlight, 2);
+    assert.equal(observation.physics.gravityY, 300);
+    assert.equal(observation.physics.maxJumps, 2);
     assert.equal(observation.nearby.movingPlatforms[0].vx, 30);
     assert.equal(observation.nearby.timedHazards[0].phase, 'warning');
     assert.equal(observation.navigation.supportPlatformId, 'floor-1');
@@ -2272,6 +2552,109 @@ test('the game test interface exposes compact observations and game-rule objecti
     assert.equal(normalizeTestAction('teleport'), null);
     assert.equal(normalizeTestSeed('17'), 17);
     assert.equal(normalizeTestSeed(null, null), null);
+});
+
+test('stomp hints and facing-aware fallback read the combat context', async () => {
+    const { createTestObservation } = await importModule('GameTestInterface.js');
+    const { fallbackAction } = await importModule('scripts/jev-playtest.mjs');
+    const brute = {
+        id: 'brute-1',
+        type: 'bonk',
+        bonkable: true,
+        x: 200,
+        y: 300,
+        vx: 0,
+        vy: 0,
+        w: 44,
+        h: 34,
+        left: 178,
+        right: 222,
+        top: 283,
+    };
+    const base = {
+        ready: true,
+        level: 9,
+        deaths: 0,
+        elapsedMs: 5000,
+        awaitingStart: false,
+        transitioning: false,
+        gameOver: false,
+        pendingLevel: null,
+        physicsPaused: false,
+        jumpCount: 0,
+        maxJumps: 2,
+        crown: { x: 900, y: 100 },
+        worldWidth: 1000,
+        worldHeight: 800,
+        killZoneY: 820,
+        platforms: [],
+        movingPlatforms: [],
+        hazards: [brute],
+        hazardSchedules: [],
+        bombs: [],
+        columns: [],
+    };
+    const falling = createTestObservation(
+        { ...base, player: { x: 200, y: 200, vx: 0, vy: 200, grounded: false } },
+        7
+    );
+    assert.equal(falling.nearby.hazards[0].stompableNow, true);
+    const grounded = createTestObservation(
+        { ...base, player: { x: 200, y: 200, vx: 0, vy: 0, grounded: true } },
+        7
+    );
+    assert.equal(grounded.nearby.hazards[0].stompableNow, false);
+
+    const leftBoarder = {
+        id: 'boarder-1',
+        type: 'boarder',
+        wave: 1,
+        chasing: true,
+        x: 100,
+        y: 200,
+        vx: 190,
+        vy: 0,
+        w: 22,
+        h: 36,
+        left: 89,
+        right: 111,
+        top: 182,
+    };
+    const facingLeft = createTestObservation(
+        {
+            ...base,
+            phaser: true,
+            player: { x: 300, y: 200, vx: 0, vy: 0, grounded: true, facing: 'left' },
+            hazards: [leftBoarder],
+            combat: { ready: true, msUntilReady: 0, boltsInFlight: 0 },
+        },
+        7
+    );
+    assert.equal(
+        fallbackAction({
+            ...facingLeft,
+            availableActions: ['wait', 'move_left', 'fire_left', 'jump_left'],
+        }),
+        'fire_left'
+    );
+    const cooling = createTestObservation(
+        {
+            ...base,
+            phaser: true,
+            crown: { x: 100, y: 200 },
+            player: { x: 300, y: 200, vx: 0, vy: 0, grounded: true, facing: 'left' },
+            hazards: [leftBoarder],
+            combat: { ready: false, msUntilReady: 150, boltsInFlight: 1 },
+        },
+        7
+    );
+    assert.equal(
+        fallbackAction({
+            ...cooling,
+            availableActions: ['wait', 'move_left', 'fire_left', 'jump_left'],
+        }),
+        'move_left'
+    );
 });
 
 test('bot snapshot distinguishes death from collecting the crown', async () => {
@@ -2301,6 +2684,11 @@ test('bot snapshot distinguishes death from collecting the crown', async () => {
     let snap = scene.getBotSnapshot();
     assert.equal(snap.dying, true);
     assert.equal(snap.pendingLevel, null);
+    assert.equal(snap.player.facing, 'right');
+    assert.equal(snap.combat.ready, false);
+    assert.equal(snap.combat.boltsInFlight, 0);
+    assert.equal(snap.physics.jumpVelocityY, -330);
+    assert.equal(snap.physics.runSpeedX, 160);
     assert.equal(snap.columns[0].x, 550);
     assert.equal(snap.columns[0].type, 'cosmic_ray');
     assert.equal(snap.columns[0].phase, 'warning');

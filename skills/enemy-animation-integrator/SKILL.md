@@ -11,7 +11,7 @@ Make a supplied animation play on the live actor. Read the manifest, the paint, 
 
 Read `SpriteFactory.addCanvasTexture`, `createExpeditionSprites`, `SpaceChicken.createAnimations`, and the actor's spawn function in `enemies/`. Chicken clips already occupy `createAnimations`. Enemy motion today is tweens on the sprite, plus `squashBonkTarget`.
 
-Copy the paint into `SpriteFactory.js` and register one texture key per pose. Keys must be unique and must not replace `chicken1` or an existing hazard key. Call the new registration from the same create path `SpaceChicken` already uses so a refresh loads it.
+Copy the paint into `SpriteFactory.js` and register one texture key per pose. Keys must be unique and must not replace the `chicken1` texture key or an existing hazard key. (Chicken animation clips such as `chicken-idle` are separate `anims` keys; the reserved texture key here is `chicken1`.) Call the new registration from the same create path `SpaceChicken` already uses so a refresh loads it.
 
 ## Connect it
 

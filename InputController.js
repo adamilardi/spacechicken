@@ -51,6 +51,8 @@ export class InputController {
         state.pointerStartTriggered = false;
         state.gamepadJumpJustPressed = false;
         state.gamepadStartJustPressed = false;
+        state.p1SwitchJustPressed = false;
+        state.p2SwitchJustPressed = false;
         state.phaserHeld = false;
         state.menu = {};
         state.coopMode = null;
@@ -121,6 +123,7 @@ export class InputController {
         }
         if (!pad) {
             this.previousGamepadButtons = null;
+            this.previousWeaponButtons = null;
             return;
         }
         const buttonDown = (index) => Boolean(pad.buttons?.[index]?.pressed);
@@ -174,6 +177,31 @@ export class InputController {
         );
         this.gamepadJumpEdges = [jump && !previous.jump, secondJump && !previous.secondJump];
         this.previousGamepadButtons.secondJump = secondJump;
+        this.pollWeaponSwitch(state, pads);
+    }
+
+    pollWeaponSwitch(state, pads) {
+        const scene = this.scene;
+        const list = Array.isArray(pads) ? pads : [];
+        const down = (padIndex) => Boolean(list[padIndex]?.buttons?.[3]?.pressed);
+        const previous = this.previousWeaponButtons || {};
+        const firstPad = list.findIndex((pad) => pad && pad.connected !== false);
+        const edge = (padIndex) => {
+            if (padIndex < 0) return false;
+            const pressed = down(padIndex);
+            const fired = pressed && !previous[padIndex];
+            previous[padIndex] = pressed;
+            return fired;
+        };
+        if (!scene.coopMode && firstPad >= 0) {
+            state.p1SwitchJustPressed = edge(firstPad);
+        } else if (scene.coopMode === 'controllers') {
+            state.p1SwitchJustPressed = edge(0);
+            state.p2SwitchJustPressed = edge(1);
+        } else if (scene.coopMode === 'keyboard-controller') {
+            state.p2SwitchJustPressed = edge(0);
+        }
+        this.previousWeaponButtons = previous;
     }
 
     syncPhaserHeld(state, pointerDown) {

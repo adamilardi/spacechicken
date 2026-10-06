@@ -13,7 +13,7 @@ export const level = {
         BOMB_SPEED: 200,
         KILLZONE_HEIGHT: 36,
         PHASER: true,
-        NEXT_LEVEL: null,
+        NEXT_LEVEL: 8,
     },
     content: {
         instructions:

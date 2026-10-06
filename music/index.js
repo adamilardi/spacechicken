@@ -5,6 +5,9 @@ import { buildTrack as buildLunarHorizon } from './lunar-horizon.js';
 import { buildTrack as buildSpecimenWing } from './specimen-wing.js';
 import { buildTrack as buildRedReach } from './red-reach.js';
 import { buildTrack as buildEarthwatch } from './earthwatch.js';
+import { buildTrack as buildColonyDrop } from './colony-drop.js';
+import { buildTrack as buildHive } from './hive.js';
+import { buildTrack as buildSpire } from './spire.js';
 import { midiToFrequency } from './score.js';
 
 export { midiToFrequency };
@@ -17,6 +20,9 @@ export const MUSIC_DEFINITIONS = Object.freeze({
     5: buildSpecimenWing(),
     6: buildRedReach(),
     7: buildEarthwatch(),
+    8: buildColonyDrop(),
+    9: buildHive(),
+    10: buildSpire(),
 });
 
 export function getMusicDefinition(level) {

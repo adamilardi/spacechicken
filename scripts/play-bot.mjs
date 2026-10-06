@@ -147,6 +147,75 @@ export function installInPagePilot() {
         return boarderAhead(player, dir, snap) >= 0;
     }
 
+    // One-shot air jump: a held jump only edge-fires, so re-arm on landing
+    // and spend exactly one airborne jump per airtime (double-jump saves).
+    let jumpArmed = true;
+    let suppressRecovery = false;
+
+    // Closest live hazard or bomb in any direction within radius, or null.
+    function nearestThreat(px, py, snap, radius) {
+        let best = null;
+        let bestDist = radius;
+        const lists = [snap.hazards || [], snap.bombs || []];
+        for (let l = 0; l < lists.length; l++) {
+            const items = lists[l];
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (!item || !item.active || item.enable === false) {
+                    continue;
+                }
+                const dist = Math.hypot(item.x - px, item.y - py);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    best = item;
+                }
+            }
+        }
+        return best;
+    }
+
+    // A bomb falling onto our head: which way to sidestep (-1/0/1).
+    // Grounded only; never dodge blind.
+    function bombDodge(player, snap) {
+        if (!player.grounded) {
+            return 0;
+        }
+        const bombs = snap.bombs || [];
+        for (let i = 0; i < bombs.length; i++) {
+            const bomb = bombs[i];
+            if (!bomb || !bomb.active || bomb.enable === false) {
+                continue;
+            }
+            if ((bomb.vy || 0) <= 0) {
+                continue;
+            }
+            const dx = bomb.x - player.x;
+            const above = player.y - bomb.y;
+            if (Math.abs(dx) < 55 && above > 0 && above < 280) {
+                return dx >= 0 ? -1 : 1;
+            }
+        }
+        return 0;
+    }
+
+    // Lethal, non-stompable hazard squatting on the landing spot.
+    function landingThreat(landing, snap) {
+        if (!landing) {
+            return null;
+        }
+        const hazards = snap.hazards || [];
+        for (let i = 0; i < hazards.length; i++) {
+            const item = hazards[i];
+            if (!item || !item.active || item.enable === false || item.bonkable) {
+                continue;
+            }
+            if (Math.abs(item.x - landing.x) < 90 && Math.abs(item.y - landing.top) < 130) {
+                return item;
+            }
+        }
+        return null;
+    }
+
     function nextPlatform(px, py, dir, platforms) {
         let bestHigh = null;
         let bestHighDist = Infinity;
@@ -189,13 +258,35 @@ export function installInPagePilot() {
             return input;
         }
         const player = snap.player;
+        if (player.grounded) {
+            jumpArmed = true;
+        }
         const platforms = snap.platforms || [];
         const crown = snap.crown || { x: player.x + 200, y: player.y };
         const dx = crown.x - player.x;
         const dir = dx === 0 ? 1 : Math.sign(dx);
         const shooting = shouldShoot(player, dir, snap);
         input.shoot = shooting;
+        if (nearestThreat(player.x, player.y, snap, 150)) {
+            suppressRecovery = true;
+        }
+        // Bombs rain from above: sidestep on solid ground, never into a gap.
+        const dodge = bombDodge(player, snap);
+        if (dodge !== 0) {
+            if (supportAt(player.x + dodge * 56, player.y + 6, platforms)) {
+                input.left = dodge < 0;
+                input.right = dodge > 0;
+                return input;
+            }
+        }
         if (columnAhead(player.x, player.y, dir, snap)) {
+            return input;
+        }
+        // Close boarder in the firing lane: stop, hop straight up over its
+        // leap, keep the gun on it. Standing still preserves facing.
+        const laneDist = boarderAhead(player, dir, snap);
+        if (shooting && laneDist >= 0 && laneDist < 110 && player.grounded) {
+            input.jump = true;
             return input;
         }
         const blocker = hazardInPath(
@@ -223,10 +314,28 @@ export function installInPagePilot() {
         const falling = player.vy > 28;
         if (blocker && isHopable(blocker)) {
             const dist = Math.abs(blocker.x - player.x);
+            if (blocker.bonkable) {
+                // Stomp it: only hop when positioned to land on top.
+                input.right = dx > 10 && (dist > 44 || !player.grounded);
+                input.left = dx < -10 && (dist > 44 || !player.grounded);
+                input.jump = player.grounded;
+                return input;
+            }
             const engaging = shooting && blocker.type === 'boarder';
-            input.right = dx > 10 && (dist > 44 || !player.grounded);
-            input.left = dx < -10 && (dist > 44 || !player.grounded);
-            input.jump = player.grounded && !engaging;
+            if (engaging) {
+                // Gun it down first; jumping in just trades.
+                input.right = dx > 10;
+                input.left = dx < -10;
+                return input;
+            }
+            if (dist > 45) {
+                // Leap over drones, rollers, rovers: take off early, keep running.
+                input.right = dx > 10;
+                input.left = dx < -10;
+                input.jump = player.grounded;
+                return input;
+            }
+            // Too close to clear: hold and let patrols pass.
             return input;
         }
         input.right = dx > 10;
@@ -239,15 +348,32 @@ export function installInPagePilot() {
         );
         const grabCrown = Math.abs(dx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
         const gap = !ahead;
-        // Distilled from JEV traces in .jev-runs/level-*/ (381 actions, ~84%
-        // move_right): when grounded and the crown is close or above, hop
-        // toward it instead of running underneath. Mirrors the |dx| < 150 /
-        // dy < -35 clauses of fallbackAction in scripts/jev-playtest.mjs.
-        const closePush = player.grounded && (Math.abs(dx) < 150 || crown.y < player.y - 35);
+        // Final-approach hops only: when the crown is close, hop toward it
+        // instead of running underneath. (An unrestricted climb-above rule
+        // turned the pilot into a pogo stick: airborne bolts fly over
+        // boarder heads while bombs and chasers connect. Ascents are
+        // covered by stepUp/grabCrown.)
+        const closePush = player.grounded && Math.abs(dx) < 150;
+        // Don't leap into a landing occupied by something lethal. A boarder
+        // already under fire may still die first, so only wait those out.
+        if (gap && player.grounded) {
+            const squatter = landingThreat(landing, snap);
+            if (squatter && !(squatter.type === 'boarder' && shooting && laneDist < 400)) {
+                return input;
+            }
+        }
         const shouldJump = gap || stepUp || grabCrown || closePush;
         const canDouble =
-            !player.grounded && falling && grabCrown && snap.jumpCount < snap.maxJumps;
-        input.jump = shouldJump && (player.grounded || canDouble);
+            !player.grounded &&
+            falling &&
+            (gap || stepUp || grabCrown) &&
+            snap.jumpCount < snap.maxJumps;
+        if (player.grounded) {
+            input.jump = shouldJump;
+        } else if (canDouble && jumpArmed) {
+            input.jump = true;
+            jumpArmed = false;
+        }
         return input;
     }
 
@@ -280,7 +406,7 @@ export function installInPagePilot() {
                 return;
             }
             const input = decide(snap);
-            applyStuckRecovery(snap, input);
+            applyStuckRecovery(snap, input, suppressRecovery);
             window.__spaceChickenPilotLastInput = input;
             debug.setBotInput(input);
         } catch (err) {
@@ -295,7 +421,7 @@ export function installInPagePilot() {
     let stuckFromT = 0;
     let recoverUntil = 0;
 
-    function applyStuckRecovery(snap, input) {
+    function applyStuckRecovery(snap, input, suppressed) {
         const now = Date.now();
         const px = snap.player ? snap.player.x : null;
         if (
@@ -315,7 +441,7 @@ export function installInPagePilot() {
             stuckFromX = px;
             stuckFromT = now;
         }
-        if (now < recoverUntil) {
+        if (now < recoverUntil && !suppressed) {
             const away = snap.crown && snap.player && snap.crown.x < snap.player.x ? 1 : -1;
             input.left = away < 0;
             input.right = away > 0;
