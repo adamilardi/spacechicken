@@ -59,4 +59,12 @@ const vendorFiles = Object.freeze({
         'node_modules/phaser/dist/phaser-arcade-physics.min.js',
 });
 
-module.exports = { rootFiles, vendorFiles };
+// Served by the local dev server for on-device verification, but never
+// deployed (see scripts/verify-performance-page.mjs).
+const devOnlyFiles = Object.freeze([
+    'performance.html',
+    'PerformanceTest.js',
+    'PerformanceMetrics.js',
+]);
+
+module.exports = { rootFiles, vendorFiles, devOnlyFiles };

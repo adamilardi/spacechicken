@@ -6,6 +6,7 @@
  *
  *   npm run jev:playtest
  *   LEVEL=2 SEED=42 JEV_DURATION_MS=90000 npm run jev:playtest
+ *   JEV_RECORD_DEMOS=1 LEVEL=1 npm run jev:playtest  (raw full-obs JSONL for rl)
  *
  * The API key is read from TYPESAFE_API_KEY or typesafekey and stays in Node.
  */
@@ -17,6 +18,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { LEVEL_IDS } from '../levels/index.js';
 import { installInPageWatchdog } from './playtest-bot.mjs';
+import { stepReward } from './rl/features.mjs';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../server.cjs');
@@ -34,6 +36,8 @@ const DECISION_MS = boundedNumber(process.env.JEV_DECISION_MS, 450, 100, 5_000);
 const TIME_SCALE = boundedScale(process.env.JEV_TIME_SCALE, 0.25);
 const HEADLESS = process.env.HEADLESS !== '0';
 const OUT_DIR = process.env.JEV_OUT || path.join(__dirname, '..', '.jev-runs');
+const RECORD_DEMOS = process.env.JEV_RECORD_DEMOS === '1';
+const DEMO_OUT = process.env.JEV_DEMO_OUT || path.join(__dirname, '..', 'rl', 'demos-raw');
 const CACHED_CHROME =
     process.env.PLAYWRIGHT_CHROME ||
     '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
@@ -42,6 +46,9 @@ const ACTION_CRITERIA = Object.freeze({
     wait: 'Brake horizontal movement. Avoid while airborne over a gap; use only when movement is unsafe.',
     move_left: 'Run left without jumping.',
     move_right: 'Run right without jumping.',
+    fire: 'Hold position and shoot the phaser. Only useful when `canShoot` is true and a boarder is roughly level with you.',
+    fire_left: 'Run left while shooting the phaser at boarders ahead.',
+    fire_right: 'Run right while shooting the phaser at boarders ahead.',
     jump: 'Jump vertically with no horizontal movement.',
     jump_left: 'Pulse jump while moving left.',
     jump_right: 'Pulse jump while moving right.',
@@ -73,6 +80,27 @@ export function readTypeSafeApiKey(env = process.env) {
     return String(env.TYPESAFE_API_KEY || env.typesafekey || '').trim();
 }
 
+// Boarders (type `boarder` in nearby.hazards, cyan chest ring) die to bolts;
+// touching one fails the run. Bolts fly horizontally from your facing, range
+// ~820px, so shoot when a boarder is ahead of you and roughly level (|dy| < 70).
+const PHASER_RANGE = 820;
+const PHASER_LANE = 70;
+
+function shootableAhead(observation, direction) {
+    if (observation.canShoot === false) return false;
+    const hazards = observation.nearby?.hazards || [];
+    const sign = direction === 'left' ? -1 : 1;
+    return hazards.some(
+        (item) =>
+            item &&
+            item.type === 'boarder' &&
+            item.active !== false &&
+            item.dx * sign > 0 &&
+            item.dx * sign <= PHASER_RANGE &&
+            Math.abs(item.dy) < PHASER_LANE
+    );
+}
+
 export function fallbackAction(observation) {
     const actions = observation.availableActions || [];
     if (actions.length === 1) return actions[0];
@@ -81,6 +109,10 @@ export function fallbackAction(observation) {
     if (!player || !objective || !Number.isFinite(objective.dx)) return 'wait';
 
     const direction = objective.dx < 0 ? 'left' : 'right';
+    if (shootableAhead(observation, direction)) {
+        const firing = `fire_${direction}`;
+        if (actions.includes(firing)) return firing;
+    }
     const navigation = observation.navigation || {};
     const forwardHazard = (observation.nearby?.hazards || [])
         .concat(observation.nearby?.bombs || [])
@@ -132,6 +164,8 @@ export async function chooseJevAction(client, observation, recentActions = []) {
                             'For lasers and cosmic rays, cooldown is safe, warning means leave the column, and active means do not cross; use timeUntilPhaseChangeMs.',
                             'Jump to cross a gap, reach a higher landing window, or avoid an immediate threat.',
                             'A hazard with bonkable true grants a boost jump when stomped from above. Touching its side still fails the run.',
+                            'A hazard with type boarder (cyan chest ring) dies to phaser bolts; touching one fails the run. Bolts fly horizontally ~820px, so use a fire action when canShoot is true and a boarder is ahead of you and roughly level.',
+                            'Gold-capped bonk enemies cannot be shot. Stomp them from above.',
                             'Do not invent actions or assume hidden game state.',
                         ],
                     },
@@ -248,6 +282,8 @@ async function runPlaytest(client, page) {
     let objective = null;
     let finalObservation = null;
     let jevDecisions = 0;
+    const rawSteps = [];
+    let pendingRaw = null;
 
     while (Date.now() - startedAt < DURATION_MS) {
         const state = await readGameState(page);
@@ -285,6 +321,23 @@ async function runPlaytest(client, page) {
             ...decision,
         };
         actions.push(record);
+        if (RECORD_DEMOS) {
+            if (pendingRaw) {
+                pendingRaw.reward = stepReward(pendingRaw.obs, state.observation);
+                rawSteps.push(pendingRaw);
+            }
+            pendingRaw = {
+                type: 'step',
+                obs: state.observation,
+                action: decision.action,
+                reward: 0,
+                meta: {
+                    atMs: record.atMs,
+                    source: decision.source,
+                    confidence: decision.confidence ?? null,
+                },
+            };
+        }
         console.log(
             `[${record.atMs}ms] L${record.level} ${record.source} -> ${record.action}` +
                 (Number.isFinite(record.confidence)
@@ -305,11 +358,17 @@ async function runPlaytest(client, page) {
     const watchdogBugs = await page.evaluate(() =>
         (window.__spaceChickenWatchdogBugs || []).slice()
     );
+    if (pendingRaw) {
+        pendingRaw.reward =
+            stepReward(pendingRaw.obs, finalObservation) + (objective?.passed ? 1 : 0);
+        rawSteps.push(pendingRaw);
+    }
     return {
         passed: Boolean(objective && objective.passed),
         objective,
         finalObservation,
         actions,
+        rawSteps,
         watchdogBugs,
         jevErrors,
         jevDecisions,
@@ -360,6 +419,7 @@ async function main() {
         ...result.watchdogBugs,
         ...pageErrors.map((detail) => ({ kind: 'pageerror', detail }))
     );
+    const { rawSteps, ...resultRest } = result;
     const report = {
         when: new Date().toISOString(),
         level: LEVEL,
@@ -368,10 +428,32 @@ async function main() {
         ok: failures.length === 0,
         failures,
         pageErrors,
-        ...result,
+        ...resultRest,
     };
     const reportPath = path.join(OUT_DIR, 'jev-playtest-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    if (RECORD_DEMOS && rawSteps?.length) {
+        fs.mkdirSync(DEMO_OUT, { recursive: true });
+        const rawPath = path.join(DEMO_OUT, `jev-raw-L${LEVEL}-s${SEED}-${Date.now()}.jsonl`);
+        const lines = [
+            JSON.stringify({
+                type: 'header',
+                format: 'spacechicken-raw-obs',
+                obsVersion: 2,
+                expert: 'jev',
+                model: resultRest.actions.find((a) => a.model)?.model ?? null,
+                level: LEVEL,
+                seed: SEED,
+                when: report.when,
+                won: resultRest.passed,
+                deaths: resultRest.finalObservation?.deaths ?? null,
+                steps: rawSteps.length,
+            }),
+            ...rawSteps.map((step) => JSON.stringify(step)),
+        ];
+        fs.writeFileSync(rawPath, lines.join('\n') + '\n');
+        console.log(`Raw demo: ${rawPath} (${rawSteps.length} steps)`);
+    }
     console.log(
         `${report.ok ? 'PASS' : 'FAIL'} objective=${report.objective?.status} ` +
             `jevDecisions=${report.jevDecisions} deaths=${report.finalObservation?.deaths}`

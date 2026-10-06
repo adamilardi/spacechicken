@@ -2,11 +2,14 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { rootFiles, vendorFiles } = require('./config/runtime-assets.cjs');
+const { rootFiles, vendorFiles, devOnlyFiles } = require('./config/runtime-assets.cjs');
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_HOST = '0.0.0.0';
 const PUBLIC_FILES = new Set([...rootFiles, ...Object.keys(vendorFiles)]);
+// Local-only verification pages (e.g. performance.html) are served for
+// on-device testing but excluded from Cloudflare deploys.
+const SERVED_FILES = new Set([...PUBLIC_FILES, ...devOnlyFiles]);
 const CONTENT_TYPES = {
     '.html': 'text/html; charset=utf-8',
     '.js': 'text/javascript; charset=utf-8',
@@ -39,7 +42,7 @@ function createServer() {
         }
 
         const relativePath = decodedPath === '/' ? 'index.html' : decodedPath.replace(/^\/+/, '');
-        if (!PUBLIC_FILES.has(relativePath)) {
+        if (!SERVED_FILES.has(relativePath)) {
             sendText(res, 404, 'File not found');
             return;
         }

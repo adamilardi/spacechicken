@@ -1,0 +1,9 @@
+# Space Chicken RL training (Python trains, JSON weights play in the browser)
+#
+# Install CPU-only wheels with:
+#   uv pip install -r rl/requirements.txt \
+#       --index-url https://download.pytorch.org/whl/cpu \
+#       --extra-index-url https://pypi.org/simple
+# (First index wins for torch; numpy resolves from PyPI.)
+torch>=2.1.0
+numpy>=1.24.0

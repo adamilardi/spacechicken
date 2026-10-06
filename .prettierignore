@@ -5,3 +5,4 @@ build/
 .bot-runs/
 *.min.js
 package-lock.json
+rl/weights/

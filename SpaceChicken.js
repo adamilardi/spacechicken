@@ -2918,6 +2918,7 @@ export class SpaceChicken extends Phaser.Scene {
                   }
                 : null,
             crown: this.crown ? { x: this.crown.x, y: this.crown.y } : null,
+            phaser: Boolean(this.levelConfig && this.levelConfig.phaser),
             columns: listRayColumns(this),
             platforms: staticPlatforms.concat(movingPlatforms),
             movingPlatforms,

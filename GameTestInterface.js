@@ -3,19 +3,43 @@ export const GAME_TEST_ACTIONS = Object.freeze([
     'wait',
     'move_left',
     'move_right',
+    'fire',
+    'fire_left',
+    'fire_right',
     'jump',
     'jump_left',
     'jump_right',
 ]);
 
 const ACTION_INPUTS = Object.freeze({
-    start: Object.freeze({ left: false, right: false, jump: false, start: true }),
-    wait: Object.freeze({ left: false, right: false, jump: false, start: false }),
-    move_left: Object.freeze({ left: true, right: false, jump: false, start: false }),
-    move_right: Object.freeze({ left: false, right: true, jump: false, start: false }),
-    jump: Object.freeze({ left: false, right: false, jump: true, start: false }),
-    jump_left: Object.freeze({ left: true, right: false, jump: true, start: false }),
-    jump_right: Object.freeze({ left: false, right: true, jump: true, start: false }),
+    start: Object.freeze({ left: false, right: false, jump: false, shoot: false, start: true }),
+    wait: Object.freeze({ left: false, right: false, jump: false, shoot: false, start: false }),
+    move_left: Object.freeze({ left: true, right: false, jump: false, shoot: false, start: false }),
+    move_right: Object.freeze({
+        left: false,
+        right: true,
+        jump: false,
+        shoot: false,
+        start: false,
+    }),
+    fire: Object.freeze({ left: false, right: false, jump: false, shoot: true, start: false }),
+    fire_left: Object.freeze({ left: true, right: false, jump: false, shoot: true, start: false }),
+    fire_right: Object.freeze({
+        left: false,
+        right: true,
+        jump: false,
+        shoot: true,
+        start: false,
+    }),
+    jump: Object.freeze({ left: false, right: false, jump: true, shoot: false, start: false }),
+    jump_left: Object.freeze({ left: true, right: false, jump: true, shoot: false, start: false }),
+    jump_right: Object.freeze({
+        left: false,
+        right: true,
+        jump: true,
+        shoot: false,
+        start: false,
+    }),
 });
 
 function round(value) {
@@ -40,7 +64,7 @@ function phaseOf(snapshot) {
 function availableActionsFor(phase, snapshot) {
     if (phase === 'awaiting_start') return ['start'];
     if (phase !== 'playing') return ['wait'];
-    const actions = ['wait', 'move_left', 'move_right'];
+    const actions = ['wait', 'move_left', 'move_right', 'fire', 'fire_left', 'fire_right'];
     const jumpsRemaining = Math.max(
         0,
         (snapshot && snapshot.maxJumps ? snapshot.maxJumps : 0) -
@@ -231,6 +255,7 @@ export function createTestObservation(snapshot, seed = null) {
         grounded: Boolean(player.grounded),
         jumpsRemaining: Math.max(0, (snapshot.maxJumps || 0) - (snapshot.jumpCount || 0)),
     };
+    observation.canShoot = snapshot.phaser === true;
     observation.objective = crown
         ? {
               kind: 'collect_crown',
@@ -344,6 +369,7 @@ export class GameTestInterface {
             left: false,
             right: false,
             jump: false,
+            shoot: false,
             start: false,
         };
         const snapshot = this.scene.getBotSnapshot();

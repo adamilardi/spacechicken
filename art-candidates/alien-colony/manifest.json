@@ -1,0 +1,132 @@
+{
+    "schema_version": 1,
+    "brief_id": "alien-colony",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-colony-drop-a",
+            "title": "Colony Drop beachhead",
+            "status": "painted",
+            "summary": "Violet dusk, dome silhouettes and gun-towers over an orange-lit landing deck.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-colony-drop-a/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-colony-drop-a/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-colony-drop-a/beacon.js",
+                    "width_px": 24,
+                    "height_px": 44,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-colony-drop-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "colony",
+                "palette": ["#0b0e22", "#3a2a5e", "#ff8a4a", "#ffb15a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": ["seam strip staged but not eyeballed", "no hazard wiring"]
+        },
+        {
+            "id": "level-hive-warrens-b",
+            "title": "Hive Warrens",
+            "status": "painted",
+            "summary": "Teal womb haze, purple ribs and teeth over a springy chitin deck.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-hive-warrens-b/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-hive-warrens-b/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-hive-warrens-b/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "hive",
+                "palette": ["#0a1412", "#1c4d46", "#5e2a6e", "#67ffd2"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": ["seam strip staged but not eyeballed", "no hazard wiring"]
+        },
+        {
+            "id": "level-spire-crown-c",
+            "title": "Spire Crown finale",
+            "status": "painted",
+            "summary": "Black-gold spire and ringed planet over a pale chevron-notched alloy deck.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-spire-crown-c/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-spire-crown-c/deck.js",
+                    "width_px": 128,
+                    "height_px": 28,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-spire-crown-c/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "spire",
+                "palette": ["#060818", "#1a2a5e", "#8a6a1c", "#ffe14a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": ["seam strip staged but not eyeballed", "no hazard wiring"]
+        }
+    ]
+}

@@ -1573,6 +1573,10 @@ test('the development server serves only game assets', async () => {
     assert.equal((await request(server, '/.git/config')).statusCode, 404);
     assert.equal((await request(server, '/package.json')).statusCode, 404);
     assert.equal((await request(server, '/', { method: 'POST' })).statusCode, 405);
+    // On-device verification pages are served locally but never deployed.
+    assert.equal((await request(server, '/performance.html')).statusCode, 200);
+    assert.equal((await request(server, '/PerformanceTest.js')).statusCode, 200);
+    assert.equal((await request(server, '/PerformanceMetrics.js')).statusCode, 200);
 });
 
 test('the Cloudflare build contains only deployable runtime assets', async () => {
@@ -1589,6 +1593,9 @@ test('the Cloudflare build contains only deployable runtime assets', async () =>
     assert.ok(deployedFiles.includes('vendor'));
     assert.equal(deployedFiles.includes('package.json'), false);
     assert.equal(deployedFiles.includes('tests'), false);
+    assert.equal(deployedFiles.includes('performance.html'), false);
+    assert.equal(deployedFiles.includes('PerformanceTest.js'), false);
+    assert.equal(deployedFiles.includes('PerformanceMetrics.js'), false);
     for (const file of runtimeFiles) {
         await fs.promises.access(path.join(outputDirectory, file));
     }
@@ -2069,6 +2076,50 @@ test('the Jev playtest keeps the API key in Node and walks toward the crown', as
     assert.equal(action, 'move_right');
 });
 
+test('the Jev fallback fires at a level boarder instead of walking into it', async () => {
+    const { fallbackAction } = await importModule('scripts/jev-playtest.mjs');
+    const action = fallbackAction({
+        availableActions: ['wait', 'move_right', 'fire', 'fire_right', 'jump_right'],
+        canShoot: true,
+        player: { grounded: true },
+        objective: { dx: 420, dy: 8 },
+        navigation: {},
+        nearby: {
+            hazards: [{ type: 'boarder', active: true, dx: 200, dy: 10 }],
+            bombs: [],
+        },
+    });
+    assert.equal(action, 'fire_right');
+    const noGun = fallbackAction({
+        availableActions: ['wait', 'move_right', 'fire', 'fire_right', 'jump_right'],
+        canShoot: false,
+        player: { grounded: true },
+        objective: { dx: 420, dy: 8 },
+        navigation: {},
+        nearby: {
+            hazards: [{ type: 'boarder', active: true, dx: 200, dy: 10 }],
+            bombs: [],
+        },
+    });
+    assert.equal(noGun, 'move_right');
+});
+
+test('the test interface fire action holds the phaser trigger', async () => {
+    const { GameTestInterface } = await importModule('GameTestInterface.js');
+    const target = {};
+    const face = new GameTestInterface({ debugMode: true }, target);
+    const result = face.act('fire_right');
+    assert.equal(result.ok, true);
+    assert.deepEqual(target.__spaceChickenBotInput, {
+        left: false,
+        right: true,
+        jump: false,
+        shoot: true,
+        start: false,
+    });
+    assert.equal(face.act('teleport').ok, false);
+});
+
 test('the play-bot exports an in-page pilot installer', async () => {
     const { installInPagePilot, outcomeFromSnapshot } = await importModule('scripts/play-bot.mjs');
     assert.equal(typeof installInPagePilot, 'function');
@@ -2207,7 +2258,14 @@ test('the game test interface exposes compact observations and game-rule objecti
     assert.equal(observation.navigation.landingWindow.platformId, 'moving-1');
     assert.deepEqual(observation.availableActions, GAME_TEST_ACTIONS.slice(1));
     const spentJumps = createTestObservation({ ...snapshot, jumpCount: 2 }, 42);
-    assert.deepEqual(spentJumps.availableActions, ['wait', 'move_left', 'move_right']);
+    assert.deepEqual(spentJumps.availableActions, [
+        'wait',
+        'move_left',
+        'move_right',
+        'fire',
+        'fire_left',
+        'fire_right',
+    ]);
     assert.equal(checkTestObjectives(snapshot).passed, false);
     assert.equal(checkTestObjectives({ ...snapshot, pendingLevel: 2 }).passed, true);
     assert.equal(normalizeTestAction({ name: 'jump_right' }), 'jump_right');

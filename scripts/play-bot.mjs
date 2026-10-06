@@ -119,6 +119,34 @@ export function installInPagePilot() {
         return (item.w || 0) < 80 && (item.h || 0) < 60;
     }
 
+    // Contra aim distilled from the L7 JEV traces: bolts fly horizontally
+    // from your facing with ~820px range, so hold fire while a live boarder
+    // (cyan chest ring) is ahead of you and roughly level. Gated on the
+    // level flag so non-phaser levels behave exactly as before. Returns the
+    // nearest in-lane boarder distance ahead, or -1 when the lane is clear.
+    function boarderAhead(player, dir, snap) {
+        if (!snap || snap.phaser !== true) {
+            return -1;
+        }
+        let nearest = -1;
+        const hazards = snap.hazards || [];
+        for (let i = 0; i < hazards.length; i++) {
+            const item = hazards[i];
+            if (!item || item.type !== 'boarder' || !item.active || item.enable === false) {
+                continue;
+            }
+            const ahead = (item.x - player.x) * dir;
+            if (ahead > 0 && ahead <= 820 && Math.abs(item.y - player.y) < 70) {
+                nearest = nearest < 0 ? ahead : Math.min(nearest, ahead);
+            }
+        }
+        return nearest;
+    }
+
+    function shouldShoot(player, dir, snap) {
+        return boarderAhead(player, dir, snap) >= 0;
+    }
+
     function nextPlatform(px, py, dir, platforms) {
         let bestHigh = null;
         let bestHighDist = Infinity;
@@ -148,7 +176,7 @@ export function installInPagePilot() {
 
     // eslint-disable-next-line complexity
     function decide(snap) {
-        const input = { left: false, right: false, jump: false, start: false };
+        const input = { left: false, right: false, jump: false, shoot: false, start: false };
         if (!snap || !snap.ready || !snap.player) {
             return input;
         }
@@ -165,6 +193,8 @@ export function installInPagePilot() {
         const crown = snap.crown || { x: player.x + 200, y: player.y };
         const dx = crown.x - player.x;
         const dir = dx === 0 ? 1 : Math.sign(dx);
+        const shooting = shouldShoot(player, dir, snap);
+        input.shoot = shooting;
         if (columnAhead(player.x, player.y, dir, snap)) {
             return input;
         }
@@ -193,9 +223,10 @@ export function installInPagePilot() {
         const falling = player.vy > 28;
         if (blocker && isHopable(blocker)) {
             const dist = Math.abs(blocker.x - player.x);
+            const engaging = shooting && blocker.type === 'boarder';
             input.right = dx > 10 && (dist > 44 || !player.grounded);
             input.left = dx < -10 && (dist > 44 || !player.grounded);
-            input.jump = player.grounded;
+            input.jump = player.grounded && !engaging;
             return input;
         }
         input.right = dx > 10;
@@ -208,7 +239,12 @@ export function installInPagePilot() {
         );
         const grabCrown = Math.abs(dx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
         const gap = !ahead;
-        const shouldJump = gap || stepUp || grabCrown;
+        // Distilled from JEV traces in .jev-runs/level-*/ (381 actions, ~84%
+        // move_right): when grounded and the crown is close or above, hop
+        // toward it instead of running underneath. Mirrors the |dx| < 150 /
+        // dy < -35 clauses of fallbackAction in scripts/jev-playtest.mjs.
+        const closePush = player.grounded && (Math.abs(dx) < 150 || crown.y < player.y - 35);
+        const shouldJump = gap || stepUp || grabCrown || closePush;
         const canDouble =
             !player.grounded && falling && grabCrown && snap.jumpCount < snap.maxJumps;
         input.jump = shouldJump && (player.grounded || canDouble);
@@ -234,14 +270,56 @@ export function installInPagePilot() {
             }
             if (outcome) {
                 window.__spaceChickenPilotOutcome = outcome;
-                debug.setBotInput({ left: false, right: false, jump: false, start: false });
+                debug.setBotInput({
+                    left: false,
+                    right: false,
+                    jump: false,
+                    shoot: false,
+                    start: false,
+                });
                 return;
             }
             const input = decide(snap);
+            applyStuckRecovery(snap, input);
             window.__spaceChickenPilotLastInput = input;
             debug.setBotInput(input);
         } catch (err) {
             window.__spaceChickenPilotError = String(err && err.message ? err.message : err);
+        }
+    }
+
+    // Distilled from fresh JEV traces (.jev-runs/level-2, ~21 move_left
+    // backtracks when stalled): if the pilot makes no horizontal progress
+    // for a while, hop away from the goal briefly instead of stalling.
+    let stuckFromX = null;
+    let stuckFromT = 0;
+    let recoverUntil = 0;
+
+    function applyStuckRecovery(snap, input) {
+        const now = Date.now();
+        const px = snap.player ? snap.player.x : null;
+        if (
+            px == null ||
+            snap.awaitingStart ||
+            snap.gameOver ||
+            snap.pendingLevel != null ||
+            snap.dying
+        ) {
+            return;
+        }
+        if (stuckFromX == null || Math.abs(px - stuckFromX) > 24) {
+            stuckFromX = px;
+            stuckFromT = now;
+        } else if (now - stuckFromT > 2500) {
+            recoverUntil = now + 900;
+            stuckFromX = px;
+            stuckFromT = now;
+        }
+        if (now < recoverUntil) {
+            const away = snap.crown && snap.player && snap.crown.x < snap.player.x ? 1 : -1;
+            input.left = away < 0;
+            input.right = away > 0;
+            input.jump = Boolean(snap.player && snap.player.grounded);
         }
     }
 
@@ -365,7 +443,7 @@ async function runOnce(browser, trialIndex) {
                     `[bot t${trialIndex}] t=${el}s L${snap.level} deaths=${snap.deaths} ` +
                         `x=${snap.player ? Math.round(snap.player.x) : '-'} ` +
                         `y=${snap.player ? Math.round(snap.player.y) : '-'} ` +
-                        `${input.right ? '>' : ''}${input.left ? '<' : ''}${input.jump ? '^' : ''}`
+                        `${input.right ? '>' : ''}${input.left ? '<' : ''}${input.jump ? '^' : ''}${input.shoot ? '*' : ''}`
                 );
                 lastLog = now;
             }

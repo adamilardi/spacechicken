@@ -29,5 +29,12 @@ build/
 .bot-runs/
 .jev-runs/
 
+# RL runtime artifacts (policies themselves are committed)
+rl/weights/last-eval.json
+rl/weights/loop.log
+rl/weights/value.pt
+rl/rollouts/
+
 # Optional: if you ever add a real test runner or coverage
 coverage/
+__pycache__/

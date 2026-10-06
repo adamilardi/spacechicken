@@ -1,0 +1,58 @@
+{
+  "sweep": {
+    "A": {
+      "val_acc": 0.933,
+      "train_acc": 0.928
+    },
+    "B": {
+      "val_acc": 0.876,
+      "train_acc": 0.886
+    },
+    "C": {
+      "val_acc": 0.933,
+      "train_acc": 0.935
+    },
+    "D": {
+      "val_acc": 0.876,
+      "train_acc": 0.89
+    }
+  },
+  "deployed": "A (tie-break: fewer params)",
+  "play_evals": {
+    "1": {
+      "passed": false,
+      "steps": 142,
+      "deaths": 4
+    },
+    "2": {
+      "passed": false,
+      "steps": 142,
+      "deaths": 0
+    },
+    "3": {
+      "passed": false,
+      "steps": 142,
+      "deaths": 7
+    },
+    "4": {
+      "passed": false,
+      "steps": 138,
+      "deaths": 6
+    },
+    "5": {
+      "passed": false,
+      "steps": 132,
+      "deaths": 9
+    },
+    "6": {
+      "passed": false,
+      "steps": 136,
+      "deaths": 4
+    },
+    "7": {
+      "passed": false,
+      "steps": 133,
+      "deaths": 5
+    }
+  }
+}
