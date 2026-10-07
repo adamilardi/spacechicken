@@ -47,8 +47,14 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--value", type=Path, default=ROOT / "rl" / "weights" / "value.pt")
     parser.add_argument("--epochs", type=int, default=4)
     parser.add_argument("--lr", type=float, default=3e-4)
-    parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--entropy", type=float, default=0.01)
+    parser.add_argument("--gamma", type=float, default=0.995)
+    parser.add_argument("--entropy", type=float, default=0.03)
+    parser.add_argument(
+        "--clip-ratio",
+        type=float,
+        default=5.0,
+        help="Clip importance weights pi/behavior to [1/clip, clip].",
+    )
     parser.add_argument("--seed", type=int, default=7)
     return parser.parse_args(argv)
 
@@ -95,7 +101,7 @@ def train(args: argparse.Namespace) -> Path:
     torch.manual_seed(args.seed)
 
     policy_id, cohort = load_cohort(args.rollouts)
-    obs_all, act_all, ret_all = [], [], []
+    obs_all, act_all, ret_all, behavior_all = [], [], [], []
     wins, win_times = 0, []
     for header, steps in cohort:
         rewards = np.array([float(s.get("reward", 0.0)) for s in steps], dtype=np.float32)
@@ -106,6 +112,10 @@ def train(args: argparse.Namespace) -> Path:
             assert 0 <= int(step["action"]) < ACTION_SIZE
             obs_all.append(obs)
             act_all.append(int(step["action"]))
+            try:
+                behavior_all.append(float(step.get("behaviorLogProb")))
+            except (TypeError, ValueError):
+                behavior_all.append(float("nan"))
         if header.get("won"):
             wins += 1
             if header.get("timeMs"):
@@ -113,6 +123,8 @@ def train(args: argparse.Namespace) -> Path:
     obs_all = np.stack(obs_all)
     act_all = np.asarray(act_all, dtype=np.int64)
     ret_all = np.concatenate(ret_all)
+    behavior_all = np.asarray(behavior_all, dtype=np.float32)
+    behavior_coverage = float(np.isfinite(behavior_all).mean()) if len(behavior_all) else 0.0
     print(
         f"cohort {policy_id}: {len(cohort)} episodes, {len(act_all)} steps, "
         f"{wins} wins" + (f", best {min(win_times) / 1000:.1f}s" if win_times else "")
@@ -131,6 +143,7 @@ def train(args: argparse.Namespace) -> Path:
     obs_t = torch.from_numpy(obs_all)
     act_t = torch.from_numpy(act_all)
     ret_t = torch.from_numpy(ret_all)
+    behavior_t = torch.from_numpy(behavior_all)
     ret_norm = (ret_t - ret_t.mean()) / (ret_t.std() + 1e-6)
 
     for epoch in range(args.epochs):
@@ -141,8 +154,17 @@ def train(args: argparse.Namespace) -> Path:
         chosen = log_probs.gather(1, act_t.unsqueeze(1)).squeeze(1)
         with torch.no_grad():
             baseline = value(obs_t)
-        advantage = ret_norm - baseline
-        policy_loss = -(advantage.detach() * chosen).mean()
+            advantage = ret_norm - baseline
+            adv_norm = (advantage - advantage.mean()) / (advantage.std() + 1e-6)
+            # Off-policy correction: rollouts are temperature-sampled, so
+            # weight by pi/behavior (detached, clipped). Steps without a
+            # stored behavior log-prob (legacy rollouts) get weight 1.
+            finite = torch.isfinite(behavior_t)
+            ratio = torch.ones_like(chosen)
+            ratio[finite] = (chosen[finite] - behavior_t[finite]).exp().clamp(
+                1.0 / args.clip_ratio, args.clip_ratio
+            )
+        policy_loss = -(ratio * adv_norm.detach() * chosen).mean()
         value_loss = F.mse_loss(baseline, ret_norm)
         entropy = -(log_probs.exp() * log_probs).sum(dim=1).mean()
         loss = policy_loss + 0.5 * value_loss - args.entropy * entropy
@@ -154,7 +176,8 @@ def train(args: argparse.Namespace) -> Path:
         opt.step()
         print(
             f"epoch {epoch + 1}/{args.epochs} loss={float(loss.detach()):.4f} "
-            f"ret_mean={float(ret_t.mean()):.3f} entropy={float(entropy.detach()):.3f}"
+            f"ret_mean={float(ret_t.mean()):.3f} entropy={float(entropy.detach()):.3f} "
+            f"ratio_mean={float(ratio.mean()):.3f} behavior_cov={behavior_coverage:.2f}"
         )
 
     payload = export_policy_json(policy, OBS_SIZE, ACTION_SIZE)

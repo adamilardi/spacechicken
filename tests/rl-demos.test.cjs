@@ -16,20 +16,43 @@ function readContract() {
 
 test('rl encoder sees the full board and degrades gracefully on partial steps', async () => {
     const contract = readContract();
-    assert.equal(contract.obsVersion, 2);
+    assert.equal(contract.obsVersion, 3);
     assert.equal(contract.features.length, contract.obsSize);
-    const { encodeObservation, stepReward } = await importModule('scripts/rl/features.mjs');
+    const { encodeObservation, stepReward, createProgressTracker } =
+        await importModule('scripts/rl/features.mjs');
 
     const full = {
-        player: { x: 500, y: 400, vx: 120, vy: 0, grounded: true, jumpsRemaining: 1 },
+        player: {
+            x: 500,
+            y: 400,
+            vx: 120,
+            vy: 0,
+            grounded: true,
+            jumpsRemaining: 1,
+            facing: 'left',
+        },
         objective: { dx: 400, dy: -50, distance: 403 },
         level: 7,
         deaths: 1,
         elapsedMs: 9000,
         canShoot: true,
+        combat: { ready: true, msUntilReady: 0, boltsInFlight: 1 },
+        physics: { gravityY: 280, jumpVelocityY: -330, runSpeedX: 160 },
         world: { width: 3960, height: 760, killZoneY: 756 },
         nearby: {
-            hazards: [{ type: 'boarder', dx: 200, dy: 10, width: 40, height: 48, active: true }],
+            hazards: [
+                {
+                    type: 'boarder',
+                    dx: 200,
+                    dy: 10,
+                    width: 40,
+                    height: 48,
+                    active: true,
+                    vx: 60,
+                    vy: -20,
+                },
+                { type: 'drone', dx: -100, dy: 40, active: true, vx: -120, vy: 0 },
+            ],
             platforms: [{ type: 'floor', dx: -30, top: 22, width: 400 }],
             movingPlatforms: [],
             bombs: [{ dx: -150, dy: -200, active: true }],
@@ -41,6 +64,7 @@ test('rl encoder sees the full board and degrades gracefully on partial steps', 
             distanceToSupportEdge: 60,
             landingWindow: { left: 100, right: 200, top: -80 },
             immediateThreat: { dx: 200, dy: 10 },
+            nearestThreat: { dx: -100, dy: 40, distance: 108 },
         },
     };
     const vec = encodeObservation(full);
@@ -48,11 +72,22 @@ test('rl encoder sees the full board and degrades gracefully on partial steps', 
     assert.ok(vec.every(Number.isFinite));
     const at = (name) => vec[contract.features.indexOf(name)];
     assert.equal(at('canShoot'), 1);
-    assert.equal(at('hz0boarder'), 1);
-    assert.equal(at('hz0active'), 1);
+    assert.equal(at('hz0boarder'), 0);
+    assert.equal(at('hz1boarder'), 1);
+    assert.equal(at('hz1active'), 1);
     assert.equal(at('gapAhead'), 1);
     assert.equal(at('threat'), 1);
-    assert.ok(at('hz0dx') > 0 && at('timedDx') > 0 && at('bombDx') < 0);
+    assert.ok(at('hz1dx') > 0 && at('timedDx') > 0 && at('bombDx') < 0);
+    assert.ok(Math.abs(at('hz0vx') + 0.3) < 1e-9);
+    assert.ok(Math.abs(at('hz1vx') - 0.15) < 1e-9);
+    assert.ok(Math.abs(at('nthDx') + 0.125) < 1e-9);
+    assert.ok(Math.abs(at('nthDist') - 108 / 2500) < 1e-9);
+    assert.equal(at('gunReady'), 1);
+    assert.equal(at('facingLeft'), 1);
+    assert.ok(Math.abs(at('gravY') - 0.7) < 1e-9);
+    assert.ok(Math.abs(at('jumpV') + 0.66) < 1e-9);
+    assert.ok(Math.abs(at('runX') - 0.8) < 1e-9);
+    assert.equal(at('stompNow'), 0);
 
     const partial = {
         player: { x: 100, y: 450, vx: 0, vy: 0, grounded: false, jumpsRemaining: 2 },
@@ -80,6 +115,73 @@ test('rl encoder sees the full board and degrades gracefully on partial steps', 
         ),
         -1
     );
+
+    // Legacy partial steps without player state are bit-identical to before.
+    assert.equal(
+        stepReward(
+            {
+                objective: { distance: 500 },
+                deaths: 0,
+                player: { x: 100, y: 450 },
+            },
+            {
+                objective: { distance: 500 },
+                deaths: 0,
+                player: { x: 100, y: 450 },
+            },
+            { action: 'move_right' }
+        ),
+        -0.05
+    );
+    const engaging = stepReward(
+        {
+            objective: { distance: 500 },
+            deaths: 0,
+            player: { x: 100, y: 450, facing: 'right' },
+            canShoot: true,
+            combat: { ready: true },
+            nearby: {
+                hazards: [{ type: 'boarder', dx: 200, dy: 10, active: true }],
+            },
+        },
+        {
+            objective: { distance: 400 },
+            deaths: 0,
+            player: { x: 150, y: 450, facing: 'right' },
+        },
+        { action: 'fire_right' }
+    );
+    assert.ok(Math.abs(engaging - 0.25) < 1e-9);
+    const stompSetup = stepReward(
+        {
+            objective: { distance: 500 },
+            deaths: 0,
+            player: { x: 100, y: 450 },
+            nearby: {
+                hazards: [{ bonkable: true, stompableNow: true, dx: 40, dy: 60 }],
+            },
+        },
+        {
+            objective: { distance: 490 },
+            deaths: 0,
+            player: { x: 110, y: 420 },
+        },
+        { action: 'jump_right' }
+    );
+    assert.ok(Math.abs(stompSetup - 0.07) < 1e-9);
+
+    const tracker = createProgressTracker({ graceSteps: 3, penaltyPerStep: -0.1, abortSteps: 6 });
+    assert.deepEqual(tracker.step({ dist: 500, died: false }), { penalty: 0, abort: false });
+    assert.deepEqual(tracker.step({ dist: 400, died: false }), { penalty: 0, abort: false });
+    assert.deepEqual(tracker.step({ dist: 400, died: false }), { penalty: 0, abort: false });
+    assert.deepEqual(tracker.step({ dist: 399, died: false }), { penalty: 0, abort: false });
+    assert.deepEqual(tracker.step({ dist: 399, died: false }), { penalty: 0, abort: false });
+    assert.deepEqual(tracker.step({ dist: 399, died: false }), { penalty: -0.1, abort: false });
+    assert.deepEqual(tracker.step({ dist: 399, died: false }), { penalty: -0.1, abort: false });
+    assert.deepEqual(tracker.step({ dist: 399, died: false }), { penalty: -0.1, abort: true });
+    // Death resets the best: respawn is far, not stagnation.
+    assert.deepEqual(tracker.step({ dist: 900, died: true }), { penalty: 0, abort: false });
+    assert.deepEqual(tracker.step({ dist: 900, died: false }), { penalty: 0, abort: false });
 });
 
 test('rl demos match the contract and hold finite training vectors', async () => {

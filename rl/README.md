@@ -20,11 +20,10 @@ automatically; until then it trains on partials with a loud warning.
 
 ## Contract
 
-`rl/contract.json` is the source of truth: obs version 2, 70 floats — the
-12 v1 goal/ego features plus 58 board slots (nearest 4 hazards with
-active/bonk/boarder/danger/timing, nearest 3 platforms, nearest moving
-platform, navigation summary, nearest timed hazard, nearest bomb, canShoot,
-kill-zone gap, world size). 10 discrete actions (the `GAME_TEST_ACTIONS`
+`rl/contract.json` is the source of truth: obs version 3, 83 floats — the
+70 v2 features plus 13 v3 state slots (nearest-2 hazard velocities,
+any-direction nearest threat dx/dy/dist, stompable-now flag, gun readiness,
+facing, level gravity/jump/run). 10 discrete actions (the `GAME_TEST_ACTIONS`
 order). `scripts/rl/features.mjs` is the single encoder used by the
 converter, the recorder's reward shaping, and the player — never reimplement
 it by hand. `rl/contract.py` mirrors the constants for Python.

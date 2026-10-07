@@ -1,6 +1,6 @@
 {
-    "obsVersion": 2,
-    "obsSize": 70,
+    "obsVersion": 3,
+    "obsSize": 83,
     "actionSize": 10,
     "actions": [
         "start",
@@ -84,6 +84,19 @@
         "timedT",
         "bombDx",
         "bombDy",
-        "bombActive"
+        "bombActive",
+        "hz0vx",
+        "hz0vy",
+        "hz1vx",
+        "hz1vy",
+        "nthDx",
+        "nthDy",
+        "nthDist",
+        "stompNow",
+        "gunReady",
+        "facingLeft",
+        "gravY",
+        "jumpV",
+        "runX"
     ]
 }

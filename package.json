@@ -34,7 +34,8 @@
         "rl:train-rl": "python3 rl/train_rl.py",
         "rl:rollout": "node scripts/rl/rollout.mjs",
         "rl:loop": "bash scripts/rl/loop.sh",
-        "rl:play": "node scripts/rl/play-policy.mjs"
+        "rl:play": "node scripts/rl/play-policy.mjs",
+        "rl:watch": "node scripts/rl/watch-policy.mjs"
     },
     "dependencies": {
         "phaser": "3.70.0"

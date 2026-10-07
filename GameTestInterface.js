@@ -402,6 +402,16 @@ export class GameTestInterface {
         return { ok: true, seed: normalizedSeed };
     }
 
+    teleport(x, y) {
+        if (!this.scene.debugMode) {
+            return { ok: false, error: 'debug_mode_required' };
+        }
+        this.clear();
+        const ok = this.scene.debugTeleport(x, y);
+        if (!ok) return { ok: false, error: 'teleport_rejected' };
+        return { ok: true, x: Number(x), y: Number(y) };
+    }
+
     checkObjectives() {
         return checkTestObjectives(this.scene.getBotSnapshot());
     }

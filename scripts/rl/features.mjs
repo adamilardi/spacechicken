@@ -1,10 +1,11 @@
 /**
- * Shared observation feature encoder for the Space Chicken RL stack (contract v2).
+ * Shared observation feature encoder for the Space Chicken RL stack (contract v3).
  *
  * Single source of truth for obs layout: scripts/rl/convert-jev.mjs uses it
  * to build training vectors, scripts/rl/play-policy.mjs uses it for live
  * inference, and the JEV recorder stores raw observations that this module
- * encodes. Layout must match rl/contract.json (obsVersion 2, 70 floats).
+ * encodes. Layout must match rl/contract.json (obsVersion 3, 83 floats:
+ * the 70 v2 features plus 13 v3 state slots appended at the end).
  *
  * Input is a full test observation (see GameTestInterface) OR a legacy
  * partial step ({player, objective, level, deaths, atMs}); missing board
@@ -77,15 +78,47 @@ function encodeHazard(item) {
     ];
 }
 
-function nearest(list, count, key = 'dx') {
+function itemDist2(item) {
+    // 2D distance from the player: platforms carry `top` instead of `dy`.
+    return Math.hypot(num(item?.dx), num(item?.dy ?? item?.top));
+}
+
+function nearest(list, count) {
     const items = Array.isArray(list) ? [...list] : [];
-    items.sort((a, b) => Math.abs(num(a?.[key])) - Math.abs(num(b?.[key])));
+    items.sort((a, b) => itemDist2(a) - itemDist2(b));
     return items.slice(0, count);
 }
 
+export function availableMask(availableActions) {
+    if (!Array.isArray(availableActions) || availableActions.length === 0) {
+        return ACTION_NAMES.map(() => 1);
+    }
+    const allowed = new Set(availableActions);
+    return ACTION_NAMES.map((name) => (allowed.has(name) ? 1 : 0));
+}
+
 /**
- * Encode a full observation (or legacy partial step) into the 70-float
- * contract vector: 12 goal/ego features, then 58 board slots.
+ * Renormalize a prob distribution over the legal actions only, for
+ * masked sampling (rollout) and masked argmax (play-policy). Falls back
+ * to `wait` when nothing is legal rather than sampling an illegal move.
+ */
+export function maskedProbs(probs, availableActions) {
+    const mask = availableMask(availableActions);
+    const masked = probs.map((p, i) => (mask[i] ? Math.max(p, 0) : 0));
+    const total = masked.reduce((a, b) => a + b, 0);
+    if (!(total > 0)) {
+        const fallback = new Array(probs.length).fill(0);
+        fallback[actionIndex('wait')] = 1;
+        return { probs: fallback, mask };
+    }
+    return { probs: masked.map((p) => p / total), mask };
+}
+
+/**
+ * Encode a full observation (or legacy partial step) into the 83-float
+ * contract vector: 16 goal/ego features, then 54 board slots, then the
+ * 13 v3 state slots (hazard velocities, any-direction threat, stomp
+ * flag, gun readiness, facing, level physics).
  */
 export function encodeObservation(step) {
     const player = step.player || {};
@@ -93,6 +126,8 @@ export function encodeObservation(step) {
     const nearby = step.nearby || {};
     const navigation = step.navigation || {};
     const world = step.world || {};
+    const physics = step.physics || {};
+    const combat = step.combat || null;
     const dx = num(objective.dx);
     const dy = num(objective.dy);
     const dist = num(objective.distance, Math.hypot(dx, dy));
@@ -152,7 +187,8 @@ export function encodeObservation(step) {
         bool(navigation.immediateThreat)
     );
 
-    const timed = nearest(nearby.timedHazards, 1)[0];
+    const timedPool = [...(nearby.timedHazards || []), ...(nearby.rayColumns || [])];
+    const timed = nearest(timedPool, 1)[0];
     vec.push(
         clamp(num(timed?.dx) / 800, -2, 2),
         clamp(num(timed?.dy) / 600, -2, 2),
@@ -167,20 +203,165 @@ export function encodeObservation(step) {
         bool(bomb && bomb.active !== false)
     );
 
+    // v3 state slots: everything the bot was blind to in v2.
+    vec.push(
+        clamp(num(hazards[0]?.vx) / 400, -2, 2),
+        clamp(num(hazards[0]?.vy) / 400, -2, 2),
+        clamp(num(hazards[1]?.vx) / 400, -2, 2),
+        clamp(num(hazards[1]?.vy) / 400, -2, 2)
+    );
+    const nearestThreat = navigation.nearestThreat || {};
+    vec.push(
+        clamp(num(nearestThreat.dx) / 800, -2, 2),
+        clamp(num(nearestThreat.dy) / 600, -2, 2),
+        clamp(
+            num(nearestThreat.distance, Math.hypot(num(nearestThreat.dx), num(nearestThreat.dy))) /
+                2500,
+            0,
+            3
+        )
+    );
+    vec.push(
+        bool((nearby.hazards || []).some((item) => item?.bonkable && item?.stompableNow)),
+        combat ? bool(combat.ready !== false) : 0,
+        bool(player.facing === 'left'),
+        clamp(num(physics.gravityY) / 400, 0, 2),
+        clamp(num(physics.jumpVelocityY) / 500, -2, 2),
+        clamp(num(physics.runSpeedX) / 200, 0, 2)
+    );
+
     return vec;
 }
 
 /**
  * Shaped step reward shared by the recorder and the converter:
  * forward progress toward the crown, minus death.
+ *
+ * Scale: (prevDist - dist) / 500, so ~100px of crown progress = +0.2.
+ * Death is a flat -1 that ignores the respawn teleport (respawn often
+ * lands closer to the start, which would otherwise fake a large negative
+ * or positive delta on the death frame). Sub-2px deltas are rounding
+ * jitter from the observation rounder and score 0.
+ *
+ * The optional third arg carries the executed action for small dense
+ * bonuses/penalties (all skipped for legacy partial steps without player
+ * state, keeping old rewards bit-identical):
+ * - stall: no crown progress and <3px displacement while playing = -0.05
+ *   (Mario-style anti-stagnation; step cost alone is too weak to unstick).
+ * - engaging: a fire_* action toward a shootable boarder with a hot gun
+ *   = +0.05 (teaches phaser use on L7+ without swamping progress).
+ * - stomp setup: a jump_* action while a stompableNow cap is close
+ *   = +0.05 (rewards setting up boost stomps).
  */
-export function stepReward(previous, current) {
+export function stepReward(previous, current, opts = {}) {
+    const prevDeaths = num(previous?.deaths, 0);
+    const curDeaths = num(current?.deaths, prevDeaths);
+    if (curDeaths > prevDeaths) return -1;
     const prevDist = num(previous?.objective?.distance, NaN);
     const dist = num(current?.objective?.distance, NaN);
-    let reward = 0;
-    if (Number.isFinite(prevDist) && Number.isFinite(dist)) {
-        reward += clamp((prevDist - dist) / 500, -1, 1);
+    if (!Number.isFinite(prevDist) || !Number.isFinite(dist)) return 0;
+    const delta = prevDist - dist;
+    let reward = Math.abs(delta) < 2 ? 0 : clamp(delta / 500, -1, 1);
+    const action = typeof opts?.action === 'string' ? opts.action : null;
+    if (!action || !previous?.player || !current?.player) return reward;
+    if (current.phase !== undefined && current.phase !== 'playing') return reward;
+    const prevP = previous.player;
+    const curP = current.player;
+    if (
+        reward === 0 &&
+        Number.isFinite(prevP.x) &&
+        Number.isFinite(curP.x) &&
+        Math.hypot(num(curP.x) - num(prevP.x), num(curP.y) - num(prevP.y)) < 3
+    ) {
+        reward -= 0.05;
     }
-    if (num(current?.deaths) > num(previous?.deaths)) reward -= 1;
-    return reward;
+    if (action.startsWith('fire_') || action === 'fire') {
+        const side = actionDirection(action) || previous.player?.facing || null;
+        if (hadShootableBoarder(previous, side)) reward += 0.05;
+    }
+    if (action.startsWith('jump') && hadStompSetup(previous)) reward += 0.05;
+    return clamp(reward, -1.2, 1.2);
+}
+
+// Same lane geometry as scripts/jev-playtest.mjs: bolts fly horizontally
+// with ~820px range, so only count boarders on the action's side.
+function actionDirection(action) {
+    if (action.endsWith('_left')) return 'left';
+    if (action.endsWith('_right')) return 'right';
+    return null;
+}
+
+function hadShootableBoarder(obs, direction) {
+    if (obs?.canShoot === false) return false;
+    if (obs?.combat && obs.combat.ready === false) return false;
+    const hazards = obs?.nearby?.hazards || [];
+    return hazards.some((item) => {
+        if (!item || item.type !== 'boarder' || item.active === false) return false;
+        if (direction === 'left' && !(item.dx < 0)) return false;
+        if (direction === 'right' && !(item.dx > 0)) return false;
+        return Math.abs(item.dx) <= 820 && Math.abs(item.dy) < 70;
+    });
+}
+
+function hadStompSetup(obs) {
+    const hazards = obs?.nearby?.hazards || [];
+    return hazards.some(
+        (item) =>
+            item &&
+            item.bonkable &&
+            item.stompableNow &&
+            Math.abs(num(item.dx)) < 120 &&
+            Math.abs(num(item.dy)) < 120
+    );
+}
+
+/**
+ * Stateful anti-camping ratchet for rollouts (Mario-style stuck penalty).
+ * Tracks the best crown distance seen this episode: progress resets the
+ * clock, deaths reset the best (respawn lands far from the crown).
+ * After `graceSteps` without new best, every step scores `penaltyPerStep`
+ * until `abortSteps`, when the episode is cut short as a failure — no
+ * point burning 75s watching a camper.
+ */
+export function createProgressTracker({
+    graceSteps = 25,
+    penaltyPerStep = -0.1,
+    abortSteps = 75,
+} = {}) {
+    let best = Infinity;
+    let since = 0;
+    return {
+        step({ dist, died }) {
+            if (died) {
+                best = Number.isFinite(dist) ? dist : Infinity;
+                since = 0;
+                return { penalty: 0, abort: false };
+            }
+            if (Number.isFinite(dist) && dist < best - 2) {
+                best = dist;
+                since = 0;
+                return { penalty: 0, abort: false };
+            }
+            since += 1;
+            if (since >= abortSteps) return { penalty: penaltyPerStep, abort: true };
+            if (since > graceSteps) return { penalty: penaltyPerStep, abort: false };
+            return { penalty: 0, abort: false };
+        },
+    };
+}
+
+/**
+ * Terminal outcome bonus shared by rollout and JEV recording.
+ * Speed-shaped so the speedrun loop optimizes time, not just clears:
+ * 5 base + up to 5 for fast clears (120s scale), plus 2 for beating the
+ * recorded best for the level. Failures score 0 here; their signal comes
+ * from accumulated stepReward + death penalties.
+ */
+export function terminalBonus({ won, timeMs, bestMs } = {}) {
+    if (!won) return 0;
+    const t = num(timeMs, 75_000);
+    const speed = clamp((120_000 - t) / 120_000, 0, 1);
+    let bonus = 5 + 5 * speed;
+    if (Number.isFinite(Number(bestMs)) && t < Number(bestMs)) bonus += 2;
+    return bonus;
 }

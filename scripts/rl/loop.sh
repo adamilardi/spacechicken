@@ -20,6 +20,10 @@ POLICY=rl/weights/rl-policy.json
 CAMP=rl/weights/campaign.json
 LOG=rl/weights/loop.log
 ROLLOUT_DUR="${ROLLOUT_DUR:-75000}"
+# Reverse curriculum: teleport episodes to grounded late-demo states.
+# Unset/0 = full episodes from spawn (default). Warm-start wins train the
+# policy but never count as level clears (see header.warmStart filter below).
+WARM_START="${WARM_START:-0}"
 
 mkdir -p rl/weights rl/rollouts
 [ -f "$POLICY" ] || cp rl/weights/bc-policy.json "$POLICY"
@@ -28,6 +32,7 @@ mkdir -p rl/weights rl/rollouts
 log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG"; }
 
 levels_json() { python3 -c "import json;print(' '.join(map(str,json.load(open('$CAMP'))['levels'])))"; }
+best_ms() { python3 -c "import json,sys;print(json.load(open('$CAMP')).get('bestTimes',{}).get(str(sys.argv[1]),''))" "$1"; }
 
 ITER=$(python3 -c "import json;print(json.load(open('$CAMP'))['iter'])")
 START=$SECONDS
@@ -48,7 +53,7 @@ while true; do
         while [ "$(jobs -r | wc -l)" -ge "$WORKERS" ]; do wait -n; done
         LVL=$(levels_json | tr ' ' '\n' | shuf -n 1)
         POLICY="$POLICY" POLICY_ID="$PID" LEVEL="$LVL" SEED="$RANDOM" TEMPERATURE="$TEMP" \
-            DURATION_MS="$ROLLOUT_DUR" ROLLOUT_OUT=rl/rollouts node scripts/rl/rollout.mjs >> "$LOG" 2>&1 &
+            DURATION_MS="$ROLLOUT_DUR" BEST_MS="$(best_ms "$LVL")" WARM_START="$WARM_START" ROLLOUT_OUT=rl/rollouts node scripts/rl/rollout.mjs >> "$LOG" 2>&1 &
         i=$((i + 1))
     done
     wait
@@ -70,9 +75,12 @@ for name in glob.glob("rl/rollouts/rollout-*.jsonl"):
         continue
     if header.get("policyId") != pid or not header.get("won"):
         continue
+    if header.get("warmStart"):
+        print(f"warm-start win {name} trains but does not count as a clear")
+        continue
     lvl = str(header.get("level"))
     wins[lvl] = wins.get(lvl, 0) + 1
-    t = header.get("timeMs")
+    t = header.get("elapsedMs") or header.get("timeMs")
     if t and (lvl not in best or t < best[lvl]):
         best[lvl] = t
         print(f"new best L{lvl}: {t / 1000:.1f}s")
@@ -81,11 +89,17 @@ for lvl, n in wins.items():
     camp["wins"][lvl] = camp.get("wins", {}).get(lvl, 0) + n
 print(f"iter {pid} wins: {wins or 'none'}")
 top = max(camp["levels"])
-if str(top) in wins and top < 7 and (top + 1) not in camp["levels"]:
+if str(top) in wins and top < 10 and (top + 1) not in camp["levels"]:
     camp["levels"].append(top + 1)
     print(f"curriculum expands to level {top + 1}")
 camp["iter"] = int(pid.replace("iter", ""))
 json.dump(camp, open(camp_path, "w"), indent=2)
 EOF
+
+    if [ "${WATCH:-0}" = "1" ]; then
+        log "watch: headed replay of $POLICY on L1 (see it play)"
+        POLICY="$POLICY" LEVEL=1 DURATION_MS=90000 HEADLESS=0 \
+            node scripts/rl/play-policy.mjs >> "$LOG" 2>&1 || true
+    fi
 done
 log "loop done: $(cat "$CAMP")"

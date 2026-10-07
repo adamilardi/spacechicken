@@ -16,7 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { actionIndex, encodeObservation } from './features.mjs';
+import { actionIndex, availableMask, encodeObservation, stepReward } from './features.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..', '..');
@@ -63,22 +63,31 @@ function convertReport(reportPath) {
     const actions = Array.isArray(report.actions) ? report.actions : [];
     const steps = [];
     let prevDeaths = 0;
-    let prevDist = null;
+    let prevObs = null;
+    let firstDist = null;
     let maxProgress = 0;
+    const won = report.objective?.passed === true;
+    // Winning episodes are the only true expert signal; clone them harder.
+    const winScale = won ? 2 : 1;
     for (const record of actions) {
         const index = actionIndex(record.action);
         if (index < 0) continue;
         const obs = encodeObservation(record);
         if (!obs.every(Number.isFinite) || obs.length !== contract.obsSize) continue;
         const dist = Number(record.objective?.distance);
-        let reward = 0;
-        if (Number.isFinite(dist) && Number.isFinite(prevDist)) {
-            reward = Math.max(-1, Math.min(1, (prevDist - dist) / 500));
-            maxProgress = Math.max(maxProgress, 1 - dist / Math.max(1, prevDist));
+        if (Number.isFinite(dist)) {
+            if (firstDist === null) firstDist = dist;
+            maxProgress = Math.max(maxProgress, 1 - dist / Math.max(1, firstDist));
         }
-        if (Number.isFinite(dist)) prevDist = dist;
         const deaths = Number(record.deaths) || 0;
-        if (deaths > prevDeaths) reward = -1;
+        const reward = prevObs
+            ? stepReward(
+                  { objective: prevObs.objective, deaths: prevDeaths, player: prevObs.player },
+                  { objective: record.objective, deaths, player: record.player },
+                  { action: record.action }
+              )
+            : 0;
+        prevObs = record;
         prevDeaths = deaths;
         steps.push({
             type: 'step',
@@ -86,7 +95,7 @@ function convertReport(reportPath) {
             action: index,
             actionName: record.action,
             reward,
-            weight: sampleWeight(record),
+            weight: sampleWeight(record) * winScale,
             partial: true,
             meta: {
                 atMs: record.atMs ?? null,
@@ -141,10 +150,15 @@ function convertRaw(rawPath) {
             reward: Number.isFinite(row.reward) ? row.reward : 0,
             weight: 1,
             partial: false,
+            mask: availableMask(row.obs?.availableActions),
             meta: row.meta ?? null,
         });
     }
     if (!steps.length) return null;
+    const wonRaw = rawHeader.won === true;
+    if (wonRaw) {
+        for (const step of steps) step.weight = Number(step.weight || 1) * 2;
+    }
     return {
         header: baseHeader({
             expert: rawHeader.expert ?? 'jev',
@@ -153,7 +167,7 @@ function convertRaw(rawPath) {
             level: rawHeader.level ?? null,
             seed: rawHeader.seed ?? null,
             when: rawHeader.when ?? null,
-            won: rawHeader.won === true,
+            won: wonRaw,
             deaths: null,
             maxProgress,
             steps: steps.length,

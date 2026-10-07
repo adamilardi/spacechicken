@@ -2982,11 +2982,13 @@ export class SpaceChicken extends Phaser.Scene {
             mode: this.debugMode,
             goToLevel: (level) => this.debugGoToLevel(level),
             skipLevel: () => this.debugSkipLevel(),
+            teleport: (x, y) => this.debugTeleport(x, y),
         };
         window.__spaceChickenTest = {
             observe: () => this.gameTestInterface.observe(),
             act: (action) => this.gameTestInterface.act(action),
             reset: (seed) => this.gameTestInterface.reset(seed),
+            teleport: (x, y) => this.gameTestInterface.teleport(x, y),
             checkObjectives: () => this.gameTestInterface.checkObjectives(),
             captureReport: () => this.gameTestInterface.captureReport(),
         };
@@ -3009,6 +3011,46 @@ export class SpaceChicken extends Phaser.Scene {
         const nextLevel = LEVEL_IDS[index + 1];
         if (!nextLevel) return false;
         return this.debugGoToLevel(nextLevel);
+    }
+
+    // Reverse-curriculum warm start for RL rollouts: reposition the player
+    // at a recorded demonstration state so the policy practices late-level
+    // sections it rarely reaches from spawn. Debug-only, like the rest of
+    // the bot API. Resets the sub-episode clock so speed bonuses measure
+    // time-from-teleport; warm-start wins are partial and must not count
+    // as level clears (see scripts/rl/rollout.mjs header.warmStart).
+    debugTeleport(x, y) {
+        if (!this.debugMode || !this.player) return false;
+        const tx = Number(x);
+        const ty = Number(y);
+        if (!Number.isFinite(tx) || !Number.isFinite(ty)) return false;
+        if (this.isTransitioning || this.gameOver) return false;
+        const player = this.player;
+        if (player.enableBody) {
+            player.enableBody(true, tx, ty, true, true);
+        } else {
+            player.x = tx;
+            player.y = ty;
+            if (player.body) {
+                player.body.enable = true;
+                player.body.reset?.(tx, ty);
+            }
+        }
+        player.body?.stop?.();
+        player.clearTint?.();
+        player.setAlpha?.(1);
+        this.effectsManager?.keepPlayerBodyStable?.(player);
+        this.jumpCount = 0;
+        this.jumpRequested = false;
+        this.bufferedJumpAt = 0;
+        this.boarderGraceUntil = this.getGameTime() + GAME_CONSTANTS.BOARDER_GRACE_MS;
+        this.startTime = performance.now();
+        if (this.uiManager) {
+            this.uiManager.lastTimerDisplay = '';
+            this.uiManager.updateTimer(0);
+        }
+        this.getMainCamera()?.centerOn?.(tx, ty);
+        return true;
     }
 
     describePhaserState() {

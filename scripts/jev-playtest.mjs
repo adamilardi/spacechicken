@@ -18,7 +18,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { LEVEL_IDS } from '../levels/index.js';
 import { installInPageWatchdog } from './playtest-bot.mjs';
-import { stepReward } from './rl/features.mjs';
+import { stepReward, terminalBonus } from './rl/features.mjs';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../server.cjs');
@@ -344,7 +344,9 @@ async function runPlaytest(client, page) {
         actions.push(record);
         if (RECORD_DEMOS) {
             if (pendingRaw) {
-                pendingRaw.reward = stepReward(pendingRaw.obs, state.observation);
+                pendingRaw.reward = stepReward(pendingRaw.obs, state.observation, {
+                    action: pendingRaw.action,
+                });
                 rawSteps.push(pendingRaw);
             }
             pendingRaw = {
@@ -381,7 +383,8 @@ async function runPlaytest(client, page) {
     );
     if (pendingRaw) {
         pendingRaw.reward =
-            stepReward(pendingRaw.obs, finalObservation) + (objective?.passed ? 1 : 0);
+            stepReward(pendingRaw.obs, finalObservation, { action: pendingRaw.action }) +
+            terminalBonus({ won: Boolean(objective?.passed), timeMs: Date.now() - startedAt });
         rawSteps.push(pendingRaw);
     }
     return {

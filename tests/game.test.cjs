@@ -105,6 +105,7 @@ test('all active JavaScript files pass the JavaScript parser', () => {
         'scripts/play-bot.mjs',
         'scripts/playtest-bot.mjs',
         'scripts/jev-playtest.mjs',
+        'scripts/rl/watch-policy.mjs',
     ];
     files.forEach((file) => {
         const source = fs.readFileSync(path.join(projectRoot, file), 'utf8');
@@ -829,6 +830,51 @@ test('bot debug APIs are only exposed in debug mode', async () => {
     assert.ok(global.window.__spaceChickenTest);
     delete global.window.__spaceChickenDebug;
     delete global.window.__spaceChickenTest;
+});
+
+test('debug teleport repositions the player for warm starts only in debug mode', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const prod = new SpaceChicken();
+    prod.debugMode = false;
+    assert.equal(prod.debugTeleport(500, 400), false);
+
+    const scene = new SpaceChicken();
+    scene.debugMode = true;
+    scene.isTransitioning = false;
+    scene.gameOver = false;
+    scene.jumpCount = 3;
+    scene.getGameTime = () => 1000;
+    scene.getMainCamera = () => ({
+        centerOn(x, y) {
+            scene.centered = [x, y];
+        },
+    });
+    scene.player = {
+        x: 100,
+        y: 450,
+        body: {
+            enable: true,
+            stop() {
+                this.stopped = true;
+            },
+            reset(x, y) {
+                this.x = x;
+                this.y = y;
+            },
+        },
+        clearTint() {},
+        setAlpha() {},
+    };
+    scene.effectsManager = { keepPlayerBodyStable() {} };
+    scene.uiManager = { lastTimerDisplay: 'x', updateTimer() {} };
+    assert.equal(scene.debugTeleport(900, 300), true);
+    assert.equal(scene.player.body.x, 900);
+    assert.equal(scene.player.body.y, 300);
+    assert.equal(scene.jumpCount, 0);
+    assert.deepEqual(scene.centered, [900, 300]);
+    assert.equal(scene.debugTeleport(Number.NaN, 300), false);
+    scene.isTransitioning = true;
+    assert.equal(scene.debugTeleport(900, 300), false);
 });
 
 test('the opening scene waits for a title start on a fresh run only', async () => {

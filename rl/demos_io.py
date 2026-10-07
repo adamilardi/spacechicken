@@ -20,6 +20,7 @@ class Sample:
     won: bool = False
     progress: float = 0.0
     partial: bool = False
+    mask: Optional[np.ndarray] = None  # (ACTION_SIZE,) 0/1 or None when unknown
 
 
 @dataclass
@@ -33,6 +34,7 @@ class EpisodeRecord:
     weights: np.ndarray  # (T,)
     headers: dict = field(default_factory=dict)
     max_progress: float = 0.0
+    masks: list = field(default_factory=list)  # per-step (ACTION_SIZE,) or None
 
     @property
     def steps(self) -> int:
@@ -93,7 +95,7 @@ def iter_episode_records(
                 reason or "empty",
             )
             continue
-        obs_list, act_list, w_list = [], [], []
+        obs_list, act_list, w_list, m_list = [], [], [], []
         for st in steps:
             try:
                 obs = np.asarray(st["obs"], dtype=np.float32)
@@ -105,9 +107,19 @@ def iter_episode_records(
                 continue
             if not np.isfinite(obs).all() or not np.isfinite(w):
                 continue
+            mask = None
+            raw_mask = st.get("mask")
+            if isinstance(raw_mask, list) and len(raw_mask) == ACTION_SIZE:
+                try:
+                    mask = np.asarray([1.0 if float(v) else 0.0 for v in raw_mask], dtype=np.float32)
+                    if mask.sum() <= 0:
+                        mask = None
+                except (TypeError, ValueError):
+                    mask = None
             obs_list.append(obs)
             act_list.append(act)
             w_list.append(w)
+            m_list.append(mask)
         if not obs_list:
             yield (
                 EpisodeRecord(
@@ -133,6 +145,7 @@ def iter_episode_records(
                 weights=np.asarray(w_list, dtype=np.float32),
                 headers=header,
                 max_progress=float(header.get("maxProgress") or 0.0),
+                masks=m_list,
             ),
             None,
         )
@@ -155,6 +168,7 @@ def load_bc_samples(demo_dir: Path) -> Tuple[List[Sample], dict]:
         if ep.won:
             meta["wins"] += 1
         for i in range(ep.steps):
+            mask = ep.masks[i] if i < len(ep.masks) else None
             samples.append(
                 Sample(
                     obs=ep.obs[i],
@@ -163,6 +177,7 @@ def load_bc_samples(demo_dir: Path) -> Tuple[List[Sample], dict]:
                     won=ep.won,
                     progress=ep.max_progress,
                     partial=bool(ep.headers.get("partial", False)),
+                    mask=mask,
                 )
             )
     if not samples:

@@ -1,8 +1,13 @@
 {
   "levels": [
-    1
+    1,
+    2
   ],
-  "bestTimes": {},
-  "wins": {},
-  "iter": 37
+  "bestTimes": {
+    "1": 12767
+  },
+  "wins": {
+    "1": 39
+  },
+  "iter": 120
 }
