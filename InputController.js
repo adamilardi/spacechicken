@@ -38,6 +38,10 @@ export class InputController {
             phaser: false,
         };
         this.hitBounds = { x: 0, y: 0, width: 0, height: 0 };
+        this.gamepadActive = false;
+        this.gamepadSlowPoll = 0;
+        this.gamepadPads = null;
+        this.gamepadPadsValid = false;
     }
 
     poll() {
@@ -107,13 +111,35 @@ export class InputController {
         return state;
     }
 
+    readGamepads() {
+        if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
+            return [];
+        }
+        if (!this.gamepadActive && this.gamepadSlowPoll > 0) {
+            this.gamepadSlowPoll -= 1;
+            return [];
+        }
+        const pads = navigator.getGamepads() || [];
+        let connected = false;
+        for (let i = 0; i < pads.length; i++) {
+            if (pads[i] && pads[i].connected !== false) {
+                connected = true;
+                break;
+            }
+        }
+        this.gamepadActive = connected;
+        if (!connected) {
+            this.gamepadSlowPoll = GAME_CONSTANTS.GAMEPAD_SLOW_POLL_FRAMES;
+        }
+        return pads;
+    }
+
     // eslint-disable-next-line complexity
     pollGamepad(state) {
         const scene = this.scene;
-        const pads =
-            typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function'
-                ? navigator.getGamepads()
-                : [];
+        const pads = this.readGamepads();
+        this.gamepadPads = pads;
+        this.gamepadPadsValid = true;
         let pad = null;
         for (let i = 0; i < pads.length; i++) {
             if (pads[i] && pads[i].connected !== false) {
@@ -216,6 +242,12 @@ export class InputController {
     }
 
     getGamepad(index = 0) {
+        // poll() runs before every same-frame consumer, so reuse its snapshot
+        // instead of querying the browser a second time.
+        if (this.gamepadPadsValid && this.gamepadPads) {
+            const cached = this.gamepadPads[index];
+            return cached && cached.connected !== false ? cached : null;
+        }
         if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function')
             return null;
         const pads = navigator.getGamepads();

@@ -388,3 +388,51 @@ test('pointer tracking dedupes phaser pointer lists', async () => {
     controller.pushUniquePointer(null, pointers);
     assert.equal(pointers.length, 1);
 });
+
+test('gamepads slow-poll when absent and share one snapshot per frame', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const navigatorTarget = globalThis.navigator;
+    const original = navigatorTarget.getGamepads;
+    let calls = 0;
+    let pads = [];
+    navigatorTarget.getGamepads = () => {
+        calls += 1;
+        return pads;
+    };
+    try {
+        const controller = new InputController({ coopMode: null });
+        controller.pollGamepad({ menu: {} });
+        assert.equal(calls, 1);
+        for (let i = 0; i < GAME_CONSTANTS.GAMEPAD_SLOW_POLL_FRAMES * 2; i++) {
+            controller.pollGamepad({ menu: {} });
+        }
+        assert.ok(calls <= 4);
+
+        pads = [{ connected: true, buttons: [], axes: [] }];
+        for (let i = 0; i <= GAME_CONSTANTS.GAMEPAD_SLOW_POLL_FRAMES; i++) {
+            controller.pollGamepad({ menu: {} });
+        }
+        const before = calls;
+        for (let i = 0; i < 5; i++) {
+            controller.pollGamepad({ menu: {} });
+        }
+        assert.equal(calls - before, 5);
+        assert.equal(controller.getGamepad(0), pads[0]);
+        assert.equal(calls - before, 5);
+
+        pads = [];
+        for (let i = 0; i <= GAME_CONSTANTS.GAMEPAD_SLOW_POLL_FRAMES + 1; i++) {
+            controller.pollGamepad({ menu: {} });
+        }
+        const idle = calls;
+        controller.pollGamepad({ menu: {} });
+        assert.equal(calls - idle, 0);
+    } finally {
+        if (original === undefined) {
+            delete navigatorTarget.getGamepads;
+        } else {
+            navigatorTarget.getGamepads = original;
+        }
+    }
+});

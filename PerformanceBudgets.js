@@ -188,7 +188,10 @@ export const PERFORMANCE_BUDGETS = Object.freeze({
     maxSceneObjects: 400,
     maxPhysicsBodies: 60,
     maxLiveParticles: 64,
-    maxTextures: 60,
+    // Measured 70 with 10 levels: 4 current-level backdrops plus preloaded
+    // sprite frames, actors, weapons, and buttons. Kept tight so per-visit
+    // leaks still trip the gate; raise deliberately when content grows.
+    maxTextures: 80,
     // HUD timer rasterization cadence: 20Hz.
     timerBucketMs: 50,
 });

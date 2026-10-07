@@ -47,6 +47,9 @@ export const GAME_CONSTANTS = {
     COACH_PHASER_KEY: 'spaceChickenCoachPhaser',
 
     DOUBLE_TAP_THRESHOLD: 350,
+    // With no gamepad connected, re-check for one this often instead of
+    // calling navigator.getGamepads() every frame (touch devices pay ~nothing).
+    GAMEPAD_SLOW_POLL_FRAMES: 30,
     RESTART_DELAY: 500,
     DEATH_TRANSITION_DELAY: 320,
     LEVEL_TRANSITION_DELAY: 640,

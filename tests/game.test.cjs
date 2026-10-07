@@ -2556,6 +2556,48 @@ test('boarder wave banners only fire when aliens actually drop in', async () => 
     assert.deepEqual(sounds, ['wave', 'duck']);
 });
 
+test('boarder updates reuse their target and ally scratch lists', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.killZoneFallY = 10000;
+    scene.getGameTime = () => 1000;
+    scene.boarderGraceUntil = 0;
+    scene.boarderWave = 1;
+    scene.player = { active: true, x: 100, y: 100, body: { enable: true } };
+    scene.player2 = { active: false, x: 0, y: 0, body: { enable: true } };
+    const velocities = [];
+    const alien = {
+        active: true,
+        arrived: true,
+        defeated: false,
+        aggro: false,
+        x: 500,
+        y: 100,
+        homeX: 500,
+        homeY: 100,
+        body: { enable: true },
+        setVelocityX(value) {
+            velocities.push(value);
+        },
+        setVelocityY() {},
+        setFlipX() {},
+    };
+    scene.boardersGroup = { getChildren: () => [alien] };
+    scene.updateBoarders();
+    assert.deepEqual(scene.boarderTargets, [scene.player]);
+    assert.deepEqual(scene.boarderAllies, [alien]);
+    assert.equal(velocities.length, 1);
+    const targets = scene.boarderTargets;
+    const allies = scene.boarderAllies;
+    const options = scene.boarderOptions;
+    scene.updateBoarders();
+    assert.equal(scene.boarderTargets, targets);
+    assert.equal(scene.boarderAllies, allies);
+    assert.equal(scene.boarderOptions, options);
+    assert.deepEqual(targets, [scene.player]);
+    assert.equal(velocities.length, 2);
+});
+
 test('the test interface fire action holds the phaser trigger', async () => {
     const { GameTestInterface } = await importModule('GameTestInterface.js');
     const target = {};

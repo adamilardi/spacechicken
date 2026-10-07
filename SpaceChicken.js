@@ -183,6 +183,17 @@ export class SpaceChicken extends Phaser.Scene {
     constructor() {
         super();
         this.viewport = new Viewport(this);
+        // Reused every frame by updateBoarders so the hot loop allocates nothing.
+        this.boarderTargets = [];
+        this.boarderAllies = [];
+        this.boarderOptions = {
+            speed: GAME_CONSTANTS.BOARDER_SPEED,
+            hopVelocity: GAME_CONSTANTS.BOARDER_HOP_VELOCITY_Y,
+            hopRange: GAME_CONSTANTS.BOARDER_HOP_RANGE_X,
+            hopClearance: GAME_CONSTANTS.BOARDER_HOP_CLEARANCE,
+            aggroX: GAME_CONSTANTS.BOARDER_AGGRO_X,
+            aggroY: GAME_CONSTANTS.BOARDER_AGGRO_Y,
+        };
     }
 
     init(data = {}) {
@@ -1550,18 +1561,17 @@ export class SpaceChicken extends Phaser.Scene {
         if (!aliens.length) {
             return;
         }
-        const targets = [this.player, this.player2].filter(
-            (chicken) => chicken?.active && chicken.body?.enable !== false
-        );
-        const options = {
-            speed: GAME_CONSTANTS.BOARDER_SPEED,
-            hopVelocity: GAME_CONSTANTS.BOARDER_HOP_VELOCITY_Y,
-            hopRange: GAME_CONSTANTS.BOARDER_HOP_RANGE_X,
-            hopClearance: GAME_CONSTANTS.BOARDER_HOP_CLEARANCE,
-            aggroX: GAME_CONSTANTS.BOARDER_AGGRO_X,
-            aggroY: GAME_CONSTANTS.BOARDER_AGGRO_Y,
-        };
-        const allies = [];
+        const targets = this.boarderTargets;
+        targets.length = 0;
+        if (this.player?.active && this.player.body?.enable !== false) {
+            targets.push(this.player);
+        }
+        if (this.player2?.active && this.player2.body?.enable !== false) {
+            targets.push(this.player2);
+        }
+        const options = this.boarderOptions;
+        const allies = this.boarderAllies;
+        allies.length = 0;
         for (let i = 0; i < aliens.length; i++) {
             const alien = aliens[i];
             if (alien?.active && !alien.defeated) {
