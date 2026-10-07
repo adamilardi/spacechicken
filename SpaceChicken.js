@@ -349,7 +349,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.worldWidth = this.levelConfig.world.width;
         this.worldHeight = this.levelConfig.world.height;
         this.killZoneFallY = this.levelConfig.killZoneY + this.levelConfig.killZoneHeight;
-        this.backgroundRenderer.render(this.worldWidth, this.worldHeight);
+        this.backgroundRenderer.renderProgressive(this.worldWidth, this.worldHeight);
 
         this.player = this.physics.add.sprite(
             this.levelConfig.playerStart.x,

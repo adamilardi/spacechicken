@@ -63,6 +63,72 @@ export class BackgroundRenderer {
     }
 
     render(worldWidth, worldHeight) {
+        const { background, layoutKey, layers } = this.prepareRender(worldWidth, worldHeight);
+        for (let i = 0; i < layers.length; i++) {
+            this.renderLayer(layers[i], background, layoutKey, worldWidth, worldHeight);
+        }
+        this.createTwinkleStars();
+        this.viewKey = '';
+        this.syncToCamera();
+        return this.image || this.graphics;
+    }
+
+    // Same final backdrop as render(), but layers that still need a bake land one
+    // per tick behind the level fade instead of blocking first paint for ~175ms.
+    // Layers already baked (retries, revisits) are placed synchronously, so the
+    // death path looks identical. Falls back to render() without a scheduler.
+    renderProgressive(worldWidth, worldHeight) {
+        if (typeof this.scene?.time?.delayedCall !== 'function') {
+            return this.render(worldWidth, worldHeight);
+        }
+        const { background, layoutKey, layers } = this.prepareRender(worldWidth, worldHeight);
+        const generation = this.renderGeneration;
+        const pending = [];
+        for (let i = 0; i < layers.length; i++) {
+            const layer = layers[i];
+            const bake = this.resolveBakeSize(worldWidth, worldHeight);
+            const textureKey = this.textureKeyFor(layer, layoutKey, bake);
+            if (this.placeCachedLayer(layer, textureKey)) {
+                continue;
+            }
+            pending.push(layer);
+        }
+        this.createTwinkleStars();
+        this.viewKey = '';
+        this.syncToCamera();
+        if (pending.length) {
+            this.scheduleLayerBakes(
+                pending,
+                background,
+                layoutKey,
+                worldWidth,
+                worldHeight,
+                generation
+            );
+        }
+        return this.image || this.graphics;
+    }
+
+    scheduleLayerBakes(pending, background, layoutKey, worldWidth, worldHeight, generation) {
+        const queue = pending.slice();
+        const bakeNext = () => {
+            if (this.scene?.backgroundRenderer !== this || this.renderGeneration !== generation) {
+                return;
+            }
+            const layer = queue.shift();
+            if (!layer) {
+                return;
+            }
+            this.renderLayer(layer, background, layoutKey, worldWidth, worldHeight);
+            this.layoutTwinkles();
+            if (queue.length) {
+                this.scene.time.delayedCall(0, bakeNext);
+            }
+        };
+        this.scene.time.delayedCall(0, bakeNext);
+    }
+
+    prepareRender(worldWidth, worldHeight) {
         const background = (this.levelConfig && this.levelConfig.background) || {};
         const layoutKey = `${this.level}_background_${background.type || 'space'}_${
             background.style || 'default'
@@ -78,21 +144,13 @@ export class BackgroundRenderer {
                 this.textures.remove(key);
             }
         }
-        const layers = parallaxLayersForLevel(this.level);
-        for (let i = 0; i < layers.length; i++) {
-            this.renderLayer(layers[i], background, layoutKey, worldWidth, worldHeight);
-        }
-        this.createTwinkleStars();
-        this.viewKey = '';
-        this.syncToCamera();
-        return this.image || this.graphics;
+        return { background, layoutKey, layers: parallaxLayersForLevel(this.level) };
     }
 
     renderLayer(layer, background, layoutKey, worldWidth, worldHeight) {
         const bake = this.resolveBakeSize(worldWidth, worldHeight);
         const textureKey = this.textureKeyFor(layer, layoutKey, bake);
-        if (this.textures?.exists?.(textureKey)) {
-            this.placeBakedLayer(layer, textureKey);
+        if (this.placeCachedLayer(layer, textureKey)) {
             return;
         }
 
@@ -103,6 +161,14 @@ export class BackgroundRenderer {
             return;
         }
         this.placeLiveLayer(layer);
+    }
+
+    placeCachedLayer(layer, textureKey) {
+        if (!this.textures?.exists?.(textureKey)) {
+            return false;
+        }
+        this.placeBakedLayer(layer, textureKey);
+        return true;
     }
 
     textureKeyFor(layer, layoutKey, bake) {
@@ -425,6 +491,8 @@ export class BackgroundRenderer {
     }
 
     destroyPlacedLayers() {
+        // Every path that discards placed layers also invalidates deferred bakes.
+        this.renderGeneration = (this.renderGeneration || 0) + 1;
         for (let i = 0; i < this.twinkleTweens.length; i++) {
             const tween = this.twinkleTweens[i];
             if (tween?.stop) {

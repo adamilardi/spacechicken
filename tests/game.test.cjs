@@ -1078,6 +1078,111 @@ test('wide worlds bake a smaller background texture and stretch it', async () =>
     });
 });
 
+test('progressive backgrounds place cached layers now and bake the rest later', async () => {
+    const { BackgroundRenderer } = await importModule('BackgroundRenderer.js');
+    const { parallaxLayersForLevel } = await importModule('Constants.js');
+    const generated = [];
+    const images = [];
+    const scheduled = [];
+    const scene = {
+        level: 2,
+        viewportWidth: 900,
+        viewportHeight: 400,
+        levelConfig: { background: { type: 'space', style: 'arcadeOrbit' } },
+        time: {
+            delayedCall(_ms, fn) {
+                scheduled.push(fn);
+                return {};
+            },
+        },
+        textures: {
+            exists(key) {
+                return generated.some((entry) => entry.key === key);
+            },
+            getTextureKeys() {
+                return generated.map((entry) => entry.key);
+            },
+            remove(key) {
+                const index = generated.findIndex((entry) => entry.key === key);
+                if (index >= 0) {
+                    generated.splice(index, 1);
+                }
+            },
+        },
+        add: {
+            image(_x, _y, key) {
+                const sprite = {
+                    key,
+                    setOrigin() {
+                        return this;
+                    },
+                    setDepth() {
+                        return this;
+                    },
+                    setScrollFactor() {
+                        return this;
+                    },
+                    setDisplaySize() {
+                        return this;
+                    },
+                    setSize() {
+                        return this;
+                    },
+                    destroy() {},
+                };
+                images.push(sprite);
+                return sprite;
+            },
+            graphics() {
+                return {
+                    scaleX: 1,
+                    scaleY: 1,
+                    setScale() {},
+                    generateTexture(key, width, height) {
+                        generated.push({ key, width, height });
+                    },
+                    destroy() {},
+                };
+            },
+        },
+    };
+    const renderer = new BackgroundRenderer(scene);
+    scene.backgroundRenderer = renderer;
+    renderer.createTwinkleStars = () => {};
+    renderer.drawLayer = () => {};
+    const layers = parallaxLayersForLevel(scene.level);
+
+    renderer.renderProgressive(3000, 700);
+    assert.equal(images.length, 0);
+    assert.equal(scheduled.length, 1);
+
+    // A second render before the queue drains must orphan the first queue.
+    renderer.renderProgressive(3000, 700);
+    assert.equal(images.length, 0);
+    assert.equal(scheduled.length, 2);
+    while (scheduled.length) {
+        scheduled.shift()();
+    }
+    assert.equal(images.length, layers.length);
+    assert.equal(generated.length, layers.length);
+
+    // Retries hit the texture cache, so every layer lands synchronously.
+    images.length = 0;
+    const queued = scheduled.length;
+    renderer.renderProgressive(3000, 700);
+    assert.equal(images.length, layers.length);
+    assert.equal(scheduled.length, queued);
+
+    // Without a scheduler it bakes synchronously like render().
+    scene.time = undefined;
+    generated.length = 0;
+    images.length = 0;
+    renderer.renderProgressive(3000, 700);
+    assert.equal(images.length, layers.length);
+    assert.equal(generated.length, layers.length);
+    assert.equal(scheduled.length, queued);
+});
+
 test('zoomed cameras extend parallax layers past the right edge of the screen', async () => {
     const { BackgroundRenderer } = await importModule('BackgroundRenderer.js');
     const renderer = new BackgroundRenderer({});
