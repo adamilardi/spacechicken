@@ -1753,10 +1753,14 @@ export class SpaceChicken extends Phaser.Scene {
         if (next <= (this.boarderWave || 1)) {
             return;
         }
+        let released = 0;
         for (let wave = (this.boarderWave || 1) + 1; wave <= next; wave++) {
-            this.releaseBoarderWave(wave);
+            released += this.releaseBoarderWave(wave);
         }
         this.boarderWave = next;
+        if (released === 0) {
+            return;
+        }
         this.uiManager?.showLevelBanner?.(`WAVE ${next}`, 'Aliens dropping in');
         this.audioManager?.playWaveSound?.();
         this.audioManager?.duckMusic?.(160);
@@ -1764,6 +1768,7 @@ export class SpaceChicken extends Phaser.Scene {
 
     releaseBoarderWave(wave) {
         const aliens = this.boardersGroup?.getChildren?.() || [];
+        let released = 0;
         for (let i = 0; i < aliens.length; i++) {
             const alien = aliens[i];
             if (!alien || alien.arrived || this.boarderWaveNumber(alien) !== wave) {
@@ -1792,7 +1797,9 @@ export class SpaceChicken extends Phaser.Scene {
             if (alien.body) {
                 alien.body.enable = true;
             }
+            released++;
         }
+        return released;
     }
 
     stowBoarder(alien) {

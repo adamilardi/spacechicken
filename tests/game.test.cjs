@@ -2402,6 +2402,55 @@ test('the colony crown shield gates the clear on dead boarders', async () => {
     assert.deepEqual(banners, [['CROWN OPEN', 'Pad clear — take it']]);
 });
 
+test('boarder wave banners only fire when aliens actually drop in', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+
+    const empty = new SpaceChicken();
+    empty.boarderWave = 1;
+    empty.player = { active: true, x: 1400, body: { enable: true } };
+    empty.boardersGroup = { getChildren: () => [] };
+    const quietBanners = [];
+    const quietSounds = [];
+    empty.uiManager = { showLevelBanner: (t, s) => quietBanners.push([t, s]) };
+    empty.audioManager = {
+        playWaveSound: () => quietSounds.push('wave'),
+        duckMusic: () => quietSounds.push('duck'),
+    };
+    empty.updateBoarderWaves();
+    assert.equal(empty.boarderWave, 2);
+    assert.deepEqual(quietBanners, []);
+    assert.deepEqual(quietSounds, []);
+
+    const scene = new SpaceChicken();
+    scene.boarderWave = 1;
+    scene.player = { active: true, x: 1400, body: { enable: true } };
+    const alien = {
+        arrived: false,
+        wave: 2,
+        homeX: 1560,
+        homeY: 540,
+        clearTint: () => {},
+        setActive: () => {},
+        setVisible: () => {},
+        setAlpha: () => {},
+        setVelocity: () => {},
+        body: { enable: false, reset: () => {} },
+    };
+    scene.boardersGroup = { getChildren: () => [alien] };
+    const banners = [];
+    const sounds = [];
+    scene.uiManager = { showLevelBanner: (t, s) => banners.push([t, s]) };
+    scene.audioManager = {
+        playWaveSound: () => sounds.push('wave'),
+        duckMusic: () => sounds.push('duck'),
+    };
+    scene.updateBoarderWaves();
+    assert.equal(scene.boarderWave, 2);
+    assert.equal(alien.arrived, true);
+    assert.deepEqual(banners, [['WAVE 2', 'Aliens dropping in']]);
+    assert.deepEqual(sounds, ['wave', 'duck']);
+});
+
 test('the test interface fire action holds the phaser trigger', async () => {
     const { GameTestInterface } = await importModule('GameTestInterface.js');
     const target = {};
