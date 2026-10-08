@@ -1,18 +1,43 @@
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
+import { resolveChromeExecutable } from './chrome-path.mjs';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../server.cjs');
 const output = process.env.PERF_OUT || '/tmp/space-chicken-performance';
 const duration = Number(process.env.PERF_DURATION_MS || 4000);
+
+function parseLevels(raw) {
+    if (!raw) {
+        return Array.from({ length: 16 }, (_, index) => index + 1);
+    }
+    const out = [];
+    for (const part of raw.split(',')) {
+        const range = part.split('-').map(Number);
+        if (range.length === 1 && Number.isFinite(range[0])) {
+            out.push(range[0]);
+        } else if (range.length === 2 && Number.isFinite(range[0]) && Number.isFinite(range[1])) {
+            for (let level = range[0]; level <= range[1]; level++) {
+                out.push(level);
+            }
+        }
+    }
+    return out.filter((level) => level >= 1 && level <= 16);
+}
+
 await fs.mkdir(output, { recursive: true });
 const server = createServer();
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const localUrl = `http://127.0.0.1:${server.address().port}`;
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const executablePath = resolveChromeExecutable();
+const browser = await chromium.launch({
+    headless: true,
+    executablePath,
+    args: ['--no-sandbox', '--use-gl=swiftshader', '--ignore-gpu-blocklist'],
+});
 const cases = [
-    ...[1, 2, 3, 4].map((level) => ({
+    ...parseLevels(process.env.PERF_LEVELS).map((level) => ({
         name: `desktop-l${level}`,
         level,
         width: 1280,

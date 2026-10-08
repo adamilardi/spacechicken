@@ -8,7 +8,7 @@
         {
             "binding": "DB",
             "database_name": "space-chicken-leaderboard",
-            "database_id": "3ca67003-81e9-4547-b3cd-bf1a4a1d2250"
-        }
-    ]
+            "database_id": "3ca67003-81e9-4547-b3cd-bf1a4a1d2250",
+        },
+    ],
 }

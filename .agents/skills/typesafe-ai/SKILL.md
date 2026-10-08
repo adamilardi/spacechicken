@@ -2,15 +2,15 @@
 name: typesafe-ai
 license: MIT
 description: >
-  Build AI-powered software with TypeSafe: small units of AI intelligence you
-  can use like programming primitives. Its System One models, including Jev,
-  turn natural language and application state into typed judgments and
-  probabilities that code can combine. Use when a feature needs programmable
-  common sense, when brainstorming what AI could make possible in an app, or
-  when an LLM prompt-and-parse step could become a structured decision.
-  Applications include routing, ranking, extraction, verification, and
-  interactive experiences; these are starting points, not the limits.
-  Read live docs and cookbooks to find useful patterns and discover new combinations.
+    Build AI-powered software with TypeSafe: small units of AI intelligence you
+    can use like programming primitives. Its System One models, including Jev,
+    turn natural language and application state into typed judgments and
+    probabilities that code can combine. Use when a feature needs programmable
+    common sense, when brainstorming what AI could make possible in an app, or
+    when an LLM prompt-and-parse step could become a structured decision.
+    Applications include routing, ranking, extraction, verification, and
+    interactive experiences; these are starting points, not the limits.
+    Read live docs and cookbooks to find useful patterns and discover new combinations.
 ---
 
 # Build with TypeSafe
@@ -43,14 +43,14 @@ API contracts, SDK usage, models, limits, and worked examples.
   use available local docs or installed SDK types, state that limitation, and avoid
   inventing version-dependent details.
 
-| Task | Start here; follow the relevant details |
-| --- | --- |
-| Understand the programming model | [System One](https://docs.typesafe.ai/concepts/system-one.md), [building guide](https://docs.typesafe.ai/concepts/how-to-build-with-system-one.md) |
-| Explore what to build | [Use-case map](https://docs.typesafe.ai/concepts/use-case-map.md), then relevant cookbooks from the index |
-| Prepare inputs and questions | [State](https://docs.typesafe.ai/concepts/state.md), [primitives](https://docs.typesafe.ai/primitives.md), then the chosen primitive's page |
-| Decide how to handle uncertainty | [Confidence](https://docs.typesafe.ai/confidence.md) |
-| Write API code | [HTTP API](https://docs.typesafe.ai/api.md), [Python SDK](https://docs.typesafe.ai/sdk/python.md), or [JavaScript SDK](https://docs.typesafe.ai/sdk/javascript.md) |
-| Update an older integration | [Migration guide](https://docs.typesafe.ai/migrating-to-v1.md) and the installed SDK's current reference |
+| Task                             | Start here; follow the relevant details                                                                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Understand the programming model | [System One](https://docs.typesafe.ai/concepts/system-one.md), [building guide](https://docs.typesafe.ai/concepts/how-to-build-with-system-one.md)                 |
+| Explore what to build            | [Use-case map](https://docs.typesafe.ai/concepts/use-case-map.md), then relevant cookbooks from the index                                                          |
+| Prepare inputs and questions     | [State](https://docs.typesafe.ai/concepts/state.md), [primitives](https://docs.typesafe.ai/primitives.md), then the chosen primitive's page                        |
+| Decide how to handle uncertainty | [Confidence](https://docs.typesafe.ai/confidence.md)                                                                                                               |
+| Write API code                   | [HTTP API](https://docs.typesafe.ai/api.md), [Python SDK](https://docs.typesafe.ai/sdk/python.md), or [JavaScript SDK](https://docs.typesafe.ai/sdk/javascript.md) |
+| Update an older integration      | [Migration guide](https://docs.typesafe.ai/migrating-to-v1.md) and the installed SDK's current reference                                                           |
 
 ## Find the useful shape
 
@@ -96,11 +96,11 @@ and build; a brainstorm is not a mandatory detour.
 
 Choose by what the answer means, then read the relevant primitive page:
 
-| Need | Primitive | Important distinction |
-| --- | --- | --- |
-| One of a defined set | [Choice](https://docs.typesafe.ai/primitives/choice.md) | Picks one option; its distribution compares competing options |
-| Whether a condition holds | [Noul](https://docs.typesafe.ai/primitives/noul.md) | Probability of yes; no separate confidence; use one per label when several may apply |
-| Degree along a described dimension | [Score](https://docs.typesafe.ai/primitives/score.md) | Probability-weighted position on ordered levels; use comparable per-item Scores for graded ranking |
+| Need                               | Primitive                                               | Important distinction                                                                              |
+| ---------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| One of a defined set               | [Choice](https://docs.typesafe.ai/primitives/choice.md) | Picks one option; its distribution compares competing options                                      |
+| Whether a condition holds          | [Noul](https://docs.typesafe.ai/primitives/noul.md)     | Probability of yes; no separate confidence; use one per label when several may apply               |
+| Degree along a described dimension | [Score](https://docs.typesafe.ai/primitives/score.md)   | Probability-weighted position on ordered levels; use comparable per-item Scores for graded ranking |
 
 Give each question enough relevant **state** to answer: source text, identities,
 relationships, policies, and current facts. Prefer named JSON fields when context

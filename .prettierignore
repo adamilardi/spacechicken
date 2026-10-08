@@ -6,3 +6,4 @@ build/
 *.min.js
 package-lock.json
 rl/weights/
+.jev-runs/

@@ -13,7 +13,7 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { installInPagePilot } from './play-bot.mjs';
+import { buildPilotSource } from './pilot-brain.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.SPACE_CHICKEN_URL || 'http://127.0.0.1:3000/';
@@ -297,7 +297,7 @@ async function runScenario(browser, name, scenario) {
         .click({ position: { x: 640, y: 360 } })
         .catch(() => {});
     if (scenario.chaos !== 'gap') {
-        await page.evaluate(installInPagePilot);
+        await page.evaluate(buildPilotSource());
     }
     await page.evaluate(installInPageWatchdog);
 

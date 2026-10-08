@@ -1,9 +1,10 @@
 import { GAME_CONSTANTS } from './Constants.js';
-import { LEVEL_IDS } from './levels/index.js';
 import { formatElapsedTime, weaponsForLevel } from './GameUtils.js';
+import { computeLayoutMetrics } from './HudLayout.js';
+import { Overlays } from './Overlays.js';
 
-const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';
-const BANNER_FONT = 'Trebuchet MS, Arial, sans-serif';
+export const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';
+export const BANNER_FONT = 'Trebuchet MS, Arial, sans-serif';
 
 export class UIManager {
     constructor(scene) {
@@ -16,20 +17,6 @@ export class UIManager {
         this.playerNameText = null;
         this.musicToggleButton = null;
         this.leaderboardButton = null;
-        this.leaderboardTextObject = null;
-        this.leaderboardBackdrop = null;
-        this.finishBackdrop = null;
-        this.finishDim = null;
-        this.finishTitle = null;
-        this.finishSummary = null;
-        this.finishRetryButton = null;
-        this.finishNewGameButton = null;
-        this.leaderboardTextContent = '';
-        this.leaderboardVisible = false;
-        this.leaderboardRequestId = 0;
-        this.leaderboardPage = 0;
-        this.completionSummary = '';
-        this.fullRunSummary = '';
         this.jumpButton = null;
         this.phaserButton = null;
         this.weaponButton = null;
@@ -37,15 +24,6 @@ export class UIManager {
         this.rightButton = null;
         this.touchControlsEnabled = false;
         this.touchMovementMidpoint = 0;
-        this.titleDim = null;
-        this.titleText = null;
-        this.titleSubtitle = null;
-        this.titlePrompt = null;
-        this.titleControls = null;
-        this.titleGamepadStatus = null;
-        this.titlePromptTween = null;
-        this.selectPrevButton = null;
-        this.selectNextButton = null;
         this.playerName = '';
         this.bannerTitle = null;
         this.bannerSubtitle = null;
@@ -54,6 +32,25 @@ export class UIManager {
         this.destroyed = false;
         this.lastTimerDisplay = '';
         this.cachedInsets = null;
+        this.overlays = new Overlays(scene, this);
+    }
+
+    // Overlay-owned fields that external readers (input, scene) still reach
+    // through the manager.
+    get selectPrevButton() {
+        return this.overlays.selectPrevButton;
+    }
+
+    get selectNextButton() {
+        return this.overlays.selectNextButton;
+    }
+
+    get raceSetupDialog() {
+        return this.overlays.raceSetupDialog;
+    }
+
+    get branchOptions() {
+        return this.overlays.branchOptions;
     }
 
     createUI(levelConfig, level, playerName) {
@@ -148,37 +145,11 @@ export class UIManager {
         if (this.scene.viewport?.getLayoutMetrics) {
             return this.scene.viewport.getLayoutMetrics(insets);
         }
-        const width = this.scene.getViewportWidth();
-        const height = this.scene.getViewportHeight();
-        return {
-            width,
-            height,
-            innerWidth: width,
-            innerHeight: height,
-            shortest: Math.min(width, height),
-            isPortrait: height > width,
-            isCompact: width < GAME_CONSTANTS.HUD_COMPACT_WIDTH,
-            isTiny: width < GAME_CONSTANTS.HUD_TINY_WIDTH,
-            hudScale: 1,
-            controlSize: GAME_CONSTANTS.VIRTUAL_BUTTON_SIZE,
-            controlMargin: GAME_CONSTANTS.TOUCH_CONTROL_MARGIN,
-            hudPadding: 16,
-            musicButtonSize: GAME_CONSTANTS.MUSIC_BUTTON_SIZE,
-            fonts: {
-                timer: 32,
-                level: 22,
-                death: 18,
-                instructions: 16,
-                playerName: 18,
-                leaderboardButton: 18,
-                leaderboard: 16,
-                title: 56,
-                subtitle: 22,
-                prompt: 20,
-                banner: 42,
-                bannerSubtitle: 20,
-            },
-        };
+        return computeLayoutMetrics(
+            this.scene.getViewportWidth(),
+            this.scene.getViewportHeight(),
+            insets
+        );
     }
 
     applyFontSize(text, size) {
@@ -211,24 +182,24 @@ export class UIManager {
             this.phaserButton,
             this.leftButton,
             this.rightButton,
-            this.titleDim,
-            this.titleText,
-            this.titleSubtitle,
-            this.titlePrompt,
-            this.titleControls,
-            this.titleGamepadStatus,
-            this.selectPrevButton,
-            this.selectNextButton,
+            this.overlays.titleDim,
+            this.overlays.titleText,
+            this.overlays.titleSubtitle,
+            this.overlays.titlePrompt,
+            this.overlays.titleControls,
+            this.overlays.titleGamepadStatus,
+            this.overlays.selectPrevButton,
+            this.overlays.selectNextButton,
             this.bannerTitle,
             this.bannerSubtitle,
-            this.leaderboardTextObject,
-            this.leaderboardBackdrop,
-            this.finishBackdrop,
-            this.finishDim,
-            this.finishTitle,
-            this.finishSummary,
-            this.finishRetryButton,
-            this.finishNewGameButton,
+            this.overlays.leaderboardTextObject,
+            this.overlays.leaderboardBackdrop,
+            this.overlays.finishBackdrop,
+            this.overlays.finishDim,
+            this.overlays.finishTitle,
+            this.overlays.finishSummary,
+            this.overlays.finishRetryButton,
+            this.overlays.finishNewGameButton,
         ].filter(Boolean);
     }
 
@@ -321,7 +292,7 @@ export class UIManager {
         if (!this.leaderboardButton) {
             return;
         }
-        const backgroundColor = this.leaderboardVisible ? '#244c65' : '#14283e';
+        const backgroundColor = this.overlays.leaderboardVisible ? '#244c65' : '#14283e';
         this.leaderboardButton.setStyle({ backgroundColor });
     }
 
@@ -679,7 +650,7 @@ export class UIManager {
             );
             this.text.setWordWrapWidth(Math.max(140, metrics.innerWidth - padding * 2), true);
         }
-        if (narrowPortrait && !this.titleText) {
+        if (narrowPortrait && !this.overlays.titleText) {
             this.layoutNarrowPortraitHud(insets, padding, width);
         }
     }
@@ -717,13 +688,13 @@ export class UIManager {
             (this.musicToggleButton?.y || 0) + (this.musicToggleButton?.displayHeight || 0) * 0.5,
             (this.leaderboardButton?.y || 0) + (this.leaderboardButton?.displayHeight || 0) * 0.5
         );
-        const nameX = this.titleText
+        const nameX = this.overlays.titleText
             ? insets.left + metrics.innerWidth / 2
             : width - insets.right - padding;
         const nameY = topRightBottom + 8 + this.playerNameText.displayHeight * 0.5;
         this.playerNameText.setPosition(nameX, nameY);
         this.playerNameText.setWordWrapWidth?.(
-            this.titleText
+            this.overlays.titleText
                 ? Math.max(120, metrics.innerWidth - 32)
                 : Math.max(120, metrics.innerWidth * 0.5),
             true
@@ -845,67 +816,15 @@ export class UIManager {
     }
 
     layoutLeaderboard() {
-        if (!this.leaderboardTextObject) {
-            return;
-        }
-        const insets = this.getSafeAreaInsets();
-        const metrics = this.getLayoutMetrics();
-        const width = metrics.width;
-        const height = metrics.height;
-        const availableWidth = Math.max(180, metrics.innerWidth - (metrics.isCompact ? 24 : 48));
-        this.leaderboardTextObject.setWordWrapWidth(availableWidth, true);
-        this.applyFontSize(this.leaderboardTextObject, metrics.fonts.leaderboard);
-        const centerX = insets.left + metrics.innerWidth / 2;
-        const top = this.leaderboardTop(metrics, insets);
-        this.leaderboardTextObject.setPosition(centerX, top);
-        this.drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets);
+        this.overlays.layoutLeaderboard();
     }
 
     leaderboardTop(metrics, insets) {
-        const bottoms = [insets.top + (metrics.isCompact ? 56 : 80)];
-        if (this.deathText) {
-            bottoms.push(this.deathText.y + (this.deathText.height || 0));
-        }
-        if (this.playerNameText) {
-            bottoms.push(this.playerNameText.y + (this.playerNameText.displayHeight || 0) * 0.5);
-        }
-        if (this.musicToggleButton) {
-            bottoms.push(
-                this.musicToggleButton.y + (this.musicToggleButton.displayHeight || 0) * 0.5
-            );
-        }
-        if (this.text && this.text.visible && this.text.alpha > 0.2) {
-            bottoms.push(this.text.y + (this.text.height || 0));
-        }
-        return Math.max(...bottoms) + (metrics.isCompact ? 24 : 28);
+        return this.overlays.leaderboardTop(metrics, insets);
     }
 
     drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets) {
-        if (!this.leaderboardBackdrop) {
-            return;
-        }
-        this.leaderboardBackdrop.clear();
-        this.leaderboardBackdrop.fillStyle(0x000000, 0.45);
-        this.leaderboardBackdrop.fillRect(0, 0, width, height);
-        const panelWidth = Math.min(availableWidth, 520);
-        const panelHeight = Math.min(
-            this.leaderboardTextObject.height + 36,
-            height - insets.top - insets.bottom - 120
-        );
-        const panelX = centerX - panelWidth / 2;
-        const panelY = top - 18;
-        this.leaderboardBackdrop.fillStyle(0x0b1020, 0.98);
-        if (typeof this.leaderboardBackdrop.fillRoundedRect === 'function') {
-            this.leaderboardBackdrop.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
-        } else {
-            this.leaderboardBackdrop.fillRect(panelX, panelY, panelWidth, panelHeight);
-        }
-        this.leaderboardBackdrop.lineStyle(2, 0xffe566, 0.35);
-        if (typeof this.leaderboardBackdrop.strokeRoundedRect === 'function') {
-            this.leaderboardBackdrop.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
-        } else {
-            this.leaderboardBackdrop.strokeRect(panelX, panelY, panelWidth, panelHeight);
-        }
+        this.overlays.drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets);
     }
 
     updateTimer(elapsed) {
@@ -938,7 +857,7 @@ export class UIManager {
                     : ` · ${formatElapsedTime(record.time - personalBest)} ahead of #1`
                 : '';
         this.targetText?.setText(`Record ${recordText} · Best ${bestText}${gap}`);
-        if (this.titleSubtitle) {
+        if (this.overlays.titleSubtitle) {
             const metrics = this.getLayoutMetrics();
             const fullBest = this.scene.leaderboardManager?.getPersonalBest?.(0);
             const fullBestText = fullBest === null ? 'none yet' : formatElapsedTime(fullBest);
@@ -946,51 +865,22 @@ export class UIManager {
                 ? `Run #1 ${formatElapsedTime(fullRecord.time)}`
                 : 'Claim full-run #1';
             const challenge = `${fullRecordText} · Best ${fullBestText}`;
-            this.titleSubtitle.setText(
+            this.overlays.titleSubtitle.setText(
                 metrics.isCompact && !metrics.isPortrait
                     ? challenge
                     : `${this.scene.levelConfig.title}\n${challenge}`
             );
-            this.layoutTitleScreen();
+            this.overlays.layoutTitleScreen();
         }
         this.layoutUI();
     }
 
     showLevelResult(title, time, submission, rescueMs = 0) {
-        const rescueLabel = rescueMs > 0 ? ` · −${Math.round(rescueMs / 1000)}s crew` : '';
-        this.completionSummary = `${title} · ${formatElapsedTime(time)}${rescueLabel}`;
-        if (this.scene.levelConfig.nextLevel) {
-            this.showLevelBanner(title, `${formatElapsedTime(time)}${rescueLabel}`, 2800);
-            this.bannerTitle?.setAlpha(1);
-            this.bannerSubtitle?.setAlpha(1);
-        }
-        Promise.resolve(submission).then((result) => {
-            if (this.destroyed || !result?.rank) return;
-            const bestTime = result.personalBest?.time || time;
-            const next = result.next
-                ? ` · ${formatElapsedTime(bestTime - result.next.time)} behind ${result.next.name}`
-                : ' · YOU ARE #1';
-            const ranks = `All-time #${result.rank} · Weekly #${result.weeklyRank}`;
-            this.completionSummary += `\n${ranks}\n${next.replace(/^ · /, '')}`;
-            if (this.bannerSubtitle) {
-                this.bannerSubtitle.setText(`${formatElapsedTime(time)} · ${ranks}${next}`);
-                this.layoutLevelBanner();
-            }
-            this.updateFinishSummary();
-            if (this.leaderboardVisible) this.displayLeaderboard();
-        });
+        this.overlays.showLevelResult(title, time, submission, rescueMs);
     }
 
     showFullRunResult(time, submission, deaths = 0, rescues = 0) {
-        const deathLabel = deaths > 0 ? `${deaths} DEATHS` : 'ZERO DEATHS';
-        const rescueLabel = rescues > 0 ? ` · ${rescues} SAVED` : '';
-        this.fullRunSummary = `FULL RUN · ${formatElapsedTime(time)} · ${deathLabel}${rescueLabel}`;
-        Promise.resolve(submission).then((result) => {
-            if (this.destroyed || !result?.rank) return;
-            this.fullRunSummary += `\nAll-time #${result.rank} · Weekly #${result.weeklyRank}`;
-            this.updateFinishSummary();
-            if (this.leaderboardVisible) this.displayLeaderboard();
-        });
+        this.overlays.showFullRunResult(time, submission, deaths, rescues);
     }
 
     updateLevelText(level) {
@@ -1027,7 +917,9 @@ export class UIManager {
         const trimmedName = typeof playerName === 'string' ? playerName.trim() : '';
         this.playerName = trimmedName.length ? trimmedName : 'Anonymous';
         this.playerNameText.setText(
-            this.titleText ? `CHANGE NAME: ${this.playerName}` : `Player: ${this.playerName}`
+            this.overlays.titleText
+                ? `CHANGE NAME: ${this.playerName}`
+                : `Player: ${this.playerName}`
         );
         if (this.scene.awaitingStart) {
             this.playerNameText.setInteractive?.({ useHandCursor: true });
@@ -1047,148 +939,24 @@ export class UIManager {
     }
 
     toggleLeaderboardOverlay() {
-        if (this.leaderboardVisible) {
-            this.hideLeaderboard();
-        } else {
-            this.displayLeaderboard();
-        }
+        this.overlays.toggleLeaderboardOverlay();
     }
 
     hideLeaderboard() {
-        if (this.leaderboardTextObject) {
-            this.leaderboardTextObject.destroy();
-        }
-        if (this.leaderboardBackdrop) {
-            this.leaderboardBackdrop.destroy();
-        }
-        this.leaderboardTextObject = null;
-        this.leaderboardBackdrop = null;
-        this.leaderboardTextContent = '';
-        this.leaderboardVisible = false;
-        this.leaderboardRequestId = 0;
-        this.refreshLeaderboardButtonStyle();
-        this.setFinishVisible(this.scene.gameOver);
+        this.overlays.hideLeaderboard();
     }
 
     displayLeaderboard() {
-        this.clearLevelBanner();
-        this.setFinishVisible(false);
-        const requestId = Date.now() + Math.random();
-        this.leaderboardRequestId = requestId;
-        const updateTextObject = (sectionsText) => {
-            if (this.destroyed || this.leaderboardRequestId !== requestId) {
-                return;
-            }
-            const leaderboardText = `LEADERBOARD\n${sectionsText}`;
-            this.leaderboardTextContent = leaderboardText;
-            if (this.leaderboardTextObject) {
-                this.leaderboardTextObject.destroy();
-            }
-            if (!this.leaderboardBackdrop) {
-                this.leaderboardBackdrop = this.scene.add.graphics();
-                this.leaderboardBackdrop.setScrollFactor(0);
-                this.leaderboardBackdrop.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH - 1);
-                this.markUi(this.leaderboardBackdrop);
-            }
-            const metrics = this.getLayoutMetrics();
-            this.leaderboardTextObject = this.scene.add
-                .text(0, 0, leaderboardText, {
-                    fontSize: `${metrics.fonts.leaderboard}px`,
-                    fontFamily: HUD_FONT,
-                    fill: '#ffe566',
-                    align: 'center',
-                })
-                .setOrigin(0.5, 0)
-                .setScrollFactor(0);
-            this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
-            this.leaderboardTextObject.setInteractive({ useHandCursor: true });
-            this.leaderboardTextObject.on('pointerup', () => {
-                this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
-                this.displayLeaderboard();
-            });
-            this.styleHudText(this.leaderboardTextObject, 4);
-            this.markUi(this.leaderboardTextObject);
-            this.layoutLeaderboard();
-            this.leaderboardVisible = true;
-            this.refreshLeaderboardButtonStyle();
-        };
-
-        const buildSections = (competition) => {
-            const level = this.leaderboardPage;
-            const metrics = this.getLayoutMetrics();
-            const compactLandscape = metrics.isCompact && !metrics.isPortrait;
-            const visibleCount = metrics.isTiny ? 2 : metrics.isCompact ? 3 : 5;
-            const label = level === 0 ? 'FULL RUN · ZERO DEATHS' : `LEVEL ${level}`;
-            const remoteTimes = competition?.levels?.[level] || [];
-            const best = this.scene.leaderboardManager.getPersonalBest(level);
-            const localTimes =
-                level === 0
-                    ? best === null
-                        ? []
-                        : [{ time: best, name: this.scene.playerName }]
-                    : this.scene.leaderboardManager.readLeaderboard(level);
-            const allTime = remoteTimes.length ? remoteTimes : localTimes;
-            const allTimeLabel =
-                remoteTimes.length || !localTimes.length ? 'ALL TIME' : 'THIS BROWSER';
-            const weekly = competition?.weekly?.[level] || [];
-            const winners = competition?.hallOfFame?.[level] || [];
-            const format = (times) =>
-                times.length
-                    ? this.scene.leaderboardManager.formatTimes(times.slice(0, visibleCount))
-                    : 'No times yet';
-            const weeklyTimes = weekly.slice(0, visibleCount);
-            const past = winners.length
-                ? winners
-                      .slice(0, metrics.isCompact ? 1 : 2)
-                      .map(
-                          (winner) =>
-                              `${winner.week}: ${formatElapsedTime(winner.time)} - ${winner.name}`
-                      )
-                      .join('\n')
-                : 'No past winners yet';
-            const bestLine =
-                best === null ? 'Your best: none yet' : `Your best: ${formatElapsedTime(best)}`;
-            const footer = 'Tap / D-pad: next · B / LEADERBOARD: close';
-            const history =
-                !competition || (compactLandscape && this.scene.gameOver)
-                    ? ''
-                    : `\nPAST WINNERS\n${past}`;
-            const weekLabel = competition
-                ? `THIS WEEK (${competition.week || 'UTC'})`
-                : 'ONLINE BOARD UNAVAILABLE';
-            const weekTimes = competition ? format(weeklyTimes) : 'Try again later';
-            return `${label}\n${bestLine}\n${allTimeLabel}\n${format(allTime)}\n${weekLabel}\n${weekTimes}${history}\n${footer}`;
-        };
-
-        updateTextObject('Loading leaderboard…');
-
-        this.scene.leaderboardManager
-            .fetchCompetition()
-            .then((competition) => {
-                if (this.leaderboardRequestId !== requestId) {
-                    return;
-                }
-                const sectionsText = buildSections(competition);
-                updateTextObject(sectionsText);
-            })
-            .catch(() => {
-                if (this.leaderboardRequestId !== requestId) {
-                    return;
-                }
-                const fallback = this.scene.storageAvailable
-                    ? buildSections(null)
-                    : 'Saved times unavailable (local storage disabled).';
-                updateTextObject(fallback);
-            });
+        this.overlays.displayLeaderboard();
     }
 
     leaderboardPageCount() {
-        return LEVEL_IDS.length + 1;
+        return this.overlays.leaderboardPageCount();
     }
 
     showGameOver(finalTime) {
-        this.leaderboardPage = this.fullRunSummary ? 0 : this.scene.level;
-        this.finishLevelTime = finalTime;
+        this.overlays.leaderboardPage = this.overlays.fullRunSummary ? 0 : this.scene.level;
+        this.overlays.finishLevelTime = finalTime;
         this.timerText.setText(`Time: ${formatElapsedTime(finalTime)}`);
         this.levelText.setText('Completed');
         if (this.deathText) {
@@ -1199,392 +967,52 @@ export class UIManager {
             this.text.setVisible(false);
         }
         this.clearLevelBanner();
-        this.createFinishScreen(raceWinner);
+        this.overlays.createFinishScreen(raceWinner);
         this.layoutUI();
     }
 
     createFinishScreen(raceWinner) {
-        const depth = GAME_CONSTANTS.OVERLAY_DEPTH;
-        this.finishDim = this.markUi(this.scene.add.rectangle(0, 0, 1, 1, 0x020814, 0.68));
-        this.finishDim.setOrigin(0, 0).setScrollFactor(0).setDepth(depth);
-        this.finishBackdrop = this.markUi(this.scene.add.rectangle(0, 0, 1, 1, 0x101b30, 0.98));
-        this.finishBackdrop.setStrokeStyle(2, 0xffe566, 0.55);
-        this.finishBackdrop.setScrollFactor(0).setDepth(depth + 1);
-        this.finishTitle = this.markUi(
-            this.scene.add.text(0, 0, raceWinner ? `PLAYER ${raceWinner} WINS` : 'YOU WIN', {
-                fontFamily: BANNER_FONT,
-                fontSize: '30px',
-                fill: '#ffe566',
-                align: 'center',
-            })
-        );
-        this.finishTitle
-            .setOrigin(0.5)
-            .setScrollFactor(0)
-            .setDepth(depth + 2);
-        this.styleHudText(this.finishTitle, 5);
-        this.finishSummary = this.markUi(
-            this.scene.add.text(0, 0, '', {
-                fontFamily: HUD_FONT,
-                fontSize: '17px',
-                fill: '#e0efff',
-                align: 'center',
-                lineSpacing: 4,
-            })
-        );
-        this.finishSummary
-            .setOrigin(0.5, 0)
-            .setScrollFactor(0)
-            .setDepth(depth + 2);
-        this.finishRetryButton = this.createFinishButton(
-            `RETRY LEVEL ${this.scene.level}`,
-            this.scene.level
-        );
-        this.finishNewGameButton = this.createFinishButton('NEW FULL GAME', 1);
-        this.finishMenuIndex = 0;
-        this.finishRetryButton.setBackgroundColor('#47738c');
-        this.updateFinishSummary();
-        this.layoutFinishScreen();
+        this.overlays.createFinishScreen(raceWinner);
     }
 
     createFinishButton(label, level) {
-        const button = this.markUi(
-            this.scene.add.text(0, 0, label, {
-                fontFamily: HUD_FONT,
-                fontSize: '17px',
-                fill: '#ffe566',
-                backgroundColor: '#244c65',
-                align: 'center',
-            })
-        );
-        button.setOrigin(0.5).setPadding(16, 13, 16, 13);
-        button.setScrollFactor(0).setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 4);
-        button.setInteractive({ useHandCursor: true });
-        button.on('pointerup', () => {
-            if (!this.scene.restartDelayDone) return;
-            this.scene.scene.restart({ level, deathCount: 0, coopMode: this.scene.coopMode });
-        });
-        return button;
+        return this.overlays.createFinishButton(label, level);
     }
 
     updateFinishSummary() {
-        if (!this.finishSummary) return;
-        const lines = [
-            `Level ${this.scene.level} · ${formatElapsedTime(this.finishLevelTime)} · Deaths ${this.scene.deathCount}`,
-        ];
-        if (this.fullRunSummary) {
-            lines.push(this.fullRunSummary.split('\n')[0]);
-        } else if (this.completionSummary) {
-            lines.push(this.completionSummary.split(' · ')[0]);
-        }
-        const rank = (this.fullRunSummary || this.completionSummary)
-            .split('\n')
-            .find((line) => line.includes('All-time #'));
-        if (rank) lines.push(rank);
-        this.finishSummary.setText(lines.join('\n'));
-        this.layoutFinishScreen();
+        this.overlays.updateFinishSummary();
     }
 
     setFinishVisible(visible) {
-        [
-            this.finishDim,
-            this.finishBackdrop,
-            this.finishTitle,
-            this.finishSummary,
-            this.finishRetryButton,
-            this.finishNewGameButton,
-        ].forEach((element) => element?.setVisible?.(visible));
-        for (const button of [this.finishRetryButton, this.finishNewGameButton]) {
-            if (button?.input) button.input.enabled = visible;
-        }
+        this.overlays.setFinishVisible(visible);
     }
 
     layoutFinishScreen() {
-        if (!this.finishBackdrop) return;
-        const metrics = this.getLayoutMetrics();
-        const insets = this.getSafeAreaInsets();
-        const landscape = metrics.innerHeight < 500 && !metrics.isPortrait;
-        const panelWidth = Math.min(480, metrics.innerWidth - 24);
-        const panelHeight = landscape ? 206 : metrics.isTiny ? 250 : 268;
-        const controlsTop =
-            this.touchControlsEnabled && this.jumpButton
-                ? this.jumpButton.y - this.jumpButton.displayHeight / 2 - 12
-                : metrics.height - insets.bottom;
-        const panelTop = Math.max(insets.top + 70, (controlsTop - panelHeight) / 2);
-        const centerX = insets.left + metrics.innerWidth / 2;
-        this.finishDim.setSize(metrics.width, metrics.height);
-        this.finishBackdrop.setPosition(centerX, panelTop + panelHeight / 2);
-        this.finishBackdrop.setSize(panelWidth, panelHeight);
-        this.finishTitle.setPosition(centerX, panelTop + 38);
-        this.finishTitle.setFontSize(landscape || metrics.isTiny ? 26 : 30);
-        this.finishSummary.setPosition(centerX, panelTop + 70);
-        this.finishSummary.setFontSize(landscape || metrics.isTiny ? 14 : 16);
-        this.finishSummary.setWordWrapWidth(panelWidth - 28, true);
-        if (landscape) {
-            this.finishRetryButton.setPosition(centerX - panelWidth / 4, panelTop + 169);
-            this.finishNewGameButton.setPosition(centerX + panelWidth / 4, panelTop + 169);
-        } else {
-            this.finishRetryButton.setPosition(centerX, panelTop + panelHeight - 96);
-            this.finishNewGameButton.setPosition(centerX, panelTop + panelHeight - 43);
-        }
+        this.overlays.layoutFinishScreen();
     }
 
     createSelectChevron(label, direction, metrics) {
-        const button = this.scene.add
-            .text(0, 0, label, {
-                fontSize: `${metrics.fonts.prompt}px`,
-                fontFamily: HUD_FONT,
-                fill: '#ffffff',
-                align: 'center',
-            })
-            .setOrigin(0.5);
-        button.setScrollFactor(0);
-        button.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        button.setPadding(14, 8, 14, 8);
-        button.setBackgroundColor('#17334b');
-        this.styleHudText(button, 4);
-        if (typeof button.setInteractive === 'function') {
-            button.setInteractive({ useHandCursor: true });
-            button.on('pointerup', () => this.scene.cycleTitleSelection(direction));
-        }
-        return button;
+        return this.overlays.createSelectChevron(label, direction, metrics);
     }
 
     showTitleScreen(subtitle) {
-        if (this.destroyed) {
-            return;
-        }
-        this.hideTitleScreen();
-        const width = this.scene.getViewportWidth();
-        const height = this.scene.getViewportHeight();
-        if (typeof this.scene.add.rectangle === 'function') {
-            this.titleDim = this.scene.add.rectangle(0, 0, width, height, 0x04060d, 0.58);
-            this.titleDim.setOrigin(0, 0);
-        } else {
-            this.titleDim = this.scene.add.graphics();
-            this.titleDim.fillStyle(0x04060d, 0.58);
-            this.titleDim.fillRect(0, 0, width, height);
-        }
-        this.titleDim.setScrollFactor(0);
-        this.titleDim.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 2);
-        if (typeof this.titleDim.setInteractive === 'function') {
-            this.titleDim.setInteractive();
-            this.titleDim.on('pointerup', (pointer) => this.scene.onTitlePointerUp(pointer));
-        }
-        this.markUi(this.titleDim);
-
-        const metrics = this.getLayoutMetrics();
-        this.titleText = this.scene.add
-            .text(0, 0, 'SPACE CHICKEN', {
-                fontSize: `${metrics.fonts.title}px`,
-                fontFamily: BANNER_FONT,
-                fill: '#fff1a6',
-                fontStyle: 'bold',
-                align: 'center',
-            })
-            .setOrigin(0.5);
-        this.titleText.setScrollFactor(0);
-        this.titleText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        this.styleHudText(this.titleText, 8);
-        this.markUi(this.titleText);
-
-        this.titleSubtitle = this.scene.add
-            .text(0, 0, subtitle || 'Dawn Run', {
-                fontSize: `${metrics.fonts.subtitle}px`,
-                fontFamily: BANNER_FONT,
-                fill: '#cfe7ff',
-                align: 'center',
-            })
-            .setOrigin(0.5);
-        this.titleSubtitle.setScrollFactor(0);
-        this.titleSubtitle.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        this.styleHudText(this.titleSubtitle, 4);
-        this.markUi(this.titleSubtitle);
-
-        const canSelect = (this.scene.leaderboardManager?.getMaxUnlocked?.() || 1) > 1;
-        let prompt = this.touchControlsEnabled
-            ? 'TAP TO START'
-            : 'PRESS SPACE OR GAMEPAD A TO START';
-        if (canSelect) {
-            prompt = this.touchControlsEnabled
-                ? 'TAP ◀ ▶ · TAP MIDDLE TO START'
-                : '← → SELECT · SPACE START';
-        }
-        this.titlePrompt = this.scene.add
-            .text(0, 0, prompt, {
-                fontSize: `${metrics.fonts.prompt}px`,
-                fontFamily: HUD_FONT,
-                fill: '#ffffff',
-                align: 'center',
-            })
-            .setOrigin(0.5);
-        this.titlePrompt.setScrollFactor(0);
-        this.titlePrompt.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        this.titlePrompt.setPadding(16, 10, 16, 10);
-        this.titlePrompt.setBackgroundColor('#17334b');
-        this.styleHudText(this.titlePrompt, 4);
-        this.markUi(this.titlePrompt);
-        const controls = this.touchControlsEnabled
-            ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nMODES  Gold button for a 2-player race\nGOAL  Reach the golden crown'
-            : 'MOVE  ← / → or A / D\nJUMP  Space / ↑ / W; press again in air\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓';
-        this.titleControls = this.scene.add
-            .text(0, 0, controls, {
-                fontSize: `${metrics.fonts.instructions}px`,
-                fontFamily: HUD_FONT,
-                fill: '#e0efff',
-                align: 'center',
-                lineSpacing: 5,
-            })
-            .setOrigin(0.5, 0);
-        this.titleControls.setScrollFactor(0);
-        this.titleControls.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        this.styleHudText(this.titleControls, 3);
-        this.markUi(this.titleControls);
-
-        this.titleGamepadStatus = this.scene.add
-            .text(0, 0, '', {
-                fontSize: `${metrics.fonts.instructions}px`,
-                fontFamily: HUD_FONT,
-                fill: '#a9bfd5',
-                align: 'center',
-            })
-            .setOrigin(0.5, 0);
-        this.titleGamepadStatus.setScrollFactor(0);
-        this.titleGamepadStatus.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        this.styleHudText(this.titleGamepadStatus, 3);
-        this.markUi(this.titleGamepadStatus);
-        if (canSelect) {
-            this.selectPrevButton = this.markUi(this.createSelectChevron('◀', -1, metrics));
-            this.selectNextButton = this.markUi(this.createSelectChevron('▶', 1, metrics));
-        }
-        this.updateGamepadStatus();
-
-        this.playerNameText.setOrigin(0.5);
-        this.playerNameText.setPadding(12, 8, 12, 8);
-        this.playerNameText.setBackgroundColor('#17334b');
-        this.playerNameText.setDepth(GAME_CONSTANTS.LEADERBOARD_BUTTON_DEPTH);
-        this.playerNameText.setVisible(true);
-        this.updatePlayerName(this.playerName);
-        if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
-            this.titlePromptTween = this.scene.tweens.add({
-                targets: this.titlePrompt,
-                alpha: { from: 0.72, to: 1 },
-                duration: GAME_CONSTANTS.TITLE_PROMPT_PULSE_MS,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut',
-            });
-        }
-        this.setHudVisible(false);
-        this.createRaceSetup();
-        this.layoutTitleScreen();
+        this.overlays.showTitleScreen(subtitle);
     }
 
     showBranchChoice(options, onPick, subtitle = null) {
-        if (this.destroyed || !Array.isArray(options) || options.length < 2) {
-            return;
-        }
-        this.hideBranchChoice();
-        this.branchOptions = options;
-        this.branchCallback = typeof onPick === 'function' ? onPick : null;
-        this.branchObjects = [];
-        const width = this.scene.getViewportWidth();
-        const height = this.scene.getViewportHeight();
-        const centerX = width / 2;
-        const centerY = height / 2;
-        if (typeof this.scene.add.rectangle === 'function') {
-            const dim = this.scene.add.rectangle(0, 0, width, height, 0x04060d, 0.72);
-            dim.setOrigin(0, 0);
-            dim.setScrollFactor(0);
-            dim.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
-            this.branchObjects.push(dim);
-        }
-        const hasSubtitle = typeof subtitle === 'string' && subtitle.length > 0;
-        const titleY = hasSubtitle ? centerY - 118 : centerY - 90;
-        const title = this.scene.add.text(centerX, titleY, 'CHOOSE YOUR PATH', {
-            fontSize: '30px',
-            fontFamily: HUD_FONT,
-            fill: '#ffe566',
-            align: 'center',
-        });
-        title.setOrigin(0.5);
-        title.setScrollFactor(0);
-        title.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
-        this.branchObjects.push(title);
-        if (hasSubtitle) {
-            const blurb = this.scene.add.text(centerX, centerY - 78, subtitle, {
-                fontSize: '15px',
-                fontFamily: HUD_FONT,
-                fill: '#cdd8ea',
-                align: 'center',
-                wordWrap: { width: Math.max(280, Math.min(560, width - 80)) },
-            });
-            blurb.setOrigin(0.5, 0);
-            blurb.setScrollFactor(0);
-            blurb.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
-            this.branchObjects.push(blurb);
-        }
-        const firstButtonY = hasSubtitle ? centerY + 2 : centerY - 20;
-        options.slice(0, 2).forEach((option, index) => {
-            const label = `${index + 1} · ${option.title}`.toUpperCase();
-            const button = this.scene.add.text(centerX, firstButtonY + index * 56, label, {
-                fontSize: '22px',
-                fontFamily: HUD_FONT,
-                fill: '#ffffff',
-                align: 'center',
-            });
-            button.setOrigin(0.5);
-            button.setScrollFactor(0);
-            button.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
-            button.setPadding(16, 10, 16, 10);
-            button.setBackgroundColor('#17334b');
-            if (typeof button.setInteractive === 'function') {
-                button.setInteractive({ useHandCursor: true });
-                button.on('pointerup', () => this.pickBranch(index));
-            }
-            this.branchObjects.push(button);
-        });
-        const hintY = hasSubtitle ? centerY + 132 : centerY + 110;
-        const hint = this.scene.add.text(centerX, hintY, 'tap, or press 1 / 2', {
-            fontSize: '16px',
-            fontFamily: HUD_FONT,
-            fill: '#9fb3c8',
-            align: 'center',
-        });
-        hint.setOrigin(0.5);
-        hint.setScrollFactor(0);
-        hint.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
-        this.branchObjects.push(hint);
+        this.overlays.showBranchChoice(options, onPick, subtitle);
     }
 
     pickBranch(index) {
-        const options = this.branchOptions;
-        const callback = this.branchCallback;
-        if (!options || index < 0 || index >= options.length) {
-            return false;
-        }
-        this.hideBranchChoice();
-        if (callback) {
-            callback(options[index].level);
-        }
-        return true;
+        return this.overlays.pickBranch(index);
     }
 
     hideBranchChoice() {
-        (this.branchObjects || []).forEach((object) => {
-            object?.destroy?.();
-        });
-        this.branchObjects = [];
-        this.branchOptions = null;
-        this.branchCallback = null;
+        this.overlays.hideBranchChoice();
     }
 
     showTitleLevelSelection(text) {
-        if (!this.titleSubtitle) {
-            return;
-        }
-        this.titleSubtitle.setText(text);
-        this.layoutTitleScreen();
+        this.overlays.showTitleLevelSelection(text);
     }
 
     setHudVisible(visible) {
@@ -1601,321 +1029,43 @@ export class UIManager {
     }
 
     updateGamepadStatus() {
-        if (!this.titleGamepadStatus) {
-            return;
-        }
-        const supportsGamepads =
-            typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function';
-        const pads = supportsGamepads ? navigator.getGamepads() : [];
-        const connected = Array.from(pads || []).filter((pad) => pad && pad.connected !== false);
-        const message = !supportsGamepads
-            ? 'Gamepad unavailable in this browser'
-            : connected.length
-              ? `GAMEPAD CONNECTED (${connected.length})  ·  A start · ↓ other modes · Y leaderboard`
-              : 'No gamepad connected';
-        if (this.titleGamepadStatus.text !== message) {
-            this.titleGamepadStatus.setText(message);
-            this.titleGamepadStatus.setColor(connected.length ? '#a4f5ca' : '#a9bfd5');
-            this.layoutTitleScreen();
-        }
+        this.overlays.updateGamepadStatus();
     }
 
     layoutTitleScreen() {
-        if (!this.titleText) {
-            return;
-        }
-        const insets = this.getSafeAreaInsets();
-        const metrics = this.getLayoutMetrics();
-        const width = metrics.width;
-        const height = metrics.height;
-        const centerX = insets.left + metrics.innerWidth / 2;
-        const verticalRatio = metrics.isPortrait ? 0.46 : metrics.isCompact ? 0.38 : 0.48;
-        const centerY =
-            insets.top +
-            metrics.innerHeight * verticalRatio +
-            (metrics.isCompact && !metrics.isPortrait ? 18 : 0);
-        const maxTitleWidth = Math.max(160, metrics.innerWidth - 24);
-        this.applyFontSize(this.titleText, metrics.fonts.title);
-        if (typeof this.titleText.setWordWrapWidth === 'function') {
-            this.titleText.setWordWrapWidth(maxTitleWidth, true);
-        }
-        if (this.titleText.width > maxTitleWidth && this.scene.viewport) {
-            const fitted = this.scene.viewport.fitFontSize(
-                metrics.fonts.title,
-                this.titleText.width,
-                maxTitleWidth,
-                22
-            );
-            this.applyFontSize(this.titleText, fitted);
-        }
-        this.applyFontSize(this.titleSubtitle, metrics.fonts.subtitle);
-        this.applyFontSize(this.titlePrompt, metrics.fonts.prompt);
-        this.applyFontSize(this.titleControls, metrics.fonts.instructions);
-        this.applyFontSize(this.titleGamepadStatus, metrics.fonts.instructions);
-        if (this.titlePrompt?.setWordWrapWidth) {
-            this.titlePrompt.setWordWrapWidth(maxTitleWidth, true);
-        }
-        this.titleControls?.setWordWrapWidth?.(maxTitleWidth, true);
-        this.titleGamepadStatus?.setWordWrapWidth?.(maxTitleWidth, true);
-        if (this.titleDim) {
-            if (typeof this.titleDim.setSize === 'function') {
-                this.titleDim.setSize(width, height);
-                this.titleDim.setPosition(0, 0);
-            } else if (typeof this.titleDim.clear === 'function') {
-                this.titleDim.clear();
-                this.titleDim.fillStyle(0x04060d, 0.58);
-                this.titleDim.fillRect(0, 0, width, height);
-            }
-        }
-        this.placeTitleCluster(centerX, centerY, metrics);
+        this.overlays.layoutTitleScreen();
     }
 
     placeTitleCluster(centerX, centerY, metrics) {
-        const titleOffset = metrics.isCompact ? 36 : 46;
-        const modeLift = this.titleModeLift(metrics);
-        this.titleText.setPosition(centerX, centerY - titleOffset - modeLift);
-        if (this.titleSubtitle) {
-            const subtitleY =
-                this.titleText.y +
-                (this.titleText.displayHeight || this.titleText.height || 40) * 0.5 +
-                (metrics.isCompact ? 14 : 18);
-            this.titleSubtitle.setPosition(centerX, subtitleY);
-        }
-        if (this.selectPrevButton && this.selectNextButton && this.titleSubtitle) {
-            const half =
-                (this.titleSubtitle.displayWidth || this.titleSubtitle.width || 200) / 2 + 64;
-            this.selectPrevButton.setPosition(centerX - half, this.titleSubtitle.y);
-            this.selectNextButton.setPosition(centerX + half, this.titleSubtitle.y);
-        }
-        if (this.titlePrompt) {
-            const subtitleBottom = this.titleSubtitle
-                ? this.titleSubtitle.y + this.titleSubtitle.displayHeight / 2
-                : centerY + 8;
-            this.titlePrompt.setPosition(
-                centerX,
-                subtitleBottom + 14 + this.titlePrompt.displayHeight / 2
-            );
-        }
-        const shortLandscape = metrics.isCompact && !metrics.isPortrait;
-        if (this.titleControls && this.titlePrompt) {
-            const belowPrompt = this.titlePrompt.y + this.titlePrompt.displayHeight / 2;
-            const modeSpace = this.positionRaceSetupButton(metrics);
-            const fallbackGap = metrics.isTiny ? 12 : 20;
-            this.titleControls.setPosition(centerX, belowPrompt + (modeSpace || fallbackGap));
-            this.titleControls.setVisible(!shortLandscape);
-        }
-        if (this.titleGamepadStatus && this.titleControls) {
-            const gap = metrics.isTiny ? 8 : 14;
-            this.titleGamepadStatus.setPosition(
-                centerX,
-                this.titleControls.y + this.titleControls.displayHeight + gap
-            );
-            this.titleGamepadStatus.setVisible(!shortLandscape);
-        }
+        this.overlays.placeTitleCluster(centerX, centerY, metrics);
     }
 
     titleModeLift(metrics) {
-        if (!this.raceSetupButton) {
-            return 0;
-        }
-        if (!metrics.isCompact) {
-            return 96;
-        }
-        return metrics.isPortrait ? 22 : 0;
+        return this.overlays.titleModeLift(metrics);
     }
 
     positionRaceSetupButton(metrics) {
-        const button = this.raceSetupButton;
-        if (!button || !this.titlePrompt) {
-            return 0;
-        }
-        const gapAbove = metrics.isTiny ? 8 : 14;
-        const gapBelow = metrics.isTiny ? 8 : 12;
-        const top = this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2 + gapAbove;
-        button.style.top = `${Math.round(top)}px`;
-        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 50 : 68);
-        return gapAbove + height + gapBelow;
+        return this.overlays.positionRaceSetupButton(metrics);
     }
 
     setRaceSetupLabel() {
-        const button = this.raceSetupButton;
-        if (!button) {
-            return;
-        }
-        const coop = Boolean(this.scene.coopMode);
-        const kicker = document.createElement('span');
-        kicker.className = 'race-setup-kicker';
-        kicker.textContent = 'OTHER MODES';
-        const mode = document.createElement('span');
-        mode.className = 'race-setup-mode';
-        mode.textContent = coop ? 'Now: 2 players' : 'Now: solo · 2-player race';
-        button.replaceChildren(kicker, mode);
-        button.setAttribute(
-            'aria-label',
-            coop
-                ? 'Other modes. Current game is 2 players.'
-                : 'Other modes. Current game is solo. Choose a 2-player race.'
-        );
+        this.overlays.setRaceSetupLabel();
     }
 
     createRaceSetup() {
-        const button = document.createElement('button');
-        button.id = 'race-setup-button';
-        button.className = 'game-button';
-        button.type = 'button';
-        const dialog = document.createElement('dialog');
-        dialog.id = 'race-setup-dialog';
-        dialog.setAttribute('aria-label', 'Race setup');
-        dialog.innerHTML = `<h2>Other modes</h2>
-            <p>Race modes split the screen. First to the crown wins.</p>
-            <button data-mode="solo">Solo</button>
-            <button data-mode="keyboard">Two players · keyboard</button>
-            <button data-mode="keyboard-controller">Keyboard + controller</button>
-            <button data-mode="controllers">Two controllers</button>
-            <p id="race-controls">P1: A/D + Space. P2: arrows + ↑.</p>
-            <p>Controller: D-pad selects · A confirms · B closes</p>
-            <button class="game-button" data-close>Back</button>`;
-        const options = [...dialog.querySelectorAll('[data-mode]')];
-        options.forEach((option, index) => {
-            option.className = 'game-button';
-            option.style.cssText = 'display:block;position:static;width:100%;margin:8px 0';
-            option.addEventListener('click', () => {
-                const mode = option.dataset.mode;
-                const pads = Array.from(navigator.getGamepads?.() || []).filter(
-                    (pad) => pad && pad.connected !== false
-                );
-                if (
-                    (mode === 'controllers' && pads.length < 2) ||
-                    (mode === 'keyboard-controller' && pads.length < 1)
-                ) {
-                    dialog.querySelector('#race-controls').textContent =
-                        'Connect the required controller(s), then press a button on each.';
-                    return;
-                }
-                this.raceMenuIndex = index;
-                dialog.close();
-                this.scene.scene.restart({
-                    level: 1,
-                    deathCount: 0,
-                    coopMode: mode === 'solo' ? null : mode,
-                });
-            });
-        });
-        button.addEventListener('click', () => {
-            dialog.showModal();
-            this.raceMenuIndex = Math.max(
-                0,
-                options.findIndex(
-                    (option) => option.dataset.mode === (this.scene.coopMode || 'solo')
-                )
-            );
-            options[this.raceMenuIndex].focus();
-        });
-        dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
-        document.body.append(button, dialog);
-        this.raceSetupButton = button;
-        this.raceSetupDialog = dialog;
-        this.setRaceSetupLabel();
+        this.overlays.createRaceSetup();
     }
 
     handleMenuInput(input) {
-        const menu = input.menu || {};
-        if (this.raceSetupDialog?.open) {
-            const options = [...this.raceSetupDialog.querySelectorAll('button')];
-            if (menu.up || menu.down) {
-                this.raceMenuIndex =
-                    ((this.raceMenuIndex || 0) + (menu.down ? 1 : -1) + options.length) %
-                    options.length;
-                options[this.raceMenuIndex].focus();
-            }
-            if (menu.confirm) options[this.raceMenuIndex || 0].click();
-            if (menu.back) this.raceSetupDialog.close();
-            return true;
-        }
-        if (this.leaderboardVisible) {
-            if (menu.back || menu.board) this.hideLeaderboard();
-            else if (menu.left || menu.right || menu.confirm) {
-                const pageCount = this.leaderboardPageCount();
-                this.leaderboardPage =
-                    ((this.leaderboardPage || 0) + (menu.left ? -1 : 1) + pageCount) % pageCount;
-                this.displayLeaderboard();
-            }
-            return this.scene.awaitingStart || this.scene.gameOver;
-        }
-        if (menu.board) {
-            this.displayLeaderboard();
-            return true;
-        }
-        if (this.scene.awaitingStart && (menu.down || menu.up)) {
-            this.raceSetupButton?.click();
-            return true;
-        }
-        return this.handleFinishMenu(menu);
+        return this.overlays.handleMenuInput(input);
     }
 
     handleFinishMenu(menu) {
-        if (!this.scene.gameOver) return false;
-        if (menu.left || menu.right || menu.up || menu.down) {
-            this.finishMenuIndex = this.finishMenuIndex === 1 ? 0 : 1;
-        }
-        this.finishRetryButton?.setBackgroundColor(
-            this.finishMenuIndex === 1 ? '#244c65' : '#47738c'
-        );
-        this.finishNewGameButton?.setBackgroundColor(
-            this.finishMenuIndex === 1 ? '#47738c' : '#244c65'
-        );
-        if (menu.confirm && this.scene.restartDelayDone) {
-            this.scene.scene.restart({
-                level: this.finishMenuIndex === 1 ? 1 : this.scene.level,
-                deathCount: 0,
-                coopMode: this.scene.coopMode,
-            });
-            return true;
-        }
-        return false;
+        return this.overlays.handleFinishMenu(menu);
     }
 
     hideTitleScreen() {
-        this.raceSetupButton?.remove();
-        this.raceSetupDialog?.remove();
-        this.raceSetupButton = null;
-        this.raceSetupDialog = null;
-        if (this.titlePromptTween && typeof this.titlePromptTween.stop === 'function') {
-            this.titlePromptTween.stop();
-        }
-        this.titlePromptTween = null;
-        [
-            this.titleDim,
-            this.titleText,
-            this.titleSubtitle,
-            this.titlePrompt,
-            this.titleControls,
-            this.titleGamepadStatus,
-            this.selectPrevButton,
-            this.selectNextButton,
-        ].forEach((element) => {
-            if (element && element.destroy) {
-                element.destroy();
-            }
-        });
-        this.selectPrevButton = null;
-        this.selectNextButton = null;
-        this.titleDim = null;
-        this.titleText = null;
-        this.titleSubtitle = null;
-        this.titlePrompt = null;
-        this.titleControls = null;
-        this.titleGamepadStatus = null;
-        if (!this.destroyed && this.playerNameText) {
-            this.playerNameText.setOrigin(1, 0.5);
-            this.playerNameText.setPadding(0);
-            this.playerNameText.setBackgroundColor();
-            this.playerNameText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
-            this.updatePlayerName(this.playerName);
-        }
-        if (!this.destroyed) {
-            this.setHudVisible(true);
-        }
+        this.overlays.hideTitleScreen();
     }
 
     showLevelBanner(levelOrTitle, subtitle, holdMs = GAME_CONSTANTS.LEVEL_BANNER_HOLD_MS) {
@@ -2087,13 +1237,12 @@ export class UIManager {
             return;
         }
         this.destroyed = true;
-        this.leaderboardRequestId += 1;
 
         if (this.instructionFadeEvent?.remove) {
             this.instructionFadeEvent.remove(false);
         }
         this.instructionFadeEvent = null;
-        this.hideTitleScreen();
+        this.overlays.cleanup();
         this.clearLevelBanner();
 
         const elements = [
@@ -2105,14 +1254,6 @@ export class UIManager {
             this.playerNameText,
             this.musicToggleButton,
             this.leaderboardButton,
-            this.leaderboardTextObject,
-            this.leaderboardBackdrop,
-            this.finishDim,
-            this.finishBackdrop,
-            this.finishTitle,
-            this.finishSummary,
-            this.finishRetryButton,
-            this.finishNewGameButton,
             this.jumpButton,
             this.phaserButton,
             this.weaponButton,
@@ -2134,14 +1275,6 @@ export class UIManager {
         this.playerNameText = null;
         this.musicToggleButton = null;
         this.leaderboardButton = null;
-        this.leaderboardTextObject = null;
-        this.leaderboardBackdrop = null;
-        this.finishDim = null;
-        this.finishBackdrop = null;
-        this.finishTitle = null;
-        this.finishSummary = null;
-        this.finishRetryButton = null;
-        this.finishNewGameButton = null;
         this.jumpButton = null;
         this.phaserButton = null;
         this.weaponButton = null;

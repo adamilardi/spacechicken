@@ -792,7 +792,7 @@ test('audio scheduling routes melodic and percussion events', async () => {
     };
     const manager = new AudioManager(scene);
     const scheduled = [];
-    manager.backgroundPattern = [
+    manager.music.backgroundPattern = [
         {
             offset: 0.5,
             duration: 1,
@@ -802,10 +802,10 @@ test('audio scheduling routes melodic and percussion events', async () => {
         { kind: 'kick', offset: 0.75, duration: 0.1, volume: 0.2 },
         { kind: 'hat', offset: 1, duration: 0.05, volume: 0.04 },
     ];
-    manager.musicGainNode = {};
-    manager.playTone = (options) => scheduled.push({ voice: 'tone', options });
-    manager.playKick = (options) => scheduled.push({ voice: 'kick', options });
-    manager.playHat = (options) => scheduled.push({ voice: 'hat', options });
+    manager.voice.musicGainNode = {};
+    manager.voice.playTone = (options) => scheduled.push({ voice: 'tone', options });
+    manager.voice.playKick = (options) => scheduled.push({ voice: 'kick', options });
+    manager.voice.playHat = (options) => scheduled.push({ voice: 'hat', options });
 
     manager.scheduleBackgroundPattern(10);
     assert.deepEqual(
@@ -816,15 +816,15 @@ test('audio scheduling routes melodic and percussion events', async () => {
     assert.deepEqual(scheduled[0].options.filter, { type: 'lowpass', frequency: 900 });
     assert.equal(manager.getMusicDefinitionForLevel(4).id, 'lunar-horizon');
 
-    manager.audioUnlocked = true;
-    manager.backgroundPatternDuration = 2;
-    manager.nextMusicTime = 5;
+    manager.music.audioUnlocked = true;
+    manager.music.backgroundPatternDuration = 2;
+    manager.music.nextMusicTime = 5;
     scene.sound.context.currentTime = 4.8;
     scene.sound.context.state = 'running';
     manager.pumpMusicScheduler();
     assert.equal(scheduled.length, 6);
     assert.equal(scheduled[3].options.startTime, 5.5);
-    assert.equal(manager.nextMusicTime, 7);
+    assert.equal(manager.music.nextMusicTime, 7);
     manager.pumpMusicScheduler();
     assert.equal(scheduled.length, 6);
 });
@@ -835,9 +835,9 @@ test('sound effects use distinct layered voices', async () => {
         sound: { context: { currentTime: 12, createOscillator() {} } },
     });
     const calls = [];
-    manager.playTone = (options) => calls.push({ voice: 'tone', options });
-    manager.playNoise = (options) => calls.push({ voice: 'noise', options });
-    manager.playKick = (options) => calls.push({ voice: 'kick', options });
+    manager.voice.playTone = (options) => calls.push({ voice: 'tone', options });
+    manager.voice.playNoise = (options) => calls.push({ voice: 'noise', options });
+    manager.voice.playKick = (options) => calls.push({ voice: 'kick', options });
 
     manager.playJumpSound();
     assert.deepEqual(
@@ -904,9 +904,9 @@ test('sound effects use distinct layered voices', async () => {
     assert.ok(calls[1].options.freqStart < 120);
 
     const ramps = [];
-    manager.musicMuted = false;
-    manager.musicVolume = 0.18;
-    manager.musicGainNode = {
+    manager.music.musicMuted = false;
+    manager.music.musicVolume = 0.18;
+    manager.voice.musicGainNode = {
         gain: {
             cancelScheduledValues() {},
             setValueAtTime(value, time) {
@@ -3367,18 +3367,47 @@ test('boarder updates reuse their target and ally scratch lists', async () => {
     };
     scene.boardersGroup = { getChildren: () => [alien] };
     scene.updateBoarders();
-    assert.deepEqual(scene.boarderTargets, [scene.player]);
-    assert.deepEqual(scene.boarderAllies, [alien]);
+    assert.deepEqual(scene.boarders.boarderTargets, [scene.player]);
+    assert.deepEqual(scene.boarders.boarderAllies, [alien]);
     assert.equal(velocities.length, 1);
-    const targets = scene.boarderTargets;
-    const allies = scene.boarderAllies;
-    const options = scene.boarderOptions;
+    const targets = scene.boarders.boarderTargets;
+    const allies = scene.boarders.boarderAllies;
+    const options = scene.boarders.boarderOptions;
     scene.updateBoarders();
-    assert.equal(scene.boarderTargets, targets);
-    assert.equal(scene.boarderAllies, allies);
-    assert.equal(scene.boarderOptions, options);
+    assert.equal(scene.boarders.boarderTargets, targets);
+    assert.equal(scene.boarders.boarderAllies, allies);
+    assert.equal(scene.boarders.boarderOptions, options);
     assert.deepEqual(targets, [scene.player]);
     assert.equal(velocities.length, 2);
+});
+
+test('overlay cleanup destroys an open branch choice', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const overlays = new Overlays({}, { setHudVisible() {} });
+    const destroyed = [];
+    overlays.branchOptions = [{ title: 'A', level: 13 }];
+    overlays.branchCallback = () => {};
+    overlays.branchObjects = [
+        { destroy: () => destroyed.push('dim') },
+        { destroy: () => destroyed.push('button') },
+    ];
+    overlays.cleanup();
+    assert.deepEqual(destroyed, ['dim', 'button']);
+    assert.deepEqual(overlays.branchObjects, []);
+    assert.equal(overlays.branchOptions, null);
+    assert.equal(overlays.branchCallback, null);
+});
+
+test('combat updates never drive the boarder director', async () => {
+    const { CombatSystem } = await importModule('CombatSystem.js');
+    const combat = new CombatSystem({
+        getGameTime: () => 0,
+        levelConfig: null,
+        updateBoarders() {
+            throw new Error('updateCombat must not drive boarders');
+        },
+    });
+    assert.doesNotThrow(() => combat.updateCombat({}));
 });
 
 test('the test interface fire action holds the phaser trigger', async () => {
@@ -3397,9 +3426,10 @@ test('the test interface fire action holds the phaser trigger', async () => {
     assert.equal(face.act('teleport').ok, false);
 });
 
-test('the play-bot exports an in-page pilot installer', async () => {
-    const { installInPagePilot, outcomeFromSnapshot } = await importModule('scripts/play-bot.mjs');
-    assert.equal(typeof installInPagePilot, 'function');
+test('the play-bot ships a self-contained in-page pilot', async () => {
+    const { outcomeFromSnapshot } = await importModule('scripts/play-bot.mjs');
+    const { buildPilotSource } = await importModule('scripts/pilot-brain.mjs');
+    assert.equal(typeof buildPilotSource, 'function');
     assert.equal(outcomeFromSnapshot({ gameOver: true }), 'win');
     assert.equal(outcomeFromSnapshot({ pendingLevel: 2 }, null), 'advance');
     assert.equal(outcomeFromSnapshot({ pendingLevel: 2 }, 1), 'win');
@@ -3407,7 +3437,7 @@ test('the play-bot exports an in-page pilot installer', async () => {
         outcomeFromSnapshot({ dying: true, transitioning: true, nextLevel: 2, gameOver: false }),
         null
     );
-    const source = installInPagePilot.toString();
+    const source = buildPilotSource();
     assert.match(source, /pendingLevel/);
     assert.doesNotMatch(
         source,

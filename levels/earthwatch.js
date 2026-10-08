@@ -40,13 +40,18 @@ export const level = {
         staticPlatforms: [
             { x: 520, y: 616, key: 'issHull', scaleX: 8.2 },
             { x: 1540, y: 616, key: 'issHull', scaleX: 8.2 },
-            { x: 2560, y: 616, key: 'issHull', scaleX: 8.2 },
+            { x: 2287, y: 616, key: 'issHull', scaleX: 3.95 },
+            { x: 2872, y: 616, key: 'issHull', scaleX: 3.31 },
             { x: 3480, y: 616, key: 'issHull', scaleX: 6.4 },
             { x: 3520, y: 470, key: 'issHull', scaleX: 4.5 },
         ],
         floor: null,
         moving: [],
         rocks: [],
+        checkpoints: [
+            { x: 2150, y: 570 },
+            { x: 3120, y: 570 },
+        ],
         dynamic: [
             { type: 'boarder', x: 700, y: 540, wave: 1 },
             { type: 'boarder', x: 1120, y: 540, wave: 1 },

@@ -2,8 +2,14 @@
 <meta charset="utf-8" />
 <title>enemy-spore-floater-a — preview</title>
 <style>
-    body { font-family: monospace; }
-    canvas { image-rendering: pixelated; border: 1px solid #333; margin: 8px; }
+    body {
+        font-family: monospace;
+    }
+    canvas {
+        image-rendering: pixelated;
+        border: 1px solid #333;
+        margin: 8px;
+    }
 </style>
 <h1>enemy-spore-floater-a (48x48)</h1>
 <canvas id="b1" width="48" height="48" style="background: #000"></canvas>
@@ -12,7 +18,12 @@
 <canvas id="w3" width="144" height="144" style="background: #fff"></canvas>
 <script type="module">
     import { paint } from './paint.js';
-    for (const [id, s] of [['b1', 1], ['w1', 1], ['b3', 3], ['w3', 3]]) {
+    for (const [id, s] of [
+        ['b1', 1],
+        ['w1', 1],
+        ['b3', 3],
+        ['w3', 3],
+    ]) {
         const c = document.getElementById(id);
         const x = c.getContext('2d');
         x.scale(s, s);

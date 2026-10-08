@@ -10,24 +10,18 @@ import { BackgroundRenderer } from './BackgroundRenderer.js';
 import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
+import { CombatSystem } from './CombatSystem.js';
+import { BoarderDirector } from './BoarderDirector.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
 import {
-    activeWeaponId,
-    boarderEntryY,
-    boarderSteering,
-    boarderYields,
     canBonkFromAbove,
     checkpointIndexAt,
     cycleSelection,
     effectiveLevelTime,
     formatElapsedTime,
     jumpCutVelocity,
-    nextBoarderWave,
-    nextWeaponId,
     rescueBonusMs,
-    tempGunMsLeft,
     WEAPON_DEFS,
-    weaponsForLevel,
 } from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
 
@@ -191,17 +185,8 @@ export class SpaceChicken extends Phaser.Scene {
     constructor() {
         super();
         this.viewport = new Viewport(this);
-        // Reused every frame by updateBoarders so the hot loop allocates nothing.
-        this.boarderTargets = [];
-        this.boarderAllies = [];
-        this.boarderOptions = {
-            speed: GAME_CONSTANTS.BOARDER_SPEED,
-            hopVelocity: GAME_CONSTANTS.BOARDER_HOP_VELOCITY_Y,
-            hopRange: GAME_CONSTANTS.BOARDER_HOP_RANGE_X,
-            hopClearance: GAME_CONSTANTS.BOARDER_HOP_CLEARANCE,
-            aggroX: GAME_CONSTANTS.BOARDER_AGGRO_X,
-            aggroY: GAME_CONSTANTS.BOARDER_AGGRO_Y,
-        };
+        this.combat = new CombatSystem(this);
+        this.boarders = new BoarderDirector(this);
     }
 
     init(data = {}) {
@@ -795,15 +780,7 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     liveBoarderCount() {
-        const aliens = this.boardersGroup?.getChildren?.() || [];
-        let live = 0;
-        for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (alien?.active && !alien.defeated && alien.arrived) {
-                live += 1;
-            }
-        }
-        return live;
+        return this.boarders.liveBoarderCount();
     }
 
     decorateCrown() {
@@ -1416,490 +1393,99 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     wireBoarders(chicken) {
-        if (!chicken || !this.boardersGroup) {
-            return;
-        }
-        this.physics.add.overlap(chicken, this.boardersGroup, this.touchBoarder, null, this);
+        this.boarders.wireBoarders(chicken);
     }
 
     setupPhaser() {
-        if (!this.levelConfig?.phaser) {
-            return;
-        }
-        this.phaserBolts = this.physics.add.group({
-            allowGravity: false,
-            maxSize: GAME_CONSTANTS.PHASER_POOL_SIZE,
-        });
-        this.attachPhaserSprite(this.player);
-        if (this.boardersGroup) {
-            this.physics.add.overlap(
-                this.phaserBolts,
-                this.boardersGroup,
-                this.phaserHitsBoarder,
-                null,
-                this
-            );
-        }
+        this.combat.setupPhaser();
     }
 
     attachPhaserSprite(chicken) {
-        if (!this.levelConfig?.phaser || !chicken || chicken.phaserSprite) {
-            return;
-        }
-        const gun = this.add.sprite(chicken.x, chicken.y, 'spacePhaser');
-        gun.setDepth(6);
-        chicken.phaserSprite = gun;
-        chicken.weapon = this.baseWeaponOf(chicken);
-        gun.setTexture?.(WEAPON_DEFS[chicken.weapon].gun);
+        this.combat.attachPhaserSprite(chicken);
     }
 
     baseWeaponOf(chicken) {
-        const allowed = weaponsForLevel(this.level);
-        const current = chicken?.weapon || 'phaser';
-        return allowed.includes(current) ? current : 'phaser';
+        return this.combat.baseWeaponOf(chicken);
     }
 
     weaponOf(chicken, now) {
-        const stamp = now ?? this.getGameTime();
-        return activeWeaponId(this.baseWeaponOf(chicken), chicken?.tempGun, stamp);
+        return this.combat.weaponOf(chicken, now);
     }
 
     applyStartWeapons() {
-        if (!this.levelConfig?.phaser) {
-            return;
-        }
-        const names = this.startWeapons || {};
-        if (this.player && typeof names.p1 === 'string') {
-            this.player.weapon = this.baseWeaponOf({ weapon: names.p1 });
-            this.player.phaserSprite?.setTexture?.(WEAPON_DEFS[this.player.weapon].gun);
-        }
-        if (this.player2 && typeof names.p2 === 'string') {
-            this.player2.weapon = this.baseWeaponOf({ weapon: names.p2 });
-            this.player2.phaserSprite?.setTexture?.(WEAPON_DEFS[this.player2.weapon].gun);
-        }
-        this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[this.weaponOf(this.player)].name);
+        this.combat.applyStartWeapons();
     }
 
     switchPlayerWeapon(index) {
-        if (!this.levelConfig?.phaser || this.awaitingStart || this.gameOver) {
-            return false;
-        }
-        const chicken = index === 1 ? this.player2 : this.player;
-        if (!chicken || chicken.active === false) {
-            return false;
-        }
-        if (weaponsForLevel(this.level).length <= 1) {
-            return false;
-        }
-        if (tempGunMsLeft(chicken.tempGun, this.getGameTime()) > 0) {
-            chicken.tempGun = null;
-            const base = this.baseWeaponOf(chicken);
-            chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[base].gun);
-            if (index !== 1) {
-                this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[base].name);
-            }
-            return true;
-        }
-        const next = nextWeaponId(this.baseWeaponOf(chicken), this.level);
-        chicken.weapon = next;
-        chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[next].gun);
-        if (index !== 1) {
-            this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[next].name);
-        }
-        return true;
+        return this.combat.switchPlayerWeapon(index);
     }
 
     updateWeaponSwitch(inputState) {
-        if (!this.levelConfig?.phaser || this.awaitingStart || this.gameOver) {
-            return;
-        }
-        const keyboard = Phaser.Input.Keyboard;
-        if (
-            (this.switchKey1 && keyboard.JustDown(this.switchKey1)) ||
-            inputState?.p1SwitchJustPressed
-        ) {
-            this.switchPlayerWeapon(0);
-        }
-        if (
-            this.player2 &&
-            ((this.switchKey2 && keyboard.JustDown(this.switchKey2)) ||
-                inputState?.p2SwitchJustPressed)
-        ) {
-            this.switchPlayerWeapon(1);
-        }
+        this.combat.updateWeaponSwitch(inputState);
     }
 
     updateTempGuns() {
-        if (!this.levelConfig?.phaser || this.awaitingStart || this.gameOver) {
-            return;
-        }
-        const now = this.getGameTime();
-        [this.player, this.player2].forEach((chicken, index) => {
-            if (!chicken?.tempGun) {
-                return;
-            }
-            const msLeft = tempGunMsLeft(chicken.tempGun, now);
-            if (msLeft <= 0) {
-                chicken.tempGun = null;
-                const base = this.baseWeaponOf(chicken);
-                chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[base].gun);
-                if (index !== 1) {
-                    this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[base].name);
-                }
-                return;
-            }
-            if (index === 0) {
-                const label = `${WEAPON_DEFS[chicken.tempGun.id].name} ${Math.ceil(msLeft / 1000)}s`;
-                if (chicken.tempLabel !== label) {
-                    chicken.tempLabel = label;
-                    this.uiManager?.updateWeaponLabel?.(label);
-                }
-            }
-        });
+        this.combat.updateTempGuns();
     }
 
     updatePhaserSprites() {
-        const chickens = [this.player, this.player2];
-        for (let i = 0; i < chickens.length; i++) {
-            const chicken = chickens[i];
-            const gun = chicken?.phaserSprite;
-            if (!gun) {
-                continue;
-            }
-            const dir = chicken.flipX ? -1 : 1;
-            gun.setPosition(chicken.x + dir * 16, chicken.y + 2);
-            gun.setFlipX(dir < 0);
-            gun.setVisible(chicken.active !== false && chicken.visible !== false);
-        }
+        this.combat.updatePhaserSprites();
     }
 
     updateCombat(inputState) {
-        const now = this.getGameTime();
-        if (this.levelConfig?.phaser) {
-            if (inputState?.phaserHeld) {
-                this.tryFirePhaser(this.player, now);
-            }
-            if (this.player2WantsPhaser()) {
-                this.tryFirePhaser(this.player2, now);
-            }
-            this.stepPhaserBolts();
-        }
-        this.updateBoarders();
+        this.combat.updateCombat(inputState);
     }
 
     player2WantsPhaser() {
-        if (!this.player2?.active) {
-            return false;
-        }
-        const usePad = this.coopMode !== 'keyboard';
-        if (!usePad) {
-            return Boolean(this.player2PhaserKey?.isDown);
-        }
-        const pad = this.inputController.getGamepad?.(
-            this.coopMode === 'keyboard-controller' ? 0 : 1
-        );
-        return Boolean(pad?.buttons?.[2]?.pressed);
+        return this.combat.player2WantsPhaser();
     }
 
     tryFirePhaser(chicken, now) {
-        if (!chicken?.active || chicken.body?.enable === false || !this.phaserBolts) {
-            return;
-        }
-        if (now - (chicken.lastPhaserAt || 0) < GAME_CONSTANTS.PHASER_COOLDOWN_MS) {
-            return;
-        }
-        const def = WEAPON_DEFS[this.weaponOf(chicken)] || WEAPON_DEFS.phaser;
-        const dir = chicken.flipX ? -1 : 1;
-        const fan = def.spread > 0 ? def.spread : 0;
-        const shots =
-            def.ways === 5 && fan > 0
-                ? [-fan, -fan / 2, 0, fan / 2, fan]
-                : fan > 0
-                  ? [-fan, 0, fan]
-                  : [0];
-        let fired = false;
-        for (let i = 0; i < shots.length; i++) {
-            if (this.spawnPlayerBolt(chicken, dir, def, shots[i])) {
-                fired = true;
-            }
-        }
-        if (fired) {
-            chicken.lastPhaserAt = now;
-            this.audioManager?.playPhaserSound?.();
-        }
+        this.combat.tryFirePhaser(chicken, now);
     }
 
     spawnPlayerBolt(chicken, dir, def, velocityY) {
-        const group = this.phaserBolts;
-        let bolt = group.getFirstDead?.(false) || null;
-        if (!bolt) {
-            if ((group.getLength?.() || 0) >= GAME_CONSTANTS.PHASER_POOL_SIZE) {
-                return false;
-            }
-            bolt = group.create(chicken.x, chicken.y, def.bolt);
-        }
-        if (!bolt) {
-            return false;
-        }
-        bolt.setTexture?.(def.bolt);
-        bolt.pierceLeft = def.pierce > 0 ? def.pierce : 0;
-        bolt.setActive?.(true);
-        bolt.setVisible?.(true);
-        bolt.setDepth?.(8);
-        if (bolt.enableBody) {
-            bolt.enableBody(true, chicken.x + dir * 22, chicken.y + 2, true, true);
-        } else if (bolt.body) {
-            bolt.body.enable = true;
-            bolt.body.reset?.(chicken.x + dir * 22, chicken.y + 2);
-        }
-        if (bolt.body) {
-            bolt.body.allowGravity = false;
-            bolt.body.setAllowGravity?.(false);
-            bolt.body.setSize?.(def.boltWidth, def.boltHeight, true);
-        }
-        bolt.setVelocity?.(dir * GAME_CONSTANTS.PHASER_BOLT_SPEED, velocityY);
-        bolt.bornX = bolt.x;
-        bolt.setFlipX?.(dir < 0);
-        this.effectsManager?.emitMuzzle?.(chicken.x + dir * 22, chicken.y + 2, dir);
-        return true;
+        return this.combat.spawnPlayerBolt(chicken, dir, def, velocityY);
     }
 
     stepPhaserBolts() {
-        const bolts = this.phaserBolts?.getChildren?.() || [];
-        for (let i = 0; i < bolts.length; i++) {
-            const bolt = bolts[i];
-            if (!bolt?.active) {
-                continue;
-            }
-            const traveled = Math.abs(bolt.x - (bolt.bornX ?? bolt.x));
-            if (
-                traveled > GAME_CONSTANTS.PHASER_RANGE ||
-                bolt.x < -20 ||
-                bolt.x > this.worldWidth + 20
-            ) {
-                this.effectsManager?.emitPhaserImpact?.(bolt.x, bolt.y);
-                this.recycleBolt(bolt);
-            }
-        }
+        this.combat.stepPhaserBolts();
     }
 
     recycleBolt(bolt) {
-        if (!bolt) {
-            return;
-        }
-        if (this.phaserBolts?.killAndHide) {
-            this.phaserBolts.killAndHide(bolt);
-        } else {
-            bolt.setActive?.(false);
-            bolt.setVisible?.(false);
-        }
-        if (bolt.body) {
-            bolt.body.stop?.();
-            bolt.body.enable = false;
-        }
+        this.combat.recycleBolt(bolt);
     }
 
     phaserHitsBoarder(bolt, alien) {
-        const impactX = bolt?.x ?? alien?.x;
-        const impactY = bolt?.y ?? alien?.y;
-        const piercing = (bolt?.pierceLeft || 0) > 0;
-        if (!piercing) {
-            this.recycleBolt(bolt);
-        } else if (alien?.defeated) {
-            return;
-        } else {
-            bolt.pierceLeft -= 1;
-            if (bolt.pierceLeft <= 0) {
-                this.recycleBolt(bolt);
-            }
-        }
-        if (impactX != null && impactY != null) {
-            this.effectsManager?.emitPhaserImpact?.(impactX, impactY);
-        }
-        this.defeatBoarder(alien);
+        this.combat.phaserHitsBoarder(bolt, alien);
     }
 
     defeatBoarder(alien) {
-        if (!alien?.active || alien.defeated) {
-            return;
-        }
-        alien.defeated = true;
-        alien.aggro = false;
-        alien.clearTint?.();
-        if (alien.body) {
-            alien.body.enable = false;
-        }
-        alien.setVelocity?.(0, 0);
-        this.audioManager?.playBoarderPop?.();
-        this.effectsManager?.emitJumpPuff?.(alien.x, alien.y);
-        if (this.crownShielded && this.levelConfig?.crownShield && this.liveBoarderCount() === 0) {
-            this.breakCrownShield();
-        }
-        this.effectsManager?.emitJumpPuff?.(alien.x, alien.y);
-        this.tweens?.add?.({
-            targets: alien,
-            alpha: 0,
-            duration: 140,
-            onComplete: () => {
-                alien.setActive?.(false);
-                alien.setVisible?.(false);
-            },
-        });
+        this.boarders.defeatBoarder(alien);
     }
 
     touchBoarder(_chicken, alien) {
-        if (this.isTransitioning || this.getGameTime() < (this.boarderGraceUntil || 0)) {
-            return;
-        }
-        if (alien?.body && alien.body.enable === false) {
-            return;
-        }
-        this.failFromHazard('boarder');
+        this.boarders.touchBoarder(_chicken, alien);
     }
 
     holdDisarmedBoarders() {
-        if (!this.boardersDisarmed) {
-            return false;
-        }
-        if (this.getGameTime() < (this.boarderGraceUntil || 0)) {
-            this.resetBoarders();
-            return true;
-        }
-        this.armBoarders();
-        return false;
+        return this.boarders.holdDisarmedBoarders();
     }
 
     updateBoarders() {
-        if (this.holdDisarmedBoarders()) {
-            return;
-        }
-        this.updateBoarderWaves();
-        const aliens = this.boardersGroup?.getChildren?.() || [];
-        if (!aliens.length) {
-            return;
-        }
-        const targets = this.boarderTargets;
-        targets.length = 0;
-        if (this.player?.active && this.player.body?.enable !== false) {
-            targets.push(this.player);
-        }
-        if (this.player2?.active && this.player2.body?.enable !== false) {
-            targets.push(this.player2);
-        }
-        const options = this.boarderOptions;
-        const allies = this.boarderAllies;
-        allies.length = 0;
-        for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (alien?.active && !alien.defeated) {
-                allies.push(alien);
-            }
-        }
-        for (let i = 0; i < aliens.length; i++) {
-            this.stepBoarder(aliens[i], targets, allies, options);
-        }
+        this.boarders.updateBoarders();
     }
 
     stepBoarder(alien, targets, allies, options) {
-        if (!alien?.active || alien.defeated) {
-            return;
-        }
-        if (alien.y > this.killZoneFallY) {
-            this.defeatBoarder(alien);
-            return;
-        }
-        const homeX = alien.homeX ?? alien.x;
-        const homeY = alien.homeY ?? alien.y;
-        let target = null;
-        let best = Infinity;
-        for (let t = 0; t < targets.length; t++) {
-            const chicken = targets[t];
-            const dist = Math.abs(chicken.x - homeX) + Math.abs(chicken.y - homeY);
-            if (dist < best) {
-                best = dist;
-                target = chicken;
-            }
-        }
-        const grounded = Boolean(alien.body?.blocked?.down || alien.body?.touching?.down);
-        const targetGrounded = Boolean(
-            target && (target.body?.blocked?.down || target.body?.touching?.down)
-        );
-        const steer = boarderSteering(
-            alien.x,
-            alien.y,
-            target ? target.x : homeX,
-            target ? target.y : homeY,
-            grounded,
-            {
-                ...options,
-                homeX,
-                homeY,
-                targetGrounded,
-            }
-        );
-        const others = [];
-        for (let a = 0; a < allies.length; a++) {
-            if (allies[a] !== alien) {
-                others.push(allies[a]);
-            }
-        }
-        const yields = boarderYields(
-            alien.x,
-            alien.y,
-            steer.goalX,
-            others,
-            GAME_CONSTANTS.BOARDER_SEPARATION
-        );
-        alien.setVelocityX?.(yields ? 0 : steer.velocityX);
-        if (!yields && steer.velocityY != null) {
-            alien.setVelocityY?.(steer.velocityY);
-        }
-        if (steer.flipX != null) {
-            alien.setFlipX?.(steer.flipX);
-        }
-        this.updateBoarderAggro(alien, target, homeX, homeY, options);
+        this.boarders.stepBoarder(alien, targets, allies, options);
     }
 
     updateBoarderAggro(alien, target, homeX, homeY, options) {
-        const aggroX = options?.aggroX ?? GAME_CONSTANTS.BOARDER_AGGRO_X;
-        const aggroY = options?.aggroY ?? GAME_CONSTANTS.BOARDER_AGGRO_Y;
-        const inAggro = Boolean(
-            target && Math.abs(target.x - homeX) <= aggroX && Math.abs(target.y - homeY) <= aggroY
-        );
-        if (inAggro && !alien.aggro) {
-            alien.aggro = true;
-            this.showBoarderAggro(alien);
-        } else if (!inAggro && alien.aggro) {
-            alien.aggro = false;
-        }
+        this.boarders.updateBoarderAggro(alien, target, homeX, homeY, options);
     }
 
     showBoarderAggro(alien) {
-        if (!alien) {
-            return;
-        }
-        this.effectsManager?.emitAggroTell?.(alien.x, alien.y);
-        if (typeof alien.setTint === 'function') {
-            alien.setTint(0xff8a8a);
-            this.time?.delayedCall?.(GAME_CONSTANTS.BOARDER_AGGRO_FLASH_MS, () => {
-                if (alien?.active && !alien.defeated) {
-                    alien.clearTint?.();
-                }
-            });
-        }
-        if (alien.scaleX != null && this.tweens?.add) {
-            const baseX = alien.bonkScaleX ?? alien.scaleX ?? 1;
-            const baseY = alien.bonkScaleY ?? alien.scaleY ?? 1;
-            this.tweens.add({
-                targets: alien,
-                scaleX: baseX * 1.18,
-                scaleY: baseY * 1.18,
-                duration: 110,
-                yoyo: true,
-                ease: 'Quad.easeOut',
-                onComplete: () => alien.setScale?.(baseX, baseY),
-            });
-        }
+        this.boarders.showBoarderAggro(alien);
     }
 
     updateBombTrails() {
@@ -1925,186 +1511,43 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     parkBoardersWhileDying() {
-        if (this.deathResetEvent || this.deathResetWall) {
-            this.resetBoarders();
-        }
+        this.boarders.parkBoardersWhileDying();
     }
 
     haltBoarders() {
-        const aliens = this.boardersGroup?.getChildren?.() || [];
-        for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (!alien?.active || alien.defeated) {
-                continue;
-            }
-            alien.setVelocity?.(0, 0);
-        }
+        this.boarders.haltBoarders();
     }
 
     boarderHome(alien) {
-        const origin = alien?.testMeta?.origin;
-        const x = alien?.homeX ?? origin?.x;
-        const y = alien?.homeY ?? origin?.y;
-        if (x == null || y == null) {
-            return null;
-        }
-        return { x, y };
+        return this.boarders.boarderHome(alien);
     }
 
     boarderWaveNumber(alien) {
-        const wave = Number(alien?.wave ?? alien?.testMeta?.wave);
-        return wave > 1 ? wave : 1;
+        return this.boarders.boarderWaveNumber(alien);
     }
 
     leadChickenX() {
-        const chickens = [this.player, this.player2];
-        let lead = 0;
-        for (let i = 0; i < chickens.length; i++) {
-            const chicken = chickens[i];
-            if (!chicken?.active || chicken.body?.enable === false) {
-                continue;
-            }
-            if (chicken.x > lead) {
-                lead = chicken.x;
-            }
-        }
-        return lead;
+        return this.boarders.leadChickenX();
     }
 
     updateBoarderWaves() {
-        const next = nextBoarderWave(
-            this.boarderWave || 1,
-            this.leadChickenX(),
-            GAME_CONSTANTS.BOARDER_WAVES
-        );
-        if (next <= (this.boarderWave || 1)) {
-            return;
-        }
-        let released = 0;
-        for (let wave = (this.boarderWave || 1) + 1; wave <= next; wave++) {
-            released += this.releaseBoarderWave(wave);
-        }
-        this.boarderWave = next;
-        if (released === 0) {
-            return;
-        }
-        this.uiManager?.showLevelBanner?.(`WAVE ${next}`, 'Aliens dropping in');
-        this.audioManager?.playWaveSound?.();
-        this.audioManager?.duckMusic?.(160);
+        this.boarders.updateBoarderWaves();
     }
 
     releaseBoarderWave(wave) {
-        const aliens = this.boardersGroup?.getChildren?.() || [];
-        let released = 0;
-        for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (!alien || alien.arrived || this.boarderWaveNumber(alien) !== wave) {
-                continue;
-            }
-            const home = this.boarderHome(alien);
-            if (!home) {
-                continue;
-            }
-            const dropY = boarderEntryY(home.x, home.y);
-            alien.homeX = home.x;
-            alien.homeY = home.y;
-            alien.arrived = true;
-            alien.defeated = false;
-            alien.aggro = false;
-            alien.clearTint?.();
-            alien.setActive?.(true);
-            alien.setVisible?.(true);
-            alien.setAlpha?.(1);
-            if (alien.body?.reset) {
-                alien.body.reset(home.x, dropY);
-            }
-            alien.x = home.x;
-            alien.y = dropY;
-            alien.setVelocity?.(0, 0);
-            if (alien.body) {
-                alien.body.enable = true;
-            }
-            released++;
-        }
-        return released;
+        return this.boarders.releaseBoarderWave(wave);
     }
 
     stowBoarder(alien) {
-        const home = this.boarderHome(alien);
-        alien.arrived = false;
-        alien.defeated = false;
-        alien.aggro = false;
-        alien.clearTint?.();
-        alien.setActive?.(false);
-        alien.setVisible?.(false);
-        alien.setAlpha?.(1);
-        alien.setVelocity?.(0, 0);
-        if (home) {
-            alien.homeX = home.x;
-            alien.homeY = home.y;
-            if (alien.body?.reset) {
-                alien.body.reset(home.x, home.y);
-            }
-            alien.x = home.x;
-            alien.y = home.y;
-        }
-        if (alien.body) {
-            alien.body.enable = false;
-        }
+        this.boarders.stowBoarder(alien);
     }
 
     resetBoarders() {
-        const aliens = this.boardersGroup?.getChildren?.() || [];
-        const activeWave = this.boarderWave || 1;
-        let parked = false;
-        for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (!alien) {
-                continue;
-            }
-            const home = this.boarderHome(alien);
-            if (!home) {
-                continue;
-            }
-            if (this.boarderWaveNumber(alien) > activeWave) {
-                this.stowBoarder(alien);
-                continue;
-            }
-            alien.homeX = home.x;
-            alien.homeY = home.y;
-            alien.arrived = true;
-            alien.defeated = false;
-            alien.aggro = false;
-            alien.clearTint?.();
-            alien.setActive?.(true);
-            alien.setVisible?.(true);
-            alien.setAlpha?.(1);
-            if (alien.body?.reset) {
-                alien.body.reset(home.x, home.y);
-            }
-            alien.x = home.x;
-            alien.y = home.y;
-            alien.setVelocity?.(0, 0);
-            if (alien.body) {
-                alien.body.enable = false;
-            }
-            parked = true;
-        }
-        if (parked) {
-            this.boardersDisarmed = true;
-        }
+        this.boarders.resetBoarders();
     }
 
     armBoarders() {
-        const aliens = this.boardersGroup?.getChildren?.() || [];
-        for (let i = 0; i < aliens.length; i++) {
-            const alien = aliens[i];
-            if (!alien || alien.defeated || !alien.arrived || !alien.body) {
-                continue;
-            }
-            alien.body.enable = true;
-        }
-        this.boardersDisarmed = false;
+        this.boarders.armBoarders();
     }
 
     failFromHazard(reason = 'hazard') {
@@ -2565,6 +2008,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
 
         this.updateCombat(inputState);
+        this.updateBoarders();
         this.syncBonkMarkers();
         this.updateBombTrails();
         this.cleanupOffscreenBombs();

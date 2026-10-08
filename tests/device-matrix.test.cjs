@@ -151,6 +151,30 @@ test('font fitting never shrinks the timer into illegibility', async () => {
     assert.equal(viewport.fitFontSize(32, 4000, 200, 16), 16);
 });
 
+test('hud layout math is pure and matches the viewport delegate', async () => {
+    const { Viewport } = await importModule('Viewport.js');
+    const { computeLayoutMetrics, fitFontSize } = await importModule('HudLayout.js');
+    const insets = { top: 47, right: 0, bottom: 34, left: 0 };
+    const viewport = new Viewport(makeViewportScene(390, 844));
+
+    assert.deepEqual(viewport.getLayoutMetrics(insets), computeLayoutMetrics(390, 844, insets));
+    assert.equal(viewport.fitFontSize(56, 500, 300, 22), fitFontSize(56, 500, 300, 22));
+});
+
+test('ui manager without a viewport shares the hud layout math', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const { computeLayoutMetrics } = await importModule('HudLayout.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const ui = new UIManager({
+        getViewportWidth: () => 390,
+        getViewportHeight: () => 844,
+    });
+    assert.deepEqual(
+        ui.getLayoutMetrics(),
+        computeLayoutMetrics(390, 844, GAME_CONSTANTS.SAFE_AREA_FALLBACK)
+    );
+});
+
 test('game config scales to any window and keeps desktop + mobile input ready', async () => {
     const { createGameConfig } = await importModule('GameConfig.js');
 
@@ -387,6 +411,45 @@ test('pointer tracking dedupes phaser pointer lists', async () => {
     controller.pushUniquePointer(shared, pointers);
     controller.pushUniquePointer(null, pointers);
     assert.equal(pointers.length, 1);
+});
+
+test('gamepad and touch controllers work standalone and back the facade', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const { GamepadController } = await importModule('GamepadController.js');
+    const { TouchController } = await importModule('TouchController.js');
+
+    const scene = { getViewportWidth: () => 390 };
+    const controller = new InputController(scene);
+    assert.ok(controller.gamepad instanceof GamepadController);
+    assert.ok(controller.touch instanceof TouchController);
+    assert.equal(controller.targets, controller.touch.targets);
+
+    // No gamepads in node: polling is a safe no-op that clears latched edges.
+    const gamepad = new GamepadController({});
+    assert.deepEqual(gamepad.readGamepads(), []);
+    assert.equal(gamepad.getGamepad(), null);
+    const state = { menu: {} };
+    gamepad.pollGamepad(state);
+    assert.equal(state.gamepadJumpJustPressed, undefined);
+
+    // Touch hit-testing works without the full scene.
+    const touch = new TouchController({
+        jumpPointerId: null,
+        uiManager: { touchControlsEnabled: true },
+    });
+    const button = {
+        touchHitPadding: 0,
+        getBounds: (target) => {
+            target.x = 0;
+            target.y = 0;
+            target.width = 80;
+            target.height = 80;
+            return target;
+        },
+    };
+    const targets = touch.fillPointerTargets({ x: 40, y: 40 }, { jumpButton: button });
+    assert.equal(targets.jump, true);
+    assert.equal(touch.isOverUiControl(targets), true);
 });
 
 test('gamepads slow-poll when absent and share one snapshot per frame', async () => {

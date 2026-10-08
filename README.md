@@ -1,6 +1,6 @@
 # 🚀 Space Chicken Game
 
-A modular, browser-based Phaser 3 platformer with 7 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
+A modular, browser-based Phaser 3 platformer with 16 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
 
 ## 📁 Project Structure
 
@@ -9,20 +9,29 @@ spacechicken/
 ├── index.html              # Entry point (loads modular ES6 scripts)
 ├── server.cjs              # Lightweight dev server for ES modules
 ├── SpaceChicken.js         # Phaser Scene orchestrator (input, collisions, flow)
+├── CombatSystem.js         # Player weapons, phaser pool, bolts, switching
+├── BoarderDirector.js      # Alien waves, steering, aggro, defeat
 ├── Constants.js            # Shared game constants
 ├── levels/                 # One module per campaign level, plus the registry
 ├── enemies/                # One spawn module per hazard type
 ├── music/                  # One track per level, plus the score helpers
 ├── GameUtils.js            # Shared helpers (time format, defaults, tweens)
 ├── Viewport.js             # Scale / viewport size helpers
+├── HudLayout.js            # Pure HUD layout math (no Phaser dependency)
 ├── LevelConfig.js          # LevelConfig constructor (reads levels/)
-├── SpriteFactory.js        # Procedural canvas-based sprite generation
-├── BackgroundRenderer.js   # Cached, baked parallax backgrounds
+├── SpriteFactory.js        # Sprite facade (delegates to sprites/)
+├── sprites/                # Per-theme canvas painters (decks, enemies, guns…)
+├── BackgroundRenderer.js   # Background engine (layers, cache, dispatch)
+├── backgrounds/            # Per-biome painters (layout + render each)
 ├── WorldBuilder.js         # Platforms, floors, and hazard dispatch
-├── InputController.js      # Keyboard + touch polling
+├── InputController.js      # Keyboard polling + input facade
+├── GamepadController.js    # Gamepad state, edges, rumble
+├── TouchController.js      # Pointer dedupe, hit targets, tap timing
 ├── EffectsManager.js       # Pooled particles, squash/stretch, combat juice
-├── AudioManager.js         # Web Audio API music + SFX
-├── UIManager.js            # HUD, title screen, touch controls, leaderboards UI
+├── AudioManager.js         # Audio facade (delegates to audio/)
+├── audio/                  # Voice engine, music director, SFX synth
+├── UIManager.js            # HUD, touch controls, banners, buttons
+├── Overlays.js             # Title, leaderboard, finish, branch, race-setup overlays
 ├── LeaderboardManager.js   # localStorage + Cloudflare D1 leaderboard client
 ├── tests/                  # Behavioral and server integration tests
 ├── .gitignore
@@ -172,10 +181,11 @@ Use `npm run lint:fix` or `npm run format` for automatic fixes. See `package.jso
 ### Future Enhancements (easy with current architecture)
 
 - New levels → add `levels/<name>.js` and register it in `levels/index.js`
-- New hazards/sprites → extend `SpriteFactory.js` and add `enemies/<type>.js`
+- New hazards/sprites → extend `sprites/<theme>.js` and add `enemies/<type>.js`
 - New music → add `music/<id>.js` and register it in `music/index.js`
-- Background themes → `BackgroundRenderer.js`
-- Audio playback → `AudioManager.js`
+- Background themes → `backgrounds/<biome>.js` (engine: `BackgroundRenderer.js`)
+- Audio playback → `audio/voice.js`, `audio/music.js`, `audio/sfx.js` (facade: `AudioManager.js`)
+- Bot pilot brain → `scripts/pilot-brain.mjs` (tested, stitched into the page)
 - UI polish → `UIManager.js`
 - Different persistence backends → `LeaderboardManager.js`
 
