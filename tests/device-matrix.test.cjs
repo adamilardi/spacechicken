@@ -36,6 +36,7 @@ async function layoutMetricsFor(Viewport, profile) {
 test('every device profile keeps touch targets, fonts, and HUD readable', async () => {
     const { Viewport } = await importModule('Viewport.js');
     const { DEVICE_PROFILES } = await importModule('PerformanceBudgets.js');
+    const { fitRowControlSize } = await importModule('HudLayout.js');
 
     assert.ok(DEVICE_PROFILES.length >= 10, 'matrix should cover phones, tablets, desktops');
     const categories = new Set(DEVICE_PROFILES.map((profile) => profile.category));
@@ -74,17 +75,90 @@ test('every device profile keeps touch targets, fonts, and HUD readable', async 
         assert.ok(metrics.fonts.death >= 14, `${profile.id} death font too small`);
         assert.ok(metrics.fonts.instructions >= 14, `${profile.id} instructions font too small`);
         assert.ok(metrics.fonts.title >= 24, `${profile.id} title font too small`);
-        // Three bottom controls (left, right, jump) must fit without overlap.
+        // Bottom-row controls must fit without overlap: three across
+        // without fire, four across on phaser levels.
         const margin = metrics.controlMargin;
         const gap = Math.max(16, Math.round(margin * 0.7));
-        const fitted = Math.min(
-            metrics.controlSize,
-            Math.max(44, Math.floor((metrics.innerWidth - margin * 2 - gap * 2) / 3))
-        );
-        assert.ok(
-            fitted * 3 + gap * 2 + margin * 2 <= metrics.innerWidth,
-            `${profile.id} touch controls overflow ${metrics.innerWidth}px inner width`
-        );
+        for (const across of [3, 4]) {
+            const fitted = fitRowControlSize(
+                metrics.controlSize,
+                metrics.innerWidth,
+                margin,
+                gap,
+                across
+            );
+            assert.ok(
+                fitted * across + gap * (across - 1) + margin * 2 <= metrics.innerWidth,
+                `${profile.id} ${across}-across touch controls overflow ${metrics.innerWidth}px inner width`
+            );
+        }
+    }
+});
+
+test('laid-out touch buttons never overlap, with or without fire', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const { computeLayoutMetrics } = await importModule('HudLayout.js');
+
+    const layoutRow = (width, height, withPhaser) => {
+        const stubButton = () => {
+            const button = { x: 0, y: 0, w: 0, h: 0 };
+            button.setDisplaySize = (w, h) => {
+                button.w = w;
+                button.h = h;
+            };
+            button.setPosition = (x, y) => {
+                button.x = x;
+                button.y = y;
+            };
+            return button;
+        };
+        const ui = Object.create(UIManager.prototype);
+        ui.leftButton = stubButton();
+        ui.rightButton = stubButton();
+        ui.jumpButton = stubButton();
+        ui.phaserButton = withPhaser ? stubButton() : null;
+        ui.weaponButton = null;
+        const metrics = computeLayoutMetrics(width, height, {
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+        });
+        ui.getLayoutMetrics = () => metrics;
+        ui.getSafeAreaInsets = () => ({ top: 0, right: 0, bottom: 0, left: 0 });
+        ui.expandControlHitArea = () => {};
+        ui.layoutTouchControls();
+        return [ui.leftButton, ui.rightButton, ui.phaserButton, ui.jumpButton].filter(Boolean);
+    };
+
+    const viewports = [
+        [320, 568],
+        [360, 640],
+        [390, 844],
+        [768, 1024],
+        [1024, 768],
+    ];
+    for (const [width, height] of viewports) {
+        for (const withPhaser of [false, true]) {
+            const tag = `${width}x${height}${withPhaser ? ' phaser' : ''}`;
+            const buttons = layoutRow(width, height, withPhaser);
+            for (const button of buttons) {
+                assert.ok(button.w >= 44 && button.h >= 44, `${tag} button below 44px minimum`);
+                assert.ok(
+                    button.x - button.w / 2 >= -1 && button.x + button.w / 2 <= width + 1,
+                    `${tag} button outside viewport`
+                );
+            }
+            const sorted = [...buttons].sort((a, b) => a.x - b.x);
+            for (let i = 1; i < sorted.length; i++) {
+                const prevRight = sorted[i - 1].x + sorted[i - 1].w / 2;
+                const nextLeft = sorted[i].x - sorted[i].w / 2;
+                assert.ok(
+                    prevRight <= nextLeft,
+                    `${tag} touch buttons overlap by ${(prevRight - nextLeft).toFixed(1)}px`
+                );
+            }
+        }
     }
 });
 

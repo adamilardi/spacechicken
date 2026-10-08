@@ -281,6 +281,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.jumpRequested = false;
         this.botJumpWasDown = false;
         this.jumpPointerId = null;
+        this.touchJumpReleased = false;
 
         this.dynamicHazardEvents = [];
         this.activeWarningGraphics = [];

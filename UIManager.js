@@ -1,6 +1,6 @@
 import { GAME_CONSTANTS } from './Constants.js';
 import { formatElapsedTime, weaponsForLevel } from './GameUtils.js';
-import { computeLayoutMetrics } from './HudLayout.js';
+import { computeLayoutMetrics, fitRowControlSize } from './HudLayout.js';
 import { Overlays } from './Overlays.js';
 
 export const HUD_FONT = 'Trebuchet MS, Arial, sans-serif';
@@ -384,10 +384,7 @@ export class UIManager {
         });
 
         jumpButton.on('pointerup', (pointer) => {
-            if (pointer.id === this.scene.jumpPointerId) {
-                this.scene.jumpPointerId = null;
-            }
-            jumpButton.clearTint();
+            this.onJumpButtonUp(pointer);
         });
 
         jumpButton.on('pointerout', (pointer) => {
@@ -496,6 +493,9 @@ export class UIManager {
     onJumpButtonUp(pointer) {
         if (!pointer || pointer.id === this.scene.jumpPointerId) {
             this.scene.jumpPointerId = null;
+            // Touch jump release edge: the poll folds this into jumpReleased
+            // so touch jumps get the same jump cut as keyboard and gamepad.
+            this.scene.touchJumpReleased = true;
         }
         if (this.jumpButton) {
             this.jumpButton.clearTint();
@@ -768,13 +768,22 @@ export class UIManager {
             return;
         }
 
-        let controlSize = metrics.controlSize;
         const margin = metrics.controlMargin;
         const gap = Math.max(16, Math.round(margin * 0.7));
-        // Reserve two gaps, including the gap between movement and jump.
-        controlSize = Math.min(
-            controlSize,
-            Math.max(44, Math.floor((metrics.innerWidth - margin * 2 - gap * 2) / 3))
+        // The row holds left, right, jump, plus fire on phaser levels, so
+        // size for the buttons actually present instead of assuming three.
+        const across = [
+            this.leftButton,
+            this.rightButton,
+            this.jumpButton,
+            this.phaserButton,
+        ].filter(Boolean).length;
+        const controlSize = fitRowControlSize(
+            metrics.controlSize,
+            metrics.innerWidth,
+            margin,
+            gap,
+            across
         );
         const hitPadding = Math.min(margin, (gap - 2) / 2);
 

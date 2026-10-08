@@ -83,6 +83,10 @@ export class InputController {
         scene.leftPressed = false;
         scene.rightPressed = false;
         this.gamepad.pollGamepad(state);
+        if (scene.touchJumpReleased) {
+            state.jumpReleased = true;
+            scene.touchJumpReleased = false;
+        }
 
         const ui = scene.uiManager;
         const controls = this.controls;

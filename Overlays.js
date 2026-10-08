@@ -7,6 +7,26 @@ import { BANNER_FONT, HUD_FONT } from './UIManager.js';
 // HUD state (timer/level/death texts, buttons, touch controls, banners) stays
 // on UIManager; this class owns only overlay objects and their layout, and
 // reaches shared helpers (metrics, insets, text styling) through `ui`.
+
+// A keyboard race needs a physical keyboard, which the page cannot detect
+// directly. Desktops and touchscreen laptops report a fine pointer
+// somewhere; pure touch-only tablets do not. Fails open when the query
+// itself is unavailable so unknown browsers keep the mode.
+export function canRaceWithKeyboard({ matchMedia, keyboardApi = false } = {}) {
+    if (keyboardApi) {
+        return true;
+    }
+    try {
+        const fine = matchMedia?.('(any-pointer: fine)');
+        if (!fine || typeof fine.matches !== 'boolean') {
+            return true;
+        }
+        return fine.matches;
+    } catch {
+        return true;
+    }
+}
+
 export class Overlays {
     constructor(scene, ui) {
         this.scene = scene;
@@ -861,6 +881,19 @@ export class Overlays {
                 ) {
                     dialog.querySelector('#race-controls').textContent =
                         'Connect the required controller(s), then press a button on each.';
+                    return;
+                }
+                if (
+                    (mode === 'keyboard' || mode === 'keyboard-controller') &&
+                    !canRaceWithKeyboard({
+                        matchMedia: (query) => window.matchMedia(query),
+                        keyboardApi: typeof navigator !== 'undefined' && 'keyboard' in navigator,
+                    })
+                ) {
+                    // Co-op hides the touch buttons, so a touch-only device
+                    // that picks a keyboard race would be stuck with no input.
+                    dialog.querySelector('#race-controls').textContent =
+                        'Keyboard race needs a connected keyboard.';
                     return;
                 }
                 this.raceMenuIndex = index;

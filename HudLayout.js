@@ -74,6 +74,18 @@ export function computeLayoutMetrics(width, height, insets) {
     };
 }
 
+// Fit one bottom-row control so `across` buttons plus their gaps and
+// margins stay inside the inner width. Levels without fire size three
+// across; phaser levels size four. Never below the 44px touch minimum
+// that verify-mobile asserts for every button.
+export function fitRowControlSize(controlSize, innerWidth, margin, gap, across) {
+    const count = Math.max(1, across);
+    return Math.min(
+        controlSize,
+        Math.max(44, Math.floor((innerWidth - margin * 2 - gap * (count - 1)) / count))
+    );
+}
+
 export function fitFontSize(baseSize, contentWidth, maxWidth, minSize = 16) {
     if (!contentWidth || contentWidth <= maxWidth) {
         return baseSize;

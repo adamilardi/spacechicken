@@ -37,6 +37,7 @@ export class TouchController {
         }
         if (!jumpPointer || !jumpPointer.isDown) {
             scene.jumpPointerId = null;
+            scene.touchJumpReleased = true;
         }
     }
 

@@ -2274,6 +2274,49 @@ test('touch arrow buttons move the chicken and do not steal the jump pointer', a
     assert.equal(scene.rightPressed, false);
 });
 
+test('releasing the touch jump button reports jumpReleased for the jump cut', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const { UIManager } = await importModule('UIManager.js');
+    const scene = {
+        space: {},
+        cursors: { up: {} },
+        wasd: { W: {} },
+        jumpPointerId: 7,
+        touchJumpReleased: false,
+        leftPressed: false,
+        rightPressed: false,
+        pointerTapTimes: new Map(),
+        getViewportWidth() {
+            return 390;
+        },
+        uiManager: null,
+        input: {
+            pointers: [{ id: 7, isDown: true, justDown: false, justUp: false, x: 320, y: 540 }],
+        },
+    };
+    const ui = Object.create(UIManager.prototype);
+    ui.scene = scene;
+    ui.jumpButton = { clearTint() {} };
+    const controller = new InputController(scene);
+
+    controller.poll();
+    assert.equal(controller.state.jumpReleased, false);
+
+    ui.onJumpButtonUp({ id: 7 });
+    assert.equal(scene.jumpPointerId, null);
+    assert.equal(scene.touchJumpReleased, true);
+    scene.input.pointers = [];
+    assert.equal(controller.poll().jumpReleased, true);
+    assert.equal(scene.touchJumpReleased, false);
+    assert.equal(controller.poll().jumpReleased, false);
+
+    // The poll backstop catches a lift the button handlers missed.
+    scene.jumpPointerId = 9;
+    scene.input.pointers = [];
+    assert.equal(controller.poll().jumpReleased, true);
+    assert.equal(controller.poll().jumpReleased, false);
+});
+
 test('standard gamepad maps stick, d-pad, and jump edges', async () => {
     const { InputController } = await importModule('InputController.js');
     const pad = {
@@ -3379,6 +3422,36 @@ test('boarder updates reuse their target and ally scratch lists', async () => {
     assert.equal(scene.boarders.boarderOptions, options);
     assert.deepEqual(targets, [scene.player]);
     assert.equal(velocities.length, 2);
+});
+
+test('keyboard race is blocked only on coarse-only devices', async () => {
+    const { canRaceWithKeyboard } = await importModule('Overlays.js');
+    const matchMedia = (matches) => () => ({ matches });
+    assert.equal(
+        canRaceWithKeyboard({ matchMedia: matchMedia(true) }),
+        true,
+        'fine pointer keeps keyboard race'
+    );
+    assert.equal(
+        canRaceWithKeyboard({ matchMedia: matchMedia(false) }),
+        false,
+        'coarse-only device blocks keyboard race'
+    );
+    assert.equal(
+        canRaceWithKeyboard({ matchMedia: matchMedia(false), keyboardApi: true }),
+        true,
+        'keyboard API keeps keyboard race'
+    );
+    assert.equal(canRaceWithKeyboard({}), true, 'unknown input fails open');
+    assert.equal(
+        canRaceWithKeyboard({
+            matchMedia: () => {
+                throw new Error('unsupported query');
+            },
+        }),
+        true,
+        'throwing matchMedia fails open'
+    );
 });
 
 test('overlay cleanup destroys an open branch choice', async () => {
