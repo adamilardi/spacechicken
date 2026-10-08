@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "level_id": "skyhook-anchor",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-diversity/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-15-panel",
+            "asset_path": "../../art-candidates/contra-diversity/level-15-panel/deck.js",
+            "reason": "Dark service panel with red beacons marks the stair and shelves apart from the pale deck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register skyhookPanel texture key."
+            ],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Diversity-pass revision: accent deck only. Clamps stay; two more clamp placements join the level."
+}

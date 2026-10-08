@@ -1,0 +1,36 @@
+{
+    "schema_version": 1,
+    "level_id": "crimson-womb",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-diversity/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-12-bone",
+            "asset_path": "../../art-candidates/contra-diversity/level-12-bone/deck.js",
+            "reason": "Bone edge with marrow seams marks the bridge and shelves apart from dark flesh.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register wombBone texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "prop",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-12-bone",
+            "asset_path": "../../art-candidates/contra-diversity/level-12-bone/prop.js",
+            "reason": "Round watching eye on a stalk; the level has no props and this one cannot read as a deck.",
+            "production_status": "needs-work",
+            "remaining_work": ["Register wombEye texture key as decor only."],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Diversity-pass revision: accent deck plus the level's first props."
+}

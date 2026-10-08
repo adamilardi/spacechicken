@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "level_id": "rust-harbor",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-diversity/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-13-plank",
+            "asset_path": "../../art-candidates/contra-diversity/level-13-plank/deck.js",
+            "reason": "Weathered planks with rope mark the stair and shelves apart from the rust deck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register harborPlank texture key."
+            ],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Diversity-pass revision: accent deck only. Lamps stay; two more lamp placements join the level."
+}

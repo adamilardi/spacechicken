@@ -370,6 +370,89 @@ function paintColonyDeck(ctx) {
     }
 }
 
+function paintBastionDeck(ctx) {
+    ctx.fillStyle = '#2a3140';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#f4f7fb';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#161b26';
+    for (let x = 0; x < 96; x += 24) {
+        ctx.fillRect(x, 5, 2, 19);
+    }
+    ctx.fillStyle = '#ff4a3c';
+    for (let x = 10; x < 96; x += 32) {
+        ctx.fillRect(x, 8, 4, 4);
+    }
+    ctx.fillStyle = '#ffd7a8';
+    for (let x = 10; x < 96; x += 32) {
+        ctx.fillRect(x + 1, 9, 2, 2);
+    }
+    ctx.fillStyle = '#0d1119';
+    for (let x = 4; x < 96; x += 16) {
+        ctx.fillRect(x, 16, 8, 8);
+    }
+    ctx.fillStyle = '#5a6a86';
+    for (let x = 6; x < 96; x += 16) {
+        ctx.fillRect(x, 17, 4, 2);
+    }
+    ctx.fillStyle = '#aeb9c9';
+    for (const x of [5, 47, 89]) {
+        ctx.fillRect(x, 11, 2, 2);
+    }
+}
+
+function paintBastionPylon(ctx) {
+    ctx.fillStyle = '#141a26';
+    ctx.fillRect(6, 0, 8, 48);
+    ctx.fillStyle = '#2a3140';
+    ctx.fillRect(6, 0, 8, 4);
+    ctx.fillRect(6, 44, 8, 4);
+    ctx.fillStyle = 'rgba(156, 236, 255, 0.3)';
+    ctx.beginPath();
+    ctx.arc(10, 16, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(6, 12, 8, 8);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(6, 12, 8, 2);
+    ctx.fillStyle = '#ff4a3c';
+    ctx.beginPath();
+    ctx.arc(10, 32, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd7a8';
+    ctx.beginPath();
+    ctx.arc(10, 32, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintWombFlesh(ctx) {
+    ctx.fillStyle = '#4a1420';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#f2d8c9';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#8e2f3f';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#33101a';
+    for (let x = 6; x < 96; x += 24) {
+        ctx.fillRect(x, 8, 10, 6);
+    }
+    ctx.fillStyle = '#ff5a8a';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 10, 3, 3);
+        ctx.fillRect(x + 14, 16, 3, 3);
+    }
+    ctx.fillStyle = '#ffc7da';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 10, 3, 1);
+    }
+    ctx.fillStyle = '#1c060d';
+    for (let x = 0; x < 96; x += 12) {
+        ctx.fillRect(x + 4, 20, 4, 4);
+    }
+}
+
 function paintColonyBeacon(ctx) {
     ctx.fillStyle = '#0e1420';
     ctx.fillRect(6, 38, 12, 6);
@@ -854,6 +937,676 @@ function paintNovaOrb(ctx) {
     ctx.beginPath();
     ctx.arc(8, 8, 3, 0, Math.PI * 2);
     ctx.fill();
+}
+
+function paintTempestGun(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 12, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillStyle = '#c78bff';
+    for (let y = 1; y <= 9; y += 2) {
+        ctx.fillRect(14, y, 8, 1);
+    }
+    ctx.fillStyle = '#f4e8ff';
+    ctx.fillRect(20, 3, 2, 6);
+}
+
+function paintTempestBolt(ctx) {
+    ctx.fillStyle = '#c78bff';
+    ctx.fillRect(0, 3, 22, 3);
+    ctx.fillStyle = '#f4e8ff';
+    ctx.fillRect(3, 3, 14, 1);
+    ctx.fillStyle = '#fff8e8';
+    ctx.beginPath();
+    ctx.arc(20, 4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintHailGun(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 12, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(13, 5, 9, 3);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(13, 5, 9, 1);
+    ctx.fillRect(16, 2, 3, 8);
+}
+
+function paintHailBolt(ctx) {
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(0, 2, 26, 3);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(4, 2, 16, 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(22, 0, 4, 6);
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(23, 1, 2, 4);
+}
+
+function paintHarborDeck(ctx) {
+    ctx.fillStyle = '#6e3a22';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#e8d8b0';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#8a5a2a';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#4a2414';
+    for (let x = 0; x < 96; x += 32) {
+        ctx.fillRect(x, 5, 3, 19);
+    }
+    ctx.fillStyle = '#e8d8b0';
+    for (let x = 8; x < 96; x += 32) {
+        ctx.fillRect(x, 8, 2, 2);
+        ctx.fillRect(x + 12, 8, 2, 2);
+    }
+    ctx.fillStyle = '#c9b48a';
+    for (let x = 16; x < 96; x += 32) {
+        ctx.fillRect(x, 16, 4, 3);
+        ctx.fillRect(x + 6, 19, 3, 3);
+    }
+    ctx.fillStyle = '#2c1408';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 21, 10, 3);
+    }
+}
+
+function paintHarborLamp(ctx) {
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(6, 10, 4, 38);
+    ctx.fillRect(2, 44, 12, 4);
+    ctx.fillStyle = '#2c3a52';
+    ctx.fillRect(6, 6, 10, 4);
+    ctx.fillStyle = 'rgba(255, 154, 74, 0.25)';
+    ctx.beginPath();
+    ctx.arc(13, 18, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff9a4a';
+    ctx.fillRect(10, 12, 6, 8);
+    ctx.fillStyle = '#ffd7a8';
+    ctx.fillRect(11, 13, 4, 3);
+}
+
+function paintRipperGun(ctx) {
+    ctx.fillStyle = '#3a2c26';
+    ctx.fillRect(2, 4, 12, 5);
+    ctx.fillStyle = '#241a16';
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillStyle = '#ff9a4a';
+    for (let x = 13; x <= 21; x += 2) {
+        ctx.fillRect(x, 5, 1, 3);
+    }
+    ctx.fillStyle = '#ffd7a8';
+    ctx.fillRect(21, 3, 2, 6);
+}
+
+function paintRipperBolt(ctx) {
+    ctx.fillStyle = '#ff9a4a';
+    ctx.fillRect(0, 3, 24, 3);
+    ctx.fillStyle = '#ffd7a8';
+    for (let x = 2; x < 22; x += 4) {
+        ctx.fillRect(x, 2, 2, 1);
+        ctx.fillRect(x + 1, 6, 2, 1);
+    }
+    ctx.fillStyle = '#fff4e0';
+    ctx.fillRect(20, 1, 4, 6);
+}
+
+function paintFoundryDeck(ctx) {
+    ctx.fillStyle = '#3a2c26';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#ffd23c';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#ff6a2a';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#241512';
+    for (let x = 0; x < 96; x += 24) {
+        ctx.fillRect(x, 5, 2, 19);
+    }
+    ctx.fillStyle = '#ff6a2a';
+    for (let x = 12; x < 96; x += 24) {
+        ctx.fillRect(x, 9, 8, 2);
+    }
+    ctx.fillStyle = '#ffd23c';
+    for (let x = 12; x < 96; x += 24) {
+        ctx.fillRect(x + 2, 9, 4, 1);
+    }
+    ctx.fillStyle = '#140d0a';
+    for (let x = 4; x < 96; x += 16) {
+        ctx.fillRect(x, 16, 8, 8);
+    }
+    ctx.fillStyle = '#7d6a5a';
+    for (let x = 6; x < 96; x += 16) {
+        ctx.fillRect(x, 17, 3, 3);
+    }
+}
+
+function paintFoundryVent(ctx) {
+    ctx.fillStyle = '#241512';
+    ctx.fillRect(8, 6, 16, 34);
+    ctx.fillRect(4, 0, 24, 8);
+    ctx.fillStyle = '#3a2c26';
+    ctx.fillRect(8, 6, 16, 3);
+    ctx.fillStyle = 'rgba(255, 106, 42, 0.3)';
+    ctx.fillRect(11, 12, 10, 20);
+    ctx.fillStyle = '#ff6a2a';
+    ctx.fillRect(13, 14, 6, 16);
+    ctx.fillStyle = '#ffd23c';
+    ctx.fillRect(14, 16, 4, 10);
+    ctx.fillStyle = '#140d0a';
+    ctx.fillRect(8, 34, 16, 6);
+}
+
+function paintCometGun(ctx) {
+    ctx.fillStyle = '#d7e2ee';
+    ctx.fillRect(2, 4, 12, 5);
+    ctx.fillStyle = '#8aa0b8';
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillRect(13, 2, 3, 8);
+    ctx.fillRect(16, 4, 6, 3);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(16, 4, 6, 1);
+    ctx.fillRect(13, 2, 3, 2);
+}
+
+function paintCometBolt(ctx) {
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillRect(0, 3, 20, 3);
+    ctx.fillStyle = '#f4ffff';
+    ctx.fillRect(10, 3, 10, 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(17, 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillRect(0, 1, 6, 1);
+    ctx.fillRect(0, 6, 6, 1);
+}
+
+function paintSkyhookDeck(ctx) {
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#dfe7f5';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#141c30';
+    for (let x = 0; x < 96; x += 24) {
+        ctx.fillRect(x + 10, 5, 4, 19);
+    }
+    ctx.fillStyle = '#ffb15a';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 18, 6, 3);
+        ctx.fillRect(x + 3, 14, 6, 3);
+    }
+    ctx.fillStyle = '#141c30';
+    for (let x = 0; x < 96; x += 48) {
+        ctx.fillRect(x, 8, 6, 3);
+    }
+    ctx.fillStyle = '#7df9ff';
+    for (let x = 20; x < 96; x += 48) {
+        ctx.fillRect(x, 9, 4, 2);
+    }
+}
+
+function paintTetherClamp(ctx) {
+    ctx.fillStyle = 'rgba(125, 249, 255, 0.3)';
+    ctx.fillRect(9, 0, 6, 40);
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillRect(11, 0, 2, 40);
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(2, 8, 20, 8);
+    ctx.fillRect(2, 26, 20, 8);
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(2, 12, 20, 2);
+    ctx.fillRect(2, 30, 20, 2);
+    ctx.fillStyle = '#ffb15a';
+    ctx.fillRect(4, 9, 3, 6);
+    ctx.fillRect(17, 27, 3, 6);
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(6, 36, 12, 4);
+}
+
+function paintHaloGun(ctx) {
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(2, 4, 12, 5);
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillStyle = '#ffb15a';
+    ctx.beginPath();
+    ctx.arc(17, 6, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff4e0';
+    ctx.beginPath();
+    ctx.arc(17, 6, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffb15a';
+    ctx.fillRect(20, 5, 3, 2);
+}
+
+function paintHaloOrb(ctx) {
+    ctx.fillStyle = '#ffb15a';
+    ctx.beginPath();
+    ctx.arc(9, 9, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff4e0';
+    ctx.beginPath();
+    ctx.arc(9, 9, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(9, 9, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintColonyGirder(ctx) {
+    ctx.fillStyle = '#1c2230';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#bcd2e8';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#5a6a86';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#ffb15a';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 17, 8, 4);
+        ctx.fillRect(x + 4, 12, 8, 4);
+    }
+    ctx.fillStyle = '#0d1017';
+    for (let x = 0; x < 96; x += 32) {
+        ctx.fillRect(x, 5, 3, 19);
+    }
+    ctx.fillStyle = '#8a99b5';
+    for (let x = 8; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 3, 3);
+    }
+}
+
+function paintHiveFang(ctx) {
+    ctx.fillStyle = '#2c1238';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#f2e8d8';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#8e6a9e';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#f2e8d8';
+    for (let x = 6; x < 96; x += 24) {
+        ctx.fillRect(x, 5, 8, 4);
+        ctx.fillRect(x + 2, 9, 4, 4);
+    }
+    ctx.fillStyle = '#5a2a6e';
+    for (let x = 2; x < 96; x += 24) {
+        ctx.fillRect(x, 15, 6, 5);
+    }
+    ctx.fillStyle = '#170a20';
+    for (let x = 0; x < 96; x += 12) {
+        ctx.fillRect(x + 5, 21, 3, 3);
+    }
+}
+
+function paintHiveSac(ctx) {
+    ctx.fillStyle = '#2c1238';
+    ctx.fillRect(18, 0, 4, 14);
+    ctx.fillStyle = '#5a2a6e';
+    ctx.beginPath();
+    ctx.arc(20, 30, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8e3a5e';
+    ctx.beginPath();
+    ctx.arc(20, 30, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#67ffd2';
+    ctx.beginPath();
+    ctx.arc(16, 26, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d7fff4';
+    ctx.beginPath();
+    ctx.arc(15, 25, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f2e8d8';
+    ctx.fillRect(12, 40, 3, 3);
+    ctx.fillRect(26, 38, 3, 3);
+}
+
+function paintSpireGlass(ctx) {
+    ctx.fillStyle = '#3a4356';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#d7a441';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#f4e8c8';
+    ctx.fillRect(0, 0, 96, 1);
+    ctx.fillStyle = '#bcd8e8';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 7, 16, 10);
+    }
+    ctx.fillStyle = '#f4fbfd';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 7, 16, 2);
+    }
+    ctx.fillStyle = '#d7a441';
+    for (let x = 0; x < 96; x += 24) {
+        ctx.fillRect(x, 5, 3, 19);
+    }
+    ctx.fillStyle = '#232838';
+    for (let x = 8; x < 96; x += 24) {
+        ctx.fillRect(x, 19, 8, 5);
+    }
+}
+
+function paintSpireFin(ctx) {
+    ctx.fillStyle = '#3a4356';
+    ctx.fillRect(8, 40, 8, 16);
+    ctx.fillRect(4, 52, 16, 4);
+    ctx.fillStyle = '#d7a441';
+    ctx.beginPath();
+    ctx.moveTo(12, 0);
+    ctx.lineTo(20, 44);
+    ctx.lineTo(4, 44);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f4e8c8';
+    ctx.fillRect(11, 6, 2, 32);
+    ctx.fillStyle = '#ff4a3c';
+    ctx.beginPath();
+    ctx.arc(12, 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd7a8';
+    ctx.beginPath();
+    ctx.arc(12, 4, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintBastionGrate(ctx) {
+    ctx.fillStyle = '#0d1119';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#5a6a86';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#2a3140';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#161b26';
+    for (let x = 4; x < 96; x += 12) {
+        ctx.fillRect(x, 5, 6, 19);
+    }
+    ctx.fillStyle = '#ff4a3c';
+    for (let x = 6; x < 96; x += 24) {
+        ctx.fillRect(x, 8, 4, 4);
+    }
+    ctx.fillStyle = '#ffd7a8';
+    for (let x = 6; x < 96; x += 24) {
+        ctx.fillRect(x + 1, 9, 2, 2);
+    }
+    ctx.fillStyle = '#2a3140';
+    for (let x = 0; x < 96; x += 48) {
+        ctx.fillRect(x, 14, 10, 3);
+    }
+}
+
+function paintWombBone(ctx) {
+    ctx.fillStyle = '#33101a';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#f2d8c9';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#8e2f3f';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#f2d8c9';
+    for (let x = 8; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 12, 3);
+        ctx.fillRect(x + 3, 10, 6, 4);
+    }
+    ctx.fillStyle = '#ff5a8a';
+    for (let x = 4; x < 96; x += 32) {
+        ctx.fillRect(x, 16, 4, 4);
+        ctx.fillRect(x + 20, 18, 4, 3);
+    }
+    ctx.fillStyle = '#1c060d';
+    for (let x = 0; x < 96; x += 16) {
+        ctx.fillRect(x + 6, 21, 4, 3);
+    }
+}
+
+function paintWombEye(ctx) {
+    ctx.fillStyle = '#4a1420';
+    ctx.fillRect(15, 22, 6, 14);
+    ctx.fillStyle = '#f2d8c9';
+    ctx.beginPath();
+    ctx.arc(18, 13, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff5a8a';
+    ctx.beginPath();
+    ctx.arc(18, 13, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#1c060d';
+    ctx.beginPath();
+    ctx.arc(18, 13, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(16, 11, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8e2f3f';
+    ctx.fillRect(8, 24, 4, 4);
+    ctx.fillRect(24, 26, 4, 4);
+}
+
+function paintHarborPlank(ctx) {
+    ctx.fillStyle = '#2c2118';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#9e8f76';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#5a4c38';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#4a3d2c';
+    for (let x = 0; x < 96; x += 24) {
+        ctx.fillRect(x, 5, 2, 19);
+    }
+    ctx.fillStyle = '#c9b48a';
+    for (let x = 10; x < 96; x += 24) {
+        ctx.fillRect(x, 8, 4, 8);
+    }
+    ctx.fillStyle = '#6e5a3a';
+    for (let x = 10; x < 96; x += 24) {
+        ctx.fillRect(x, 10, 4, 1);
+        ctx.fillRect(x, 13, 4, 1);
+    }
+    ctx.fillStyle = '#14100a';
+    for (let x = 4; x < 96; x += 16) {
+        ctx.fillRect(x, 20, 8, 4);
+    }
+}
+
+function paintFoundryChain(ctx) {
+    ctx.fillStyle = '#1c1412';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#7d6a5a';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#3a2c26';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#241512';
+    for (let x = 6; x < 96; x += 24) {
+        ctx.fillRect(x, 6, 12, 5);
+        ctx.fillRect(x + 3, 11, 6, 4);
+    }
+    ctx.fillStyle = '#7dff9a';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 17, 4, 4);
+    }
+    ctx.fillStyle = '#e8fff0';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x + 1, 18, 2, 2);
+    }
+}
+
+function paintSkyhookPanel(ctx) {
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#5a6a86';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#2c3a52';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#0a0f1c';
+    for (let x = 4; x < 96; x += 24) {
+        ctx.fillRect(x, 7, 14, 8);
+    }
+    ctx.fillStyle = '#ff4a3c';
+    for (let x = 8; x < 96; x += 24) {
+        ctx.fillRect(x, 17, 4, 4);
+    }
+    ctx.fillStyle = '#ffd7a8';
+    for (let x = 8; x < 96; x += 24) {
+        ctx.fillRect(x + 1, 18, 2, 2);
+    }
+    ctx.fillStyle = '#39435a';
+    for (let x = 0; x < 96; x += 48) {
+        ctx.fillRect(x, 9, 3, 12);
+    }
+}
+
+function paintRescueCage(ctx) {
+    ctx.fillStyle = '#0d1119';
+    ctx.fillRect(0, 0, 32, 48);
+    ctx.fillStyle = '#f4f7fb';
+    ctx.beginPath();
+    ctx.arc(16, 28, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff9a3c';
+    ctx.beginPath();
+    ctx.moveTo(22, 26);
+    ctx.lineTo(28, 29);
+    ctx.lineTo(22, 32);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#14181f';
+    ctx.beginPath();
+    ctx.arc(14, 26, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ff9a3c';
+    ctx.fillRect(11, 36, 4, 3);
+    ctx.fillRect(18, 36, 4, 3);
+    ctx.fillStyle = '#5a6a86';
+    for (let x = 3; x < 32; x += 7) {
+        ctx.fillRect(x, 2, 3, 44);
+    }
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(0, 0, 32, 4);
+    ctx.fillRect(0, 44, 32, 4);
+    ctx.fillRect(0, 0, 3, 48);
+    ctx.fillRect(29, 0, 3, 48);
+    ctx.fillStyle = '#ffd23c';
+    ctx.fillRect(13, 20, 6, 8);
+    ctx.fillStyle = '#14181f';
+    ctx.fillRect(15, 22, 2, 4);
+}
+
+function paintRescueCageOpen(ctx) {
+    ctx.fillStyle = '#0d1119';
+    ctx.fillRect(0, 0, 32, 48);
+    ctx.fillStyle = '#5a6a86';
+    for (let x = 3; x < 14; x += 7) {
+        ctx.fillRect(x, 2, 3, 44);
+    }
+    ctx.strokeStyle = '#5a6a86';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(16, 4);
+    ctx.lineTo(28, 12);
+    ctx.moveTo(16, 24);
+    ctx.lineTo(28, 32);
+    ctx.moveTo(16, 44);
+    ctx.lineTo(28, 36);
+    ctx.stroke();
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(0, 0, 32, 4);
+    ctx.fillRect(0, 44, 32, 4);
+    ctx.fillRect(0, 0, 3, 48);
+    ctx.fillRect(29, 0, 3, 48);
+    ctx.fillStyle = '#7dff9a';
+    ctx.fillRect(19, 20, 5, 5);
+    ctx.fillStyle = '#e8fff0';
+    ctx.fillRect(20, 21, 2, 2);
+}
+
+function paintGunPod(ctx) {
+    ctx.fillStyle = '#14181f';
+    ctx.beginPath();
+    ctx.arc(14, 14, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#39435a';
+    ctx.beginPath();
+    ctx.arc(14, 14, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#0d1119';
+    ctx.fillRect(7, 7, 14, 14);
+    ctx.fillStyle = '#8a99b5';
+    ctx.fillRect(4, 12, 3, 3);
+    ctx.fillRect(21, 12, 3, 3);
+    ctx.fillRect(12, 4, 3, 3);
+    ctx.fillRect(12, 21, 3, 3);
+    ctx.fillStyle = '#5a6a86';
+    ctx.fillRect(2, 13, 4, 2);
+    ctx.fillRect(22, 13, 4, 2);
+}
+
+function paintGunPodCore(ctx) {
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(8, 8, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#dfe7f5';
+    ctx.beginPath();
+    ctx.arc(8, 8, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(6, 6, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function paintVaultDeck(ctx) {
+    ctx.fillStyle = '#2c2118';
+    ctx.fillRect(0, 0, 96, 24);
+    ctx.fillStyle = '#e8d8b0';
+    ctx.fillRect(0, 0, 96, 3);
+    ctx.fillStyle = '#8a6a2a';
+    ctx.fillRect(0, 3, 96, 2);
+    ctx.fillStyle = '#1c140c';
+    for (let x = 0; x < 96; x += 32) {
+        ctx.fillRect(x, 5, 3, 19);
+    }
+    ctx.fillStyle = '#ffb15a';
+    for (let x = 10; x < 96; x += 32) {
+        ctx.fillRect(x, 9, 6, 6);
+    }
+    ctx.fillStyle = '#2c2118';
+    for (let x = 10; x < 96; x += 32) {
+        ctx.fillRect(x + 2, 11, 2, 2);
+    }
+    ctx.fillStyle = '#8a6a2a';
+    for (let x = 4; x < 96; x += 16) {
+        ctx.fillRect(x, 19, 5, 5);
+    }
+}
+
+function paintVaultSeal(ctx) {
+    ctx.fillStyle = '#2c2118';
+    ctx.fillRect(8, 8, 8, 40);
+    ctx.fillRect(4, 42, 16, 6);
+    ctx.fillStyle = '#8a6a2a';
+    ctx.fillRect(8, 8, 8, 3);
+    ctx.fillRect(8, 36, 8, 3);
+    ctx.fillStyle = 'rgba(255, 177, 90, 0.3)';
+    ctx.beginPath();
+    ctx.arc(12, 22, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffb15a';
+    ctx.fillRect(8, 18, 8, 8);
+    ctx.fillStyle = '#2c2118';
+    ctx.fillRect(11, 19, 2, 6);
+    ctx.fillRect(9, 21, 6, 2);
+    ctx.fillStyle = '#fff4e0';
+    ctx.fillRect(8, 18, 8, 2);
 }
 
 export class SpriteFactory {
@@ -1582,6 +2335,42 @@ export class SpriteFactory {
             ['piercerBolt', 34, 4, paintPiercerBolt],
             ['novaGun', 24, 12, paintNovaGun],
             ['novaOrb', 16, 16, paintNovaOrb],
+            ['bastionDeck', 96, 24, paintBastionDeck],
+            ['bastionPylon', 20, 48, paintBastionPylon],
+            ['wombFlesh', 96, 24, paintWombFlesh],
+            ['tempestGun', 24, 12, paintTempestGun],
+            ['tempestBolt', 22, 8, paintTempestBolt],
+            ['hailGun', 24, 12, paintHailGun],
+            ['hailBolt', 26, 6, paintHailBolt],
+            ['harborDeck', 96, 24, paintHarborDeck],
+            ['harborLamp', 16, 48, paintHarborLamp],
+            ['ripperGun', 24, 12, paintRipperGun],
+            ['ripperBolt', 24, 8, paintRipperBolt],
+            ['foundryDeck', 96, 24, paintFoundryDeck],
+            ['foundryVent', 32, 40, paintFoundryVent],
+            ['cometGun', 24, 12, paintCometGun],
+            ['cometBolt', 20, 8, paintCometBolt],
+            ['skyhookDeck', 96, 24, paintSkyhookDeck],
+            ['tetherClamp', 24, 40, paintTetherClamp],
+            ['haloGun', 24, 12, paintHaloGun],
+            ['haloOrb', 18, 18, paintHaloOrb],
+            ['colonyGirder', 96, 24, paintColonyGirder],
+            ['hiveFang', 96, 24, paintHiveFang],
+            ['hiveSac', 40, 48, paintHiveSac],
+            ['spireGlass', 96, 24, paintSpireGlass],
+            ['spireFin', 24, 56, paintSpireFin],
+            ['bastionGrate', 96, 24, paintBastionGrate],
+            ['wombBone', 96, 24, paintWombBone],
+            ['wombEye', 36, 36, paintWombEye],
+            ['harborPlank', 96, 24, paintHarborPlank],
+            ['foundryChain', 96, 24, paintFoundryChain],
+            ['skyhookPanel', 96, 24, paintSkyhookPanel],
+            ['rescueCage', 32, 48, paintRescueCage],
+            ['rescueCageOpen', 32, 48, paintRescueCageOpen],
+            ['gunPod', 28, 28, paintGunPod],
+            ['gunPodCore', 16, 16, paintGunPodCore],
+            ['vaultDeck', 96, 24, paintVaultDeck],
+            ['vaultSeal', 24, 48, paintVaultSeal],
         ];
         sprites.forEach(([key, width, height, paint]) => {
             this.addCanvasTexture(key, width, height, paint);

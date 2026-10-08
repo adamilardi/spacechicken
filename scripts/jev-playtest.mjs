@@ -6,6 +6,7 @@
  *
  *   npm run jev:playtest
  *   LEVEL=2 SEED=42 JEV_DURATION_MS=90000 npm run jev:playtest
+ *   JEV_RUNS=5 LEVEL=8 npm run jev:playtest  (a few seeded runs, aggregate report)
  *   JEV_RECORD_DEMOS=1 LEVEL=1 npm run jev:playtest  (raw full-obs JSONL for rl)
  *
  * The API key is read from TYPESAFE_API_KEY or typesafekey and stays in Node.
@@ -31,6 +32,7 @@ const LEVEL = boundedNumber(
     LEVEL_IDS[LEVEL_IDS.length - 1]
 );
 const SEED = boundedNumber(process.env.SEED, 1, 0, 2_147_483_647);
+const RUNS = boundedNumber(process.env.JEV_RUNS, 3, 1, 10);
 const DURATION_MS = boundedNumber(process.env.JEV_DURATION_MS, 60_000, 2_000, 600_000);
 const DECISION_MS = boundedNumber(process.env.JEV_DECISION_MS, 450, 100, 5_000);
 const TIME_SCALE = boundedScale(process.env.JEV_TIME_SCALE, 0.25);
@@ -78,6 +80,48 @@ function safeError(error) {
 
 export function readTypeSafeApiKey(env = process.env) {
     return String(env.TYPESAFE_API_KEY || env.typesafekey || '').trim();
+}
+
+export const JEV_MAX_SEED = 2_147_483_647;
+
+export function seedForRun(baseSeed, runIndex) {
+    const base = Number.isFinite(baseSeed) ? Math.floor(baseSeed) : 1;
+    const index = Number.isFinite(runIndex) ? Math.floor(runIndex) : 0;
+    const span = JEV_MAX_SEED + 1;
+    return (((base + index) % span) + span) % span;
+}
+
+export function summarizeRuns(runReports) {
+    const runs = runReports.length;
+    const passedCount = runReports.filter((report) => report.passed).length;
+    const okCount = runReports.filter((report) => report.ok).length;
+    const usage = { input_tokens: 0, output_tokens: 0 };
+    let totalJevDecisions = 0;
+    let totalDeaths = 0;
+    let totalDurationMs = 0;
+    const failures = [];
+    for (const report of runReports) {
+        totalJevDecisions += report.jevDecisions || 0;
+        totalDeaths += report.finalObservation?.deaths || 0;
+        totalDurationMs += report.durationMs || 0;
+        usage.input_tokens += report.usage?.input_tokens || 0;
+        usage.output_tokens += report.usage?.output_tokens || 0;
+        for (const failure of report.failures || []) {
+            failures.push({ run: report.run, seed: report.seed, ...failure });
+        }
+    }
+    return {
+        runs,
+        passedCount,
+        okCount,
+        passRate: runs ? passedCount / runs : 0,
+        ok: runs > 0 && okCount === runs,
+        totalJevDecisions,
+        totalDeaths,
+        meanDurationMs: runs ? Math.round(totalDurationMs / runs) : 0,
+        usage,
+        failures,
+    };
 }
 
 // Boarders (type `boarder` in nearby.hazards, cyan chest ring) die to bolts;
@@ -265,12 +309,12 @@ async function applyAction(page, action) {
     return result;
 }
 
-async function preparePage(page, baseURL) {
+async function preparePage(page, baseURL, seed) {
     const url = new URL(baseURL);
     url.searchParams.set('bot', 'jev');
     url.searchParams.set('debug', '1');
     url.searchParams.set('level', String(LEVEL));
-    url.searchParams.set('seed', String(SEED));
+    url.searchParams.set('seed', String(seed));
     url.searchParams.set('timeScale', String(TIME_SCALE));
     const response = await page.goto(url.toString(), { waitUntil: 'load', timeout: 45_000 });
     if (!response || !response.ok()) {
@@ -284,7 +328,10 @@ async function preparePage(page, baseURL) {
         null,
         { timeout: 25_000 }
     );
-    const reset = await page.evaluate((seed) => window.__spaceChickenTest.reset(seed), SEED);
+    const reset = await page.evaluate(
+        (resetSeed) => window.__spaceChickenTest.reset(resetSeed),
+        seed
+    );
     if (!reset || !reset.ok) throw new Error('The game test interface could not reset the scene');
     await page.waitForFunction(
         () => window.__spaceChickenTest && window.__spaceChickenDebug?.ready(),
@@ -401,39 +448,50 @@ async function runPlaytest(client, page) {
     };
 }
 
-async function main() {
-    const apiKey = readTypeSafeApiKey();
-    if (!apiKey) {
-        throw new Error(
-            'Set TYPESAFE_API_KEY or typesafekey in the environment. The key stays in Node and is not sent to the page.'
-        );
-    }
-    fs.mkdirSync(OUT_DIR, { recursive: true });
-    const client = new TypeSafeClient({ apiKey, logLevel: 'off' });
-    const gameServer = await startGameServer();
-    const browser = await launchBrowser();
+function runArtifactName(stem, extension, runIndex) {
+    if (RUNS === 1) return `${stem}${extension}`;
+    return `${stem}-run${runIndex + 1}${extension}`;
+}
+
+function writeRawDemo(rawSteps, resultRest, seed, when) {
+    fs.mkdirSync(DEMO_OUT, { recursive: true });
+    const rawPath = path.join(DEMO_OUT, `jev-raw-L${LEVEL}-s${seed}-${Date.now()}.jsonl`);
+    const lines = [
+        JSON.stringify({
+            type: 'header',
+            format: 'spacechicken-raw-obs',
+            obsVersion: 2,
+            expert: 'jev',
+            model: resultRest.actions.find((a) => a.model)?.model ?? null,
+            level: LEVEL,
+            seed,
+            when,
+            won: resultRest.passed,
+            deaths: resultRest.finalObservation?.deaths ?? null,
+            steps: rawSteps.length,
+        }),
+        ...rawSteps.map((step) => JSON.stringify(step)),
+    ];
+    fs.writeFileSync(rawPath, lines.join('\n') + '\n');
+    console.log(`Raw demo: ${rawPath} (${rawSteps.length} steps)`);
+}
+
+async function runValidationRun(client, browser, gameServer, runIndex) {
+    const seed = seedForRun(SEED, runIndex);
     const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(String(error.message || error)));
-
-    console.log('Space Chicken Jev playtest');
-    console.log(
-        `URL=${gameServer.baseURL} level=${LEVEL} seed=${SEED} duration=${DURATION_MS}ms ` +
-            `timeScale=${TIME_SCALE}`
-    );
     let result;
     try {
-        await preparePage(page, gameServer.baseURL);
+        await preparePage(page, gameServer.baseURL, seed);
         result = await runPlaytest(client, page);
         await page.screenshot({
-            path: path.join(OUT_DIR, 'jev-playtest-final.png'),
+            path: path.join(OUT_DIR, runArtifactName('jev-playtest-final', '.png', runIndex)),
             fullPage: true,
         });
     } finally {
         await context.close();
-        await browser.close();
-        await gameServer.close();
     }
 
     const failures = [];
@@ -445,45 +503,103 @@ async function main() {
     );
     const { rawSteps, ...resultRest } = result;
     const report = {
+        run: runIndex + 1,
         when: new Date().toISOString(),
         level: LEVEL,
-        seed: SEED,
+        seed,
         simulationTimeScale: TIME_SCALE,
         ok: failures.length === 0,
         failures,
         pageErrors,
         ...resultRest,
     };
-    const reportPath = path.join(OUT_DIR, 'jev-playtest-report.json');
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
     if (RECORD_DEMOS && rawSteps?.length) {
-        fs.mkdirSync(DEMO_OUT, { recursive: true });
-        const rawPath = path.join(DEMO_OUT, `jev-raw-L${LEVEL}-s${SEED}-${Date.now()}.jsonl`);
-        const lines = [
-            JSON.stringify({
-                type: 'header',
-                format: 'spacechicken-raw-obs',
-                obsVersion: 2,
-                expert: 'jev',
-                model: resultRest.actions.find((a) => a.model)?.model ?? null,
-                level: LEVEL,
-                seed: SEED,
-                when: report.when,
-                won: resultRest.passed,
-                deaths: resultRest.finalObservation?.deaths ?? null,
-                steps: rawSteps.length,
-            }),
-            ...rawSteps.map((step) => JSON.stringify(step)),
-        ];
-        fs.writeFileSync(rawPath, lines.join('\n') + '\n');
-        console.log(`Raw demo: ${rawPath} (${rawSteps.length} steps)`);
+        writeRawDemo(rawSteps, resultRest, seed, report.when);
     }
     console.log(
-        `${report.ok ? 'PASS' : 'FAIL'} objective=${report.objective?.status} ` +
-            `jevDecisions=${report.jevDecisions} deaths=${report.finalObservation?.deaths}`
+        `Run ${report.run}/${RUNS} seed=${seed} ${report.ok ? 'PASS' : 'FAIL'} ` +
+            `objective=${report.objective?.status} jevDecisions=${report.jevDecisions} ` +
+            `deaths=${report.finalObservation?.deaths}`
+    );
+    return report;
+}
+
+function finishSingleRun(report) {
+    const legacy = { ...report };
+    delete legacy.run;
+    const reportPath = path.join(OUT_DIR, 'jev-playtest-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(legacy, null, 2));
+    console.log(
+        `${legacy.ok ? 'PASS' : 'FAIL'} objective=${legacy.objective?.status} ` +
+            `jevDecisions=${legacy.jevDecisions} deaths=${legacy.finalObservation?.deaths}`
     );
     console.log(`Report: ${reportPath}`);
-    if (!report.ok) process.exitCode = 1;
+    if (!legacy.ok) process.exitCode = 1;
+}
+
+async function main() {
+    const apiKey = readTypeSafeApiKey();
+    if (!apiKey) {
+        throw new Error(
+            'Set TYPESAFE_API_KEY or typesafekey in the environment. The key stays in Node and is not sent to the page.'
+        );
+    }
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    const client = new TypeSafeClient({ apiKey, logLevel: 'off' });
+    const gameServer = await startGameServer();
+    const browser = await launchBrowser();
+
+    console.log('Space Chicken Jev playtest');
+    console.log(
+        `URL=${gameServer.baseURL} level=${LEVEL} seeds=${SEED}-${seedForRun(SEED, RUNS - 1)} ` +
+            `runs=${RUNS} duration=${DURATION_MS}ms timeScale=${TIME_SCALE}`
+    );
+    const runReports = [];
+    try {
+        for (let runIndex = 0; runIndex < RUNS; runIndex += 1) {
+            runReports.push(await runValidationRun(client, browser, gameServer, runIndex));
+        }
+    } finally {
+        await browser.close();
+        await gameServer.close();
+    }
+
+    if (RUNS === 1) {
+        finishSingleRun(runReports[0]);
+        return;
+    }
+    const summary = summarizeRuns(runReports);
+    for (const [index, report] of runReports.entries()) {
+        const runPath = path.join(OUT_DIR, runArtifactName('jev-playtest-report', '.json', index));
+        fs.writeFileSync(runPath, JSON.stringify(report, null, 2));
+    }
+    const aggregate = {
+        when: new Date().toISOString(),
+        level: LEVEL,
+        seeds: runReports.map((report) => report.seed),
+        ...summary,
+        runs: runReports.map((report) => ({
+            run: report.run,
+            seed: report.seed,
+            ok: report.ok,
+            passed: report.passed,
+            failures: report.failures,
+            pageErrors: report.pageErrors,
+            jevDecisions: report.jevDecisions,
+            deaths: report.finalObservation?.deaths ?? null,
+            durationMs: report.durationMs,
+            usage: report.usage,
+        })),
+    };
+    const reportPath = path.join(OUT_DIR, 'jev-playtest-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(aggregate, null, 2));
+    console.log(
+        `${aggregate.ok ? 'PASS' : 'FAIL'} runs=${summary.runs} passed=${summary.passedCount} ` +
+            `ok=${summary.okCount} deaths=${summary.totalDeaths} ` +
+            `jevDecisions=${summary.totalJevDecisions}`
+    );
+    console.log(`Report: ${reportPath}`);
+    if (!aggregate.ok) process.exitCode = 1;
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

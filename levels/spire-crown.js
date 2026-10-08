@@ -13,13 +13,13 @@ export const level = {
         BOMB_SPEED: 200,
         KILLZONE_HEIGHT: 36,
         PHASER: true,
-        NEXT_LEVEL: null,
+        NEXT_LEVEL: 11,
     },
     content: {
         instructions:
-            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Ride the lift, take the crown. Face them and press F or J to fire. Press G to swap guns. (M toggles music)',
+            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. Face them and press F or J to fire. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. The bolt button fires. The gun button swaps guns.',
+            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. The bolt button fires. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'spire',
             style: 'crown',
@@ -45,7 +45,10 @@ export const level = {
             { x: 2400, y: 480, key: 'spireAlloy', scaleX: 3.0 },
             { x: 2850, y: 420, key: 'spireAlloy', scaleX: 3.0 },
             { x: 3300, y: 360, key: 'spireAlloy', scaleX: 3.0 },
-            { x: 3950, y: 240, key: 'spireAlloy', scaleX: 2.6 },
+            { x: 1850, y: 400, key: 'spireGlass', scaleX: 4.0 },
+            { x: 2400, y: 340, key: 'spireGlass', scaleX: 2.6 },
+            { x: 2620, y: 380, key: 'spireGlass', scaleX: 1.4 },
+            { x: 3950, y: 240, key: 'spireAlloy', scaleX: 3.2 },
         ],
         floor: null,
         moving: [
@@ -59,7 +62,16 @@ export const level = {
             },
         ],
         rocks: [],
-        props: [],
+        props: [
+            { x: 300, y: 618, key: 'spireFin' },
+            { x: 2100, y: 498, key: 'spireFin' },
+        ],
+        checkpoints: [
+            { x: 1620, y: 510 },
+            { x: 2750, y: 390 },
+        ],
+        rescues: [{ x: 1850, y: 364 }],
+        pods: [{ x: 1350, y: 426, gun: 'tempest' }],
         dynamic: [
             {
                 type: 'laser',

@@ -1,0 +1,185 @@
+{
+    "schema_version": 1,
+    "brief_id": "contra-arc-2",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-rust-harbor-a",
+            "title": "Rust Harbor",
+            "status": "painted",
+            "summary": "Dusk breaker's yard: sun disc with cloud bands, beached hulls, dock cranes with containers, pilings over shimmering water.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-rust-harbor-a/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-rust-harbor-a/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-rust-harbor-a/prop.js",
+                    "width_px": 16,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-rust-harbor-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "harbor",
+                "palette": ["#1b2b4a", "#ff9a4a", "#6e3a22", "#e8d8b0", "#0a1626"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": {
+                    "sky": "gradient plus sun disc plus cloud bands",
+                    "far": "irregular hull silhouettes",
+                    "mid": "crane diagonals plus container stacks",
+                    "near": "pier pilings plus water shimmer",
+                    "rhythm": "irregular spacing"
+                },
+                "differs_from_shipped": [
+                    "sun-disc sky with cloud bands (no shipped type has a sun disc)",
+                    "pier pilings over water near layer (no shipped type has water)"
+                ]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-ember-foundry-a",
+            "title": "Ember Foundry",
+            "status": "painted",
+            "summary": "Smelter interior: rising ember columns, furnace wall with crucible mouths, ladle rails, melt channel with catwalk grate.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-ember-foundry-a/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-ember-foundry-a/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-ember-foundry-a/prop.js",
+                    "width_px": 32,
+                    "height_px": 40,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-ember-foundry-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "foundry",
+                "palette": ["#140d0a", "#ff6a2a", "#ffd23c", "#3a2c26", "#7dff9a"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": {
+                    "sky": "dark gradient plus rising ember columns plus spark drift",
+                    "far": "furnace wall with crucible mouths",
+                    "mid": "ladle rail with hanging ladle diagonals",
+                    "near": "melt channel flow plus catwalk grate",
+                    "rhythm": "even loop with irregular ladles"
+                },
+                "differs_from_shipped": [
+                    "rising ember-column sky (no shipped type has vertical heat columns)",
+                    "furnace wall with crucible mouths far layer (no shipped type has furnace mouths)"
+                ]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-skyhook-anchor-a",
+            "title": "Skyhook Anchor",
+            "status": "painted",
+            "summary": "Tether ground station at night: climbing ribbon with climber lights, gantry towers, anchor pylon landmark, pad slab with pipes.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-skyhook-anchor-a/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-skyhook-anchor-a/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-skyhook-anchor-a/prop.js",
+                    "width_px": 24,
+                    "height_px": 40,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-skyhook-anchor-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "skyhook",
+                "palette": ["#060b18", "#7df9ff", "#39435a", "#ffb15a", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": {
+                    "sky": "gradient plus climbing tether ribbon plus climber lights plus stars",
+                    "far": "gantry tower frames with cross braces",
+                    "mid": "anchor pylon landmark plus service arms",
+                    "near": "pad slab edge plus pipe runs",
+                    "rhythm": "one-off landmark with irregular towers"
+                },
+                "differs_from_shipped": [
+                    "climbing tether ribbon sky (no shipped type has a vertical ribbon)",
+                    "anchor pylon plus service arms landmark (no shipped type pairs a landmark with arms)"
+                ]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        }
+    ]
+}

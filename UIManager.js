@@ -44,6 +44,8 @@ export class UIManager {
         this.titleControls = null;
         this.titleGamepadStatus = null;
         this.titlePromptTween = null;
+        this.selectPrevButton = null;
+        this.selectNextButton = null;
         this.playerName = '';
         this.bannerTitle = null;
         this.bannerSubtitle = null;
@@ -215,6 +217,8 @@ export class UIManager {
             this.titlePrompt,
             this.titleControls,
             this.titleGamepadStatus,
+            this.selectPrevButton,
+            this.selectNextButton,
             this.bannerTitle,
             this.bannerSubtitle,
             this.leaderboardTextObject,
@@ -399,6 +403,15 @@ export class UIManager {
             jumpButton.setTint(0x99ff99);
         });
 
+        jumpButton.on('pointerover', (pointer) => {
+            // NES roll: a finger sliding in from fire holds jump without lifting.
+            if (pointer?.isDown && pointer.id !== this.scene.jumpPointerId) {
+                this.scene.jumpPointerId = pointer.id;
+                this.scene.jumpRequested = true;
+                jumpButton.setTint(0x99ff99);
+            }
+        });
+
         jumpButton.on('pointerup', (pointer) => {
             if (pointer.id === this.scene.jumpPointerId) {
                 this.scene.jumpPointerId = null;
@@ -407,6 +420,10 @@ export class UIManager {
         });
 
         jumpButton.on('pointerout', (pointer) => {
+            // Rolling onto fire keeps jump held until lift or full exit.
+            if (pointer?.isDown && this.pointerWithinButton(this.phaserButton, pointer, 4)) {
+                return;
+            }
             this.onJumpButtonUp(pointer);
         });
 
@@ -427,6 +444,14 @@ export class UIManager {
             this.scene.phaserHeld = true;
             button.setTint(0x99ffff);
         });
+        button.on('pointerover', (pointer) => {
+            // NES roll: a finger sliding in from jump keeps firing without lifting.
+            if (pointer?.isDown && pointer.id !== this.scene.phaserPointerId) {
+                this.scene.phaserPointerId = pointer.id;
+                this.scene.phaserHeld = true;
+                button.setTint(0x99ffff);
+            }
+        });
         const release = (pointer) => {
             if (!pointer || pointer.id === this.scene.phaserPointerId) {
                 this.scene.phaserPointerId = null;
@@ -434,10 +459,29 @@ export class UIManager {
             }
             button.clearTint();
         };
+        const slideOut = (pointer) => {
+            // Rolling onto jump keeps fire held until lift or full exit.
+            if (pointer?.isDown && this.pointerWithinButton(this.jumpButton, pointer, 4)) {
+                return;
+            }
+            release(pointer);
+        };
         button.on('pointerup', release);
-        button.on('pointerout', release);
+        button.on('pointerout', slideOut);
         button.on('pointerupoutside', release);
         return button;
+    }
+
+    pointerWithinButton(button, pointer, pad = 0) {
+        if (!button || !pointer) {
+            return false;
+        }
+        const halfWidth = (button.displayWidth || 0) / 2 + pad;
+        const halfHeight = (button.displayHeight || 0) / 2 + pad;
+        return (
+            Math.abs(pointer.x - button.x) <= halfWidth &&
+            Math.abs(pointer.y - button.y) <= halfHeight
+        );
     }
 
     createWeaponButton() {
@@ -783,16 +827,18 @@ export class UIManager {
             this.expandControlHitArea(this.jumpButton, controlSize, hitPadding);
         }
         if (this.phaserButton && this.jumpButton) {
+            // NES layout: fire sits left of jump on the same row so the
+            // thumb rolls right to leap while firing.
             this.phaserButton.setDisplaySize(controlSize, controlSize);
-            this.phaserButton.setPosition(this.jumpButton.x, buttonY - controlSize - gap);
+            this.phaserButton.setPosition(this.jumpButton.x - controlSize - gap, buttonY);
             this.expandControlHitArea(this.phaserButton, controlSize, hitPadding);
         }
         if (this.weaponButton && this.phaserButton) {
             const small = controlSize * 0.62;
             this.weaponButton.setDisplaySize(small, small);
             this.weaponButton.setPosition(
-                this.phaserButton.x - controlSize / 2 - gap - small / 2,
-                this.phaserButton.y
+                this.phaserButton.x,
+                buttonY - controlSize / 2 - gap - small / 2
             );
             this.expandControlHitArea(this.weaponButton, small, hitPadding);
         }
@@ -910,10 +956,11 @@ export class UIManager {
         this.layoutUI();
     }
 
-    showLevelResult(title, time, submission) {
-        this.completionSummary = `${title} · ${formatElapsedTime(time)}`;
+    showLevelResult(title, time, submission, rescueMs = 0) {
+        const rescueLabel = rescueMs > 0 ? ` · −${Math.round(rescueMs / 1000)}s crew` : '';
+        this.completionSummary = `${title} · ${formatElapsedTime(time)}${rescueLabel}`;
         if (this.scene.levelConfig.nextLevel) {
-            this.showLevelBanner(title, formatElapsedTime(time), 2800);
+            this.showLevelBanner(title, `${formatElapsedTime(time)}${rescueLabel}`, 2800);
             this.bannerTitle?.setAlpha(1);
             this.bannerSubtitle?.setAlpha(1);
         }
@@ -934,8 +981,10 @@ export class UIManager {
         });
     }
 
-    showFullRunResult(time, submission) {
-        this.fullRunSummary = `FULL RUN · ${formatElapsedTime(time)} · ZERO DEATHS`;
+    showFullRunResult(time, submission, deaths = 0, rescues = 0) {
+        const deathLabel = deaths > 0 ? `${deaths} DEATHS` : 'ZERO DEATHS';
+        const rescueLabel = rescues > 0 ? ` · ${rescues} SAVED` : '';
+        this.fullRunSummary = `FULL RUN · ${formatElapsedTime(time)} · ${deathLabel}${rescueLabel}`;
         Promise.resolve(submission).then((result) => {
             if (this.destroyed || !result?.rank) return;
             this.fullRunSummary += `\nAll-time #${result.rank} · Weekly #${result.weeklyRank}`;
@@ -1280,6 +1329,27 @@ export class UIManager {
         }
     }
 
+    createSelectChevron(label, direction, metrics) {
+        const button = this.scene.add
+            .text(0, 0, label, {
+                fontSize: `${metrics.fonts.prompt}px`,
+                fontFamily: HUD_FONT,
+                fill: '#ffffff',
+                align: 'center',
+            })
+            .setOrigin(0.5);
+        button.setScrollFactor(0);
+        button.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        button.setPadding(14, 8, 14, 8);
+        button.setBackgroundColor('#17334b');
+        this.styleHudText(button, 4);
+        if (typeof button.setInteractive === 'function') {
+            button.setInteractive({ useHandCursor: true });
+            button.on('pointerup', () => this.scene.cycleTitleSelection(direction));
+        }
+        return button;
+    }
+
     showTitleScreen(subtitle) {
         if (this.destroyed) {
             return;
@@ -1331,9 +1401,15 @@ export class UIManager {
         this.styleHudText(this.titleSubtitle, 4);
         this.markUi(this.titleSubtitle);
 
-        const prompt = this.touchControlsEnabled
+        const canSelect = (this.scene.leaderboardManager?.getMaxUnlocked?.() || 1) > 1;
+        let prompt = this.touchControlsEnabled
             ? 'TAP TO START'
             : 'PRESS SPACE OR GAMEPAD A TO START';
+        if (canSelect) {
+            prompt = this.touchControlsEnabled
+                ? 'TAP ◀ ▶ · TAP MIDDLE TO START'
+                : '← → SELECT · SPACE START';
+        }
         this.titlePrompt = this.scene.add
             .text(0, 0, prompt, {
                 fontSize: `${metrics.fonts.prompt}px`,
@@ -1377,6 +1453,10 @@ export class UIManager {
         this.titleGamepadStatus.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
         this.styleHudText(this.titleGamepadStatus, 3);
         this.markUi(this.titleGamepadStatus);
+        if (canSelect) {
+            this.selectPrevButton = this.markUi(this.createSelectChevron('◀', -1, metrics));
+            this.selectNextButton = this.markUi(this.createSelectChevron('▶', 1, metrics));
+        }
         this.updateGamepadStatus();
 
         this.playerNameText.setOrigin(0.5);
@@ -1397,6 +1477,113 @@ export class UIManager {
         }
         this.setHudVisible(false);
         this.createRaceSetup();
+        this.layoutTitleScreen();
+    }
+
+    showBranchChoice(options, onPick, subtitle = null) {
+        if (this.destroyed || !Array.isArray(options) || options.length < 2) {
+            return;
+        }
+        this.hideBranchChoice();
+        this.branchOptions = options;
+        this.branchCallback = typeof onPick === 'function' ? onPick : null;
+        this.branchObjects = [];
+        const width = this.scene.getViewportWidth();
+        const height = this.scene.getViewportHeight();
+        const centerX = width / 2;
+        const centerY = height / 2;
+        if (typeof this.scene.add.rectangle === 'function') {
+            const dim = this.scene.add.rectangle(0, 0, width, height, 0x04060d, 0.72);
+            dim.setOrigin(0, 0);
+            dim.setScrollFactor(0);
+            dim.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.branchObjects.push(dim);
+        }
+        const hasSubtitle = typeof subtitle === 'string' && subtitle.length > 0;
+        const titleY = hasSubtitle ? centerY - 118 : centerY - 90;
+        const title = this.scene.add.text(centerX, titleY, 'CHOOSE YOUR PATH', {
+            fontSize: '30px',
+            fontFamily: HUD_FONT,
+            fill: '#ffe566',
+            align: 'center',
+        });
+        title.setOrigin(0.5);
+        title.setScrollFactor(0);
+        title.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
+        this.branchObjects.push(title);
+        if (hasSubtitle) {
+            const blurb = this.scene.add.text(centerX, centerY - 78, subtitle, {
+                fontSize: '15px',
+                fontFamily: HUD_FONT,
+                fill: '#cdd8ea',
+                align: 'center',
+                wordWrap: { width: Math.max(280, Math.min(560, width - 80)) },
+            });
+            blurb.setOrigin(0.5, 0);
+            blurb.setScrollFactor(0);
+            blurb.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
+            this.branchObjects.push(blurb);
+        }
+        const firstButtonY = hasSubtitle ? centerY + 2 : centerY - 20;
+        options.slice(0, 2).forEach((option, index) => {
+            const label = `${index + 1} · ${option.title}`.toUpperCase();
+            const button = this.scene.add.text(centerX, firstButtonY + index * 56, label, {
+                fontSize: '22px',
+                fontFamily: HUD_FONT,
+                fill: '#ffffff',
+                align: 'center',
+            });
+            button.setOrigin(0.5);
+            button.setScrollFactor(0);
+            button.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
+            button.setPadding(16, 10, 16, 10);
+            button.setBackgroundColor('#17334b');
+            if (typeof button.setInteractive === 'function') {
+                button.setInteractive({ useHandCursor: true });
+                button.on('pointerup', () => this.pickBranch(index));
+            }
+            this.branchObjects.push(button);
+        });
+        const hintY = hasSubtitle ? centerY + 132 : centerY + 110;
+        const hint = this.scene.add.text(centerX, hintY, 'tap, or press 1 / 2', {
+            fontSize: '16px',
+            fontFamily: HUD_FONT,
+            fill: '#9fb3c8',
+            align: 'center',
+        });
+        hint.setOrigin(0.5);
+        hint.setScrollFactor(0);
+        hint.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
+        this.branchObjects.push(hint);
+    }
+
+    pickBranch(index) {
+        const options = this.branchOptions;
+        const callback = this.branchCallback;
+        if (!options || index < 0 || index >= options.length) {
+            return false;
+        }
+        this.hideBranchChoice();
+        if (callback) {
+            callback(options[index].level);
+        }
+        return true;
+    }
+
+    hideBranchChoice() {
+        (this.branchObjects || []).forEach((object) => {
+            object?.destroy?.();
+        });
+        this.branchObjects = [];
+        this.branchOptions = null;
+        this.branchCallback = null;
+    }
+
+    showTitleLevelSelection(text) {
+        if (!this.titleSubtitle) {
+            return;
+        }
+        this.titleSubtitle.setText(text);
         this.layoutTitleScreen();
     }
 
@@ -1493,6 +1680,12 @@ export class UIManager {
                 (this.titleText.displayHeight || this.titleText.height || 40) * 0.5 +
                 (metrics.isCompact ? 14 : 18);
             this.titleSubtitle.setPosition(centerX, subtitleY);
+        }
+        if (this.selectPrevButton && this.selectNextButton && this.titleSubtitle) {
+            const half =
+                (this.titleSubtitle.displayWidth || this.titleSubtitle.width || 200) / 2 + 64;
+            this.selectPrevButton.setPosition(centerX - half, this.titleSubtitle.y);
+            this.selectNextButton.setPosition(centerX + half, this.titleSubtitle.y);
         }
         if (this.titlePrompt) {
             const subtitleBottom = this.titleSubtitle
@@ -1698,11 +1891,15 @@ export class UIManager {
             this.titlePrompt,
             this.titleControls,
             this.titleGamepadStatus,
+            this.selectPrevButton,
+            this.selectNextButton,
         ].forEach((element) => {
             if (element && element.destroy) {
                 element.destroy();
             }
         });
+        this.selectPrevButton = null;
+        this.selectNextButton = null;
         this.titleDim = null;
         this.titleText = null;
         this.titleSubtitle = null;

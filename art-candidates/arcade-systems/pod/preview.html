@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Gun pod — preview (1x on black)</title>
+<style>
+    body {
+        background: #000;
+        color: #ddd;
+        font-family: monospace;
+    }
+    canvas {
+        image-rendering: pixelated;
+        border: 1px solid #333;
+        margin: 8px;
+    }
+</style>
+<h1>gun pod — shell (28x28), core (16x16), tinted cores</h1>
+<canvas id="shell" width="28" height="28"></canvas>
+<canvas id="core" width="16" height="16"></canvas>
+<canvas id="tints" width="80" height="16"></canvas>
+<script type="module">
+    import { paint as shell } from './pod.js';
+    import { paint as core } from './core.js';
+    shell(document.getElementById('shell').getContext('2d'), 28, 28);
+    core(document.getElementById('core').getContext('2d'), 16, 16);
+    const tints = ['#9cecff', '#ff5a8a', '#c78bff', '#ffd23c', '#7dff9a'];
+    const t = document.getElementById('tints').getContext('2d');
+    tints.forEach((color, i) => {
+        t.save();
+        t.translate(i * 16, 0);
+        core(t, 16, 16);
+        t.globalCompositeOperation = 'source-atop';
+        t.fillStyle = color;
+        t.fillRect(0, 0, 16, 16);
+        t.restore();
+    });
+</script>

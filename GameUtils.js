@@ -15,6 +15,35 @@ export function valueOrDefault(value, fallback) {
     return value === undefined || value === null ? fallback : value;
 }
 
+// Title level select: step the selection, clamped to unlocked levels.
+export function cycleSelection(current, direction, max) {
+    const safe = Number.isInteger(current) ? current : 1;
+    const limit = Number.isInteger(max) && max > 0 ? max : 1;
+    return Math.min(limit, Math.max(1, safe + (direction > 0 ? 1 : -1)));
+}
+
+// Checkpoints: furthest crossed point at or behind the chicken, or -1.
+export function checkpointIndexAt(checkpoints, x) {
+    let best = -1;
+    const points = Array.isArray(checkpoints) ? checkpoints : [];
+    for (let i = 0; i < points.length; i++) {
+        if (typeof points[i]?.x === 'number' && x >= points[i].x) {
+            best = i;
+        }
+    }
+    return best;
+}
+
+// Variable jump height: releasing jump mid-ascent cuts the rise short.
+// Ascents stronger than a full jump (bonk boosts) are never cut.
+export function jumpCutVelocity(velocityY, fullVelocity, multiplier) {
+    if (typeof velocityY !== 'number' || velocityY >= 0 || velocityY < fullVelocity) {
+        return velocityY;
+    }
+    const cut = fullVelocity * multiplier;
+    return velocityY < cut ? cut : velocityY;
+}
+
 export function canBonkFromAbove(chicken, hazard, minFallSpeed = 30) {
     if (!hazard?.bonkable || hazard.bonkLock) {
         return false;
@@ -124,7 +153,7 @@ export function addLoopingTween(tweens, target, config) {
     return tweens.add(tweenConfig);
 }
 
-// Player arsenal. The space phaser is the default everywhere; each colony
+// Player arsenal. The space phaser is the default everywhere; each contra
 // level unlocks one more gun. Guns share cooldown, pool, range, and the
 // boarders-only hit rule — they differ in coverage shape, Contra-style.
 export const WEAPON_DEFS = Object.freeze({
@@ -168,13 +197,118 @@ export const WEAPON_DEFS = Object.freeze({
         spread: 0,
         pierce: 0,
     }),
+    tempest: Object.freeze({
+        id: 'tempest',
+        name: 'Tempest',
+        gun: 'tempestGun',
+        bolt: 'tempestBolt',
+        boltWidth: 22,
+        boltHeight: 8,
+        spread: 150,
+        pierce: 0,
+        ways: 5,
+    }),
+    hail: Object.freeze({
+        id: 'hail',
+        name: 'Hail',
+        gun: 'hailGun',
+        bolt: 'hailBolt',
+        boltWidth: 26,
+        boltHeight: 6,
+        spread: 120,
+        pierce: 2,
+    }),
+    ripper: Object.freeze({
+        id: 'ripper',
+        name: 'Ripper',
+        gun: 'ripperGun',
+        bolt: 'ripperBolt',
+        boltWidth: 24,
+        boltHeight: 8,
+        spread: 200,
+        pierce: 1,
+    }),
+    comet: Object.freeze({
+        id: 'comet',
+        name: 'Comet',
+        gun: 'cometGun',
+        bolt: 'cometBolt',
+        boltWidth: 20,
+        boltHeight: 8,
+        spread: 90,
+        pierce: 1,
+        ways: 5,
+    }),
+    halo: Object.freeze({
+        id: 'halo',
+        name: 'Halo',
+        gun: 'haloGun',
+        bolt: 'haloOrb',
+        boltWidth: 18,
+        boltHeight: 18,
+        spread: 0,
+        pierce: 99,
+    }),
 });
 
 export function weaponsForLevel(level) {
+    if (Number(level) >= 15)
+        return [
+            'phaser',
+            'scatter',
+            'piercer',
+            'nova',
+            'tempest',
+            'hail',
+            'ripper',
+            'comet',
+            'halo',
+        ];
+    if (Number(level) >= 14)
+        return ['phaser', 'scatter', 'piercer', 'nova', 'tempest', 'hail', 'ripper', 'comet'];
+    if (Number(level) >= 13)
+        return ['phaser', 'scatter', 'piercer', 'nova', 'tempest', 'hail', 'ripper'];
+    if (Number(level) >= 12) return ['phaser', 'scatter', 'piercer', 'nova', 'tempest', 'hail'];
+    if (Number(level) >= 11) return ['phaser', 'scatter', 'piercer', 'nova', 'tempest'];
     if (Number(level) >= 10) return ['phaser', 'scatter', 'piercer', 'nova'];
     if (Number(level) >= 9) return ['phaser', 'scatter', 'piercer'];
     if (Number(level) >= 8) return ['phaser', 'scatter'];
     return ['phaser'];
+}
+
+export const POD_TINTS = Object.freeze({
+    scatter: 0xffcf5a,
+    piercer: 0x9cecff,
+    nova: 0xff5a8a,
+    tempest: 0xc78bff,
+    hail: 0xf4ffff,
+    ripper: 0xff9a4a,
+    comet: 0x7df9ff,
+    halo: 0xffb15a,
+});
+
+export function rescueBonusMs(count, bonusMs = 2000) {
+    const safe = Math.max(0, Math.floor(Number(count) || 0));
+    return safe * Math.max(0, bonusMs);
+}
+
+export function effectiveLevelTime(levelTime, rescues, bonusMs = 2000, floorMs = 1000) {
+    const time = Math.max(0, Number(levelTime) || 0);
+    return Math.max(floorMs, time - rescueBonusMs(rescues, bonusMs));
+}
+
+export function activeWeaponId(baseId, tempGun, now) {
+    if (tempGun && tempGun.id && Number(tempGun.until) > Number(now)) {
+        return tempGun.id;
+    }
+    return baseId;
+}
+
+export function tempGunMsLeft(tempGun, now) {
+    if (!tempGun || !tempGun.id) {
+        return 0;
+    }
+    return Math.max(0, Number(tempGun.until) - Number(now));
 }
 
 export function nextWeaponId(current, level) {

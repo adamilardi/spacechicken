@@ -1,0 +1,58 @@
+{
+    "schema_version": 1,
+    "level_id": "ember-foundry",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-arc-2/brief.md",
+    "choices": [
+        {
+            "role": "background-layout",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-ember-foundry-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-ember-foundry-a/layout.js",
+            "reason": "Ember-column sky and crucible-mouth furnace wall; nothing shipped looks like a smelter.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Port to a createFoundryBackgroundLayout with sky/far/mid/near layers."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-ember-foundry-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-ember-foundry-a/deck.js",
+            "reason": "Molten walk edge over dark iron; hot edge inverts every pale-edged deck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register foundryDeck texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "prop",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-ember-foundry-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-ember-foundry-a/prop.js",
+            "reason": "Tall narrow vent stack; cannot be confused with a deck.",
+            "production_status": "needs-work",
+            "remaining_work": ["Register foundryVent texture key as decor only."],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "ordinary-enemy",
+            "source_manifest": null,
+            "candidate_id": "shipped-gnawer-voltOrb",
+            "asset_path": null,
+            "reason": "Reuse shipped gnawers (boarder, cyan lens) and volt orbs (drone); furnace pests need no new actor.",
+            "production_status": "ready",
+            "remaining_work": [],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "User asked for finished levels, so the agent chose the only painted direction per role. Crown approach goes through boss-creator (tram ride plus a timed beam over the last gap)."
+}

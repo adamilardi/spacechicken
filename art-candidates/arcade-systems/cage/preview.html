@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Rescue cage — preview (1x on black)</title>
+<style>
+    body {
+        background: #000;
+        color: #ddd;
+        font-family: monospace;
+    }
+    canvas {
+        image-rendering: pixelated;
+        border: 1px solid #333;
+        margin: 8px;
+    }
+</style>
+<h1>rescue cage — full (32x48) and open (32x48)</h1>
+<canvas id="full" width="32" height="48"></canvas>
+<canvas id="open" width="32" height="48"></canvas>
+<script type="module">
+    import { paint as full } from './cage.js';
+    import { paint as open } from './cage-open.js';
+    full(document.getElementById('full').getContext('2d'), 32, 48);
+    open(document.getElementById('open').getContext('2d'), 32, 48);
+</script>

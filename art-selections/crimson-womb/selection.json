@@ -1,0 +1,48 @@
+{
+    "schema_version": 1,
+    "level_id": "crimson-womb",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/iron-womb/brief.md",
+    "choices": [
+        {
+            "role": "background-layout",
+            "source_manifest": "../../art-candidates/iron-womb/manifest.json",
+            "candidate_id": "level-crimson-womb-b",
+            "asset_path": "../../art-candidates/iron-womb/level-crimson-womb-b/layout.js",
+            "reason": "Deep red folds with teal sac cores read as the alien lair and stay darker than the bone deck edge and the chicken.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Port to a createWombBackgroundLayout with sky/far/mid/near layers."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/iron-womb/manifest.json",
+            "candidate_id": "level-crimson-womb-b",
+            "asset_path": "../../art-candidates/iron-womb/level-crimson-womb-b/deck.js",
+            "reason": "Bone-white top edge reads as walkable; dark red flesh body differs from hiveChitin's teal edge and purple body.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register wombFlesh texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "ordinary-enemy",
+            "source_manifest": null,
+            "candidate_id": "shipped-gnawer-sporeFloater",
+            "asset_path": null,
+            "reason": "Reuse shipped gnawer swarm (boarder, cyan lens) and spore floaters (drone) from SpriteFactory; no new actor paint needed for the lair.",
+            "production_status": "ready",
+            "remaining_work": [],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "User asked for finished levels, so the agent chose the only painted direction per role. Crown approach goes through boss-creator (heart gate: shield plus timed beam)."
+}

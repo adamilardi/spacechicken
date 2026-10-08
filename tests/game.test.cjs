@@ -34,6 +34,7 @@ global.Phaser = {
         Keyboard: {
             KeyCodes: { M: 77, SPACE: 32 },
             JustDown: () => false,
+            JustUp: () => false,
         },
     },
     Utils: {
@@ -119,11 +120,84 @@ test('all active JavaScript files pass the JavaScript parser', () => {
     });
 });
 
+function assertAccentDecks(LevelConfig) {
+    const accentDecks = {
+        8: 'colonyGirder',
+        9: 'hiveFang',
+        10: 'spireGlass',
+        11: 'bastionGrate',
+        12: 'wombBone',
+        13: 'harborPlank',
+        14: 'foundryChain',
+        15: 'skyhookPanel',
+        16: 'vaultDeck',
+    };
+    for (const [level, key] of Object.entries(accentDecks)) {
+        assert.ok(
+            new LevelConfig(Number(level)).platforms.static.some(
+                (platform) => platform.key === key
+            ),
+            `level ${level} marks its shelves with ${key}`
+        );
+    }
+    assert.ok(new LevelConfig(9).props.some((prop) => prop.key === 'hiveSac'));
+    assert.ok(new LevelConfig(10).props.some((prop) => prop.key === 'spireFin'));
+    assert.ok(new LevelConfig(12).props.some((prop) => prop.key === 'wombEye'));
+}
+
+function assertArcTwoLevels(LevelConfig) {
+    const harborBoarders = new LevelConfig(13).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        harborBoarders.map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3, 4, 4]
+    );
+    assert.ok(harborBoarders.every((hazard) => hazard.key === 'skitterling'));
+    assert.ok(
+        new LevelConfig(13).platforms.static.some((platform) => platform.key === 'harborDeck')
+    );
+    assert.ok(new LevelConfig(13).props.some((prop) => prop.key === 'harborLamp'));
+    assert.ok(new LevelConfig(13).hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
+    assert.equal(new LevelConfig(13).crownShield, true);
+    const foundryBoarders = new LevelConfig(14).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        foundryBoarders.map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3, 4, 4]
+    );
+    assert.ok(foundryBoarders.every((hazard) => hazard.key === 'gnawer'));
+    assert.ok(
+        new LevelConfig(14).platforms.static.some((platform) => platform.key === 'foundryDeck')
+    );
+    assert.ok(new LevelConfig(14).props.some((prop) => prop.key === 'foundryVent'));
+    assert.ok(new LevelConfig(14).hazards.dynamic.some((hazard) => hazard.type === 'laser'));
+    assert.ok(new LevelConfig(14).platforms.moving.length >= 1);
+    assert.equal(new LevelConfig(14).crownShield, false);
+    const skyhookBoarders = new LevelConfig(15).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        skyhookBoarders.map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3, 4, 4]
+    );
+    assert.ok(skyhookBoarders.every((hazard) => hazard.key === 'spireWarden'));
+    assert.ok(
+        new LevelConfig(15).platforms.static.some((platform) => platform.key === 'skyhookDeck')
+    );
+    assert.ok(new LevelConfig(15).props.some((prop) => prop.key === 'tetherClamp'));
+    assert.ok(new LevelConfig(15).hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
+    assert.ok(new LevelConfig(15).hazards.dynamic.some((hazard) => hazard.type === 'laser'));
+    assert.ok(new LevelConfig(15).platforms.moving.length >= 1);
+    assert.equal(new LevelConfig(15).crownShield, true);
+}
+
 test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('levels/index.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
 
-    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
     LEVEL_IDS.forEach((level) => {
         const config = new LevelConfig(level);
         assert.ok(config.world.width > 0);
@@ -137,7 +211,13 @@ test('level configuration exposes every playable level', async () => {
     assert.equal(new LevelConfig(7).nextLevel, 8);
     assert.equal(new LevelConfig(8).nextLevel, 9);
     assert.equal(new LevelConfig(9).nextLevel, 10);
-    assert.equal(new LevelConfig(10).nextLevel, null);
+    assert.equal(new LevelConfig(10).nextLevel, 11);
+    assert.equal(new LevelConfig(11).nextLevel, 12);
+    assert.equal(new LevelConfig(12).nextLevel, 13);
+    assert.equal(new LevelConfig(13).nextLevel, 14);
+    assert.equal(new LevelConfig(14).nextLevel, 15);
+    assert.equal(new LevelConfig(15).nextLevel, null);
+    assert.equal(new LevelConfig(16).nextLevel, 14);
     assert.equal(new LevelConfig(1).title, 'Dawn Run');
     assert.equal(new LevelConfig(2).title, 'Arcade Orbit');
     assert.equal(new LevelConfig(3).title, 'Orbital Gauntlet');
@@ -148,16 +228,35 @@ test('level configuration exposes every playable level', async () => {
     assert.equal(new LevelConfig(8).title, 'Colony Drop');
     assert.equal(new LevelConfig(9).title, 'Hive Warrens');
     assert.equal(new LevelConfig(10).title, 'Spire Crown');
+    assert.equal(new LevelConfig(11).title, 'Bastion Relay');
+    assert.equal(new LevelConfig(12).title, 'Crimson Womb');
+    assert.equal(new LevelConfig(13).title, 'Rust Harbor');
+    assert.equal(new LevelConfig(14).title, 'Ember Foundry');
+    assert.equal(new LevelConfig(15).title, 'Skyhook Anchor');
+    assert.equal(new LevelConfig(16).title, 'Iron Vault');
     assert.equal(new LevelConfig(5).background.type, 'facility');
     assert.equal(new LevelConfig(6).background.type, 'mars');
     assert.equal(new LevelConfig(7).background.type, 'iss');
     assert.equal(new LevelConfig(8).background.type, 'colony');
     assert.equal(new LevelConfig(9).background.type, 'hive');
     assert.equal(new LevelConfig(10).background.type, 'spire');
+    assert.equal(new LevelConfig(11).background.type, 'bastion');
+    assert.equal(new LevelConfig(12).background.type, 'womb');
+    assert.equal(new LevelConfig(13).background.type, 'harbor');
+    assert.equal(new LevelConfig(14).background.type, 'foundry');
+    assert.equal(new LevelConfig(15).background.type, 'skyhook');
+    assert.equal(new LevelConfig(16).background.type, 'bastion');
+    assert.equal(new LevelConfig(16).background.style, 'vault');
     assert.equal(new LevelConfig(7).phaser, true);
     assert.equal(new LevelConfig(8).phaser, true);
     assert.equal(new LevelConfig(9).phaser, true);
     assert.equal(new LevelConfig(10).phaser, true);
+    assert.equal(new LevelConfig(11).phaser, true);
+    assert.equal(new LevelConfig(12).phaser, true);
+    assert.equal(new LevelConfig(13).phaser, true);
+    assert.equal(new LevelConfig(14).phaser, true);
+    assert.equal(new LevelConfig(15).phaser, true);
+    assert.equal(new LevelConfig(16).phaser, true);
     assert.equal(new LevelConfig(1).phaser, false);
     assert.ok(new LevelConfig(5).hazards.dynamic.some((hazard) => hazard.type === 'bonk'));
     assert.ok(new LevelConfig(5).props.some((prop) => prop.key === 'bonkSign'));
@@ -181,7 +280,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         colonyBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3]
+        [1, 1, 2, 2, 3, 3, 4, 4]
     );
     assert.ok(
         new LevelConfig(8).platforms.static.some((platform) => platform.key === 'colonyDeck')
@@ -224,6 +323,34 @@ test('level configuration exposes every playable level', async () => {
             (hazard) => hazard.type === 'drone' && hazard.key === 'voltOrb'
         )
     );
+    const bastionBoarders = new LevelConfig(11).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        bastionBoarders.map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3]
+    );
+    assert.ok(bastionBoarders.every((hazard) => hazard.key === 'spireWarden'));
+    assert.ok(
+        new LevelConfig(11).platforms.static.some((platform) => platform.key === 'bastionDeck')
+    );
+    assert.ok(new LevelConfig(11).props.some((prop) => prop.key === 'bastionPylon'));
+    assert.ok(new LevelConfig(11).hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
+    const wombBoarders = new LevelConfig(12).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boarder'
+    );
+    assert.deepEqual(
+        wombBoarders.map((hazard) => hazard.wave),
+        [1, 2, 2, 3, 3, 4]
+    );
+    assert.ok(wombBoarders.every((hazard) => hazard.key === 'gnawer'));
+    assert.ok(
+        new LevelConfig(12).platforms.static.some((platform) => platform.key === 'wombFlesh')
+    );
+    assert.ok(new LevelConfig(12).hazards.dynamic.some((hazard) => hazard.type === 'laser'));
+    assert.equal(new LevelConfig(12).crownShield, true);
+    assertArcTwoLevels(LevelConfig);
+    assertAccentDecks(LevelConfig);
     const levelThree = new LevelConfig(3);
     assert.equal(levelThree.platforms, levelThree.platforms);
     assert.equal(levelThree.background.type, 'station');
@@ -360,6 +487,92 @@ test('elapsed times use one stable display format', async () => {
     assert.equal(added[0].x, 10);
 });
 
+test('releasing jump cuts the rise but never a bonk boost', async () => {
+    const { jumpCutVelocity } = await importModule('GameUtils.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const full = GAME_CONSTANTS.JUMP_VELOCITY_Y;
+    const mult = GAME_CONSTANTS.JUMP_CUT_MULTIPLIER;
+    assert.equal(jumpCutVelocity(full, full, mult), full * mult);
+    assert.equal(jumpCutVelocity(-100, full, mult), -100);
+    assert.equal(jumpCutVelocity(50, full, mult), 50);
+    assert.equal(jumpCutVelocity(-520, full, mult), -520);
+    assert.equal(jumpCutVelocity(full * mult, full, mult), full * mult);
+
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const applied = [];
+    scene.player = {
+        body: { velocity: { y: full } },
+        setVelocityY: (vy) => applied.push(vy),
+    };
+    scene.applyJumpCut({ jumpReleased: true });
+    assert.deepEqual(applied, [full * mult]);
+    scene.applyJumpCut({ jumpReleased: false });
+    scene.player.body.velocity.y = 60;
+    scene.applyJumpCut({ jumpReleased: true });
+    assert.deepEqual(applied, [full * mult]);
+});
+
+test('checkpoints advance on grounded crossings and never downgrade', async () => {
+    const { checkpointIndexAt } = await importModule('GameUtils.js');
+    const points = [
+        { x: 100, y: 200 },
+        { x: 300, y: 200 },
+    ];
+    assert.equal(checkpointIndexAt(points, 50), -1);
+    assert.equal(checkpointIndexAt(points, 100), 0);
+    assert.equal(checkpointIndexAt(points, 350), 1);
+    assert.equal(checkpointIndexAt(null, 350), -1);
+
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.levelConfig = {
+        checkpoints: points,
+        playerStart: { x: 10, y: 20 },
+    };
+    scene.checkpointIndex = -1;
+    scene.checkpointIndex2 = -1;
+    scene.respawnPoint = null;
+    scene.respawnPoint2 = null;
+    const banners = [];
+    scene.uiManager = {
+        showLevelBanner: (title, subtitle) => banners.push([title, subtitle]),
+    };
+    scene.updateCheckpointProgress({ x: 50 }, 1, true);
+    assert.equal(scene.respawnPoint, null);
+    scene.updateCheckpointProgress({ x: 150 }, 1, false);
+    assert.equal(scene.respawnPoint, null);
+    scene.updateCheckpointProgress({ x: 150 }, 1, true);
+    assert.deepEqual(scene.respawnPoint, { x: 100, y: 200 });
+    assert.deepEqual(banners, [['CHECKPOINT', 'Progress saved']]);
+    scene.updateCheckpointProgress({ x: 350 }, 1, true);
+    assert.deepEqual(scene.respawnPoint, { x: 300, y: 200 });
+    scene.updateCheckpointProgress({ x: 120 }, 1, true);
+    assert.deepEqual(scene.respawnPoint, { x: 300, y: 200 });
+    assert.equal(banners.length, 2);
+    scene.updateCheckpointProgress({ x: 150 }, 2, true);
+    assert.deepEqual(scene.respawnPoint2, { x: 100, y: 200 });
+    assert.deepEqual(scene.respawnPoint, { x: 300, y: 200 });
+    assert.deepEqual(scene.currentRespawnStart(1), { x: 300, y: 200 });
+    assert.deepEqual(scene.currentRespawnStart(2), { x: 100, y: 200 });
+    scene.respawnPoint = null;
+    scene.respawnPoint2 = null;
+    assert.deepEqual(scene.currentRespawnStart(1), { x: 10, y: 20 });
+    assert.deepEqual(scene.currentRespawnStart(2), { x: 52, y: 20 });
+});
+
+test('long contra levels expose two ordered checkpoints', async () => {
+    const { LevelConfig } = await importModule('LevelConfig.js');
+    for (const level of [9, 10, 11, 12, 13, 14, 15, 16]) {
+        const config = new LevelConfig(level);
+        assert.equal(config.checkpoints.length, 2);
+        const [first, second] = config.checkpoints;
+        assert.ok(first.x > 0 && first.x < second.x && second.x < config.world.width);
+        assert.ok(first.y < config.killZoneY && second.y < config.killZoneY);
+    }
+    assert.deepEqual(new LevelConfig(1).checkpoints, []);
+});
+
 test('leaderboards keep level 4 separate and reject corrupt times', async () => {
     const storage = createStorage();
     global.window = { localStorage: storage };
@@ -392,6 +605,138 @@ test('leaderboards keep level 4 separate and reject corrupt times', async () => 
     );
 });
 
+test('full runs submit with deaths and old entries still read', async () => {
+    const { LeaderboardManager, normalizeLeaderboardEntry } =
+        await importModule('LeaderboardManager.js');
+    assert.deepEqual(normalizeLeaderboardEntry({ time: 100, name: 'A', deaths: 3 }), {
+        time: 100,
+        name: 'A',
+        deaths: 3,
+    });
+    assert.deepEqual(normalizeLeaderboardEntry({ time: 100, name: 'A', deaths: 0 }), {
+        time: 100,
+        name: 'A',
+    });
+    assert.deepEqual(normalizeLeaderboardEntry({ time: 100, name: 'A', deaths: -2 }), {
+        time: 100,
+        name: 'A',
+    });
+    assert.deepEqual(normalizeLeaderboardEntry({ time: 100, name: 'A' }), {
+        time: 100,
+        name: 'A',
+    });
+
+    const storage = createStorage({
+        spaceChickenPlayerId: '12345678-1234-1234-1234-1234567890ab',
+    });
+    global.window = {
+        localStorage: storage,
+        location: { href: 'https://example.test/space-chicken/' },
+    };
+    const bodies = [];
+    global.fetch = async (url, options) => {
+        bodies.push(JSON.parse(options.body));
+        return { ok: true, json: async () => ({}) };
+    };
+    const manager = new LeaderboardManager({ storageAvailable: true });
+    manager.runTokens.set(0, Promise.resolve('12345678-1234-1234-1234-1234567890ab'));
+    assert.equal(manager.saveTime(0, 60000, 'Luna', 4), true);
+    await manager.lastSubmission;
+    assert.equal(bodies.length, 1);
+    assert.equal(bodies[0].level, 0);
+    assert.equal(bodies[0].deaths, 4);
+    assert.match(manager.formatTimes([{ time: 60000, name: 'Luna', deaths: 4 }]), /4 deaths$/);
+    assert.match(manager.formatTimes([{ time: 60000, name: 'Luna' }]), /Luna$/);
+    delete global.fetch;
+});
+
+test('level unlocks persist, clamp, and survive corrupt storage', async () => {
+    const { LeaderboardManager } = await importModule('LeaderboardManager.js');
+    global.window = { localStorage: createStorage({}) };
+    const fresh = new LeaderboardManager({ storageAvailable: true });
+    assert.equal(fresh.getMaxUnlocked(), 1);
+    assert.equal(fresh.unlockLevel(4), 4);
+    assert.equal(fresh.getMaxUnlocked(), 4);
+    assert.equal(fresh.unlockLevel(2), 4);
+    assert.equal(fresh.unlockLevel(99), 16);
+    assert.equal(fresh.getMaxUnlocked(), 16);
+
+    global.window = { localStorage: createStorage({ spaceChickenUnlocked: 'junk' }) };
+    const corrupt = new LeaderboardManager({ storageAvailable: true });
+    assert.equal(corrupt.getMaxUnlocked(), 1);
+
+    const noStorage = new LeaderboardManager({ storageAvailable: false });
+    assert.equal(noStorage.getMaxUnlocked(), 16);
+    assert.equal(noStorage.unlockLevel(5), 16);
+});
+
+test('title selection cycles within unlocked levels and starts them', async () => {
+    const { cycleSelection } = await importModule('GameUtils.js');
+    assert.equal(cycleSelection(1, -1, 12), 1);
+    assert.equal(cycleSelection(1, 1, 12), 2);
+    assert.equal(cycleSelection(12, 1, 12), 12);
+    assert.equal(cycleSelection(5, 1, 5), 5);
+    assert.equal(cycleSelection(null, 1, 12), 2);
+    assert.equal(cycleSelection(3, 1, null), 1);
+
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.awaitingStart = true;
+    scene.selectedLevel = 1;
+    scene.leaderboardManager = {
+        getMaxUnlocked: () => 5,
+        getPersonalBest: () => null,
+    };
+    const labels = [];
+    scene.uiManager = { showTitleLevelSelection: (text) => labels.push(text) };
+    scene.cycleTitleSelection(1);
+    assert.equal(scene.selectedLevel, 2);
+    assert.deepEqual(labels, ['LEVEL 2 · Arcade Orbit\nBest none yet']);
+    scene.cycleTitleSelection(-1);
+    scene.cycleTitleSelection(-1);
+    assert.equal(scene.selectedLevel, 1);
+    assert.equal(labels.length, 2);
+    scene.leaderboardManager.getPersonalBest = () => 12345;
+    scene.cycleTitleSelection(1);
+    assert.match(labels[2], /Best 00:12\.34/);
+    scene.awaitingStart = false;
+    scene.cycleTitleSelection(1);
+    assert.equal(scene.selectedLevel, 2);
+    assert.equal(labels.length, 3);
+
+    scene.selectedLevel = 5;
+    const restarts = [];
+    scene.input = { off: () => {} };
+    scene.scene = { restart: (data) => restarts.push(data) };
+    scene.startSelectedLevel();
+    assert.deepEqual(restarts, [{ level: 5, deathCount: 0, coopMode: scene.coopMode }]);
+});
+
+test('chevron taps cycle instead of starting', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const chevron = {
+        getBounds: () => ({ x: 100, y: 100, width: 40, height: 40 }),
+    };
+    const scene = {
+        uiManager: { raceSetupDialog: null },
+        pointerTapTimes: new Map(),
+    };
+    const controller = new InputController(scene);
+    const targets = controller.fillPointerTargets(
+        { x: 120, y: 120 },
+        { selectPrevButton: chevron }
+    );
+    assert.equal(targets.selectPrev, true);
+    assert.equal(controller.isOverUiControl(targets), true);
+    assert.equal(
+        controller.detectTitleStart([{ justDown: true, x: 120, y: 120 }], {
+            selectPrevButton: chevron,
+        }),
+        false
+    );
+    assert.equal(controller.detectTitleStart([{ justDown: true, x: 10, y: 10 }], {}), true);
+});
+
 test('remote leaderboard requests include all configured levels', async () => {
     const calls = [];
     global.window = {
@@ -419,7 +764,7 @@ test('all levels have distinct, layered music arrangements', async () => {
     const identities = new Set();
 
     assert.equal(midiToFrequency(69), 440);
-    for (let level = 1; level <= 10; level++) {
+    for (let level = 1; level <= 16; level++) {
         const definition = MUSIC_DEFINITIONS[level];
         identities.add(definition.id);
         assert.ok(definition.pattern.length >= 40, `level ${level} should have a full arrangement`);
@@ -433,7 +778,7 @@ test('all levels have distinct, layered music arrangements', async () => {
             `${definition.id} should keep playing through the loop`
         );
     }
-    assert.equal(identities.size, 10);
+    assert.equal(identities.size, 16);
 });
 
 test('audio scheduling routes melodic and percussion events', async () => {
@@ -1904,6 +2249,13 @@ test('touch arrow buttons move the chicken and do not steal the jump pointer', a
     controller.poll();
     assert.equal(scene.leftPressed, false);
     assert.equal(scene.rightPressed, true);
+    assert.equal(controller.state.jumpReleased, false);
+
+    const justUp = global.Phaser.Input.Keyboard.JustUp;
+    global.Phaser.Input.Keyboard.JustUp = (key) => key === scene.space;
+    controller.poll();
+    assert.equal(controller.state.jumpReleased, true);
+    global.Phaser.Input.Keyboard.JustUp = justUp;
 
     scene.jumpPointerId = 3;
     scene.input.pointers = [
@@ -2051,6 +2403,124 @@ test('touch controls sit in the bottom corners on a phone-sized viewport', async
     assert.ok(ui.leftButton.y > 700);
     assert.ok(ui.leftButton.displayWidth >= 72);
     assert.ok(ui.jumpButton.x + ui.jumpButton.displayWidth / 2 <= 390);
+});
+
+test('fire sits left of jump on the same row with switch above', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const { Viewport } = await importModule('Viewport.js');
+    function fakeButton() {
+        return {
+            x: 0,
+            y: 0,
+            input: { hitArea: { setTo() {} } },
+            setDisplaySize(width, height) {
+                this.displayWidth = width;
+                this.displayHeight = height;
+            },
+            setPosition(x, y) {
+                this.x = x;
+                this.y = y;
+            },
+        };
+    }
+    const scene = {
+        viewportWidth: 390,
+        viewportHeight: 844,
+        getViewportWidth() {
+            return this.viewportWidth;
+        },
+        getViewportHeight() {
+            return this.viewportHeight;
+        },
+    };
+    scene.viewport = new Viewport(scene);
+    const ui = new UIManager(scene);
+    ui.jumpButton = fakeButton();
+    ui.phaserButton = fakeButton();
+    ui.weaponButton = fakeButton();
+    ui.cachedInsets = { top: 47, right: 0, bottom: 34, left: 0 };
+    ui.layoutTouchControls();
+
+    assert.ok(ui.phaserButton.x < ui.jumpButton.x);
+    assert.equal(ui.phaserButton.y, ui.jumpButton.y);
+    assert.equal(ui.weaponButton.x, ui.phaserButton.x);
+    assert.ok(ui.weaponButton.y < ui.phaserButton.y);
+    assert.ok(ui.phaserButton.x - ui.phaserButton.displayWidth / 2 > 390 / 2);
+});
+
+test('sliding between fire and jump holds both like an NES roll', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    function eventButton(x, y) {
+        const handlers = {};
+        return {
+            x,
+            y,
+            displayWidth: 80,
+            displayHeight: 80,
+            handlers,
+            on(event, fn) {
+                (handlers[event] = handlers[event] || []).push(fn);
+            },
+            emit(event, pointer) {
+                (this.handlers[event] || []).forEach((fn) => fn(pointer));
+            },
+            setTint() {},
+            clearTint() {},
+            setScrollFactor() {},
+            setDepth() {},
+            setAlpha() {},
+            setInteractive() {},
+            disableInteractive() {},
+            setVisible() {},
+        };
+    }
+    const jumpStub = eventButton(330, 780);
+    const phaserStub = eventButton(230, 780);
+    const scene = {
+        jumpPointerId: null,
+        jumpRequested: false,
+        phaserPointerId: null,
+        phaserHeld: false,
+        add: { image: () => eventButton(0, 0) },
+        input: { keyboard: { on() {} } },
+    };
+    const ui = new UIManager(scene);
+    ui.jumpButton = jumpStub;
+    ui.phaserButton = phaserStub;
+    // Wire the real handlers onto the stubs.
+    const wiredJump = ui.createJumpButton();
+    const wiredPhaser = ui.createPhaserButton();
+    ui.jumpButton = Object.assign(jumpStub, { handlers: wiredJump.handlers });
+    ui.phaserButton = Object.assign(phaserStub, { handlers: wiredPhaser.handlers });
+
+    const finger = { id: 7, isDown: true, x: 230, y: 780 };
+    ui.phaserButton.emit('pointerdown', finger);
+    assert.equal(scene.phaserHeld, true);
+    // Slide onto jump: both stay held.
+    finger.x = 330;
+    ui.phaserButton.emit('pointerout', finger);
+    ui.jumpButton.emit('pointerover', finger);
+    assert.equal(scene.phaserHeld, true);
+    assert.equal(scene.jumpPointerId, 7);
+    assert.equal(scene.jumpRequested, true);
+    // Lift: both release.
+    finger.isDown = false;
+    ui.jumpButton.emit('pointerup', finger);
+    ui.phaserButton.emit('pointerupoutside', finger);
+    assert.equal(scene.phaserHeld, false);
+    assert.equal(scene.jumpPointerId, null);
+    // Hover without touch never engages.
+    scene.jumpRequested = false;
+    ui.jumpButton.emit('pointerover', { id: 9, isDown: false, x: 330, y: 780 });
+    assert.equal(scene.jumpPointerId, null);
+    assert.equal(scene.jumpRequested, false);
+    // Sliding off into space releases.
+    const other = { id: 11, isDown: true, x: 230, y: 780 };
+    ui.phaserButton.emit('pointerdown', other);
+    other.x = 230;
+    other.y = 500;
+    ui.phaserButton.emit('pointerout', other);
+    assert.equal(scene.phaserHeld, false);
 });
 
 test('resizing a touch session stores the viewport and offsets the camera', async () => {
@@ -2318,19 +2788,331 @@ test('the Jev fallback fires at a level boarder instead of walking into it', asy
     assert.equal(noGun, 'move_right');
 });
 
+test('the Jev validation offsets seeds per run and summarizes them', async () => {
+    const { JEV_MAX_SEED, seedForRun, summarizeRuns } = await importModule(
+        'scripts/jev-playtest.mjs'
+    );
+    assert.equal(seedForRun(7, 0), 7);
+    assert.equal(seedForRun(7, 2), 9);
+    assert.equal(seedForRun(JEV_MAX_SEED, 1), 0);
+
+    const summary = summarizeRuns([
+        {
+            run: 1,
+            seed: 7,
+            ok: true,
+            passed: true,
+            failures: [],
+            jevDecisions: 40,
+            finalObservation: { deaths: 1 },
+            durationMs: 10000,
+            usage: { input_tokens: 100, output_tokens: 20 },
+        },
+        {
+            run: 2,
+            seed: 8,
+            ok: false,
+            passed: false,
+            failures: [{ kind: 'objective_not_completed' }],
+            jevDecisions: 30,
+            finalObservation: { deaths: 3 },
+            durationMs: 20000,
+            usage: { input_tokens: 80, output_tokens: 10 },
+        },
+    ]);
+    assert.equal(summary.runs, 2);
+    assert.equal(summary.passedCount, 1);
+    assert.equal(summary.okCount, 1);
+    assert.equal(summary.passRate, 0.5);
+    assert.equal(summary.ok, false);
+    assert.equal(summary.totalJevDecisions, 70);
+    assert.equal(summary.totalDeaths, 4);
+    assert.equal(summary.meanDurationMs, 15000);
+    assert.deepEqual(summary.usage, { input_tokens: 180, output_tokens: 30 });
+    assert.deepEqual(summary.failures, [{ run: 2, seed: 8, kind: 'objective_not_completed' }]);
+
+    const clean = summarizeRuns([
+        {
+            run: 1,
+            seed: 7,
+            ok: true,
+            passed: true,
+            failures: [],
+            jevDecisions: 5,
+            finalObservation: { deaths: 0 },
+            durationMs: 5000,
+            usage: { input_tokens: 10, output_tokens: 2 },
+        },
+    ]);
+    assert.equal(clean.ok, true);
+    assert.equal(clean.passRate, 1);
+});
+
 test('colony guns unlock by level and cycle past the phaser', async () => {
     const { WEAPON_DEFS, nextWeaponId, weaponsForLevel } = await importModule('GameUtils.js');
     assert.deepEqual(weaponsForLevel(7), ['phaser']);
     assert.deepEqual(weaponsForLevel(8), ['phaser', 'scatter']);
     assert.deepEqual(weaponsForLevel(9), ['phaser', 'scatter', 'piercer']);
     assert.deepEqual(weaponsForLevel(10), ['phaser', 'scatter', 'piercer', 'nova']);
+    assert.deepEqual(weaponsForLevel(11), ['phaser', 'scatter', 'piercer', 'nova', 'tempest']);
+    assert.deepEqual(weaponsForLevel(12), [
+        'phaser',
+        'scatter',
+        'piercer',
+        'nova',
+        'tempest',
+        'hail',
+    ]);
+    assert.deepEqual(weaponsForLevel(13), [
+        'phaser',
+        'scatter',
+        'piercer',
+        'nova',
+        'tempest',
+        'hail',
+        'ripper',
+    ]);
+    assert.deepEqual(weaponsForLevel(14), [
+        'phaser',
+        'scatter',
+        'piercer',
+        'nova',
+        'tempest',
+        'hail',
+        'ripper',
+        'comet',
+    ]);
+    assert.deepEqual(weaponsForLevel(15), [
+        'phaser',
+        'scatter',
+        'piercer',
+        'nova',
+        'tempest',
+        'hail',
+        'ripper',
+        'comet',
+        'halo',
+    ]);
     assert.equal(nextWeaponId('phaser', 8), 'scatter');
     assert.equal(nextWeaponId('scatter', 8), 'phaser');
     assert.equal(nextWeaponId('nova', 10), 'phaser');
     assert.equal(nextWeaponId('nova', 8), 'phaser');
+    assert.equal(nextWeaponId('nova', 11), 'tempest');
+    assert.equal(nextWeaponId('hail', 12), 'phaser');
+    assert.equal(nextWeaponId('hail', 13), 'ripper');
+    assert.equal(nextWeaponId('ripper', 13), 'phaser');
+    assert.equal(nextWeaponId('ripper', 14), 'comet');
+    assert.equal(nextWeaponId('comet', 15), 'halo');
+    assert.equal(nextWeaponId('halo', 15), 'phaser');
+    assert.deepEqual(weaponsForLevel(16), weaponsForLevel(15));
+    assert.equal(nextWeaponId('halo', 16), 'phaser');
     assert.equal(WEAPON_DEFS.scatter.spread > 0, true);
+    assert.equal(WEAPON_DEFS.ripper.spread > WEAPON_DEFS.hail.spread, true);
+    assert.equal(WEAPON_DEFS.comet.ways, 5);
+    assert.equal(WEAPON_DEFS.halo.pierce, 99);
     assert.equal(WEAPON_DEFS.piercer.pierce > 0, true);
     assert.equal(WEAPON_DEFS.phaser.pierce, 0);
+    assert.equal(WEAPON_DEFS.tempest.ways, 5);
+    assert.equal(WEAPON_DEFS.tempest.spread > 0, true);
+    assert.equal(WEAPON_DEFS.hail.spread > 0, true);
+    assert.equal(WEAPON_DEFS.hail.pierce, 2);
+});
+
+test('rescue bonus and temp-gun helpers follow the arcade rules', async () => {
+    const {
+        POD_TINTS,
+        WEAPON_DEFS,
+        activeWeaponId,
+        effectiveLevelTime,
+        rescueBonusMs,
+        tempGunMsLeft,
+    } = await importModule('GameUtils.js');
+    assert.equal(rescueBonusMs(0), 0);
+    assert.equal(rescueBonusMs(3), 6000);
+    assert.equal(rescueBonusMs(-2), 0);
+    assert.equal(effectiveLevelTime(90000, 2), 86000);
+    assert.equal(effectiveLevelTime(3000, 5), 1000);
+    assert.equal(activeWeaponId('phaser', null, 1000), 'phaser');
+    assert.equal(activeWeaponId('phaser', { id: 'hail', until: 5000 }, 1000), 'hail');
+    assert.equal(activeWeaponId('phaser', { id: 'hail', until: 500 }, 1000), 'phaser');
+    assert.equal(activeWeaponId('phaser', { id: null, until: 5000 }, 1000), 'phaser');
+    assert.equal(tempGunMsLeft(null, 1000), 0);
+    assert.equal(tempGunMsLeft({ id: 'hail', until: 5000 }, 1000), 4000);
+    assert.equal(tempGunMsLeft({ id: 'hail', until: 500 }, 1000), 0);
+    for (const id of Object.keys(WEAPON_DEFS)) {
+        if (id === 'phaser') {
+            continue;
+        }
+        assert.ok(Number.isInteger(POD_TINTS[id]), `pod tint for ${id}`);
+    }
+});
+
+test('contra levels expose rescues, pods, and no branch by default', async () => {
+    const { LevelConfig } = await importModule('LevelConfig.js');
+    const eight = new LevelConfig(8);
+    assert.equal(eight.rescues.length, 1);
+    assert.equal(eight.pods.length, 1);
+    assert.equal(eight.pods[0].gun, 'piercer');
+    assert.equal(eight.branch, null);
+    assert.equal(new LevelConfig(1).rescues.length, 0);
+    assert.equal(new LevelConfig(1).pods.length, 0);
+});
+
+test('branch offers keep key 2 for the vault instead of coop', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const keyboard = global.Phaser.Input.Keyboard;
+    const realJustDown = keyboard.JustDown;
+    const realJustUp = keyboard.JustUp;
+    const coopKey = { _justDown: true };
+    let coopPolls = 0;
+    keyboard.JustDown = (key) => {
+        if (key === coopKey) {
+            coopPolls++;
+            const hit = key._justDown === true;
+            key._justDown = false;
+            return hit;
+        }
+        return false;
+    };
+    keyboard.JustUp = () => false;
+    try {
+        const scene = {
+            space: {},
+            cursors: { up: {} },
+            wasd: { W: {} },
+            coopKeys: { keyboard: coopKey, keyboardController: {}, controllers: {} },
+            input: { pointers: [] },
+            uiManager: null,
+            awaitingBranch: true,
+            pointerTapTimes: new Map(),
+            getViewportWidth() {
+                return 1280;
+            },
+            getViewportHeight() {
+                return 720;
+            },
+        };
+        const controller = new InputController(scene);
+        controller.poll();
+        assert.equal(coopPolls, 0);
+        assert.equal(coopKey._justDown, true);
+        assert.equal(controller.state.coopMode, null);
+        scene.awaitingBranch = false;
+        controller.poll();
+        assert.equal(coopPolls, 1);
+        assert.equal(controller.state.coopMode, 'keyboard');
+    } finally {
+        keyboard.JustDown = realJustDown;
+        keyboard.JustUp = realJustUp;
+    }
+});
+
+test('iron vault branch leaves the womb and rejoins the foundry', async () => {
+    const { LevelConfig } = await importModule('LevelConfig.js');
+    const womb = new LevelConfig(12);
+    assert.deepEqual(womb.branch, [13, 16]);
+    assert.match(womb.branchInstructions, /IRON VAULT/);
+    const vault = new LevelConfig(16);
+    assert.equal(vault.rescues.length, 1);
+    assert.equal(vault.pods.length, 1);
+    assert.equal(vault.pods[0].gun, 'comet');
+    assert.equal(vault.crownShield, true);
+    assert.deepEqual(
+        vault.hazards.dynamic
+            .filter((hazard) => hazard.type === 'boarder')
+            .map((hazard) => hazard.wave),
+        [1, 1, 2, 2, 3, 3]
+    );
+    assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
+    assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'laser'));
+    assert.ok(vault.props.some((prop) => prop.key === 'vaultSeal'));
+});
+
+test('tempest fans five bolts and hail pierces through one fire path', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { WEAPON_DEFS } = await importModule('GameUtils.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    function makeBoltGroup(created) {
+        return {
+            getFirstDead: () => null,
+            getLength: () => created.length,
+            create: (x, y, key) => {
+                const bolt = {
+                    x,
+                    y,
+                    texture: key,
+                    active: true,
+                    setTexture(next) {
+                        bolt.texture = next;
+                    },
+                    setActive(value) {
+                        bolt.active = value;
+                    },
+                    setVisible() {},
+                    setDepth() {},
+                    enableBody() {},
+                    body: {
+                        allowGravity: true,
+                        setAllowGravity() {},
+                        setSize() {},
+                    },
+                    setVelocity(vx, vy) {
+                        bolt.vx = vx;
+                        bolt.vy = vy;
+                    },
+                    setFlipX() {},
+                };
+                created.push(bolt);
+                return bolt;
+            },
+        };
+    }
+    function fire(weapon, now = 1000) {
+        const scene = new SpaceChicken();
+        scene.level = 12;
+        const created = [];
+        scene.phaserBolts = makeBoltGroup(created);
+        const chicken = { active: true, flipX: false, body: { enable: true }, x: 100, y: 100 };
+        chicken.weapon = weapon;
+        scene.tryFirePhaser(chicken, now);
+        return { created, chicken };
+    }
+    const tempest = fire('tempest');
+    assert.equal(tempest.created.length, 5);
+    assert.deepEqual(
+        tempest.created.map((bolt) => bolt.vy),
+        [-150, -75, 0, 75, 150]
+    );
+    assert.ok(tempest.created.every((bolt) => bolt.texture === WEAPON_DEFS.tempest.bolt));
+    assert.ok(tempest.created.every((bolt) => bolt.vx === GAME_CONSTANTS.PHASER_BOLT_SPEED));
+    const scatter = fire('scatter');
+    assert.deepEqual(
+        scatter.created.map((bolt) => bolt.vy),
+        [-140, 0, 140]
+    );
+    const phaser = fire('phaser');
+    assert.equal(phaser.created.length, 1);
+    assert.equal(phaser.created[0].vy, 0);
+    const hail = fire('hail');
+    assert.equal(hail.created.length, 3);
+    assert.ok(hail.created.every((bolt) => bolt.pierceLeft === 2));
+    const piercer = fire('piercer');
+    assert.equal(piercer.created[0].pierceLeft, 99);
+    const scene = new SpaceChicken();
+    scene.level = 12;
+    const created = [];
+    scene.phaserBolts = makeBoltGroup(created);
+    const chicken = {
+        active: true,
+        flipX: false,
+        body: { enable: true },
+        x: 100,
+        y: 100,
+        weapon: 'tempest',
+        lastPhaserAt: 1000,
+    };
+    scene.tryFirePhaser(chicken, 1000 + GAME_CONSTANTS.PHASER_COOLDOWN_MS - 1);
+    assert.equal(created.length, 0);
 });
 
 test('scatter fires a three-bolt volley through the single fire path', async () => {
@@ -2465,6 +3247,7 @@ test('the colony crown shield gates the clear on dead boarders', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
     assert.equal(new LevelConfig(8).crownShield, true);
+    assert.equal(new LevelConfig(12).crownShield, true);
     assert.equal(new LevelConfig(1).crownShield, false);
 
     const scene = new SpaceChicken();

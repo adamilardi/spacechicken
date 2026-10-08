@@ -18,10 +18,15 @@ export function normalizeLeaderboardEntry(entry) {
     if (typeof time !== 'number' || !Number.isFinite(time) || time < 0) {
         return null;
     }
-    return {
+    const normalized = {
         time,
         name: normalizePlayerName(entry && typeof entry === 'object' ? entry.name : null),
     };
+    const deaths = entry && typeof entry === 'object' ? entry.deaths : undefined;
+    if (Number.isInteger(deaths) && deaths > 0) {
+        normalized.deaths = deaths;
+    }
+    return normalized;
 }
 
 function normalizeLevel(level) {
@@ -102,14 +107,19 @@ export class LeaderboardManager {
         }
     }
 
-    saveTime(level, newTime, playerName) {
+    saveTime(level, newTime, playerName, deaths = 0) {
         const normalizedLevel = level === 0 ? 0 : normalizeLevel(level);
-        const entry = normalizeLeaderboardEntry({ time: newTime, name: playerName });
+        const entry = normalizeLeaderboardEntry({ time: newTime, name: playerName, deaths });
         if (normalizedLevel === null || !entry) {
             return false;
         }
 
-        this.lastSubmission = this.saveTimeToFirebase(normalizedLevel, entry.time, entry.name);
+        this.lastSubmission = this.saveTimeToFirebase(
+            normalizedLevel,
+            entry.time,
+            entry.name,
+            entry.deaths || 0
+        );
         this.savePersonalBest(normalizedLevel, entry.time);
         if (!this.scene.storageAvailable) {
             return true;
@@ -127,7 +137,7 @@ export class LeaderboardManager {
         return true;
     }
 
-    saveTimeToFirebase(level, newTime, playerName) {
+    saveTimeToFirebase(level, newTime, playerName, deaths = 0) {
         if (typeof fetch !== 'function') {
             return Promise.resolve(null);
         }
@@ -143,6 +153,7 @@ export class LeaderboardManager {
                         level,
                         time: newTime,
                         name: playerName,
+                        deaths,
                         runToken,
                         playerId,
                     }),
@@ -226,6 +237,39 @@ export class LeaderboardManager {
         }
     }
 
+    getMaxUnlocked() {
+        const max = LEVEL_IDS.length;
+        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+            return max;
+        }
+        try {
+            const value = Number(window.localStorage.getItem('spaceChickenUnlocked'));
+            if (!Number.isInteger(value)) {
+                return 1;
+            }
+            return Math.min(max, Math.max(1, value));
+        } catch {
+            return 1;
+        }
+    }
+
+    unlockLevel(level) {
+        const max = LEVEL_IDS.length;
+        const next = Math.min(max, Math.max(1, Math.floor(Number(level) || 1)));
+        const current = this.getMaxUnlocked();
+        if (next <= current) {
+            return current;
+        }
+        if (this.scene.storageAvailable && typeof window !== 'undefined' && window.localStorage) {
+            try {
+                window.localStorage.setItem('spaceChickenUnlocked', String(next));
+            } catch {
+                return next;
+            }
+        }
+        return next;
+    }
+
     fetchCompetition() {
         if (typeof fetch !== 'function') {
             return Promise.resolve(null);
@@ -285,7 +329,9 @@ export class LeaderboardManager {
                     return null;
                 }
                 const paddedName = normalizePlayerName(nameValue);
-                return `${index + 1}. ${formatElapsedTime(timeValue)} - ${paddedName}`;
+                const deaths = entry && typeof entry === 'object' ? entry.deaths : undefined;
+                const suffix = Number.isInteger(deaths) && deaths > 0 ? ` · ${deaths} deaths` : '';
+                return `${index + 1}. ${formatElapsedTime(timeValue)} - ${paddedName}${suffix}`;
             })
             .filter(Boolean)
             .join('\n');

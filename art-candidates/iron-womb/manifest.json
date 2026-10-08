@@ -1,0 +1,109 @@
+{
+    "schema_version": 1,
+    "brief_id": "iron-womb",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-bastion-relay-a",
+            "title": "Bastion Relay base interior",
+            "status": "painted",
+            "summary": "Enclosed siege corridor: ceiling lamps, arch frames, blast doors, diagonal struts, foreground pipe frames, floor grate. No ground ridge.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-bastion-relay-a/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-bastion-relay-a/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-bastion-relay-a/pylon.js",
+                    "width_px": 20,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-bastion-relay-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "bastion",
+                "palette": ["#060a14", "#12233d", "#274b73", "#9cecff", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": [
+                    "enclosed-ceiling",
+                    "arch-frames",
+                    "blast-doors",
+                    "diagonal-struts",
+                    "foreground-framing",
+                    "floor-grate"
+                ]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": ["seam strip staged but not eyeballed", "no hazard wiring"]
+        },
+        {
+            "id": "level-crimson-womb-b",
+            "title": "Crimson Womb alien lair",
+            "status": "painted",
+            "summary": "Living throat: ribcage arcs, one landmark heart with vein spokes, teeth top and bottom, membrane wisps. No ground ridge.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "level-crimson-womb-b/layout.js",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                },
+                {
+                    "role": "platform",
+                    "path": "level-crimson-womb-b/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-crimson-womb-b/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "womb",
+                "palette": ["#12060c", "#3d0f22", "#6e1a2e", "#ff5a8a", "#67ffd2"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": [
+                    "ribcage-arcs",
+                    "landmark-heart",
+                    "mouth-teeth",
+                    "membrane-wisps",
+                    "asymmetric-glow"
+                ]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": ["seam strip staged but not eyeballed", "no hazard wiring"]
+        }
+    ]
+}

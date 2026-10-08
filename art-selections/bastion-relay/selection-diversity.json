@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "level_id": "bastion-relay",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-diversity/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-11-grate",
+            "asset_path": "../../art-candidates/contra-diversity/level-11-grate/deck.js",
+            "reason": "Near-black grate with red signals marks the trench and shelves apart from the pale deck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register bastionGrate texture key."
+            ],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Diversity-pass revision: accent deck only. Pylons stay; two more pylon placements join the level."
+}

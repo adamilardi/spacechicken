@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "level_id": "colony-drop",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-diversity/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-8-girder",
+            "asset_path": "../../art-candidates/contra-diversity/level-8-girder/deck.js",
+            "reason": "Cool steel edge with amber chevrons marks the shelf route and bridge apart from the orange main deck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register colonyGirder texture key."
+            ],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Diversity-pass revision: accent deck only. Beacons stay; two more beacon placements join the level."
+}

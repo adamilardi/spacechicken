@@ -17,9 +17,9 @@ export const level = {
     },
     content: {
         instructions:
-            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Waves still answer to the space phaser: F or J. A spore-beam guards the crown deck: cross on the dark. Press G to swap guns. (M toggles music)',
+            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: F or J. A spore-beam guards the crown deck: cross on the dark. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         touchInstructions:
-            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires. The gun button swaps guns.',
+            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires. The gun button swaps guns. Pods grant 30s guns.',
         background: {
             type: 'hive',
             style: 'warrens',
@@ -38,18 +38,31 @@ export const level = {
         },
         staticPlatforms: [
             { x: 250, y: 742, key: 'hiveChitin', scaleX: 4.8 },
-            { x: 800, y: 560, key: 'hiveChitin', scaleX: 3.6 },
+            { x: 800, y: 580, key: 'hiveChitin', scaleX: 3.6 },
             { x: 1250, y: 560, key: 'hiveChitin', scaleX: 3.0 },
             { x: 1750, y: 700, key: 'hiveChitin', scaleX: 4.0 },
             { x: 2250, y: 620, key: 'hiveChitin', scaleX: 3.0 },
             { x: 2650, y: 540, key: 'hiveChitin', scaleX: 3.0 },
             { x: 3100, y: 420, key: 'hiveChitin', scaleX: 4.4 },
-            { x: 3600, y: 260, key: 'hiveChitin', scaleX: 2.0 },
+            { x: 250, y: 610, key: 'hiveFang', scaleX: 2.6 },
+            { x: 2450, y: 480, key: 'hiveFang', scaleX: 3.0 },
+            { x: 3350, y: 340, key: 'hiveFang', scaleX: 1.4 },
+            { x: 3600, y: 260, key: 'hiveChitin', scaleX: 2.8 },
         ],
         floor: null,
         moving: [],
         rocks: [],
-        props: [],
+        props: [
+            { x: 800, y: 544, key: 'hiveSac' },
+            { x: 1750, y: 664, key: 'hiveSac' },
+            { x: 2650, y: 504, key: 'hiveSac' },
+        ],
+        checkpoints: [
+            { x: 1600, y: 672 },
+            { x: 2550, y: 512 },
+        ],
+        rescues: [],
+        pods: [{ x: 1900, y: 588, gun: 'nova' }],
         dynamic: [
             {
                 type: 'bonk',
@@ -92,7 +105,7 @@ export const level = {
                 bodyWidth: 30,
                 bodyHeight: 44,
             },
-            { type: 'boarder', key: 'gnawer', x: 1200, y: 480, wave: 1 },
+            { type: 'boarder', key: 'gnawer', x: 1100, y: 480, wave: 1 },
             { type: 'boarder', key: 'gnawer', x: 2250, y: 580, wave: 2 },
             { type: 'boarder', key: 'gnawer', x: 2350, y: 580, wave: 2 },
             { type: 'boarder', key: 'gnawer', x: 2700, y: 500, wave: 3 },

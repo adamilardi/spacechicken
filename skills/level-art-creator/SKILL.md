@@ -13,6 +13,18 @@ Read the user's brief and the nearest `create*BackgroundLayout` in `BackgroundRe
 
 The view is a side-scrolling platformer. Background layers are sky, far, mid, and near. They scroll horizontally. `scrollFactorY` stays 1 so the floor does not tear away from the platforms. Keep distant paint quieter than the chicken, hazards, and platform edges.
 
+## Distinct composition
+
+A new palette is not a new place. Open the shipped-background catalog in [the authoring reference](../level-creator/references/spacechicken.md) and compare layer by layer. The new background must differ from every shipped type in at least two composition devices, not just colors. Devices to compare and combine:
+
+- Sky: plain gradient, gradient plus glow, enclosed ceiling, asymmetric glow.
+- Far: even silhouette loop, arch frames, ribcage arcs, celestial bodies.
+- Mid: even shape loop, irregular set pieces, one landmark, diagonals.
+- Near: ground ridge, teeth top and bottom, foreground framing, grate, slab.
+- Rhythm: even loop, irregular spacing, one-off landmark.
+
+The retired default is gradient plus evenly-spaced band loops plus ground ridge plus full-width glow strip. Do not ship it again unless the brief justifies it and no shipped level in the same campaign arc uses it. Record the devices in the manifest `spec` as `composition_devices` and name the two differences in the candidate summary.
+
 ## What to paint
 
 A background layout alone is not a place. Also paint the solid surfaces the chicken lands on, and any prop that is only decoration. Say which is which.

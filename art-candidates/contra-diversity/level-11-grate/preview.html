@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>L11 grate accent — preview (1x on black)</title>
+<style>
+    body {
+        background: #000;
+        color: #ddd;
+        font-family: monospace;
+    }
+    canvas {
+        image-rendering: pixelated;
+        border: 1px solid #333;
+        margin: 8px;
+    }
+</style>
+<h1>level-11-grate — Bastion accent deck</h1>
+<p>platform deck (96x24). Seam strip: bottom row repeats deck x6.</p>
+<canvas id="deck" width="96" height="24"></canvas>
+<div><canvas id="strip" width="576" height="24"></canvas> seam strip</div>
+<script type="module">
+    import { paint as deck } from './deck.js';
+    deck(document.getElementById('deck').getContext('2d'), 96, 24);
+    const s = document.getElementById('strip').getContext('2d');
+    for (let i = 0; i < 6; i++) {
+        s.save();
+        s.translate(i * 96, 0);
+        deck(s, 96, 24);
+        s.restore();
+    }
+</script>

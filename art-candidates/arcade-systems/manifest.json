@@ -1,0 +1,82 @@
+{
+    "schema_version": 1,
+    "brief_id": "arcade-systems",
+    "kind": "systems",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "rescue-cage",
+            "title": "POW rescue cage",
+            "status": "painted",
+            "summary": "Barred cage with the crew chicken inside, plus the swung-open empty state.",
+            "assets": [
+                {
+                    "role": "pickup",
+                    "path": "cage/cage.js",
+                    "width_px": 32,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "overlap pickup" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "pickup",
+                    "path": "cage/cage-open.js",
+                    "width_px": 32,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["cage/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "palette": ["#0d1119", "#5a6a86", "#f4f7fb", "#ff9a3c", "#ffd23c"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "gun-pod",
+            "title": "Weapon pod",
+            "status": "painted",
+            "summary": "Dark riveted shell with a core window; white glow core tinted per gun at runtime.",
+            "assets": [
+                {
+                    "role": "pickup",
+                    "path": "pod/pod.js",
+                    "width_px": 28,
+                    "height_px": 28,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "overlap pickup" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "pickup",
+                    "path": "pod/core.js",
+                    "width_px": 16,
+                    "height_px": 16,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["pod/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "palette": ["#14181f", "#39435a", "#ffffff"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        }
+    ]
+}

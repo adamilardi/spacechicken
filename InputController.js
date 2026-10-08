@@ -7,6 +7,7 @@ export class InputController {
             spaceJustPressed: false,
             upJustPressed: false,
             wJustPressed: false,
+            jumpReleased: false,
             doubleTapJumpTriggered: false,
             pointerJumpTriggered: false,
             pointerStartTriggered: false,
@@ -24,6 +25,8 @@ export class InputController {
             musicButton: null,
             leaderboardButton: null,
             playerNameText: null,
+            selectPrevButton: null,
+            selectNextButton: null,
         };
         this.targets = {
             x: 0,
@@ -50,17 +53,25 @@ export class InputController {
         state.spaceJustPressed = Phaser.Input.Keyboard.JustDown(scene.space);
         state.upJustPressed = Phaser.Input.Keyboard.JustDown(scene.cursors.up);
         state.wJustPressed = Phaser.Input.Keyboard.JustDown(scene.wasd.W);
+        state.jumpReleased =
+            Phaser.Input.Keyboard.JustUp(scene.space) ||
+            Phaser.Input.Keyboard.JustUp(scene.cursors.up) ||
+            Phaser.Input.Keyboard.JustUp(scene.wasd.W);
         state.doubleTapJumpTriggered = false;
         state.pointerJumpTriggered = false;
         state.pointerStartTriggered = false;
         state.gamepadJumpJustPressed = false;
         state.gamepadStartJustPressed = false;
+        state.gamepadJumpReleased = false;
         state.p1SwitchJustPressed = false;
         state.p2SwitchJustPressed = false;
         state.phaserHeld = false;
         state.menu = {};
         state.coopMode = null;
-        if (scene.coopKeys) {
+        // The branch offer owns keys 2/3/4 while it is up: coopKeys.keyboard
+        // shares key 2 with the vault pick, and JustDown is consume-once, so
+        // polling here would eat the pick before updateBranchInput sees it.
+        if (scene.coopKeys && !scene.awaitingBranch) {
             if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboard))
                 state.coopMode = 'keyboard';
             if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboardController))
@@ -85,6 +96,8 @@ export class InputController {
         controls.leaderboardButton = ui ? ui.leaderboardButton : null;
         controls.playerNameText = ui ? ui.playerNameText : null;
         controls.phaserButton = ui ? ui.phaserButton : null;
+        controls.selectPrevButton = ui ? ui.selectPrevButton : null;
+        controls.selectNextButton = ui ? ui.selectNextButton : null;
 
         const movementMidpoint =
             ui && ui.touchMovementMidpoint
@@ -170,7 +183,10 @@ export class InputController {
         };
         const jump = buttonDown(0) || buttonDown(1) || buttonDown(12);
         const start = buttonDown(9) || buttonDown(16);
+        const hadPrevious = Boolean(this.previousGamepadButtons);
         state.gamepadJumpJustPressed = jump && !previous.jump;
+        state.gamepadJumpReleased = hadPrevious && !jump && previous.jump;
+        state.jumpReleased = Boolean(state.jumpReleased || state.gamepadJumpReleased);
         state.gamepadStartJustPressed = start && !previous.start;
         if (scene.coopMode !== 'keyboard' && scene.coopMode !== 'keyboard-controller') {
             state.phaserHeld = buttonDown(2);
@@ -327,7 +343,9 @@ export class InputController {
                 !this.targets.music &&
                 !this.targets.leaderboard &&
                 !this.targets.name &&
-                !this.targets.phaser
+                !this.targets.phaser &&
+                !this.targets.selectPrev &&
+                !this.targets.selectNext
             ) {
                 return true;
             }
@@ -424,6 +442,10 @@ export class InputController {
                 controls.phaserButton,
                 controls.phaserButton?.touchHitPadding ?? pad
             );
+        targets.selectPrev =
+            hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectPrevButton);
+        targets.selectNext =
+            hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectNextButton);
         return targets;
     }
 
@@ -435,7 +457,9 @@ export class InputController {
             targets.music ||
             targets.leaderboard ||
             targets.name ||
-            targets.phaser
+            targets.phaser ||
+            targets.selectPrev ||
+            targets.selectNext
         );
     }
 

@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS, KEY_CODES } from './Constants.js';
-import { LEVEL_IDS } from './levels/index.js';
+import { LEVEL_DEFINITIONS, LEVEL_IDS } from './levels/index.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
@@ -12,12 +12,20 @@ import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
 import {
+    activeWeaponId,
     boarderEntryY,
     boarderSteering,
     boarderYields,
     canBonkFromAbove,
+    checkpointIndexAt,
+    cycleSelection,
+    effectiveLevelTime,
+    formatElapsedTime,
+    jumpCutVelocity,
     nextBoarderWave,
     nextWeaponId,
+    rescueBonusMs,
+    tempGunMsLeft,
     WEAPON_DEFS,
     weaponsForLevel,
 } from './GameUtils.js';
@@ -206,7 +214,13 @@ export class SpaceChicken extends Phaser.Scene {
                 ? Math.floor(requestedDeathCount)
                 : 0;
         this.runElapsedMs = Number.isFinite(data.runElapsedMs) ? data.runElapsedMs : 0;
+        this.runRescues =
+            Number.isFinite(data.runRescues) && data.runRescues >= 0
+                ? Math.floor(data.runRescues)
+                : 0;
+        this.rescueCount = 0;
         this.runEligible = data.runEligible === true;
+        this.runTracked = data.runTracked === true;
         this.fullRunToken = data.fullRunToken || null;
         this.playerId = data.playerId || null;
         this.startWeapons = data.weapons || null;
@@ -260,6 +274,10 @@ export class SpaceChicken extends Phaser.Scene {
         this.boardersDisarmed = false;
         this.crownShielded = false;
         this.boarderWave = 1;
+        this.checkpointIndex = -1;
+        this.checkpointIndex2 = -1;
+        this.respawnPoint = null;
+        this.respawnPoint2 = null;
         this.hasCleanedUp = false;
         this.awaitingStart =
             this.level === LEVEL_IDS[0] && this.deathCount === 0 && !this.launchBot;
@@ -269,6 +287,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.crownGlow = null;
         this.killZoneFallY = 0;
         this.hasStartedPlay = false;
+        this.selectedLevel = 1;
         this.uiCamera = null;
         this.playCameraZoom = 1;
 
@@ -380,6 +399,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.movingPlatforms = builtWorld.movingPlatforms;
         this.dynamicHazardsGroup = builtWorld.dynamicHazardsGroup;
         this.boardersGroup = builtWorld.boardersGroup;
+        this.rescueGroup = builtWorld.rescueGroup;
+        this.podGroup = builtWorld.podGroup;
         if (this.boardersGroup) {
             this.physics.add.collider(this.boardersGroup, this.platforms);
             if (this.movingPlatforms) {
@@ -426,6 +447,24 @@ export class SpaceChicken extends Phaser.Scene {
             null,
             this
         );
+        if (this.rescueGroup) {
+            this.physics.add.overlap(
+                this.player,
+                this.rescueGroup,
+                (chicken, cage) => this.collectRescue(chicken, cage),
+                null,
+                this
+            );
+        }
+        if (this.podGroup) {
+            this.physics.add.overlap(
+                this.player,
+                this.podGroup,
+                (chicken, shell) => this.collectPod(chicken, shell),
+                null,
+                this
+            );
+        }
         this.physics.add.overlap(
             this.player,
             killZone,
@@ -455,6 +494,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.switchKey1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G);
         this.switchKey2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO);
         this.retryKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        this.branchKey1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
+        this.branchKey2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
         this.muteKey = this.input.keyboard.addKey(KEY_CODES.M);
         this.debugSkipKey = this.debugMode
             ? this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N)
@@ -794,7 +835,10 @@ export class SpaceChicken extends Phaser.Scene {
     startSession() {
         if (this.awaitingStart) {
             if (this.uiManager) {
-                this.uiManager.showTitleScreen(this.levelConfig.title);
+                const maxUnlocked = this.leaderboardManager?.getMaxUnlocked?.() || 1;
+                this.uiManager.showTitleScreen(
+                    maxUnlocked > 1 ? this.titleSelectionLabel() : this.levelConfig.title
+                );
             }
             if (this.input?.on) {
                 this.input.on('pointerup', this.onTitlePointerUp, this);
@@ -822,7 +866,9 @@ export class SpaceChicken extends Phaser.Scene {
                 targets.right ||
                 targets.music ||
                 targets.leaderboard ||
-                targets.name
+                targets.name ||
+                targets.selectPrev ||
+                targets.selectNext
             ) {
                 return;
             }
@@ -843,8 +889,9 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.level === 1) {
             this.runElapsedMs = 0;
             this.runEligible = !this.debugMode && !this.coopMode;
+            this.runTracked = !this.debugMode && !this.coopMode;
             if (!this.debugMode) this.leaderboardManager.startRun(1);
-            if (this.runEligible) this.fullRunToken = this.leaderboardManager.startRun(0);
+            if (this.runTracked) this.fullRunToken = this.leaderboardManager.startRun(0);
         }
         if (this.uiManager) {
             this.uiManager.hideTitleScreen();
@@ -1088,6 +1135,25 @@ export class SpaceChicken extends Phaser.Scene {
         return now - this.lastGroundedAt <= GAME_CONSTANTS.COYOTE_MS;
     }
 
+    applyJumpCut(inputState) {
+        if (!inputState?.jumpReleased) {
+            return;
+        }
+        const body = this.player?.body;
+        const velocityY = body?.velocity?.y;
+        if (!body || typeof velocityY !== 'number') {
+            return;
+        }
+        const cut = jumpCutVelocity(
+            velocityY,
+            GAME_CONSTANTS.JUMP_VELOCITY_Y,
+            GAME_CONSTANTS.JUMP_CUT_MULTIPLIER
+        );
+        if (cut !== velocityY) {
+            this.player.setVelocityY(cut);
+        }
+    }
+
     consumeBufferedJump(isGrounded, now) {
         if (!this.bufferedJumpAt) {
             return false;
@@ -1108,6 +1174,41 @@ export class SpaceChicken extends Phaser.Scene {
         return false;
     }
 
+    collectRescue(chicken, cage) {
+        if (!cage || cage.collected || this.isTransitioning || this.gameOver) {
+            return;
+        }
+        cage.collected = true;
+        cage.setTexture?.('rescueCageOpen');
+        cage.disableBody?.(true, false);
+        this.rescueCount = (this.rescueCount || 0) + 1;
+        const seconds = Math.round(GAME_CONSTANTS.RESCUE_BONUS_MS / 1000);
+        this.uiManager?.showLevelBanner?.('CREW SAVED', `Run time −${seconds}s`);
+    }
+
+    collectPod(chicken, shell) {
+        if (!shell || shell.collected || !chicken || this.isTransitioning || this.gameOver) {
+            return;
+        }
+        const gun = WEAPON_DEFS[shell.podGun] ? shell.podGun : 'phaser';
+        shell.collected = true;
+        shell.disableBody?.(true, true);
+        shell.podCore?.setVisible?.(false);
+        chicken.tempGun = {
+            id: gun,
+            until: this.getGameTime() + GAME_CONSTANTS.POD_DURATION_MS,
+        };
+        chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[gun].gun);
+        const seconds = Math.round(GAME_CONSTANTS.POD_DURATION_MS / 1000);
+        if (chicken === this.player) {
+            this.uiManager?.updateWeaponLabel?.(`${WEAPON_DEFS[gun].name} ${seconds}s`);
+        }
+        this.uiManager?.showLevelBanner?.(
+            `${WEAPON_DEFS[gun].name} POD`,
+            `${seconds}s of fire — G cancels`
+        );
+    }
+
     collectGem(chicken) {
         if (this.awaitingStart || this.isTransitioning || this.gameOver || this.raceFinale) {
             return;
@@ -1121,8 +1222,17 @@ export class SpaceChicken extends Phaser.Scene {
             this.beginRaceFinale(chicken || this.player);
             return;
         }
-        const levelTime = performance.now() - this.startTime;
-        if (this.runEligible) this.runElapsedMs += levelTime;
+        const rawTime = performance.now() - this.startTime;
+        const rescues = this.rescueCount || 0;
+        const bonusMs = rescueBonusMs(rescues, GAME_CONSTANTS.RESCUE_BONUS_MS);
+        const levelTime = effectiveLevelTime(
+            rawTime,
+            rescues,
+            GAME_CONSTANTS.RESCUE_BONUS_MS,
+            GAME_CONSTANTS.MIN_LEVEL_TIME_MS
+        );
+        this.runRescues = (this.runRescues || 0) + rescues;
+        if (this.runTracked) this.runElapsedMs += levelTime;
         const previousBest = this.leaderboardManager.getPersonalBest(this.level);
         const playerName = this.leaderboardManager.ensurePlayerName(false);
         this.playerName = playerName;
@@ -1131,6 +1241,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         if (!this.debugMode) {
             this.leaderboardManager.saveTime(this.level, levelTime, playerName);
+            this.leaderboardManager.unlockLevel(this.level + 1);
         }
         const resultTitle =
             !this.debugMode && (previousBest === null || levelTime < previousBest)
@@ -1141,22 +1252,16 @@ export class SpaceChicken extends Phaser.Scene {
         this.pulsePads(GAME_CONSTANTS.HAPTIC_CROWN_MS, 0.25, 0.55);
 
         if (this.levelConfig.nextLevel) {
-            this.queueSceneStart({
-                level: this.levelConfig.nextLevel,
-                deathCount: this.deathCount,
-                runElapsedMs: this.runElapsedMs,
-                runEligible: this.runEligible,
-                fullRunToken: this.fullRunToken,
-                playerId: this.playerId,
-                weapons: {
-                    p1: this.weaponOf(this.player),
-                    p2: this.player2 ? this.weaponOf(this.player2) : null,
-                },
-            });
+            if (Array.isArray(this.levelConfig.branch) && this.levelConfig.branch.length >= 2) {
+                this.offerBranchChoice(resultTitle, levelTime, bonusMs);
+                return;
+            }
+            this.queueSceneStart(this.buildHandoffPayload(this.levelConfig.nextLevel));
             this.uiManager?.showLevelResult?.(
                 resultTitle,
                 levelTime,
-                this.leaderboardManager.lastSubmission
+                this.leaderboardManager.lastSubmission,
+                bonusMs
             );
             return;
         }
@@ -1164,17 +1269,80 @@ export class SpaceChicken extends Phaser.Scene {
         this.uiManager?.showLevelResult?.(
             resultTitle,
             levelTime,
-            this.leaderboardManager.lastSubmission
+            this.leaderboardManager.lastSubmission,
+            bonusMs
         );
-        if (this.runEligible && this.deathCount === 0) {
+        if (this.runTracked) {
             const fullRunTime = this.runElapsedMs;
-            this.leaderboardManager.saveTime(0, fullRunTime, playerName);
+            this.leaderboardManager.saveTime(0, fullRunTime, playerName, this.deathCount);
             this.uiManager?.showFullRunResult?.(
                 fullRunTime,
-                this.leaderboardManager.lastSubmission
+                this.leaderboardManager.lastSubmission,
+                this.deathCount,
+                this.runRescues
             );
         }
         this.completeRun(levelTime);
+    }
+
+    buildHandoffPayload(level) {
+        return {
+            level,
+            deathCount: this.deathCount,
+            runElapsedMs: this.runElapsedMs,
+            runRescues: this.runRescues,
+            runEligible: this.runEligible,
+            runTracked: this.runTracked,
+            fullRunToken: this.fullRunToken,
+            playerId: this.playerId,
+            weapons: {
+                p1: this.baseWeaponOf(this.player),
+                p2: this.player2 ? this.baseWeaponOf(this.player2) : null,
+            },
+        };
+    }
+
+    offerBranchChoice(resultTitle, levelTime, bonusMs) {
+        const branch = this.levelConfig.branch.slice(0, 2);
+        if (!this.debugMode) {
+            this.leaderboardManager.unlockLevel(Math.max(...branch));
+        }
+        this.awaitingBranch = true;
+        if (this.player?.body) {
+            this.player.body.enable = false;
+        }
+        this.stopActiveGameplay({ pausePhysics: false });
+        const options = branch.map((level) => ({
+            level,
+            title: LEVEL_DEFINITIONS[level]?.TITLE || `Level ${level}`,
+        }));
+        const subtitle = this.levelConfig.branchInstructions || null;
+        this.uiManager?.showBranchChoice?.(
+            options,
+            (picked) => {
+                this.awaitingBranch = false;
+                this.queueSceneStart(this.buildHandoffPayload(picked));
+                this.uiManager?.showLevelResult?.(
+                    resultTitle,
+                    levelTime,
+                    this.leaderboardManager.lastSubmission,
+                    bonusMs
+                );
+            },
+            subtitle
+        );
+    }
+
+    updateBranchInput() {
+        if (!this.awaitingBranch || !this.uiManager?.branchOptions) {
+            return;
+        }
+        const keyboard = Phaser.Input.Keyboard;
+        if (this.branchKey1 && keyboard.JustDown(this.branchKey1)) {
+            this.uiManager.pickBranch(0);
+        } else if (this.branchKey2 && keyboard.JustDown(this.branchKey2)) {
+            this.uiManager.pickBranch(1);
+        }
     }
 
     completeRun(finalTime) {
@@ -1281,14 +1449,19 @@ export class SpaceChicken extends Phaser.Scene {
         const gun = this.add.sprite(chicken.x, chicken.y, 'spacePhaser');
         gun.setDepth(6);
         chicken.phaserSprite = gun;
-        chicken.weapon = this.weaponOf(chicken);
+        chicken.weapon = this.baseWeaponOf(chicken);
         gun.setTexture?.(WEAPON_DEFS[chicken.weapon].gun);
     }
 
-    weaponOf(chicken) {
+    baseWeaponOf(chicken) {
         const allowed = weaponsForLevel(this.level);
         const current = chicken?.weapon || 'phaser';
         return allowed.includes(current) ? current : 'phaser';
+    }
+
+    weaponOf(chicken, now) {
+        const stamp = now ?? this.getGameTime();
+        return activeWeaponId(this.baseWeaponOf(chicken), chicken?.tempGun, stamp);
     }
 
     applyStartWeapons() {
@@ -1297,11 +1470,11 @@ export class SpaceChicken extends Phaser.Scene {
         }
         const names = this.startWeapons || {};
         if (this.player && typeof names.p1 === 'string') {
-            this.player.weapon = this.weaponOf({ weapon: names.p1 });
+            this.player.weapon = this.baseWeaponOf({ weapon: names.p1 });
             this.player.phaserSprite?.setTexture?.(WEAPON_DEFS[this.player.weapon].gun);
         }
         if (this.player2 && typeof names.p2 === 'string') {
-            this.player2.weapon = this.weaponOf({ weapon: names.p2 });
+            this.player2.weapon = this.baseWeaponOf({ weapon: names.p2 });
             this.player2.phaserSprite?.setTexture?.(WEAPON_DEFS[this.player2.weapon].gun);
         }
         this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[this.weaponOf(this.player)].name);
@@ -1318,7 +1491,16 @@ export class SpaceChicken extends Phaser.Scene {
         if (weaponsForLevel(this.level).length <= 1) {
             return false;
         }
-        const next = nextWeaponId(this.weaponOf(chicken), this.level);
+        if (tempGunMsLeft(chicken.tempGun, this.getGameTime()) > 0) {
+            chicken.tempGun = null;
+            const base = this.baseWeaponOf(chicken);
+            chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[base].gun);
+            if (index !== 1) {
+                this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[base].name);
+            }
+            return true;
+        }
+        const next = nextWeaponId(this.baseWeaponOf(chicken), this.level);
         chicken.weapon = next;
         chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[next].gun);
         if (index !== 1) {
@@ -1345,6 +1527,35 @@ export class SpaceChicken extends Phaser.Scene {
         ) {
             this.switchPlayerWeapon(1);
         }
+    }
+
+    updateTempGuns() {
+        if (!this.levelConfig?.phaser || this.awaitingStart || this.gameOver) {
+            return;
+        }
+        const now = this.getGameTime();
+        [this.player, this.player2].forEach((chicken, index) => {
+            if (!chicken?.tempGun) {
+                return;
+            }
+            const msLeft = tempGunMsLeft(chicken.tempGun, now);
+            if (msLeft <= 0) {
+                chicken.tempGun = null;
+                const base = this.baseWeaponOf(chicken);
+                chicken.phaserSprite?.setTexture?.(WEAPON_DEFS[base].gun);
+                if (index !== 1) {
+                    this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[base].name);
+                }
+                return;
+            }
+            if (index === 0) {
+                const label = `${WEAPON_DEFS[chicken.tempGun.id].name} ${Math.ceil(msLeft / 1000)}s`;
+                if (chicken.tempLabel !== label) {
+                    chicken.tempLabel = label;
+                    this.uiManager?.updateWeaponLabel?.(label);
+                }
+            }
+        });
     }
 
     updatePhaserSprites() {
@@ -1399,7 +1610,13 @@ export class SpaceChicken extends Phaser.Scene {
         }
         const def = WEAPON_DEFS[this.weaponOf(chicken)] || WEAPON_DEFS.phaser;
         const dir = chicken.flipX ? -1 : 1;
-        const shots = def.spread > 0 ? [-def.spread, 0, def.spread] : [0];
+        const fan = def.spread > 0 ? def.spread : 0;
+        const shots =
+            def.ways === 5 && fan > 0
+                ? [-fan, -fan / 2, 0, fan / 2, fan]
+                : fan > 0
+                  ? [-fan, 0, fan]
+                  : [0];
         let fired = false;
         for (let i = 0; i < shots.length; i++) {
             if (this.spawnPlayerBolt(chicken, dir, def, shots[i])) {
@@ -1991,6 +2208,49 @@ export class SpaceChicken extends Phaser.Scene {
         }
     }
 
+    updateCheckpointProgressForPlayers(playerGrounded) {
+        this.updateCheckpointProgress(this.player, 1, playerGrounded);
+        if (!this.player2) {
+            return;
+        }
+        const player2Grounded = Boolean(
+            this.player2.body?.touching?.down || this.player2.body?.blocked?.down
+        );
+        this.updateCheckpointProgress(this.player2, 2, player2Grounded);
+    }
+
+    updateCheckpointProgress(chicken, slot, grounded) {
+        const points = this.levelConfig?.checkpoints;
+        if (!chicken || !grounded || !Array.isArray(points) || points.length === 0) {
+            return;
+        }
+        const reached = checkpointIndexAt(points, chicken.x);
+        const key = slot === 2 ? 'checkpointIndex2' : 'checkpointIndex';
+        if (reached < 0 || reached <= this[key]) {
+            return;
+        }
+        this[key] = reached;
+        const point = { x: points[reached].x, y: points[reached].y };
+        if (slot === 2) {
+            this.respawnPoint2 = point;
+        } else {
+            this.respawnPoint = point;
+        }
+        this.uiManager?.showLevelBanner?.('CHECKPOINT', 'Progress saved');
+    }
+
+    currentRespawnStart(slot) {
+        if (slot === 2) {
+            return (
+                this.respawnPoint2 || {
+                    x: this.levelConfig.playerStart.x + 42,
+                    y: this.levelConfig.playerStart.y,
+                }
+            );
+        }
+        return this.respawnPoint || this.levelConfig.playerStart;
+    }
+
     respawnPlayer() {
         if (!this.isTransitioning || this.hasCleanedUp || this.gameOver) {
             return;
@@ -2005,7 +2265,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.resetBoarders();
         this.boarderGraceUntil = this.getGameTime() + GAME_CONSTANTS.BOARDER_GRACE_MS;
-        const start = this.levelConfig.playerStart;
+        const start = this.currentRespawnStart(1);
         const player = this.player;
         if (player) {
             if (player.enableBody) {
@@ -2021,12 +2281,18 @@ export class SpaceChicken extends Phaser.Scene {
             player.body?.stop?.();
             player.clearTint?.();
             player.setAlpha?.(1);
+            if (player.tempGun) {
+                player.tempGun = null;
+                const base = this.baseWeaponOf(player);
+                player.phaserSprite?.setTexture?.(WEAPON_DEFS[base].gun);
+                this.uiManager?.updateWeaponLabel?.(WEAPON_DEFS[base].name);
+            }
             player.setScale?.(1);
             this.effectsManager?.keepPlayerBodyStable?.(player);
             player.play?.('chicken-walk', true);
         }
         if (this.player2) {
-            const secondStart = { x: start.x + 42, y: start.y };
+            const secondStart = this.currentRespawnStart(2);
             this.player2.enableBody?.(true, secondStart.x, secondStart.y, true, true);
             this.player2.body?.reset?.(secondStart.x, secondStart.y);
             this.player2.body?.stop?.();
@@ -2215,6 +2481,11 @@ export class SpaceChicken extends Phaser.Scene {
             this.audioManager.toggleMusicMute();
         }
         this.updateWeaponSwitch(inputState);
+        this.updateTempGuns();
+        if (this.awaitingBranch) {
+            this.updateBranchInput();
+            return;
+        }
         if (this.debugSkipKey && Phaser.Input.Keyboard.JustDown(this.debugSkipKey)) {
             this.debugSkipLevel();
             return;
@@ -2277,8 +2548,10 @@ export class SpaceChicken extends Phaser.Scene {
             this.bufferedJumpAt = this.getGameTime();
         }
         this.consumeBufferedJump(isGrounded, this.getGameTime());
+        this.applyJumpCut(inputState);
 
         this.updatePlayerMovement();
+        this.updateCheckpointProgressForPlayers(isGrounded);
         this.updatePlayerAnimation(isGrounded);
         if (this.player2) {
             this.updatePlayer2(inputState);
@@ -2432,9 +2705,71 @@ export class SpaceChicken extends Phaser.Scene {
             const isGrounded = this.updateGroundedState();
             this.updatePlayerAnimation(isGrounded);
         }
-        if (startTriggered) {
-            this.beginPlay();
+        if (this.titleSelectLeft(inputState)) {
+            this.cycleTitleSelection(-1);
         }
+        if (this.titleSelectRight(inputState)) {
+            this.cycleTitleSelection(1);
+        }
+        if (startTriggered) {
+            this.startSelectedLevel();
+        }
+    }
+
+    titleSelectLeft(inputState) {
+        const left = this.cursors?.left;
+        const keyA = this.wasd?.A;
+        return Boolean(
+            (left && Phaser.Input.Keyboard.JustDown(left)) ||
+            (keyA && Phaser.Input.Keyboard.JustDown(keyA)) ||
+            inputState?.menu?.left
+        );
+    }
+
+    titleSelectRight(inputState) {
+        const right = this.cursors?.right;
+        const keyD = this.wasd?.D;
+        return Boolean(
+            (right && Phaser.Input.Keyboard.JustDown(right)) ||
+            (keyD && Phaser.Input.Keyboard.JustDown(keyD)) ||
+            inputState?.menu?.right
+        );
+    }
+
+    cycleTitleSelection(direction) {
+        if (!this.awaitingStart) {
+            return;
+        }
+        const max = this.leaderboardManager?.getMaxUnlocked?.() || 1;
+        const next = cycleSelection(this.selectedLevel, direction, max);
+        if (next === this.selectedLevel) {
+            return;
+        }
+        this.selectedLevel = next;
+        this.uiManager?.showTitleLevelSelection?.(this.titleSelectionLabel());
+    }
+
+    titleSelectionLabel() {
+        const title = new LevelConfig(this.selectedLevel).title;
+        const best = this.leaderboardManager?.getPersonalBest?.(this.selectedLevel);
+        const bestLine =
+            best === null || best === undefined
+                ? 'Best none yet'
+                : `Best ${formatElapsedTime(best)}`;
+        return `LEVEL ${this.selectedLevel} · ${title}\n${bestLine}`;
+    }
+
+    startSelectedLevel() {
+        if (this.selectedLevel > 1) {
+            this.input?.off?.('pointerup', this.onTitlePointerUp, this);
+            this.scene.restart({
+                level: this.selectedLevel,
+                deathCount: 0,
+                coopMode: this.coopMode,
+            });
+            return;
+        }
+        this.beginPlay();
     }
 
     isJumpInput(inputState) {
@@ -2455,6 +2790,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.coopMode = inputState.coopMode;
         this.runEligible = false;
+        this.runTracked = false;
         this.enableCoopMode();
         if (this.hasStartedPlay) {
             this.uiManager?.showLevelBanner?.('SPLIT SCREEN', 'First to the crown wins');
@@ -2488,6 +2824,24 @@ export class SpaceChicken extends Phaser.Scene {
             null,
             this
         );
+        if (this.rescueGroup) {
+            this.physics.add.overlap(
+                this.player2,
+                this.rescueGroup,
+                (chicken, cage) => this.collectRescue(chicken, cage),
+                null,
+                this
+            );
+        }
+        if (this.podGroup) {
+            this.physics.add.overlap(
+                this.player2,
+                this.podGroup,
+                (chicken, shell) => this.collectPod(chicken, shell),
+                null,
+                this
+            );
+        }
         this.physics.add.overlap(
             this.player2,
             this.killZone,
@@ -2499,7 +2853,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.wireBoarders(this.player2);
         this.attachPhaserSprite(this.player2);
         if (typeof this.startWeapons?.p2 === 'string') {
-            this.player2.weapon = this.weaponOf({ weapon: this.startWeapons.p2 });
+            this.player2.weapon = this.baseWeaponOf({ weapon: this.startWeapons.p2 });
             this.player2.phaserSprite?.setTexture?.(WEAPON_DEFS[this.player2.weapon].gun);
         }
         this.enableSplitCamera();
@@ -2544,6 +2898,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.raceLevelTime = Math.max(0, performance.now() - this.startTime);
         this.isTransitioning = true;
         this.runEligible = false;
+        this.runTracked = false;
         this.clearBombSpawns();
         finisher?.setVelocity?.(0, -150);
         finisher?.setTint?.(0xb6ff9a);
@@ -3113,6 +3468,13 @@ export class SpaceChicken extends Phaser.Scene {
             level: this.level,
             nextLevel: this.levelConfig ? this.levelConfig.nextLevel : null,
             deaths: this.deathCount,
+            rescues: this.rescueCount || 0,
+            tempGun: this.player?.tempGun
+                ? {
+                      id: this.player.tempGun.id,
+                      msLeft: Math.max(0, Number(this.player.tempGun.until) - this.getGameTime()),
+                  }
+                : null,
             awaitingStart: this.awaitingStart,
             transitioning: this.isTransitioning,
             gameOver: this.gameOver,

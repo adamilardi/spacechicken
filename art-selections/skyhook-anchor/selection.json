@@ -1,0 +1,58 @@
+{
+    "schema_version": 1,
+    "level_id": "skyhook-anchor",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-arc-2/brief.md",
+    "choices": [
+        {
+            "role": "background-layout",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-skyhook-anchor-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-skyhook-anchor-a/layout.js",
+            "reason": "Climbing tether ribbon and pylon landmark; nothing shipped looks like a tether station.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Port to a createSkyhookBackgroundLayout with sky/far/mid/near layers."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-skyhook-anchor-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-skyhook-anchor-a/deck.js",
+            "reason": "Alloy deck with amber hazard chevrons; chevrons keep it off bastionDeck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register skyhookDeck texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "prop",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-skyhook-anchor-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-skyhook-anchor-a/prop.js",
+            "reason": "Narrow clamp post; cannot be confused with a deck.",
+            "production_status": "needs-work",
+            "remaining_work": ["Register tetherClamp texture key as decor only."],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "ordinary-enemy",
+            "source_manifest": null,
+            "candidate_id": "shipped-spireWarden-voltOrb",
+            "asset_path": null,
+            "reason": "Reuse shipped spire wardens (boarder, cyan lens) and volt orbs (drone); the station garrison needs no new actor.",
+            "production_status": "ready",
+            "remaining_work": [],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "User asked for finished levels, so the agent chose the only painted direction per role. Crown approach goes through boss-creator (gauntlet finale: lift plus beam plus slam plus wave-clear shield)."
+}

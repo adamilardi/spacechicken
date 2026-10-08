@@ -1,0 +1,58 @@
+{
+    "schema_version": 1,
+    "level_id": "rust-harbor",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-arc-2/brief.md",
+    "choices": [
+        {
+            "role": "background-layout",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-rust-harbor-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-rust-harbor-a/layout.js",
+            "reason": "Sun disc plus cloud bands and a water near layer; nothing in the shipped catalog looks like a dusk harbor.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Port to a createHarborBackgroundLayout with sky/far/mid/near layers."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-rust-harbor-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-rust-harbor-a/deck.js",
+            "reason": "Pale sand walk edge over rust steel; warm body keeps it distinct from gunmetal bastionDeck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register harborDeck texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "prop",
+            "source_manifest": "../../art-candidates/contra-arc-2/manifest.json",
+            "candidate_id": "level-rust-harbor-a",
+            "asset_path": "../../art-candidates/contra-arc-2/level-rust-harbor-a/prop.js",
+            "reason": "Thin tall lamp post; cannot be confused with a deck.",
+            "production_status": "needs-work",
+            "remaining_work": ["Register harborLamp texture key as decor only."],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "ordinary-enemy",
+            "source_manifest": null,
+            "candidate_id": "shipped-skitterling-voltOrb",
+            "asset_path": null,
+            "reason": "Reuse shipped skitterlings (boarder, cyan lens) and volt orbs (drone); yard scavengers need no new actor.",
+            "production_status": "ready",
+            "remaining_work": [],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "User asked for finished levels, so the agent chose the only painted direction per role. Crown approach goes through boss-creator (cargo-slam crushers plus a wave-clear shield)."
+}

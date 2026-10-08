@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS } from './Constants.js';
-import { addLoopingTween } from './GameUtils.js';
+import { POD_TINTS, addLoopingTween } from './GameUtils.js';
 import { spawnDynamicHazard, spawners } from './enemies/index.js';
 
 export class WorldBuilder {
@@ -86,7 +86,50 @@ export class WorldBuilder {
         const otherDynamic = dynamic.filter((config) => config.type !== 'boarder');
         const dynamicHazardsGroup = this.setupDynamicHazards(otherDynamic);
         const boardersGroup = this.setupBoarders(boarderConfigs);
-        return { movingPlatforms, dynamicHazardsGroup, boardersGroup };
+        const rescueGroup = this.buildRescues(levelConfig.rescues);
+        const podGroup = this.buildPods(levelConfig.pods);
+        return { movingPlatforms, dynamicHazardsGroup, boardersGroup, rescueGroup, podGroup };
+    }
+
+    buildRescues(rescues) {
+        if (!rescues || rescues.length === 0 || !this.physics?.add?.staticGroup) {
+            return null;
+        }
+        const group = this.physics.add.staticGroup();
+        rescues.forEach((rescue) => {
+            const cage = group.create(rescue.x, rescue.y, 'rescueCage');
+            if (!cage) {
+                return;
+            }
+            cage.setDepth(3);
+            cage.collected = false;
+            this.tagTestEntity(cage, { kind: 'pickup', type: 'rescue' });
+        });
+        return group;
+    }
+
+    buildPods(pods) {
+        if (!pods || pods.length === 0 || !this.physics?.add?.staticGroup) {
+            return null;
+        }
+        const group = this.physics.add.staticGroup();
+        pods.forEach((pod) => {
+            const shell = group.create(pod.x, pod.y, 'gunPod');
+            if (!shell) {
+                return;
+            }
+            shell.setDepth(3);
+            shell.podGun = pod.gun;
+            shell.collected = false;
+            this.tagTestEntity(shell, { kind: 'pickup', type: 'pod', gun: pod.gun });
+            if (this.add?.image) {
+                const core = this.add.image(pod.x, pod.y, 'gunPodCore');
+                core.setDepth(4);
+                core.setTint(POD_TINTS[pod.gun] ?? 0xffffff);
+                shell.podCore = core;
+            }
+        });
+        return group;
     }
 
     clearHazardTimers() {

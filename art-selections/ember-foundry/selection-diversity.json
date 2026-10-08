@@ -1,0 +1,26 @@
+{
+    "schema_version": 1,
+    "level_id": "ember-foundry",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/contra-diversity/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/contra-diversity/manifest.json",
+            "candidate_id": "level-14-chain",
+            "asset_path": "../../art-candidates/contra-diversity/level-14-chain/deck.js",
+            "reason": "Dark chain plates with green signals mark the tower and shelves apart from the molten deck.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register foundryChain texture key."
+            ],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "Diversity-pass revision: accent deck only. Vents stay; two more vent placements join the level."
+}

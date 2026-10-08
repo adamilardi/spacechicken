@@ -1,0 +1,262 @@
+{
+    "schema_version": 1,
+    "brief_id": "contra-diversity",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-8-girder",
+            "title": "Colony girder accent",
+            "status": "painted",
+            "summary": "Gunmetal girder with amber chevrons; shelves and the bridge read apart from the orange deck.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-8-girder/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-8-girder/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "colony",
+                "palette": ["#1c2230", "#bcd2e8", "#ffb15a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-9-fang",
+            "title": "Hive fang accent and sac",
+            "status": "painted",
+            "summary": "Bone fang deck plus a hanging brood sac; the shaft climb and shelves read apart from teal chitin.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-9-fang/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-9-fang/prop.js",
+                    "width_px": 40,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-9-fang/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "hive",
+                "palette": ["#2c1238", "#f2e8d8", "#5a2a6e", "#67ffd2"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-10-glass",
+            "title": "Spire glass accent and fin",
+            "status": "painted",
+            "summary": "Dark glass-pane deck in gold plus an antenna fin; the stair and shelves read apart from pale alloy.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-10-glass/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-10-glass/prop.js",
+                    "width_px": 24,
+                    "height_px": 56,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-10-glass/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "spire",
+                "palette": ["#3a4356", "#d7a441", "#bcd8e8"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-11-grate",
+            "title": "Bastion grate accent",
+            "status": "painted",
+            "summary": "Near-black grate with red signals; the trench and shelves read apart from the pale deck.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-11-grate/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-11-grate/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "bastion",
+                "palette": ["#0d1119", "#5a6a86", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-12-bone",
+            "title": "Womb bone accent and eye",
+            "status": "painted",
+            "summary": "Bone deck with marrow seams plus a watching eye; the bridge and shelves read apart from dark flesh.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-12-bone/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-12-bone/prop.js",
+                    "width_px": 36,
+                    "height_px": 36,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-12-bone/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "womb",
+                "palette": ["#33101a", "#f2d8c9", "#ff5a8a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-13-plank",
+            "title": "Harbor plank accent",
+            "status": "painted",
+            "summary": "Weathered planks with rope lashings; the stair and shelves read apart from the rust deck.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-13-plank/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-13-plank/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "harbor",
+                "palette": ["#2c2118", "#9e8f76", "#c9b48a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-14-chain",
+            "title": "Foundry chain accent",
+            "status": "painted",
+            "summary": "Dark chain plates with green signals; the tower and shelves read apart from the molten deck.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-14-chain/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-14-chain/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "foundry",
+                "palette": ["#1c1412", "#7d6a5a", "#7dff9a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        },
+        {
+            "id": "level-15-panel",
+            "title": "Skyhook panel accent",
+            "status": "painted",
+            "summary": "Dark service panel with red beacons; the stair and shelves read apart from the pale deck.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-15-panel/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-15-panel/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "skyhook",
+                "palette": ["#141c30", "#5a6a86", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": []
+        }
+    ]
+}

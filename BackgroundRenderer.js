@@ -363,6 +363,36 @@ export class BackgroundRenderer {
                     worldWidth,
                     worldHeight
                 );
+            } else if (background.type === 'bastion') {
+                backgroundLayout = this.createBastionBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'womb') {
+                backgroundLayout = this.createWombBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'harbor') {
+                backgroundLayout = this.createHarborBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'foundry') {
+                backgroundLayout = this.createFoundryBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
+            } else if (background.type === 'skyhook') {
+                backgroundLayout = this.createSkyhookBackgroundLayout(
+                    background,
+                    worldWidth,
+                    worldHeight
+                );
             } else if (background.type === 'iss') {
                 backgroundLayout = this.createIssBackgroundLayout(
                     background,
@@ -413,6 +443,26 @@ export class BackgroundRenderer {
         }
         if (background.type === 'spire') {
             this.renderSpireBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'bastion') {
+            this.renderBastionBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'womb') {
+            this.renderWombBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'harbor') {
+            this.renderHarborBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'foundry') {
+            this.renderFoundryBackground(background, layout, worldWidth, worldHeight, layerId);
+            return;
+        }
+        if (background.type === 'skyhook') {
+            this.renderSkyhookBackground(background, layout, worldWidth, worldHeight, layerId);
             return;
         }
         if (background.type === 'iss') {
@@ -1773,6 +1823,585 @@ export class BackgroundRenderer {
         }
     }
 
+    renderBastionBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x060a14,
+                mid: 0x12233d,
+                bottom: 0x274b73,
+                panel: 0x0d1626,
+                seam: 0x16263f,
+                girder: 0x1c2f4d,
+                alert: 0xff4a3c,
+                conduit: 0x9cecff,
+                ground: 0x080d18,
+            },
+            background.palette || {}
+        );
+        const horizon = worldHeight * 0.62;
+        const ceiling = worldHeight * 0.09;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            this.graphics.fillStyle(palette.panel, 1);
+            this.graphics.fillRect(0, 0, worldWidth, ceiling);
+            this.graphics.fillStyle(palette.seam, 1);
+            for (let x = 12; x < worldWidth; x += 48) {
+                this.graphics.fillRect(x, ceiling - 6, 4, 4);
+            }
+            (layout.lamps || []).forEach((lamp) => {
+                this.renderPolygon(
+                    [
+                        { x: lamp.x - 8, y: ceiling },
+                        { x: lamp.x + 8, y: ceiling },
+                        { x: lamp.x + 52, y: lamp.y + 150 },
+                        { x: lamp.x - 52, y: lamp.y + 150 },
+                    ],
+                    palette.conduit,
+                    0.05
+                );
+                this.drawGlow(lamp.x, lamp.y, 46, palette.conduit, 0.16, 4);
+                this.graphics.fillStyle(palette.ground, 1);
+                this.graphics.fillRect(lamp.x - 10, ceiling, 20, 8);
+                this.graphics.fillStyle(0xf4ffff, 0.95);
+                this.graphics.fillRect(lamp.x - 6, ceiling + 8, 12, 4);
+            });
+            return;
+        }
+        if (layerId === 'far') {
+            (layout.arches || []).forEach((arch, index) => {
+                this.graphics.lineStyle(3, palette.seam, 1);
+                this.graphics.strokeRect(arch.x, arch.top, arch.w, arch.bottom - arch.top);
+                this.graphics.lineStyle(1, palette.panel, 1);
+                this.graphics.strokeRect(
+                    arch.x + 12,
+                    arch.top + 12,
+                    arch.w - 24,
+                    arch.bottom - arch.top - 24
+                );
+                this.graphics.fillStyle(index % 2 === 0 ? palette.alert : 0xffb15a, 0.8);
+                this.graphics.fillCircle(arch.x + arch.w / 2, arch.top + 8, 3);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            (layout.doors || []).forEach((door) => {
+                const top = horizon - door.h;
+                this.graphics.fillStyle(palette.girder, 0.95);
+                this.graphics.fillRect(door.x, top, door.w, door.h);
+                this.graphics.fillStyle(palette.panel, 1);
+                this.graphics.fillRect(door.x + door.w / 2 - 2, top, 4, door.h);
+                for (let i = 0; i < 4; i++) {
+                    const chevronX = door.x + 10 + i * ((door.w - 20) / 4);
+                    this.renderPolygon(
+                        [
+                            { x: chevronX, y: horizon - 4 },
+                            { x: chevronX + 12, y: horizon - 4 },
+                            { x: chevronX + 6, y: horizon - 14 },
+                        ],
+                        i % 2 === 0 ? palette.alert : palette.conduit,
+                        0.7
+                    );
+                }
+                this.graphics.fillStyle(palette.alert, 0.85);
+                this.graphics.fillRect(door.x + door.w / 2 - 5, top + 10, 10, 5);
+            });
+            (layout.struts || []).forEach((strut) => {
+                const lean = strut.flip ? -150 : 150;
+                this.renderPolygon(
+                    [
+                        { x: strut.x - 8, y: horizon },
+                        { x: strut.x + 8, y: horizon },
+                        { x: strut.x + lean + 8, y: horizon - worldHeight * 0.3 },
+                        { x: strut.x + lean - 8, y: horizon - worldHeight * 0.3 },
+                    ],
+                    palette.girder,
+                    0.9
+                );
+            });
+            (layout.chains || []).forEach((chain) => {
+                this.graphics.fillStyle(palette.seam, 1);
+                for (let y = ceiling; y < ceiling + chain.len; y += 10) {
+                    this.graphics.fillRect(chain.x, y, 4, 5);
+                }
+                this.graphics.fillStyle(palette.girder, 1);
+                this.graphics.fillRect(chain.x - 3, ceiling + chain.len, 10, 8);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        (layout.frames || []).forEach((frame) => {
+            this.graphics.fillStyle(palette.ground, 1);
+            this.graphics.fillRect(frame.x, 0, 26, 170);
+            this.graphics.fillRect(frame.x + 34, 0, 16, 120);
+            this.graphics.fillRect(frame.x, 170, 60, 18);
+            this.graphics.fillRect(frame.x + 8, worldHeight - 150, 26, 150);
+            this.graphics.fillRect(frame.x + 42, worldHeight - 100, 16, 100);
+            this.graphics.fillStyle(palette.alert, 0.9);
+            this.graphics.fillRect(frame.x + 30, 60, 6, 6);
+        });
+        for (let x = 0; x < worldWidth; x += 28) {
+            this.graphics.fillStyle(palette.ground, 1);
+            this.graphics.fillRect(x, horizon + 40, 20, 22);
+        }
+        this.graphics.fillStyle(palette.conduit, 0.5);
+        for (let x = 0; x < worldWidth; x += 112) {
+            this.graphics.fillRect(x, horizon + 40, 20, 2);
+        }
+    }
+
+    renderWombBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x12060c,
+                mid: 0x3d0f22,
+                bottom: 0x6e1a2e,
+                fold: 0x2a0a18,
+                flesh: 0x4a1420,
+                vein: 0xff5a8a,
+                core: 0x67ffd2,
+                ground: 0x160309,
+            },
+            background.palette || {}
+        );
+        const horizon = worldHeight * 0.62;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            this.drawGlow(
+                worldWidth * 0.3,
+                worldHeight * 0.25,
+                Math.max(worldWidth * 0.1, 130),
+                palette.vein,
+                0.08,
+                5
+            );
+            return;
+        }
+        if (layerId === 'far') {
+            (layout.ribs || []).forEach((rib) => {
+                const points = [];
+                const steps = 14;
+                const thick = 26;
+                for (let i = 0; i <= steps; i++) {
+                    const angle = Math.PI + (i / steps) * Math.PI;
+                    points.push({
+                        x: rib.x + Math.cos(angle) * rib.r,
+                        y: horizon + Math.sin(angle) * rib.r,
+                    });
+                }
+                for (let i = steps; i >= 0; i--) {
+                    const angle = Math.PI + (i / steps) * Math.PI;
+                    points.push({
+                        x: rib.x + Math.cos(angle) * (rib.r - thick),
+                        y: horizon + Math.sin(angle) * (rib.r - thick),
+                    });
+                }
+                this.renderPolygon(points, palette.fold, 0.9);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            const heart = layout.heart;
+            if (heart) {
+                this.drawGlow(heart.x, heart.y, heart.r * 3, palette.vein, 0.14, 5);
+                for (let s = 0; s < 6; s++) {
+                    const angle = (s / 6) * Math.PI * 2 + 0.4;
+                    const reach = heart.r * (2.1 + (s % 3) * 0.5);
+                    const base = heart.r * 0.7;
+                    const perpX = -Math.sin(angle) * 5;
+                    const perpY = Math.cos(angle) * 5;
+                    this.renderPolygon(
+                        [
+                            {
+                                x: heart.x + Math.cos(angle) * base + perpX,
+                                y: heart.y + Math.sin(angle) * base + perpY,
+                            },
+                            {
+                                x: heart.x + Math.cos(angle) * base - perpX,
+                                y: heart.y + Math.sin(angle) * base - perpY,
+                            },
+                            {
+                                x: heart.x + Math.cos(angle) * reach,
+                                y: heart.y + Math.sin(angle) * reach,
+                            },
+                        ],
+                        palette.vein,
+                        0.6
+                    );
+                }
+                this.graphics.fillStyle(palette.flesh, 0.95);
+                this.graphics.fillEllipse(heart.x, heart.y, heart.r * 2, heart.r * 1.6);
+                this.graphics.fillStyle(palette.vein, 0.9);
+                this.graphics.fillEllipse(heart.x, heart.y, heart.r * 1.1, heart.r * 0.9);
+                this.graphics.fillStyle(palette.core, 0.95);
+                this.graphics.fillCircle(heart.x, heart.y, heart.r * 0.3);
+                this.graphics.fillStyle(0xffffff, 0.9);
+                this.graphics.fillCircle(heart.x - heart.r * 0.1, heart.y - heart.r * 0.1, 3);
+            }
+            (layout.sacs || []).forEach((sac) => {
+                this.graphics.fillStyle(palette.flesh, 0.95);
+                this.graphics.fillCircle(sac.x, sac.y, sac.r);
+                this.graphics.fillStyle(palette.core, 0.85);
+                this.graphics.fillCircle(sac.x, sac.y, Math.max(3, sac.r * 0.28));
+            });
+            (layout.motes || []).forEach((mote) => {
+                this.graphics.fillStyle(palette.vein, 0.5);
+                this.graphics.fillCircle(mote.x, mote.y, mote.r);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        (layout.teethTop || []).forEach((tooth) => {
+            this.renderPolygon(
+                [
+                    { x: tooth.x - 14, y: 0 },
+                    { x: tooth.x + 14, y: 0 },
+                    { x: tooth.x + 4, y: tooth.len },
+                ],
+                palette.ground,
+                1
+            );
+        });
+        (layout.teethBottom || []).forEach((tooth) => {
+            this.renderPolygon(
+                [
+                    { x: tooth.x - 12, y: worldHeight },
+                    { x: tooth.x + 12, y: worldHeight },
+                    { x: tooth.x - 4, y: worldHeight - tooth.len },
+                ],
+                palette.ground,
+                1
+            );
+        });
+        (layout.wisps || []).forEach((wisp) => {
+            this.graphics.fillStyle(palette.vein, 0.18);
+            this.graphics.fillEllipse(wisp.x, wisp.y, wisp.rx * 2, wisp.ry * 2);
+        });
+    }
+
+    renderHarborBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x1b2b4a,
+                mid: 0x4a3a52,
+                bottom: 0xff9a4a,
+                sun: 0xffd7a8,
+                cloud: 0x141c30,
+                hull: 0x141c30,
+                porthole: 0xff9a4a,
+                crane: 0x2c3a52,
+                box: 0x6e3a22,
+                piling: 0x0a101c,
+                shimmer: 0xff9a4a,
+                water: 0x0a1626,
+            },
+            background.palette || {}
+        );
+        const horizon = worldHeight * 0.72;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom, palette.water],
+                44
+            );
+            this.graphics.fillStyle(palette.bottom, 0.9);
+            this.graphics.fillCircle(layout.sun.x, layout.sun.y, layout.sun.r);
+            this.graphics.fillStyle(palette.sun, 0.95);
+            this.graphics.fillCircle(layout.sun.x, layout.sun.y, layout.sun.r * 0.66);
+            (layout.clouds || []).forEach((cloud) => {
+                this.graphics.fillStyle(palette.cloud, 0.75);
+                this.graphics.fillRect(cloud.x, cloud.y, cloud.w, 8);
+            });
+            this.graphics.fillStyle(palette.sun, 0.4);
+            this.graphics.fillRect(layout.sun.x - 90, layout.sun.y - 4, 180, 3);
+            return;
+        }
+        if (layerId === 'far') {
+            (layout.hulls || []).forEach((hull) => {
+                this.renderPolygon(
+                    [
+                        { x: hull.x, y: horizon },
+                        { x: hull.x + 14, y: horizon - hull.h },
+                        { x: hull.x + hull.w - 14, y: horizon - hull.h },
+                        { x: hull.x + hull.w, y: horizon },
+                    ],
+                    palette.hull,
+                    1
+                );
+                this.graphics.fillStyle(palette.hull, 1);
+                this.graphics.fillRect(hull.x + hull.w * 0.3, horizon - hull.h - 16, 10, 16);
+                this.graphics.fillStyle(palette.porthole, 0.9);
+                for (let px = hull.x + 24; px < hull.x + hull.w - 20; px += 26) {
+                    this.graphics.fillRect(px, horizon - hull.h + 12, 6, 5);
+                }
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            (layout.cranes || []).forEach((crane) => {
+                this.graphics.lineStyle(6, palette.crane, 1);
+                this.graphics.beginPath();
+                this.graphics.moveTo(crane.x, horizon);
+                this.graphics.lineTo(crane.x + 50, horizon - 120);
+                this.graphics.lineTo(crane.x + 200, horizon - 120);
+                this.graphics.moveTo(crane.x + 50, horizon - 120);
+                this.graphics.lineTo(crane.x, horizon - 40);
+                this.graphics.strokePath();
+                this.graphics.lineStyle(2, palette.crane, 1);
+                this.graphics.beginPath();
+                this.graphics.moveTo(crane.x + 125, horizon - 120);
+                this.graphics.lineTo(crane.x + 125, horizon - 60);
+                this.graphics.strokePath();
+                this.graphics.fillStyle(palette.crane, 1);
+                this.graphics.fillRect(crane.x + 110, horizon - 60, 30, 26);
+            });
+            (layout.stacks || []).forEach((stack, index) => {
+                const colors = [palette.box, 0x3f6e5a, 0x8a5a2a, 0x54607a];
+                this.graphics.fillStyle(colors[index % colors.length], 0.95);
+                this.graphics.fillRect(stack.x, stack.y, 60, 28);
+                this.graphics.fillStyle(0x000000, 0.3);
+                this.graphics.fillRect(stack.x, stack.y + 12, 60, 3);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        (layout.pilings || []).forEach((piling) => {
+            this.graphics.fillStyle(palette.piling, 1);
+            this.graphics.fillRect(piling, horizon - 10, 14, worldHeight - horizon + 10);
+            this.graphics.fillRect(piling - 6, horizon - 16, 26, 8);
+        });
+        this.graphics.fillStyle(palette.shimmer, 0.5);
+        (layout.shimmers || []).forEach((shimmer) => {
+            this.graphics.fillRect(shimmer.x, shimmer.y, 26, 2);
+        });
+    }
+
+    renderFoundryBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x140d0a,
+                mid: 0x2a1410,
+                bottom: 0x4a1e12,
+                ember: 0xff6a2a,
+                molten: 0xffd23c,
+                wall: 0x241512,
+                rail: 0x3a2c26,
+                signal: 0x7dff9a,
+            },
+            background.palette || {}
+        );
+        const horizon = worldHeight * 0.7;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            (layout.columns || []).forEach((column) => {
+                for (let step = 0; step < 6; step++) {
+                    const alpha = 0.3 - step * 0.05;
+                    this.graphics.fillStyle(palette.ember, Math.max(0.02, alpha));
+                    this.graphics.fillRect(
+                        column.x,
+                        horizon - ((step + 1) / 6) * horizon * 0.85,
+                        column.w,
+                        (horizon * 0.85) / 6 + 1
+                    );
+                }
+            });
+            this.graphics.fillStyle(palette.molten, 0.9);
+            (layout.sparks || []).forEach((spark) => {
+                this.graphics.fillRect(spark.x, spark.y, 2, 2);
+            });
+            return;
+        }
+        if (layerId === 'far') {
+            const wallTop = worldHeight * 0.3;
+            this.graphics.fillStyle(palette.wall, 1);
+            this.graphics.fillRect(0, wallTop, worldWidth, horizon - wallTop);
+            this.graphics.fillStyle(palette.top, 1);
+            for (let x = 0; x < worldWidth; x += 64) {
+                this.graphics.fillRect(x, wallTop, 3, horizon - wallTop);
+            }
+            (layout.mouths || []).forEach((mouth) => {
+                this.graphics.fillStyle(palette.ember, 0.95);
+                this.graphics.fillEllipse(mouth.x, horizon - 30, 52, 40);
+                this.graphics.fillStyle(palette.molten, 0.95);
+                this.graphics.fillEllipse(mouth.x, horizon - 28, 28, 22);
+                this.graphics.fillStyle(palette.wall, 1);
+                this.graphics.fillRect(mouth.x - 34, horizon - 52, 68, 12);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            const railY = worldHeight * 0.18;
+            this.graphics.fillStyle(palette.rail, 1);
+            this.graphics.fillRect(0, railY, worldWidth, 10);
+            (layout.ladles || []).forEach((ladle) => {
+                this.graphics.lineStyle(5, palette.rail, 1);
+                this.graphics.beginPath();
+                this.graphics.moveTo(ladle.x, railY);
+                this.graphics.lineTo(ladle.x + 40, railY + 70);
+                this.graphics.strokePath();
+                this.renderPolygon(
+                    [
+                        { x: ladle.x + 16, y: railY + 70 },
+                        { x: ladle.x + 64, y: railY + 70 },
+                        { x: ladle.x + 56, y: railY + 104 },
+                        { x: ladle.x + 24, y: railY + 104 },
+                    ],
+                    palette.wall,
+                    1
+                );
+                this.graphics.fillStyle(palette.molten, 0.95);
+                this.graphics.fillRect(ladle.x + 20, railY + 70, 40, 5);
+            });
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        this.graphics.fillStyle(palette.ember, 1);
+        this.graphics.fillRect(0, horizon + 26, worldWidth, 14);
+        this.graphics.fillStyle(palette.molten, 0.9);
+        (layout.flows || []).forEach((flow) => {
+            this.graphics.fillRect(flow.x, horizon + 30, 30, 4);
+        });
+        this.graphics.fillStyle(palette.top, 1);
+        for (let x = 0; x < worldWidth; x += 28) {
+            this.graphics.fillRect(x, horizon, 18, 26);
+        }
+        this.graphics.fillStyle(palette.signal, 0.9);
+        for (let x = 14; x < worldWidth; x += 224) {
+            this.graphics.fillRect(x, horizon + 6, 5, 5);
+        }
+    }
+
+    renderSkyhookBackground(background, layout, worldWidth, worldHeight, layerId) {
+        const palette = Object.assign(
+            {
+                top: 0x060b18,
+                mid: 0x101a33,
+                bottom: 0x1d2c4d,
+                ribbon: 0x7df9ff,
+                climber: 0xffb15a,
+                tower: 0x1d2c4d,
+                beacon: 0xff4a3c,
+                pylon: 0x39435a,
+                panel: 0x141c30,
+                slab: 0x39435a,
+                pipe: 0x0a0f1c,
+            },
+            background.palette || {}
+        );
+        const horizon = worldHeight * 0.74;
+        if (layerId === 'sky') {
+            this.renderVerticalGradient(
+                0,
+                0,
+                worldWidth,
+                worldHeight,
+                [palette.top, palette.mid, palette.bottom],
+                44
+            );
+            this.graphics.fillStyle(0xffffff, 0.8);
+            (layout.stars || []).forEach((star) => {
+                this.graphics.fillRect(star.x, star.y, 1, 1);
+            });
+            this.graphics.fillStyle(palette.ribbon, 0.25);
+            this.graphics.fillRect(layout.ribbonX - 6, 0, 12, worldHeight);
+            this.graphics.fillStyle(palette.ribbon, 0.95);
+            this.graphics.fillRect(layout.ribbonX - 2, 0, 4, worldHeight);
+            (layout.climbers || []).forEach((climber) => {
+                this.graphics.fillStyle(palette.climber, 0.95);
+                this.graphics.fillRect(layout.ribbonX - 8, climber, 16, 6);
+                this.graphics.fillStyle(0xfff4e0, 0.95);
+                this.graphics.fillRect(layout.ribbonX - 8, climber, 16, 2);
+            });
+            return;
+        }
+        if (layerId === 'far') {
+            (layout.towers || []).forEach((tower) => {
+                this.graphics.lineStyle(5, palette.tower, 1);
+                this.graphics.strokeRect(tower.x, horizon - tower.h, 70, tower.h);
+                this.graphics.beginPath();
+                this.graphics.moveTo(tower.x, horizon);
+                this.graphics.lineTo(tower.x + 70, horizon - tower.h);
+                this.graphics.moveTo(tower.x + 70, horizon);
+                this.graphics.lineTo(tower.x, horizon - tower.h);
+                this.graphics.strokePath();
+                this.graphics.fillStyle(palette.beacon, 0.9);
+                this.graphics.fillRect(tower.x + 32, horizon - tower.h - 6, 6, 6);
+            });
+            return;
+        }
+        if (layerId === 'mid') {
+            const pylon = layout.pylon || { x: layout.ribbonX, h: 130 };
+            this.graphics.fillStyle(palette.pylon, 1);
+            this.graphics.fillRect(pylon.x - 30, horizon - pylon.h, 60, pylon.h);
+            this.graphics.fillStyle(palette.panel, 1);
+            for (let y = horizon - pylon.h + 10; y < horizon; y += 20) {
+                this.graphics.fillRect(pylon.x - 30, y, 60, 3);
+            }
+            this.graphics.fillStyle(palette.ribbon, 0.95);
+            this.graphics.fillRect(pylon.x - 30, horizon - pylon.h, 60, 6);
+            for (const side of [-1, 1]) {
+                this.graphics.lineStyle(8, palette.pylon, 1);
+                this.graphics.beginPath();
+                this.graphics.moveTo(pylon.x + side * 30, horizon - 90);
+                this.graphics.lineTo(pylon.x + side * 130, horizon - 130);
+                this.graphics.strokePath();
+                this.graphics.fillStyle(palette.climber, 0.95);
+                this.graphics.fillRect(pylon.x + side * 130 - 5, horizon - 136, 10, 12);
+            }
+            return;
+        }
+        if (layerId !== 'near') {
+            return;
+        }
+        this.graphics.fillStyle(palette.panel, 1);
+        this.graphics.fillRect(0, horizon, worldWidth, worldHeight - horizon);
+        this.graphics.fillStyle(palette.slab, 1);
+        this.graphics.fillRect(0, horizon, worldWidth, 8);
+        this.graphics.fillStyle(palette.ribbon, 0.8);
+        for (let x = 0; x < worldWidth; x += 160) {
+            this.graphics.fillRect(x, horizon, 40, 3);
+        }
+        this.graphics.fillStyle(palette.pipe, 1);
+        for (let i = 0; i < 3; i++) {
+            this.graphics.fillRect(0, horizon + 18 + i * 14, worldWidth, 6);
+        }
+        this.graphics.fillStyle(palette.beacon, 0.9);
+        for (let x = 40; x < worldWidth; x += 200) {
+            this.graphics.fillRect(x, horizon + 18, 5, 34);
+        }
+    }
+
     renderHiveBackground(background, layout, worldWidth, worldHeight, layerId) {
         const palette = Object.assign(
             {
@@ -2090,6 +2719,181 @@ export class BackgroundRenderer {
             planet: { x: worldWidth * 0.8, y: worldHeight * 0.24, r: 40 },
             spire: { x: worldWidth * 0.5, w: 80 },
         };
+    }
+
+    createBastionBackgroundLayout(background, worldWidth, worldHeight) {
+        const lamps = [];
+        for (let x = 90; x < worldWidth; x += 330) {
+            lamps.push({ x: x + ((x * 13) % 140), y: worldHeight * 0.1 });
+        }
+        const arches = [];
+        for (let x = 0; x < worldWidth; x += 240) {
+            arches.push({
+                x,
+                w: 150 + ((x * 7) % 90),
+                top: worldHeight * 0.16,
+                bottom: worldHeight * 0.66,
+            });
+        }
+        const doors = [];
+        for (let x = 420; x < worldWidth; x += 760) {
+            doors.push({
+                x: x + ((x * 11) % 200),
+                w: 120 + ((x * 5) % 140),
+                h: worldHeight * (0.26 + ((x * 3) % 10) / 100),
+            });
+        }
+        const struts = [];
+        for (let x = 200; x < worldWidth; x += 520) {
+            struts.push({ x, flip: Math.floor(x / 520) % 2 === 0 });
+        }
+        const chains = [];
+        for (let x = 320; x < worldWidth; x += 640) {
+            chains.push({
+                x: x + ((x * 17) % 120),
+                len: worldHeight * (0.14 + ((x * 13) % 10) / 120),
+            });
+        }
+        const frames = [];
+        for (let x = 600; x < worldWidth; x += 1400) {
+            frames.push({ x: x + ((x * 29) % 300) });
+        }
+        return { lamps, arches, doors, struts, chains, frames };
+    }
+
+    createWombBackgroundLayout(background, worldWidth, worldHeight) {
+        const ribs = [];
+        for (let x = 140; x < worldWidth; x += 460) {
+            ribs.push({ x, r: worldHeight * (0.34 + ((x * 7) % 10) / 120) });
+        }
+        const heart = { x: worldWidth * 0.55, y: worldHeight * 0.34, r: 64 };
+        const sacs = [];
+        for (let x = 300; x < worldWidth; x += 700) {
+            sacs.push({
+                x: x + ((x * 13) % 180),
+                y: worldHeight * (0.24 + ((x * 5) % 10) / 60),
+                r: 16 + ((x * 3) % 16),
+            });
+        }
+        const motes = [];
+        for (let i = 0; i < 60; i++) {
+            motes.push({
+                x: ((i * 173) % worldWidth) + 8,
+                y: ((i * 97) % Math.round(worldHeight * 0.6)) + 20,
+                r: 1 + (i % 3),
+            });
+        }
+        const teethTop = [];
+        for (let x = 40; x < worldWidth; x += 96) {
+            teethTop.push({ x: x + ((x * 11) % 40), len: 44 + ((x * 7) % 52) });
+        }
+        const teethBottom = [];
+        for (let x = 90; x < worldWidth; x += 110) {
+            teethBottom.push({ x: x + ((x * 13) % 40), len: 36 + ((x * 5) % 44) });
+        }
+        const wisps = [];
+        for (let x = 260; x < worldWidth; x += 900) {
+            wisps.push({
+                x: x + ((x * 17) % 160),
+                y: worldHeight * (0.5 + ((x * 3) % 10) / 40),
+                rx: 90 + ((x * 7) % 60),
+                ry: 22 + ((x * 11) % 18),
+            });
+        }
+        return { ribs, heart, sacs, motes, teethTop, teethBottom, wisps };
+    }
+
+    createHarborBackgroundLayout(background, worldWidth, worldHeight) {
+        const horizon = worldHeight * 0.72;
+        const sun = { x: worldWidth * 0.68, y: horizon - 26, r: 30 };
+        const clouds = [];
+        for (let i = 0; i < 4; i++) {
+            clouds.push({
+                x: (i * 260 + 60) % worldWidth,
+                y: worldHeight * 0.2 + i * 26,
+                w: 220 - i * 30,
+            });
+        }
+        const hulls = [];
+        for (let x = 40; x < worldWidth; x += 560) {
+            hulls.push({
+                x: x + ((x * 11) % 120),
+                w: 130 + ((x * 7) % 130),
+                h: 40 + ((x * 5) % 28),
+            });
+        }
+        const cranes = [];
+        for (let x = 420; x < worldWidth; x += 900) {
+            cranes.push({ x: x + ((x * 13) % 160) });
+        }
+        const stacks = [];
+        for (let x = 700; x < worldWidth; x += 1100) {
+            const base = x + ((x * 17) % 200);
+            stacks.push({ x: base, y: horizon - 30 });
+            stacks.push({ x: base + 64, y: horizon - 30 });
+            stacks.push({ x: base + 32, y: horizon - 62 });
+        }
+        const pilings = [];
+        for (let x = 20; x < worldWidth; x += 120) {
+            pilings.push(x + ((x * 3) % 24));
+        }
+        const shimmers = [];
+        for (let x = 0; x < worldWidth; x += 46) {
+            shimmers.push({
+                x: x + ((x * 7) % 20),
+                y: horizon + 18 + ((x * 3) % 24),
+            });
+        }
+        return { sun, clouds, hulls, cranes, stacks, pilings, shimmers };
+    }
+
+    createFoundryBackgroundLayout(background, worldWidth, worldHeight) {
+        const horizon = worldHeight * 0.7;
+        const columns = [];
+        for (let x = 60; x < worldWidth; x += 190) {
+            columns.push({ x: x + ((x * 13) % 60), w: 26 + ((x * 7) % 30) });
+        }
+        const sparks = [];
+        for (let i = 0; i < 60; i++) {
+            sparks.push({
+                x: (i * 173) % worldWidth,
+                y: (i * 97) % worldHeight,
+            });
+        }
+        const mouths = [];
+        for (let x = 120; x < worldWidth; x += 320) {
+            mouths.push({ x: x + ((x * 11) % 80) });
+        }
+        const ladles = [];
+        for (let x = 200; x < worldWidth; x += 380) {
+            ladles.push({ x: x + ((x * 17) % 100) });
+        }
+        const flows = [];
+        for (let x = 0; x < worldWidth; x += 52) {
+            flows.push({ x: x + ((x * 5) % 24) });
+        }
+        return { columns, sparks, mouths, ladles, flows, horizon };
+    }
+
+    createSkyhookBackgroundLayout(background, worldWidth, worldHeight) {
+        const ribbonX = worldWidth * 0.55;
+        const stars = [];
+        for (let i = 0; i < 50; i++) {
+            stars.push({
+                x: (i * 211) % worldWidth,
+                y: (i * 61) % Math.round(worldHeight * 0.5),
+            });
+        }
+        const climbers = [worldHeight * 0.2, worldHeight * 0.42, worldHeight * 0.64];
+        const towers = [];
+        for (let x = 60; x < worldWidth; x += 640) {
+            if (Math.abs(x - ribbonX) < 90) {
+                continue;
+            }
+            towers.push({ x: x + ((x * 11) % 80), h: 150 + ((x * 7) % 70) });
+        }
+        const pylon = { x: ribbonX, h: 130 };
+        return { ribbonX, stars, climbers, towers, pylon };
     }
 
     createMoonBackgroundLayout(background, worldWidth, worldHeight) {

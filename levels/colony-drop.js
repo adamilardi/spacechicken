@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. The crown is shielded: drop every skitterer to open it. Press G to swap guns. (M toggles music)',
+            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: drop every skitterer to open it. Press G to swap guns. (M toggles music)',
         touchInstructions:
-            'COLONY DROP - Aliens rush the line. The bolt button fires the space phaser. The gun button swaps guns. Clear all skitterers to open the crown. Arrows move, jump leaps.',
+            'COLONY DROP - Aliens rush the line. The bolt button fires the space phaser. The gun button swaps guns. Clear all skitterers to open the crown. Pods grant 30s guns. Free cages for −2s. Arrows move, jump leaps.',
         background: {
             type: 'colony',
             style: 'beachhead',
@@ -39,19 +39,27 @@ export const level = {
         },
         staticPlatforms: [
             { x: 420, y: 616, key: 'colonyDeck', scaleX: 6.4 },
-            { x: 1240, y: 616, key: 'colonyDeck', scaleX: 6.4 },
+            { x: 1240, y: 586, key: 'colonyDeck', scaleX: 6.4 },
             { x: 2060, y: 616, key: 'colonyDeck', scaleX: 6.4 },
-            { x: 2813, y: 616, key: 'colonyDeck', scaleX: 5.0 },
+            { x: 2813, y: 586, key: 'colonyDeck', scaleX: 5.0 },
             { x: 3451, y: 616, key: 'colonyDeck', scaleX: 4.0 },
-            { x: 3800, y: 470, key: 'colonyDeck', scaleX: 3.0 },
+            { x: 1400, y: 452, key: 'colonyGirder', scaleX: 5.0 },
+            { x: 2950, y: 452, key: 'colonyGirder', scaleX: 4.4 },
+            { x: 3156, y: 586, key: 'colonyGirder', scaleX: 1.6 },
+            { x: 3800, y: 470, key: 'colonyDeck', scaleX: 3.6 },
         ],
         floor: null,
         moving: [],
         rocks: [],
         props: [
             { x: 200, y: 582, key: 'colonyBeacon' },
+            { x: 1000, y: 552, key: 'colonyBeacon' },
+            { x: 2200, y: 582, key: 'colonyBeacon' },
             { x: 3451, y: 582, key: 'colonyBeacon' },
+            { x: 3700, y: 436, key: 'colonyBeacon' },
         ],
+        rescues: [{ x: 2950, y: 416 }],
+        pods: [{ x: 2060, y: 504, gun: 'piercer' }],
         dynamic: [
             { type: 'boarder', key: 'skitterling', x: 700, y: 540, wave: 1 },
             { type: 'boarder', key: 'skitterling', x: 1120, y: 540, wave: 1 },
@@ -73,6 +81,15 @@ export const level = {
             },
             { type: 'boarder', key: 'skitterling', x: 3200, y: 540, wave: 3 },
             { type: 'boarder', key: 'skitterling', x: 3550, y: 540, wave: 3 },
+            {
+                type: 'drone',
+                key: 'voltOrb',
+                x: 1400,
+                y: 360,
+                patrol: { x: 1500, duration: 1600 },
+            },
+            { type: 'boarder', key: 'skitterling', x: 3500, y: 548, wave: 4 },
+            { type: 'boarder', key: 'skitterling', x: 3750, y: 402, wave: 4 },
         ],
     },
 };

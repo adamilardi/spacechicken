@@ -261,19 +261,25 @@ export function normalizeTestAction(action) {
     return Object.hasOwn(ACTION_INPUTS, name) ? name : null;
 }
 
-export function createTestObservation(snapshot, seed = null) {
-    const phase = phaseOf(snapshot);
-    const player = snapshot && snapshot.player;
-    const observation = {
+function observationHeader(snapshot, seed, phase) {
+    return {
         schemaVersion: 2,
         seed,
         phase,
         level: snapshot ? snapshot.level : null,
         deaths: snapshot ? snapshot.deaths : null,
+        rescues: snapshot ? (snapshot.rescues ?? 0) : null,
+        tempGun: snapshot ? (snapshot.tempGun ?? null) : null,
         elapsedMs: snapshot ? round(snapshot.elapsedMs) : null,
         simulationTimeScale: snapshot ? snapshot.simulationTimeScale || 1 : 1,
         availableActions: availableActionsFor(phase, snapshot),
     };
+}
+
+export function createTestObservation(snapshot, seed = null) {
+    const phase = phaseOf(snapshot);
+    const player = snapshot && snapshot.player;
+    const observation = observationHeader(snapshot, seed, phase);
     if (!player) return observation;
 
     const crown = snapshot.crown;

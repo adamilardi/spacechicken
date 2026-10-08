@@ -1,0 +1,48 @@
+{
+    "schema_version": 1,
+    "brief_id": "iron-vault",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-iron-vault-a",
+            "title": "Iron Vault",
+            "status": "painted",
+            "summary": "Sealed branch vault: bronze deck with amber edge plus a glowing seal post; background reuses shipped bastion.",
+            "assets": [
+                {
+                    "role": "platform",
+                    "path": "level-iron-vault-a/deck.js",
+                    "width_px": 96,
+                    "height_px": 24,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": { "shape": "rect", "body": "top deck" },
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                },
+                {
+                    "role": "prop",
+                    "path": "level-iron-vault-a/prop.js",
+                    "width_px": 24,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["level-iron-vault-a/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "bastion",
+                "palette": ["#2c2118", "#e8d8b0", "#8a6a2a", "#ffb15a"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "unverified" },
+            "limitations": [
+                "Background reuses the shipped bastion type; no new composition devices."
+            ]
+        }
+    ]
+}

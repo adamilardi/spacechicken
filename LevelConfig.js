@@ -13,6 +13,7 @@ export class LevelConfig {
         this.gravity = def.GRAVITY ?? GAME_CONSTANTS.PHYSICS_GRAVITY.y;
         this.maxJumps = GAME_CONSTANTS.MAX_JUMPS;
         this.nextLevel = def.NEXT_LEVEL;
+        this.branch = Array.isArray(def.BRANCH) ? [...def.BRANCH] : null;
         this.world = {
             width: def.WORLD_WIDTH ?? GAME_CONSTANTS.LEVEL_DEFAULT_WORLD_SIZE.width,
             height: def.WORLD_HEIGHT ?? GAME_CONSTANTS.LEVEL_DEFAULT_WORLD_SIZE.height,
@@ -30,6 +31,7 @@ export class LevelConfig {
         this.title = def.TITLE || `Level ${level}`;
         this.instructions = content.instructions || DEFAULT_INSTRUCTIONS;
         this.touchInstructions = content.touchInstructions || DEFAULT_TOUCH_INSTRUCTIONS;
+        this.branchInstructions = content.branchInstructions || null;
         this.background = content.background || {
             type: 'space',
             style: 'dreamcastSunrise',
@@ -48,6 +50,9 @@ export class LevelConfig {
             dynamic: content.dynamic || [],
         };
         this.props = content.props || [];
+        this.checkpoints = content.checkpoints || [];
+        this.rescues = content.rescues || [];
+        this.pods = content.pods || [];
         this.phaser = def.PHASER === true;
         this.bombs = {
             speed: def.BOMB_SPEED ?? GAME_CONSTANTS.BOMB_DEFAULT_SPEED,

@@ -1,0 +1,46 @@
+{
+    "schema_version": 1,
+    "level_id": "iron-vault",
+    "decision_status": "delegated",
+    "decision_by": "agent-delegated",
+    "brief_path": "../../art-candidates/iron-vault/brief.md",
+    "choices": [
+        {
+            "role": "platform",
+            "source_manifest": "../../art-candidates/iron-vault/manifest.json",
+            "candidate_id": "level-iron-vault-a",
+            "asset_path": "../../art-candidates/iron-vault/level-iron-vault-a/deck.js",
+            "reason": "Warm bronze body with amber edge; distinct from gunmetal bastionDeck on the reused background.",
+            "production_status": "needs-work",
+            "remaining_work": [
+                "Check the repeated seam in game.",
+                "Register vaultDeck texture key."
+            ],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "prop",
+            "source_manifest": "../../art-candidates/iron-vault/manifest.json",
+            "candidate_id": "level-iron-vault-a",
+            "asset_path": "../../art-candidates/iron-vault/level-iron-vault-a/prop.js",
+            "reason": "Thin tall seal post; cannot be confused with a deck.",
+            "production_status": "needs-work",
+            "remaining_work": ["Register vaultSeal texture key as decor only."],
+            "animation_handoff_path": null
+        },
+        {
+            "role": "ordinary-enemy",
+            "source_manifest": null,
+            "candidate_id": "shipped-skitterling-voltOrb",
+            "asset_path": null,
+            "reason": "Reuse shipped skitterlings (boarder) and volt orbs (drone); the vault garrison needs no new actor.",
+            "production_status": "ready",
+            "remaining_work": [],
+            "animation_handoff_path": null
+        }
+    ],
+    "unfilled_roles": ["crown-approach"],
+    "requested_revisions": [],
+    "alternates": [],
+    "notes": "User asked for finished levels, so the agent chose the only painted direction per role. Crown approach: single slam plus a timed beam plus a wave-clear shield."
+}
