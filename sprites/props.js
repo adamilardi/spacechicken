@@ -174,11 +174,12 @@ export function paintSpireFin(ctx) {
     ctx.fill();
     ctx.fillStyle = '#f4e8c8';
     ctx.fillRect(11, 6, 2, 32);
-    ctx.fillStyle = '#ff4a3c';
+    // Harmless ornament: a pale gold tip, never the red hazard cue.
+    ctx.fillStyle = '#f4e8c8';
     ctx.beginPath();
     ctx.arc(12, 4, 3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#ffd7a8';
+    ctx.fillStyle = '#d7a441';
     ctx.beginPath();
     ctx.arc(12, 4, 1.2, 0, Math.PI * 2);
     ctx.fill();

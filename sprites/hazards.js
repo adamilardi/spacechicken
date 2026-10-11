@@ -28,21 +28,56 @@ export function paintAcidDrop(ctx) {
 }
 
 export function paintDustDevil(ctx) {
-    ctx.fillStyle = 'rgba(255, 156, 74, 0.18)';
+    // Lethal funnel: a red-hot core with hard bright bands, opaque enough
+    // to read as a hazard on pale skies (the sprite uses ADD blending).
+    ctx.fillStyle = 'rgba(255, 122, 40, 0.55)';
     ctx.beginPath();
     ctx.ellipse(18, 50, 16, 46, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 214, 150, 0.85)';
-    ctx.lineWidth = 3;
+    ctx.fillStyle = 'rgba(255, 74, 42, 0.6)';
     ctx.beginPath();
-    ctx.ellipse(18, 24, 8, 5, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(18, 48, 12, 6, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(18, 74, 15, 6, 0, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.ellipse(18, 52, 9, 40, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const bands = [
+        [18, 20, 7, 5],
+        [18, 40, 11, 6],
+        [18, 60, 13, 6],
+        [18, 80, 15, 6],
+    ];
+    ctx.strokeStyle = '#7a2e12';
+    ctx.lineWidth = 5;
+    for (const [x, y, rx, ry] of bands) {
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    ctx.strokeStyle = '#ffe6b0';
+    ctx.lineWidth = 2.5;
+    for (const [x, y, rx, ry] of bands) {
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#ffd23c';
+    for (const [x, y] of [
+        [15, 30],
+        [21, 46],
+        [14, 62],
+        [22, 76],
+        [18, 88],
+    ]) {
+        ctx.fillRect(x, y, 3, 3);
+    }
+    ctx.fillStyle = '#fff4e0';
+    for (const [x, y] of [
+        [8, 38],
+        [26, 30],
+        [6, 66],
+        [28, 58],
+        [10, 84],
+    ]) {
+        ctx.fillRect(x, y, 2, 2);
+    }
 }
 
 export function paintBoulder(ctx) {
@@ -58,6 +93,35 @@ export function paintBoulder(ctx) {
     ctx.beginPath();
     ctx.arc(24, 24, 4, 0, Math.PI * 2);
     ctx.fill();
+    // Glowing cracks mark the roller lethal; the round silhouette stays.
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#ff4a2a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(20, 18);
+    ctx.lineTo(14, 10);
+    ctx.lineTo(10, 12);
+    ctx.moveTo(22, 22);
+    ctx.lineTo(30, 26);
+    ctx.lineTo(32, 32);
+    ctx.moveTo(18, 24);
+    ctx.lineTo(10, 28);
+    ctx.stroke();
+    ctx.strokeStyle = '#ffd23c';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, 18);
+    ctx.lineTo(14, 10);
+    ctx.moveTo(22, 22);
+    ctx.lineTo(30, 26);
+    ctx.moveTo(18, 24);
+    ctx.lineTo(10, 28);
+    ctx.stroke();
+    ctx.strokeStyle = '#6a2e1c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(20, 20, 15, 0, Math.PI * 2);
+    ctx.stroke();
 }
 
 export function createCliff(factory) {
@@ -163,6 +227,21 @@ export function createRock(factory) {
         ctx.beginPath();
         ctx.arc(22, 10, 2, 0, Math.PI * 2);
         ctx.fill();
+        // Static rocks are always lethal: a red crystal vein says so.
+        ctx.fillStyle = '#ff4a3c';
+        ctx.beginPath();
+        ctx.moveTo(14, 6);
+        ctx.lineTo(18, 14);
+        ctx.lineTo(13, 20);
+        ctx.lineTo(17, 27);
+        ctx.lineTo(14, 27);
+        ctx.lineTo(10, 20);
+        ctx.lineTo(15, 14);
+        ctx.lineTo(11, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#ffd7a8';
+        ctx.fillRect(14, 13, 2, 2);
         factory.scene.textures.addCanvas('rock', rockCanvas);
     }
 }

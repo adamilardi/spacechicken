@@ -460,32 +460,40 @@ export function paintSpireWarden(ctx) {
 }
 
 export function paintVoltOrb(ctx) {
+    // Lethal drone: a red-hot core and heavy sparks. The center stays red
+    // so it never reads as a shootable lens or a gold pickup.
     ctx.fillStyle = '#1c2430';
     ctx.beginPath();
     ctx.arc(24, 24, 15, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#8a6a1c';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#8a2a1c';
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(24, 24, 15, 0, Math.PI * 2);
     ctx.stroke();
     ctx.strokeStyle = '#ffe14a';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(24, 24, 12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = '#ff5a3c';
+    ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(12, 18);
-    ctx.lineTo(20, 22);
-    ctx.lineTo(16, 28);
-    ctx.lineTo(26, 30);
-    ctx.moveTo(36, 16);
-    ctx.lineTo(30, 22);
-    ctx.lineTo(34, 30);
+    ctx.moveTo(10, 16);
+    ctx.lineTo(19, 21);
+    ctx.lineTo(15, 28);
+    ctx.lineTo(26, 31);
+    ctx.moveTo(38, 15);
+    ctx.lineTo(30, 21);
+    ctx.lineTo(35, 29);
+    ctx.lineTo(28, 33);
     ctx.stroke();
-    ctx.fillStyle = '#d9fbff';
+    ctx.fillStyle = '#ff4a3c';
     ctx.beginPath();
     ctx.arc(24, 24, 6, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#173e68';
+    ctx.fillStyle = '#ffd7a8';
     ctx.beginPath();
     ctx.arc(24, 24, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -529,6 +537,17 @@ export function createRover(factory) {
         ctx.strokeStyle = '#3a3a42';
         ctx.lineWidth = 2;
         ctx.strokeRect(8, 8, 40, 18);
+        // Lethal patrol cart: hazard chevrons on the hull.
+        ctx.fillStyle = '#ff4a3c';
+        for (let x = 10; x < 44; x += 10) {
+            ctx.beginPath();
+            ctx.moveTo(x, 24);
+            ctx.lineTo(x + 5, 16);
+            ctx.lineTo(x + 9, 16);
+            ctx.lineTo(x + 4, 24);
+            ctx.closePath();
+            ctx.fill();
+        }
 
         ctx.fillStyle = '#2f4f6f';
         ctx.fillRect(14, 4, 28, 6);
@@ -555,9 +574,13 @@ export function createRover(factory) {
         ctx.moveTo(48, 10);
         ctx.lineTo(54, 2);
         ctx.stroke();
-        ctx.fillStyle = '#ffdd55';
+        ctx.fillStyle = '#ff4a3c';
         ctx.beginPath();
-        ctx.arc(54, 2, 2, 0, Math.PI * 2);
+        ctx.arc(54, 2, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffd7a8';
+        ctx.beginPath();
+        ctx.arc(54, 2, 1.2, 0, Math.PI * 2);
         ctx.fill();
 
         factory.scene.textures.addCanvas('rover', roverCanvas);
