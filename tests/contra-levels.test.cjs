@@ -159,7 +159,7 @@ test('contra boarder homes sit over decks, never over gaps', async () => {
 
 test('contra checkpoints sit on decks above the kill line', async () => {
     const { LEVEL_CONTENT, LEVEL_DEFINITIONS } = await importModule('levels/index.js');
-    for (const id of [9, 10, 11, 12, 13, 14, 15, 16]) {
+    for (const id of CONTRA_LEVELS) {
         const content = LEVEL_CONTENT[id];
         const def = LEVEL_DEFINITIONS[id];
         assert.ok(content.checkpoints.length >= 1);
@@ -183,8 +183,13 @@ test('contra checkpoints sit on decks above the kill line', async () => {
 test('contra boarder waves sit at or past their release line', async () => {
     const { LEVEL_CONTENT } = await importModule('levels/index.js');
     const { GAME_CONSTANTS } = await importModule('Constants.js');
-    const release = new Map(GAME_CONSTANTS.BOARDER_WAVES.map((entry) => [entry.wave, entry.x]));
     for (const id of CONTRA_LEVELS) {
+        const release = new Map(
+            (LEVEL_CONTENT[id].boarderWaves || GAME_CONSTANTS.BOARDER_WAVES).map((entry) => [
+                entry.wave,
+                entry.x,
+            ])
+        );
         for (const hazard of LEVEL_CONTENT[id].dynamic || []) {
             if (hazard.type !== 'boarder') {
                 continue;
@@ -194,6 +199,29 @@ test('contra boarder waves sit at or past their release line', async () => {
                 `level ${id} wave-${hazard.wave} boarder at x=${hazard.x} releases ahead of the player`
             );
         }
+    }
+});
+
+test('contra levels run double length', async () => {
+    const { LEVEL_DEFINITIONS } = await importModule('levels/index.js');
+    // Every contra world is twice its original span (old width in the comment).
+    const doubled = {
+        8: 8400, // was 4200
+        9: 7600, // was 3800
+        10: 8800, // was 4400
+        11: 8400, // was 4200
+        12: 8800, // was 4400
+        13: 9200, // was 4600
+        14: 9200, // was 4600
+        15: 9200, // was 4600
+        16: 6400, // was 3200
+    };
+    for (const [id, width] of Object.entries(doubled)) {
+        assert.equal(LEVEL_DEFINITIONS[id].WORLD_WIDTH, width, `level ${id} runs double length`);
+        assert.ok(
+            LEVEL_DEFINITIONS[id].CROWN_X > width / 2,
+            `level ${id} crown sits in the second half`
+        );
     }
 });
 

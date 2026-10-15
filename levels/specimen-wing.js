@@ -62,6 +62,7 @@ export const level = {
             { x: 78, y: 708, key: 'specimenJar' },
             { x: 188, y: 708, key: 'specimenJar' },
         ],
+        checkpoints: [{ x: 920, y: 342 }],
         dynamic: [
             {
                 type: 'bonk',

@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { ACTION_NAMES, OBS_SIZE, encodeObservation } from './features.mjs';
 import { forwardPolicy } from './policy-infer.mjs';
+import { launchBrowser } from './chrome.mjs';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../../server.cjs');
@@ -29,9 +30,28 @@ const EXPLORE = process.env.EXPLORE === '1';
 const EPSILON = Number(process.env.EPSILON || 0.1);
 const HEADLESS = process.env.HEADLESS !== '0';
 const EVAL_OUT = process.env.EVAL_OUT || path.join(ROOT, 'rl', 'weights', 'last-eval.json');
-const CACHED_CHROME =
-    process.env.PLAYWRIGHT_CHROME ||
-    '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+
+let activeBrowser = null;
+let activeServer = null;
+
+async function closeActive() {
+    if (activeBrowser) {
+        try {
+            await activeBrowser.close();
+        } catch {
+            // Already disconnected.
+        }
+        activeBrowser = null;
+    }
+    if (activeServer) {
+        try {
+            await new Promise((resolve) => activeServer.close(resolve));
+        } catch {
+            // Already closed.
+        }
+        activeServer = null;
+    }
+}
 
 function decide(weights, observation) {
     const available = observation.availableActions || [];
@@ -59,21 +79,13 @@ async function main() {
             server.once('error', reject);
             server.listen(0, '127.0.0.1', resolve);
         });
+        activeServer = server;
     }
     const baseURL = useExternal
         ? process.env.SPACE_CHICKEN_URL
         : `http://127.0.0.1:${server.address().port}/`;
-    const launchOptions = {
-        headless: HEADLESS,
-        args: [
-            '--use-gl=swiftshader',
-            '--ignore-gpu-blocklist',
-            '--no-sandbox',
-            '--autoplay-policy=no-user-gesture-required',
-        ],
-    };
-    if (fs.existsSync(CACHED_CHROME)) launchOptions.executablePath = CACHED_CHROME;
-    const browser = await chromium.launch(launchOptions);
+    const browser = await launchBrowser(chromium, HEADLESS);
+    activeBrowser = browser;
     const page = await (
         await browser.newContext({ viewport: { width: 1280, height: 720 } })
     ).newPage();
@@ -121,15 +133,15 @@ async function main() {
         `${evalResult.passed ? 'PASS' : 'FAIL'} steps=${steps} deaths=${evalResult.deaths}`
     );
     console.log(`Eval: ${EVAL_OUT}`);
-    await browser.close();
-    if (server) await new Promise((resolve) => server.close(resolve));
+    await closeActive();
     if (!evalResult.passed) process.exitCode = 1;
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-    main().catch((error) => {
+    main().catch(async (error) => {
         console.error(error);
+        await closeActive();
         process.exit(1);
     });
 }

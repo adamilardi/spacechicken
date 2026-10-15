@@ -4,6 +4,7 @@ export function spawn(builder, group, config) {
         return;
     }
     alien.shootable = true;
+    alien.crownGuard = config.crownGuard === true;
     alien.homeX = config.x;
     alien.homeY = config.y;
     alien.wave = config.wave > 1 ? config.wave : 1;
@@ -17,6 +18,7 @@ export function spawn(builder, group, config) {
         kind: 'hazard',
         type: 'boarder',
         shootable: true,
+        crownGuard: alien.crownGuard,
         wave: alien.wave,
         origin: { x: config.x, y: config.y },
     });

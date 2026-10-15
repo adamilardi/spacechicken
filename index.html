@@ -115,6 +115,78 @@
             #race-setup-button:hover {
                 background: #2463a6;
             }
+            #jump-toggle-button {
+                position: fixed;
+                left: 50%;
+                z-index: 30;
+                transform: translateX(-50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                min-width: min(280px, calc(100vw - 32px));
+                max-width: min(460px, calc(100vw - 32px));
+                min-height: 60px;
+                padding: 8px 22px;
+                border: 2px solid #8ce4ff;
+                border-radius: 16px;
+                background: #17334b;
+                color: #eaf6ff;
+                line-height: 1.15;
+                text-align: center;
+                box-shadow:
+                    0 0 0 4px rgba(140, 228, 255, 0.25),
+                    0 12px 28px rgba(0, 0, 0, 0.55);
+            }
+            #jump-toggle-button:hover {
+                background: #1f4a6e;
+            }
+            .jump-toggle-kicker {
+                color: #8ce4ff;
+                font-size: 13px;
+                letter-spacing: 0.16em;
+            }
+            .jump-toggle-mode {
+                font-size: 18px;
+                letter-spacing: 0.01em;
+            }
+            #difficulty-button {
+                position: fixed;
+                left: 50%;
+                z-index: 30;
+                transform: translateX(-50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                min-width: min(280px, calc(100vw - 32px));
+                max-width: min(460px, calc(100vw - 32px));
+                min-height: 60px;
+                padding: 8px 22px;
+                border: 2px solid #ff8a7a;
+                border-radius: 16px;
+                background: #3d1620;
+                color: #ffe9e4;
+                line-height: 1.15;
+                text-align: center;
+                box-shadow:
+                    0 0 0 4px rgba(255, 138, 122, 0.25),
+                    0 12px 28px rgba(0, 0, 0, 0.55);
+            }
+            #difficulty-button:hover {
+                background: #5a1f2c;
+            }
+            .difficulty-kicker {
+                color: #ff8a7a;
+                font-size: 13px;
+                letter-spacing: 0.16em;
+            }
+            .difficulty-mode {
+                font-size: 18px;
+                letter-spacing: 0.01em;
+            }
             .race-setup-kicker {
                 color: #ffe566;
                 font-size: 13px;
@@ -134,6 +206,28 @@
                     font-size: 11px;
                 }
                 .race-setup-mode {
+                    font-size: 15px;
+                }
+                #jump-toggle-button {
+                    min-height: 46px;
+                    padding: 6px 16px;
+                    box-shadow: 0 0 0 3px rgba(140, 228, 255, 0.25);
+                }
+                .jump-toggle-kicker {
+                    font-size: 11px;
+                }
+                .jump-toggle-mode {
+                    font-size: 15px;
+                }
+                #difficulty-button {
+                    min-height: 46px;
+                    padding: 6px 16px;
+                    box-shadow: 0 0 0 3px rgba(255, 138, 122, 0.25);
+                }
+                .difficulty-kicker {
+                    font-size: 11px;
+                }
+                .difficulty-mode {
                     font-size: 15px;
                 }
             }

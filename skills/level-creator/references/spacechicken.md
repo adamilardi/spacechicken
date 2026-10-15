@@ -69,7 +69,7 @@ Platforms use a texture key such as `cliff`, `stationPanel`, `labDeck`, `mesa`, 
 
 `resolveHazardContact` boosts a chicken that falls onto a `bonkable` actor and fails the run on a side hit. Bonk tuning is `BONK_JUMP_VELOCITY_Y`, `BONK_MIN_FALL_SPEED`, and `BONK_STUN_MS`. Boarders are shootable, not bonkable. Touching one fails the run unless a bolt defeats them first.
 
-A new hazard type needs an `enemies/` spawn module, a `DYNAMIC_SPAWNERS` entry, a body that matches the painted solid, and cleanup on death, retry, and scene restart. Pause freezes physics and tweens with the scene. Do not use wall-clock timers for attack or stun timing.
+A new hazard type needs an `enemies/` spawn module, a `DYNAMIC_SPAWNERS` entry, a body that matches the painted solid, and cleanup on death, retry, and scene restart. Pause freezes physics and tweens with the scene. Do not use wall-clock timers for attack or stun timing. Hard mode scales authored timers at spawn (`applyHardModeConfig` plus the `HARD_MODE` mults): author every number for Normal and never write separate hard numbers into level data.
 
 ## Weapon
 

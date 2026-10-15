@@ -1,4 +1,5 @@
 import { GAME_CONSTANTS } from './Constants.js';
+import { boarderGroundMove } from './BoarderNavigation.js';
 import { boarderEntryY, boarderSteering, boarderYields, nextBoarderWave } from './GameUtils.js';
 
 // Alien boarders: spawning waves, steering, aggro, defeat. Mutable game state
@@ -11,6 +12,7 @@ export class BoarderDirector {
         // Reused every frame by updateBoarders so the hot loop allocates nothing.
         this.boarderTargets = [];
         this.boarderAllies = [];
+        this.boarderDecks = [];
         this.boarderOptions = {
             speed: GAME_CONSTANTS.BOARDER_SPEED,
             hopVelocity: GAME_CONSTANTS.BOARDER_HOP_VELOCITY_Y,
@@ -48,6 +50,8 @@ export class BoarderDirector {
         }
         alien.defeated = true;
         alien.aggro = false;
+        alien.airVelocityX = 0;
+        alien.noticeUntil = 0;
         alien.clearTint?.();
         if (alien.body) {
             alien.body.enable = false;
@@ -58,7 +62,9 @@ export class BoarderDirector {
         if (
             scene.crownShielded &&
             scene.levelConfig?.crownShield &&
-            this.liveBoarderCount() === 0
+            !(scene.boardersGroup?.getChildren?.() || []).some(
+                (boarder) => boarder.crownGuard && !boarder.defeated
+            )
         ) {
             scene.breakCrownShield();
         }
@@ -100,6 +106,10 @@ export class BoarderDirector {
 
     updateBoarders() {
         const scene = this.scene;
+        this.boarderOptions.speed =
+            scene?.difficulty === 'hard'
+                ? GAME_CONSTANTS.BOARDER_SPEED * GAME_CONSTANTS.HARD_MODE.BOARDER_SPEED_MULT
+                : GAME_CONSTANTS.BOARDER_SPEED;
         if (this.holdDisarmedBoarders()) {
             return;
         }
@@ -117,6 +127,11 @@ export class BoarderDirector {
             targets.push(scene.player2);
         }
         const options = this.boarderOptions;
+        const decks = this.boarderDecks;
+        decks.length = 0;
+        for (const platform of scene.platforms?.getChildren?.() || []) {
+            if (platform.body?.enable !== false && platform.body) decks.push(platform.body);
+        }
         const allies = this.boarderAllies;
         allies.length = 0;
         for (let i = 0; i < aliens.length; i++) {
@@ -144,7 +159,7 @@ export class BoarderDirector {
         let best = Infinity;
         for (let t = 0; t < targets.length; t++) {
             const chicken = targets[t];
-            const dist = Math.abs(chicken.x - homeX) + Math.abs(chicken.y - homeY);
+            const dist = Math.abs(chicken.x - alien.x) + Math.abs(chicken.y - alien.y);
             if (dist < best) {
                 best = dist;
                 target = chicken;
@@ -154,6 +169,7 @@ export class BoarderDirector {
         const targetGrounded = Boolean(
             target && (target.body?.blocked?.down || target.body?.touching?.down)
         );
+        this.updateBoarderAggro(alien, target, homeX, homeY, options);
         const steer = boarderSteering(
             alien.x,
             alien.y,
@@ -165,8 +181,11 @@ export class BoarderDirector {
                 homeX,
                 homeY,
                 targetGrounded,
+                engaged: alien.aggro,
             }
         );
+        const move = this.terrainMove(alien, steer, grounded, options);
+        const reacting = (this.scene.getGameTime?.() || 0) < (alien.noticeUntil || 0);
         const others = [];
         for (let a = 0; a < allies.length; a++) {
             if (allies[a] !== alien) {
@@ -180,24 +199,49 @@ export class BoarderDirector {
             others,
             GAME_CONSTANTS.BOARDER_SEPARATION
         );
-        alien.setVelocityX?.(yields ? 0 : steer.velocityX);
-        if (!yields && steer.velocityY != null) {
-            alien.setVelocityY?.(steer.velocityY);
+        alien.setVelocityX?.((grounded && yields) || reacting ? 0 : move.velocityX);
+        if (!yields && !reacting && move.velocityY != null) {
+            alien.setVelocityY?.(move.velocityY);
         }
         if (steer.flipX != null) {
             alien.setFlipX?.(steer.flipX);
         }
-        this.updateBoarderAggro(alien, target, homeX, homeY, options);
     }
 
-    updateBoarderAggro(alien, target, homeX, homeY, options) {
-        const aggroX = options?.aggroX ?? GAME_CONSTANTS.BOARDER_AGGRO_X;
-        const aggroY = options?.aggroY ?? GAME_CONSTANTS.BOARDER_AGGRO_Y;
+    terrainMove(alien, steer, grounded, options) {
+        let move = steer;
+        if (this.boarderDecks.length && alien.body) {
+            if (grounded) {
+                move = boarderGroundMove(
+                    alien.body,
+                    { x: steer.goalX, y: steer.goalY },
+                    this.boarderDecks,
+                    {
+                        ...options,
+                        gravity: this.scene.levelConfig?.gravity,
+                        stayOnDeck: alien.crownGuard,
+                    }
+                );
+                alien.airVelocityX = move.velocityX;
+            } else {
+                // Keep the takeoff direction instead of homing onto jumping players.
+                move = { velocityX: alien.airVelocityX ?? 0, velocityY: null };
+            }
+        }
+        return move;
+    }
+
+    updateBoarderAggro(alien, target, _homeX, _homeY, options) {
+        const aggroX = alien.aggro ? 620 : (options?.aggroX ?? 280) + 100;
+        const aggroY = alien.aggro ? 320 : (options?.aggroY ?? 260);
         const inAggro = Boolean(
-            target && Math.abs(target.x - homeX) <= aggroX && Math.abs(target.y - homeY) <= aggroY
+            target &&
+            Math.abs(target.x - alien.x) <= aggroX &&
+            Math.abs(target.y - alien.y) <= aggroY
         );
         if (inAggro && !alien.aggro) {
             alien.aggro = true;
+            alien.noticeUntil = (this.scene.getGameTime?.() || 0) + 180;
             this.showBoarderAggro(alien);
         } else if (!inAggro && alien.aggro) {
             alien.aggro = false;
@@ -287,7 +331,7 @@ export class BoarderDirector {
         const next = nextBoarderWave(
             scene.boarderWave || 1,
             this.leadChickenX(),
-            GAME_CONSTANTS.BOARDER_WAVES
+            scene.levelConfig?.boarderWaves || GAME_CONSTANTS.BOARDER_WAVES
         );
         if (next <= (scene.boarderWave || 1)) {
             return;
@@ -311,19 +355,38 @@ export class BoarderDirector {
         let released = 0;
         for (let i = 0; i < aliens.length; i++) {
             const alien = aliens[i];
-            if (!alien || alien.arrived || this.boarderWaveNumber(alien) !== wave) {
+            if (
+                !alien ||
+                alien.defeated ||
+                alien.arrived ||
+                this.boarderWaveNumber(alien) !== wave
+            ) {
                 continue;
             }
             const home = this.boarderHome(alien);
             if (!home) {
                 continue;
             }
-            const dropY = boarderEntryY(home.x, home.y);
+            let dropY = boarderEntryY(home.x, home.y);
+            // Drop into the authored lane, never onto a catwalk above it.
+            for (const platform of scene.platforms?.getChildren?.() || []) {
+                const body = platform.body;
+                if (
+                    body &&
+                    home.x + 11 > body.left &&
+                    home.x - 11 < body.right &&
+                    body.bottom <= home.y - 18
+                ) {
+                    dropY = Math.max(dropY, body.bottom + 20);
+                }
+            }
             alien.homeX = home.x;
             alien.homeY = home.y;
             alien.arrived = true;
             alien.defeated = false;
             alien.aggro = false;
+            alien.airVelocityX = 0;
+            alien.noticeUntil = 0;
             alien.clearTint?.();
             alien.setActive?.(true);
             alien.setVisible?.(true);
@@ -347,6 +410,8 @@ export class BoarderDirector {
         alien.arrived = false;
         alien.defeated = false;
         alien.aggro = false;
+        alien.airVelocityX = 0;
+        alien.noticeUntil = 0;
         alien.clearTint?.();
         alien.setActive?.(false);
         alien.setVisible?.(false);
@@ -369,11 +434,22 @@ export class BoarderDirector {
     resetBoarders() {
         const scene = this.scene;
         const aliens = scene.boardersGroup?.getChildren?.() || [];
-        const activeWave = scene.boarderWave || 1;
+        // Restore the checkpoint's encounter before the player resumes. Releasing
+        // old waves afterwards drops enemies onto a player already running ahead.
+        const activeWave = nextBoarderWave(
+            scene.boarderWave || 1,
+            scene.respawnPoint?.x || 0,
+            scene.levelConfig?.boarderWaves || GAME_CONSTANTS.BOARDER_WAVES
+        );
+        scene.boarderWave = activeWave;
         let parked = false;
         for (let i = 0; i < aliens.length; i++) {
             const alien = aliens[i];
             if (!alien) {
+                continue;
+            }
+            // Checkpoint retries keep earned kills, including enemies behind us.
+            if (alien.defeated && scene.level >= 8 && scene.respawnPoint) {
                 continue;
             }
             const home = this.boarderHome(alien);
@@ -389,24 +465,41 @@ export class BoarderDirector {
             alien.arrived = true;
             alien.defeated = false;
             alien.aggro = false;
+            alien.airVelocityX = 0;
+            alien.noticeUntil = 0;
             alien.clearTint?.();
             alien.setActive?.(true);
             alien.setVisible?.(true);
             alien.setAlpha?.(1);
+            const restY = this.boarderRestY(home);
             if (alien.body?.reset) {
-                alien.body.reset(home.x, home.y);
+                alien.body.reset(home.x, restY);
             }
             alien.x = home.x;
-            alien.y = home.y;
+            alien.y = restY;
             alien.setVelocity?.(0, 0);
             if (alien.body) {
                 alien.body.enable = false;
             }
             parked = true;
         }
+        if (scene.levelConfig?.crownShield && aliens.some((a) => a.crownGuard && !a.defeated)) {
+            scene.armCrownShield?.();
+        }
         if (parked) {
             scene.boardersDisarmed = true;
         }
+    }
+
+    boarderRestY(home) {
+        let top = Infinity;
+        for (const platform of this.scene.platforms?.getChildren?.() || []) {
+            const body = platform.body;
+            if (body && home.x >= body.left && home.x <= body.right && body.top >= home.y + 18) {
+                top = Math.min(top, body.top);
+            }
+        }
+        return Number.isFinite(top) ? top - 18 : home.y;
     }
 
     armBoarders() {

@@ -34,6 +34,84 @@ export function checkpointIndexAt(checkpoints, x) {
     return best;
 }
 
+// Jump style: 'max' always jumps full height; 'fine' cuts the rise on
+// early release. Anything unrecognized falls back to max.
+export function normalizeJumpMode(value) {
+    return value === 'fine' ? 'fine' : 'max';
+}
+
+export const JUMP_MODE_LABEL = Object.freeze({
+    max: 'Max jump',
+    fine: 'Fine control',
+});
+
+// Difficulty: 'normal' is the intended experience; 'hard' remixes timers
+// and speeds via HARD_MODE. Anything unrecognized falls back to normal.
+export function normalizeDifficulty(value) {
+    return value === 'hard' ? 'hard' : 'normal';
+}
+
+export const DIFFICULTY_LABEL = Object.freeze({
+    normal: 'Normal',
+    hard: 'Hard',
+});
+
+// Hard-mode remix of one dynamic hazard config. Pure: returns a new
+// object, never mutates level data. Unknown types pass through untouched.
+export function applyHardModeConfig(config, mults) {
+    if (!config || typeof config !== 'object') {
+        return config;
+    }
+    const harden = (value, mult) =>
+        typeof value === 'number' && Number.isFinite(value) ? Math.round(value * mult) : value;
+    switch (config.type) {
+        case 'laser':
+            return { ...config, offDuration: harden(config.offDuration, mults.LASER_OFF_MULT) };
+        case 'drip':
+            return { ...config, interval: harden(config.interval, mults.INTERVAL_MULT) };
+        case 'cosmicRay':
+            return {
+                ...config,
+                interval: harden(config.interval, mults.INTERVAL_MULT),
+                warning: harden(config.warning, mults.WARNING_MULT),
+            };
+        case 'crusher':
+            return { ...config, duration: harden(config.duration, mults.CRUSHER_MULT) };
+        case 'drone':
+        case 'rover':
+        case 'roller':
+        case 'dustDevil':
+        case 'bonk':
+            if (!config.patrol || typeof config.patrol !== 'object') {
+                return { ...config };
+            }
+            return {
+                ...config,
+                patrol: {
+                    ...config.patrol,
+                    duration: harden(config.patrol.duration, mults.PATROL_MULT),
+                },
+            };
+        default:
+            return { ...config };
+    }
+}
+
+// Hard-mode remix of bomb settings. Pure.
+export function hardBombSettings(settings, mults) {
+    if (!settings || typeof settings !== 'object') {
+        return settings;
+    }
+    const harden = (value, mult) =>
+        typeof value === 'number' && Number.isFinite(value) ? Math.round(value * mult) : value;
+    return {
+        ...settings,
+        speed: harden(settings.speed, mults.BOMB_SPEED_MULT),
+        delayMin: harden(settings.delayMin, mults.BOMB_DELAY_MULT),
+        delayMax: harden(settings.delayMax, mults.BOMB_DELAY_MULT),
+    };
+}
+
 // Variable jump height: releasing jump mid-ascent cuts the rise short.
 // Ascents stronger than a full jump (bonk boosts) are never cut.
 export function jumpCutVelocity(velocityY, fullVelocity, multiplier) {
@@ -71,28 +149,24 @@ export function boarderSteering(alienX, alienY, targetX, targetY, grounded, opti
     const aggroY = options.aggroY ?? Number.POSITIVE_INFINITY;
     const dxHome = targetX - homeX;
     const dyHome = targetY - homeY;
-    const inAggro = Math.abs(dxHome) <= aggroX && Math.abs(dyHome) <= aggroY;
+    const inAggro = options.engaged ?? (Math.abs(dxHome) <= aggroX && Math.abs(dyHome) <= aggroY);
     const goalX = inAggro ? targetX : homeX;
     const goalY = inAggro ? targetY : homeY;
     const dx = goalX - alienX;
     const dir = dx < -4 ? -1 : dx > 4 ? 1 : 0;
     const targetGrounded = options.targetGrounded !== false;
-    // A grounded alien holds its ground while its target is airborne instead
-    // of sliding underneath the jump. This keeps jump-overs dodgeable: the
-    // alien only chases and hops once the target lands.
-    const holdingForJump = Boolean(grounded) && inAggro && !targetGrounded;
     const hop =
         Boolean(grounded) &&
-        !holdingForJump &&
         dir !== 0 &&
         goalY < alienY - options.hopClearance &&
         Math.abs(dx) <= options.hopRange &&
         (inAggro ? targetGrounded : true);
     return {
-        velocityX: holdingForJump ? 0 : dir * options.speed,
+        velocityX: dir * options.speed,
         velocityY: hop ? options.hopVelocity : null,
-        flipX: holdingForJump || dir === 0 ? null : dir < 0,
+        flipX: dir === 0 ? null : dir < 0,
         goalX,
+        goalY,
     };
 }
 
@@ -277,11 +351,12 @@ export function weaponsForLevel(level) {
 }
 
 export const POD_TINTS = Object.freeze({
-    scatter: 0xffcf5a,
-    piercer: 0x9cecff,
-    nova: 0xff5a8a,
+    phaser: 0x7af6ff,
+    scatter: 0xffb15a,
+    piercer: 0x8ef6ff,
+    nova: 0xffd74f,
     tempest: 0xc78bff,
-    hail: 0xf4ffff,
+    hail: 0x9cecff,
     ripper: 0xff9a4a,
     comet: 0x7df9ff,
     halo: 0xffb15a,

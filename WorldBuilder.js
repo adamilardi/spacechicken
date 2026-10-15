@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS } from './Constants.js';
-import { POD_TINTS, addLoopingTween } from './GameUtils.js';
+import { WEAPON_DEFS, addLoopingTween, applyHardModeConfig } from './GameUtils.js';
 import { spawnDynamicHazard, spawners } from './enemies/index.js';
 
 export class WorldBuilder {
@@ -114,20 +114,16 @@ export class WorldBuilder {
         }
         const group = this.physics.add.staticGroup();
         pods.forEach((pod) => {
-            const shell = group.create(pod.x, pod.y, 'gunPod');
+            const gun = WEAPON_DEFS[pod.gun] ? pod.gun : 'phaser';
+            const shell = group.create(pod.x, pod.y, `weaponPod-${gun}`);
             if (!shell) {
                 return;
             }
             shell.setDepth(3);
-            shell.podGun = pod.gun;
+            shell.podGun = gun;
+            shell.body?.setSize?.(40, 32, true);
             shell.collected = false;
-            this.tagTestEntity(shell, { kind: 'pickup', type: 'pod', gun: pod.gun });
-            if (this.add?.image) {
-                const core = this.add.image(pod.x, pod.y, 'gunPodCore');
-                core.setDepth(4);
-                core.setTint(POD_TINTS[pod.gun] ?? 0xffffff);
-                shell.podCore = core;
-            }
+            this.tagTestEntity(shell, { kind: 'pickup', type: 'pod', gun });
         });
         return group;
     }
@@ -407,8 +403,13 @@ export class WorldBuilder {
         }
 
         const group = this.physics.add.group({ allowGravity: false });
+        const hard = this.scene?.difficulty === 'hard';
         dynamicConfigs.forEach((config) => {
-            spawnDynamicHazard(this, group, config);
+            spawnDynamicHazard(
+                this,
+                group,
+                hard ? applyHardModeConfig(config, GAME_CONSTANTS.HARD_MODE) : config
+            );
         });
         return group;
     }

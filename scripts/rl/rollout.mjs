@@ -29,6 +29,7 @@ import {
     terminalBonus,
 } from './features.mjs';
 import { forwardPolicy } from './policy-infer.mjs';
+import { launchBrowser } from './chrome.mjs';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../../server.cjs');
@@ -48,9 +49,28 @@ const WARM_START = Number(process.env.WARM_START || 0);
 const DEMO_POOL = process.env.DEMO_POOL || path.join(ROOT, 'rl', 'demos-raw');
 const OUT_DIR = process.env.ROLLOUT_OUT || path.join(ROOT, 'rl', 'rollouts');
 const HEADLESS = process.env.HEADLESS !== '0';
-const CACHED_CHROME =
-    process.env.PLAYWRIGHT_CHROME ||
-    '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+
+let activeBrowser = null;
+let activeServer = null;
+
+async function closeActive() {
+    if (activeBrowser) {
+        try {
+            await activeBrowser.close();
+        } catch {
+            // Already disconnected.
+        }
+        activeBrowser = null;
+    }
+    if (activeServer) {
+        try {
+            await new Promise((resolve) => activeServer.close(resolve));
+        } catch {
+            // Already closed.
+        }
+        activeServer = null;
+    }
+}
 
 function pickWarmStartPoint(poolDir, level, fraction) {
     // Reverse-curriculum start: a grounded mid/late-episode player position
@@ -124,21 +144,13 @@ async function main() {
             server.once('error', reject);
             server.listen(0, '127.0.0.1', resolve);
         });
+        activeServer = server;
     }
     const baseURL = useExternal
         ? process.env.SPACE_CHICKEN_URL
         : `http://127.0.0.1:${server.address().port}/`;
-    const launchOptions = {
-        headless: HEADLESS,
-        args: [
-            '--use-gl=swiftshader',
-            '--ignore-gpu-blocklist',
-            '--no-sandbox',
-            '--autoplay-policy=no-user-gesture-required',
-        ],
-    };
-    if (fs.existsSync(CACHED_CHROME)) launchOptions.executablePath = CACHED_CHROME;
-    const browser = await chromium.launch(launchOptions);
+    const browser = await launchBrowser(chromium, HEADLESS);
+    activeBrowser = browser;
     const page = await (
         await browser.newContext({ viewport: { width: 800, height: 450 } })
     ).newPage();
@@ -275,14 +287,14 @@ async function main() {
     console.log(
         `${won ? 'WIN' : 'FAIL'} L${LEVEL} steps=${steps.length} deaths=${header.deaths} -> ${outPath}`
     );
-    await browser.close();
-    if (server) await new Promise((resolve) => server.close(resolve));
+    await closeActive();
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-    main().catch((error) => {
+    main().catch(async (error) => {
         console.error(error);
+        await closeActive();
         process.exit(1);
     });
 }

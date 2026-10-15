@@ -37,7 +37,7 @@ Contra levels (8+) run on at least two stacked lines, not one flat deck. Upper l
 - A stacked line needs ≥32px of shared run with 56–200px of vertical separation from its neighbor; anything less is a step, not a line.
 - Reachability: every deck joins one directed graph from the opener. An edge exists when decks touch or overlap with a single-jumpable rise (up) or any drop (down), or the side gap is ≤260px with a single-jumpable rise. `tests/contra-levels.test.cjs` walks the graph; new decks fail there until the graph connects.
 - Two deck textures per level: the main line and the shelves/set pieces never share one paint. The accent inverts the main deck (pale edge on dark body, or dark on pale) so the second route reads at a glance. Copy-paste skeletons across levels are banned: each contra level carries one signature solid set piece (bridge, shaft, stair, trench, or tower) that no sibling level repeats.
-- Checkpoints stand before gates: never inside on/off beam timing and never beside a live boarder home. A respawn must give one safe breath.
+- Checkpoints stand before gates: never inside on/off beam timing, never under a drone or dust devil lane, and 150px+ clear of every boarder home. A respawn must give one safe breath. Props stay out of crusher slam footprints (40px+); drones clear lift rider zones by sprite. `tests/level-polish.test.cjs` locks all four.
 - Every shelf pays or threatens: a bypass around trouble, a drone, a bonk, or a stationed runner — never an empty plank.
 - Finale beams cover every route to the crown: if a lift or shelf lets the player duck the band, the beam is decorative and must grow or move.
 

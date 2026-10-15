@@ -56,7 +56,7 @@ export const level = {
             { type: 'boarder', x: 700, y: 540, wave: 1 },
             { type: 'boarder', x: 1120, y: 540, wave: 1 },
             { type: 'boarder', x: 1560, y: 540, wave: 2 },
-            { type: 'boarder', x: 2040, y: 540, wave: 2 },
+            { type: 'boarder', x: 1970, y: 540, wave: 2 },
             { type: 'boarder', x: 2480, y: 540, wave: 3 },
             { type: 'boarder', x: 2920, y: 540, wave: 3 },
             { type: 'boarder', x: 3320, y: 540, wave: 4 },

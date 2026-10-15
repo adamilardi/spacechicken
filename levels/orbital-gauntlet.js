@@ -101,6 +101,7 @@ export const level = {
             },
         ],
         rocks: [],
+        checkpoints: [{ x: 1440, y: 402 }],
         dynamic: [
             {
                 type: 'laser',
@@ -137,7 +138,7 @@ export const level = {
                 type: 'drone',
                 x: 900,
                 y: 520,
-                patrol: { x: 1120, duration: 2600, ease: 'Sine.easeInOut' },
+                patrol: { x: 1090, duration: 2600, ease: 'Sine.easeInOut' },
                 bobAmplitude: 18,
                 bobDuration: GAME_CONSTANTS.BOB_DEFAULT_DURATION,
                 spin: 6,

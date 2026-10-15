@@ -63,5 +63,6 @@ export class LevelConfig {
             gravityY: GAME_CONSTANTS.BOMB_DEFAULT_GRAVITY_Y,
         };
         this.crownShield = def.CROWN_SHIELD === true;
+        this.boarderWaves = content.boarderWaves || GAME_CONSTANTS.BOARDER_WAVES;
     }
 }

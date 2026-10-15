@@ -1,3 +1,5 @@
+import { WEAPON_DEFS, POD_TINTS } from '../GameUtils.js';
+
 // Gun pods and bolt projectiles for every weapon. Painted canvas textures for SpriteFactory.
 
 export function paintSpacePhaser(ctx) {
@@ -229,41 +231,97 @@ export function paintHaloOrb(ctx) {
     ctx.fill();
 }
 
-export function paintGunPod(ctx) {
-    ctx.fillStyle = '#14181f';
+// Collectibles use a square supply-pack silhouette, white corners and a plus
+// tab. The actual gun, its name and firing diagram identify the reward even
+// without color; hazard lenses deliberately never use this frame.
+const POD_GUN_PAINT = {
+    phaser: paintSpacePhaser,
+    scatter: paintScatterGun,
+    piercer: paintPiercerGun,
+    nova: paintNovaGun,
+    tempest: paintTempestGun,
+    hail: paintHailGun,
+    ripper: paintRipperGun,
+    comet: paintCometGun,
+    halo: paintHaloGun,
+};
+
+function paintShotDiagram(ctx, id) {
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(14, 14, 13, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#39435a';
-    ctx.beginPath();
-    ctx.arc(14, 14, 11, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = '#0d1119';
-    ctx.fillRect(7, 7, 14, 14);
-    ctx.fillStyle = '#8a99b5';
-    ctx.fillRect(4, 12, 3, 3);
-    ctx.fillRect(21, 12, 3, 3);
-    ctx.fillRect(12, 4, 3, 3);
-    ctx.fillRect(12, 21, 3, 3);
-    ctx.fillStyle = '#5a6a86';
-    ctx.fillRect(2, 13, 4, 2);
-    ctx.fillRect(22, 13, 4, 2);
+    if (id === 'nova' || id === 'halo') {
+        ctx.arc(43, 16, 6, 0, Math.PI * 2);
+        if (id === 'nova') ctx.fill();
+        else ctx.stroke();
+        ctx.fillRect(42, 15, 2, 2);
+    } else if (id === 'piercer') {
+        ctx.moveTo(34, 16);
+        ctx.lineTo(51, 16);
+        ctx.moveTo(46, 11);
+        ctx.lineTo(51, 16);
+        ctx.lineTo(46, 21);
+        ctx.stroke();
+        ctx.fillRect(38, 11, 2, 10);
+    } else if (id === 'ripper') {
+        ctx.moveTo(34, 20);
+        ctx.lineTo(38, 12);
+        ctx.lineTo(41, 19);
+        ctx.lineTo(45, 11);
+        ctx.lineTo(49, 18);
+        ctx.stroke();
+    } else {
+        const ways = id === 'tempest' || id === 'comet' ? 5 : id === 'phaser' ? 1 : 3;
+        for (let i = 0; i < ways; i++) {
+            const dy = (i - (ways - 1) / 2) * (ways === 5 ? 3 : 5);
+            ctx.moveTo(34, 16);
+            ctx.lineTo(49, 16 + dy);
+            if (id === 'hail') {
+                ctx.moveTo(45, 13 + dy);
+                ctx.lineTo(45, 19 + dy);
+            }
+        }
+        ctx.stroke();
+        if (id === 'comet') {
+            ctx.fillRect(32, 10, 5, 2);
+            ctx.fillRect(31, 20, 5, 2);
+        }
+    }
 }
 
-export function paintGunPodCore(ctx) {
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(8, 8, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#dfe7f5';
-    ctx.beginPath();
-    ctx.arc(8, 8, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(6, 6, 2, 0, Math.PI * 2);
-    ctx.fill();
+export function paintGunPod(ctx, id = 'phaser') {
+    const def = WEAPON_DEFS[id] || WEAPON_DEFS.phaser;
+    const color = '#' + (POD_TINTS[def.id] ?? 0x7af6ff).toString(16).padStart(6, '0');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#07151e';
+    ctx.fillRect(2, 4, 52, 34);
+    ctx.fillStyle = color;
+    ctx.fillRect(4, 6, 48, 20);
+    ctx.fillStyle = '#112c38';
+    ctx.fillRect(6, 8, 44, 16);
+    ctx.fillStyle = '#f4ffff';
+    for (const x of [0, 50]) {
+        ctx.fillRect(x, 4, 6, 2);
+        ctx.fillRect(x, 36, 6, 2);
+        ctx.fillRect(x === 0 ? 0 : 54, 4, 2, 8);
+        ctx.fillRect(x === 0 ? 0 : 54, 30, 2, 8);
+    }
+    ctx.fillStyle = '#8dffba';
+    ctx.fillRect(23, 0, 10, 7);
+    ctx.fillStyle = '#092719';
+    ctx.fillRect(27, 1, 2, 5);
+    ctx.fillRect(25, 3, 6, 1);
+    ctx.save();
+    ctx.translate(6, 10);
+    POD_GUN_PAINT[def.id](ctx);
+    ctx.restore();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    paintShotDiagram(ctx, def.id);
+    ctx.fillStyle = '#f4ffff';
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(def.name.toUpperCase(), 28, 31);
 }
 
 export const GUN_SPRITES = [
@@ -285,6 +343,10 @@ export const GUN_SPRITES = [
     ['cometBolt', 20, 8, paintCometBolt],
     ['haloGun', 24, 12, paintHaloGun],
     ['haloOrb', 18, 18, paintHaloOrb],
-    ['gunPod', 28, 28, paintGunPod],
-    ['gunPodCore', 16, 16, paintGunPodCore],
+    ...Object.keys(WEAPON_DEFS).map((id) => [
+        `weaponPod-${id}`,
+        56,
+        40,
+        (ctx) => paintGunPod(ctx, id),
+    ]),
 ];
