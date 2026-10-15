@@ -1,6 +1,6 @@
 import { AUDIO_SETTINGS, GAME_CONSTANTS } from './Constants.js';
 import { LEVEL_IDS } from './levels/index.js';
-import { formatElapsedTime } from './GameUtils.js';
+import { formatElapsedTime, normalizeDifficulty } from './GameUtils.js';
 
 export function normalizePlayerName(name) {
     if (typeof name !== 'string') {
@@ -37,21 +37,29 @@ function normalizeLevel(level) {
 export class LeaderboardManager {
     constructor(scene) {
         this.scene = scene;
-        this.firebaseEndpoint = this.getFirebaseEndpoint();
         this.runTokens = new Map();
+        this.competitionCache = new Map();
         this.playerId = scene?.playerId || globalThis.crypto?.randomUUID?.() || null;
     }
 
-    getFirebaseEndpoint() {
-        if (
-            typeof window !== 'undefined' &&
-            window.SPACE_CHICKEN_CONFIG &&
-            window.SPACE_CHICKEN_CONFIG.firebaseEndpoint
-        ) {
-            const trimmed = window.SPACE_CHICKEN_CONFIG.firebaseEndpoint.replace(/\/+$/, '');
-            return trimmed.length ? trimmed : null;
-        }
-        return null;
+    get mode() {
+        return normalizeDifficulty(this.scene?.difficulty);
+    }
+
+    levelBoardKey(level) {
+        const prefix =
+            this.mode === 'hard'
+                ? GAME_CONSTANTS.STORAGE_HARD_LEVEL_PREFIX
+                : GAME_CONSTANTS.STORAGE_LEVEL_PREFIX;
+        return `${prefix}${level}`;
+    }
+
+    personalBestKey(level) {
+        const prefix =
+            this.mode === 'hard'
+                ? GAME_CONSTANTS.PERSONAL_HARD_BEST_PREFIX
+                : GAME_CONSTANTS.PERSONAL_BEST_PREFIX;
+        return `${prefix}${level}`;
     }
 
     readLeaderboard(level) {
@@ -59,7 +67,7 @@ export class LeaderboardManager {
         if (normalizedLevel === null) {
             return [];
         }
-        const key = `${GAME_CONSTANTS.STORAGE_LEVEL_PREFIX}${normalizedLevel}`;
+        const key = this.levelBoardKey(normalizedLevel);
         if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
             return [];
         }
@@ -88,7 +96,7 @@ export class LeaderboardManager {
         if (normalizedLevel === null) {
             return;
         }
-        const key = `${GAME_CONSTANTS.STORAGE_LEVEL_PREFIX}${normalizedLevel}`;
+        const key = this.levelBoardKey(normalizedLevel);
         if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
             return;
         }
@@ -156,6 +164,7 @@ export class LeaderboardManager {
                         deaths,
                         runToken,
                         playerId,
+                        mode: this.mode,
                     }),
                 });
             })
@@ -165,6 +174,15 @@ export class LeaderboardManager {
                     throw new Error(`Failed to save time: ${response.status}`);
                 }
                 return response.json();
+            })
+            .then((payload) => {
+                if (!payload) return null;
+                // Tokens are single-use server-side: drop ours so a later save
+                // cannot resend a consumed token, and refresh cached boards so
+                // the new time shows up immediately.
+                this.runTokens.delete(level);
+                this.competitionCache.delete(normalizeDifficulty(this.mode));
+                return payload;
             })
             .catch((err) => {
                 console.error('Online leaderboard save failed', err);
@@ -180,7 +198,7 @@ export class LeaderboardManager {
         const request = fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ level, playerId }),
+            body: JSON.stringify({ level, playerId, mode: this.mode }),
         })
             .then((response) => (response.ok ? response.json() : null))
             .then((payload) => payload?.token || null)
@@ -214,7 +232,7 @@ export class LeaderboardManager {
             return null;
         }
         try {
-            const value = Number(window.localStorage.getItem(`spaceChickenBest${level}`));
+            const value = Number(window.localStorage.getItem(this.personalBestKey(level)));
             return Number.isFinite(value) && value > 0 ? value : null;
         } catch {
             return null;
@@ -230,7 +248,7 @@ export class LeaderboardManager {
             return false;
         }
         try {
-            window.localStorage.setItem(`spaceChickenBest${level}`, String(time));
+            window.localStorage.setItem(this.personalBestKey(level), String(time));
             return true;
         } catch {
             return false;
@@ -270,23 +288,28 @@ export class LeaderboardManager {
         return next;
     }
 
-    fetchCompetition() {
+    fetchCompetition(mode = this.mode) {
         if (typeof fetch !== 'function') {
             return Promise.resolve(null);
         }
-        return fetch(this.getLeaderboardApiUrl())
+        const scope = normalizeDifficulty(mode);
+        const cached = this.competitionCache.get(scope);
+        if (cached && Date.now() - cached.at < GAME_CONSTANTS.COMPETITION_CACHE_MS) {
+            return Promise.resolve(cached.data);
+        }
+        return fetch(`${this.getLeaderboardApiUrl()}?mode=${scope}`)
             .then((response) => {
                 if (!response.ok) throw new Error(`Failed to load leaderboard: ${response.status}`);
                 return response.json();
+            })
+            .then((payload) => {
+                this.competitionCache.set(scope, { at: Date.now(), data: payload });
+                return payload;
             })
             .catch((err) => {
                 console.error('Online leaderboard load failed', err);
                 return null;
             });
-    }
-
-    trimFirebaseLeaderboard(_level) {
-        // D1 keeps only the fastest entries server-side.
     }
 
     fetchFirebaseLeaderboards() {
@@ -304,9 +327,9 @@ export class LeaderboardManager {
     getRunApiUrl() {
         const base = this.getLeaderboardApiUrl();
         try {
-            return new URL('run', `${base.replace(/\/+$/, '')}/`).toString();
+            return new URL('./run', base.replace(/\/+$/, '')).toString();
         } catch {
-            return '/api/leaderboard/run';
+            return '/api/run';
         }
     }
 
@@ -362,6 +385,16 @@ export class LeaderboardManager {
         } catch (err) {
             console.error('Error saving player name:', err);
         }
+    }
+
+    shouldPromptForName(previousBest) {
+        if (this.scene?.debugMode || previousBest !== null) {
+            return false;
+        }
+        if (!this.scene?.storageAvailable) {
+            return false;
+        }
+        return this.loadPlayerName() === null;
     }
 
     ensurePlayerName(forcePrompt = false) {

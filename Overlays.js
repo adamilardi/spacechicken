@@ -1,6 +1,12 @@
 import { GAME_CONSTANTS } from './Constants.js';
 import { LEVEL_IDS } from './levels/index.js';
-import { formatElapsedTime } from './GameUtils.js';
+import {
+    DIFFICULTY_LABEL,
+    formatElapsedTime,
+    JUMP_MODE_LABEL,
+    normalizeDifficulty,
+    normalizeJumpMode,
+} from './GameUtils.js';
 import { BANNER_FONT, HUD_FONT } from './UIManager.js';
 
 // Title, leaderboard, finish, branch-choice, and race-setup overlays. Mutable
@@ -62,6 +68,8 @@ export class Overlays {
         this.raceSetupButton = null;
         this.raceSetupDialog = null;
         this.raceMenuIndex = 0;
+        this.jumpToggleButton = null;
+        this.difficultyButton = null;
     }
 
     layoutLeaderboard() {
@@ -139,7 +147,13 @@ export class Overlays {
             this.ui.bannerSubtitle?.setAlpha(1);
         }
         Promise.resolve(submission).then((result) => {
-            if (this.ui.destroyed || !result?.rank) return;
+            if (this.ui.destroyed) return;
+            if (submission != null && result == null) {
+                this.completionSummary += '\nOnline submit failed — saved locally';
+                this.updateFinishSummary();
+                return;
+            }
+            if (!result?.rank) return;
             const bestTime = result.personalBest?.time || time;
             const next = result.next
                 ? ` · ${formatElapsedTime(bestTime - result.next.time)} behind ${result.next.name}`
@@ -160,7 +174,13 @@ export class Overlays {
         const rescueLabel = rescues > 0 ? ` · ${rescues} SAVED` : '';
         this.fullRunSummary = `FULL RUN · ${formatElapsedTime(time)} · ${deathLabel}${rescueLabel}`;
         Promise.resolve(submission).then((result) => {
-            if (this.ui.destroyed || !result?.rank) return;
+            if (this.ui.destroyed) return;
+            if (submission != null && result == null) {
+                this.fullRunSummary += '\nOnline submit failed — saved locally';
+                this.updateFinishSummary();
+                return;
+            }
+            if (!result?.rank) return;
             this.fullRunSummary += `\nAll-time #${result.rank} · Weekly #${result.weeklyRank}`;
             this.updateFinishSummary();
             if (this.leaderboardVisible) this.displayLeaderboard();
@@ -200,7 +220,8 @@ export class Overlays {
             if (this.ui.destroyed || this.leaderboardRequestId !== requestId) {
                 return;
             }
-            const leaderboardText = `LEADERBOARD\n${sectionsText}`;
+            const boardMode = this.scene.leaderboardManager?.mode === 'hard' ? 'HARD' : 'NORMAL';
+            const leaderboardText = `LEADERBOARD · ${boardMode}\n${sectionsText}`;
             this.leaderboardTextContent = leaderboardText;
             if (this.leaderboardTextObject) {
                 this.leaderboardTextObject.destroy();
@@ -269,7 +290,7 @@ export class Overlays {
                 : 'No past winners yet';
             const bestLine =
                 best === null ? 'Your best: none yet' : `Your best: ${formatElapsedTime(best)}`;
-            const footer = 'Tap / D-pad: next · B / LEADERBOARD: close';
+            const footer = 'Tap: next page · LEADERBOARD: close';
             const history =
                 !competition || (compactLandscape && this.scene.gameOver)
                     ? ''
@@ -529,8 +550,8 @@ export class Overlays {
         this.ui.styleHudText(this.titlePrompt, 4);
         this.ui.markUi(this.titlePrompt);
         const controls = this.ui.touchControlsEnabled
-            ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nMODES  Gold button for a 2-player race\nGOAL  Reach the golden crown'
-            : 'MOVE  ← / → or A / D\nJUMP  Space / ↑ / W; press again in air\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓';
+            ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nMODES  Gold button for a 2-player race\nJUMPS  Tap the jump button for fine control\nDIFFICULTY  Tap the button for hard mode\nGOAL  Reach the golden crown'
+            : 'MOVE  ← / → or A / D\nJUMP  Space / ↑ / W; press again in air\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓\nJUMPS  J, D-pad ↑, or the jump button\nDIFFICULTY  H, gamepad B, or the button';
         this.titleControls = this.scene.add
             .text(0, 0, controls, {
                 fontSize: `${metrics.fonts.instructions}px`,
@@ -581,6 +602,8 @@ export class Overlays {
         }
         this.ui.setHudVisible(false);
         this.createRaceSetup();
+        this.createJumpToggle();
+        this.createDifficulty();
         this.layoutTitleScreen();
     }
 
@@ -790,7 +813,10 @@ export class Overlays {
         const shortLandscape = metrics.isCompact && !metrics.isPortrait;
         if (this.titleControls && this.titlePrompt) {
             const belowPrompt = this.titlePrompt.y + this.titlePrompt.displayHeight / 2;
-            const modeSpace = this.positionRaceSetupButton(metrics);
+            const raceSpace = this.positionRaceSetupButton(metrics);
+            const jumpSpace = this.positionJumpToggleButton(metrics);
+            const difficultySpace = this.positionDifficultyButton(metrics);
+            const modeSpace = raceSpace + jumpSpace + difficultySpace;
             const fallbackGap = metrics.isTiny ? 12 : 20;
             this.titleControls.setPosition(centerX, belowPrompt + (modeSpace || fallbackGap));
             this.titleControls.setVisible(!shortLandscape);
@@ -809,10 +835,27 @@ export class Overlays {
         if (!this.raceSetupButton) {
             return 0;
         }
+        let lift = 0;
         if (!metrics.isCompact) {
-            return 96;
+            lift = 96;
+        } else if (metrics.isPortrait) {
+            lift = 22;
         }
-        return metrics.isPortrait ? 22 : 0;
+        if (this.jumpToggleButton) {
+            if (!metrics.isCompact) {
+                lift += 64;
+            } else if (metrics.isPortrait) {
+                lift += 40;
+            }
+        }
+        if (this.difficultyButton) {
+            if (!metrics.isCompact) {
+                lift += 16;
+            } else if (metrics.isPortrait) {
+                lift += 20;
+            }
+        }
+        return lift;
     }
 
     positionRaceSetupButton(metrics) {
@@ -922,6 +965,129 @@ export class Overlays {
         this.setRaceSetupLabel();
     }
 
+    createJumpToggle() {
+        const button = document.createElement('button');
+        button.id = 'jump-toggle-button';
+        button.className = 'game-button';
+        button.type = 'button';
+        button.addEventListener('click', () => {
+            this.scene.toggleJumpMode();
+        });
+        document.body.append(button);
+        this.jumpToggleButton = button;
+        this.setJumpToggleLabel();
+    }
+
+    setJumpToggleLabel() {
+        const button = this.jumpToggleButton;
+        if (!button) {
+            return;
+        }
+        const mode = normalizeJumpMode(this.scene.jumpMode);
+        const kicker = document.createElement('span');
+        kicker.className = 'jump-toggle-kicker';
+        kicker.textContent = 'JUMP STYLE';
+        const label = document.createElement('span');
+        label.className = 'jump-toggle-mode';
+        label.textContent = `Now: ${JUMP_MODE_LABEL[mode]}`;
+        button.replaceChildren(kicker, label);
+        button.setAttribute(
+            'aria-label',
+            mode === 'fine'
+                ? 'Jump style. Fine control on: release early for short hops. Switch to max jump.'
+                : 'Jump style. Max jump on: every jump is full height. Switch to fine control.'
+        );
+    }
+
+    positionJumpToggleButton(metrics) {
+        const button = this.jumpToggleButton;
+        if (!button || !this.titlePrompt) {
+            return 0;
+        }
+        button.style.left = '';
+        const gapAbove = metrics.isTiny ? 6 : 10;
+        const gapBelow = metrics.isTiny ? 6 : 10;
+        const race = this.raceSetupButton;
+        const raceBottom = race
+            ? (parseFloat(race.style.top) || 0) +
+              Math.max(race.offsetHeight || 0, metrics.isCompact ? 50 : 68)
+            : this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2;
+        button.style.top = `${Math.round(raceBottom + gapAbove)}px`;
+        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 46 : 60);
+        return gapAbove + height + gapBelow;
+    }
+
+    createDifficulty() {
+        const button = document.createElement('button');
+        button.id = 'difficulty-button';
+        button.className = 'game-button';
+        button.type = 'button';
+        button.addEventListener('click', () => {
+            this.scene.toggleDifficulty();
+        });
+        document.body.append(button);
+        this.difficultyButton = button;
+        this.setDifficultyLabel();
+    }
+
+    setDifficultyLabel() {
+        const button = this.difficultyButton;
+        if (!button) {
+            return;
+        }
+        const mode = normalizeDifficulty(this.scene.difficulty);
+        const kicker = document.createElement('span');
+        kicker.className = 'difficulty-kicker';
+        kicker.textContent = 'DIFFICULTY';
+        const label = document.createElement('span');
+        label.className = 'difficulty-mode';
+        label.textContent = `Now: ${DIFFICULTY_LABEL[mode]}`;
+        button.replaceChildren(kicker, label);
+        button.setAttribute(
+            'aria-label',
+            mode === 'hard'
+                ? 'Difficulty. Hard on: faster hazards, separate records. Switch to normal.'
+                : 'Difficulty. Normal on. Switch to hard.'
+        );
+    }
+
+    positionDifficultyButton(metrics) {
+        const button = this.difficultyButton;
+        if (!button || !this.titlePrompt) {
+            return 0;
+        }
+        button.style.left = '';
+        // Short landscape cannot stack three buttons under the prompt, so
+        // difficulty sits beside the jump toggle in one row (already counted
+        // by jumpSpace). Everywhere else it stacks below.
+        const sideBySide =
+            metrics.isCompact &&
+            !metrics.isPortrait &&
+            metrics.innerWidth >= 640 &&
+            this.jumpToggleButton;
+        if (sideBySide) {
+            this.jumpToggleButton.style.left = 'calc(50% + 150px)';
+            button.style.left = 'calc(50% - 150px)';
+            button.style.top = this.jumpToggleButton.style.top;
+            return 0;
+        }
+        const gapAbove = metrics.isTiny ? 6 : 10;
+        const gapBelow = metrics.isTiny ? 6 : 10;
+        const above = this.jumpToggleButton || this.raceSetupButton;
+        let aboveBottom = this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2;
+        if (above) {
+            let minHeight = metrics.isCompact ? 46 : 60;
+            if (above === this.raceSetupButton) {
+                minHeight = metrics.isCompact ? 50 : 68;
+            }
+            aboveBottom =
+                (parseFloat(above.style.top) || 0) + Math.max(above.offsetHeight || 0, minHeight);
+        }
+        button.style.top = `${Math.round(aboveBottom + gapAbove)}px`;
+        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 46 : 60);
+        return gapAbove + height + gapBelow;
+    }
+
     handleMenuInput(input) {
         const menu = input.menu || {};
         if (this.raceSetupDialog?.open) {
@@ -950,11 +1116,29 @@ export class Overlays {
             this.displayLeaderboard();
             return true;
         }
-        if (this.scene.awaitingStart && (menu.down || menu.up)) {
-            this.raceSetupButton?.click();
+        if (this.handleTitleMenu(menu)) {
             return true;
         }
         return this.handleFinishMenu(menu);
+    }
+
+    handleTitleMenu(menu) {
+        if (!this.scene.awaitingStart) {
+            return false;
+        }
+        if (menu.down) {
+            this.raceSetupButton?.click();
+            return true;
+        }
+        if (menu.up) {
+            this.jumpToggleButton?.click();
+            return true;
+        }
+        if (menu.back) {
+            this.difficultyButton?.click();
+            return true;
+        }
+        return false;
     }
 
     handleFinishMenu(menu) {
@@ -984,6 +1168,10 @@ export class Overlays {
         this.raceSetupDialog?.remove();
         this.raceSetupButton = null;
         this.raceSetupDialog = null;
+        this.jumpToggleButton?.remove();
+        this.jumpToggleButton = null;
+        this.difficultyButton?.remove();
+        this.difficultyButton = null;
         if (this.titlePromptTween && typeof this.titlePromptTween.stop === 'function') {
             this.titlePromptTween.stop();
         }

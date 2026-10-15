@@ -151,7 +151,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         harborBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
     );
     assert.ok(harborBoarders.every((hazard) => hazard.key === 'skitterling'));
     assert.ok(
@@ -165,7 +165,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         foundryBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
     );
     assert.ok(foundryBoarders.every((hazard) => hazard.key === 'gnawer'));
     assert.ok(
@@ -180,7 +180,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         skyhookBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
     );
     assert.ok(skyhookBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -280,7 +280,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         colonyBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
     );
     assert.ok(
         new LevelConfig(8).platforms.static.some((platform) => platform.key === 'colonyDeck')
@@ -291,7 +291,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         hiveBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6]
     );
     assert.ok(hiveBoarders.every((hazard) => hazard.key === 'gnawer'));
     assert.ok(
@@ -312,7 +312,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         spireBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6]
     );
     assert.ok(spireBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -328,7 +328,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         bastionBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5]
     );
     assert.ok(bastionBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -341,7 +341,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         wombBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6]
     );
     assert.ok(wombBoarders.every((hazard) => hazard.key === 'gnawer'));
     assert.ok(
@@ -424,8 +424,8 @@ test('a falling chicken bonks only the top of a bonkable enemy', async () => {
     };
     const jumped = boarderSteering(700, 540, 620, 360, true, leash);
     assert.equal(jumped.velocityY, null);
-    assert.equal(jumped.velocityX, 0);
-    assert.equal(jumped.flipX, null);
+    assert.equal(jumped.velocityX, -190);
+    assert.equal(jumped.flipX, true);
     const jumpedAirborne = boarderSteering(700, 500, 620, 360, false, leash);
     assert.equal(jumpedAirborne.velocityX, -190);
     const posted = boarderSteering(640, 540, 150, 560, true, {
@@ -500,6 +500,7 @@ test('releasing jump cuts the rise but never a bonk boost', async () => {
 
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();
+    scene.jumpMode = 'fine';
     const applied = [];
     scene.player = {
         body: { velocity: { y: full } },
@@ -511,6 +512,279 @@ test('releasing jump cuts the rise but never a bonk boost', async () => {
     scene.player.body.velocity.y = 60;
     scene.applyJumpCut({ jumpReleased: true });
     assert.deepEqual(applied, [full * mult]);
+});
+
+test('jump styles normalize to max or fine control', async () => {
+    const { JUMP_MODE_LABEL, normalizeJumpMode } = await importModule('GameUtils.js');
+    assert.equal(normalizeJumpMode('fine'), 'fine');
+    assert.equal(normalizeJumpMode('max'), 'max');
+    assert.equal(normalizeJumpMode(null), 'max');
+    assert.equal(normalizeJumpMode('variable'), 'max');
+    assert.equal(JUMP_MODE_LABEL.max, 'Max jump');
+    assert.equal(JUMP_MODE_LABEL.fine, 'Fine control');
+});
+
+test('max jump is the default and skips the cut', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    global.window = { localStorage: createStorage() };
+    const scene = new SpaceChicken();
+    assert.equal(scene.jumpMode, 'max');
+    assert.equal(scene.loadJumpMode(), 'max');
+
+    const applied = [];
+    scene.player = {
+        body: { velocity: { y: GAME_CONSTANTS.JUMP_VELOCITY_Y } },
+        setVelocityY: (vy) => applied.push(vy),
+    };
+    scene.applyJumpCut({ jumpReleased: true });
+    assert.deepEqual(applied, []);
+
+    scene.jumpMode = 'max';
+    scene.player.body.velocity.y = GAME_CONSTANTS.JUMP_VELOCITY_Y;
+    scene.applyJumpCut({ jumpReleased: true });
+    assert.deepEqual(applied, []);
+});
+
+test('jump style persists and toggles from the title screen', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    global.window = { localStorage: createStorage() };
+    const scene = new SpaceChicken();
+    const labels = [];
+    scene.uiManager = { updateJumpToggleLabel: () => labels.push(scene.jumpMode) };
+
+    assert.equal(scene.setJumpMode('fine'), 'fine');
+    assert.equal(global.window.localStorage.getItem(GAME_CONSTANTS.JUMP_MODE_KEY), 'fine');
+    assert.equal(scene.loadJumpMode(), 'fine');
+    assert.equal(scene.toggleJumpMode(), 'max');
+    assert.equal(global.window.localStorage.getItem(GAME_CONSTANTS.JUMP_MODE_KEY), 'max');
+    assert.deepEqual(labels, ['fine', 'max']);
+
+    assert.equal(scene.setJumpMode('variable'), 'max');
+    global.window = {
+        localStorage: createStorage({ [GAME_CONSTANTS.JUMP_MODE_KEY]: 'junk' }),
+    };
+    assert.equal(scene.loadJumpMode(), 'max');
+});
+
+test('title menu up toggles jump style while down opens race setup', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const overlays = new Overlays({ awaitingStart: true }, { setHudVisible() {} });
+    const clicks = [];
+    overlays.raceSetupButton = { click: () => clicks.push('race') };
+    overlays.jumpToggleButton = { click: () => clicks.push('jump') };
+    assert.equal(overlays.handleMenuInput({ menu: { down: true } }), true);
+    assert.equal(overlays.handleMenuInput({ menu: { up: true } }), true);
+    assert.deepEqual(clicks, ['race', 'jump']);
+});
+
+test('the jump toggle names the current style', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const savedDocument = global.document;
+    global.document = {
+        createElement: () => ({ className: '', textContent: '' }),
+    };
+    try {
+        const overlays = new Overlays({ jumpMode: 'max' }, { setHudVisible() {} });
+        let kids = null;
+        let aria = '';
+        overlays.jumpToggleButton = {
+            replaceChildren: (...next) => {
+                kids = next;
+            },
+            setAttribute: (name, value) => {
+                aria = `${name}:${value}`;
+            },
+        };
+        overlays.setJumpToggleLabel();
+        assert.equal(kids[0].textContent, 'JUMP STYLE');
+        assert.equal(kids[1].textContent, 'Now: Max jump');
+        assert.match(aria, /Max jump on/);
+
+        overlays.scene.jumpMode = 'fine';
+        overlays.setJumpToggleLabel();
+        assert.equal(kids[1].textContent, 'Now: Fine control');
+        assert.match(aria, /Fine control on/);
+    } finally {
+        if (savedDocument === undefined) {
+            delete global.document;
+        } else {
+            global.document = savedDocument;
+        }
+    }
+});
+
+test('difficulties normalize to normal or hard', async () => {
+    const { DIFFICULTY_LABEL, normalizeDifficulty } = await importModule('GameUtils.js');
+    assert.equal(normalizeDifficulty('hard'), 'hard');
+    assert.equal(normalizeDifficulty('normal'), 'normal');
+    assert.equal(normalizeDifficulty(null), 'normal');
+    assert.equal(normalizeDifficulty('nightmare'), 'normal');
+    assert.equal(DIFFICULTY_LABEL.normal, 'Normal');
+    assert.equal(DIFFICULTY_LABEL.hard, 'Hard');
+});
+
+test('normal is the default difficulty and persists the toggle', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    global.window = { localStorage: createStorage() };
+    const scene = new SpaceChicken();
+    assert.equal(scene.difficulty, 'normal');
+    assert.equal(scene.loadDifficulty(), 'normal');
+    const labels = [];
+    scene.uiManager = { updateDifficultyLabel: () => labels.push(scene.difficulty) };
+    assert.equal(scene.setDifficulty('hard'), 'hard');
+    assert.equal(global.window.localStorage.getItem(GAME_CONSTANTS.DIFFICULTY_KEY), 'hard');
+    assert.equal(scene.toggleDifficulty(), 'normal');
+    assert.deepEqual(labels, ['hard', 'normal']);
+    assert.equal(scene.setDifficulty('nightmare'), 'normal');
+});
+
+test('hard mode remixes hazard configs without touching level data', async () => {
+    const { applyHardModeConfig } = await importModule('GameUtils.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const mults = GAME_CONSTANTS.HARD_MODE;
+    const laser = { type: 'laser', x: 1, onDuration: 780, offDuration: 1180 };
+    const tunedLaser = applyHardModeConfig(laser, mults);
+    assert.equal(tunedLaser.offDuration, Math.round(1180 * mults.LASER_OFF_MULT));
+    assert.equal(tunedLaser.onDuration, 780);
+    assert.equal(laser.offDuration, 1180);
+
+    const drip = { type: 'drip', interval: 1600 };
+    assert.equal(applyHardModeConfig(drip, mults).interval, Math.round(1600 * mults.INTERVAL_MULT));
+
+    const ray = { type: 'cosmicRay', interval: 3000, warning: 950 };
+    const tunedRay = applyHardModeConfig(ray, mults);
+    assert.equal(tunedRay.interval, Math.round(3000 * mults.INTERVAL_MULT));
+    assert.equal(tunedRay.warning, Math.round(950 * mults.WARNING_MULT));
+
+    const crusher = { type: 'crusher', duration: 780, slamY: 450 };
+    const tunedCrusher = applyHardModeConfig(crusher, mults);
+    assert.equal(tunedCrusher.duration, Math.round(780 * mults.CRUSHER_MULT));
+    assert.equal(tunedCrusher.slamY, 450);
+
+    const drone = { type: 'drone', patrol: { x: 100, duration: 1600 } };
+    const tunedDrone = applyHardModeConfig(drone, mults);
+    assert.equal(tunedDrone.patrol.duration, Math.round(1600 * mults.PATROL_MULT));
+    assert.equal(tunedDrone.patrol.x, 100);
+    assert.equal(drone.patrol.duration, 1600);
+
+    const boarder = { type: 'boarder', wave: 2 };
+    assert.deepEqual(applyHardModeConfig(boarder, mults), boarder);
+    assert.equal(applyHardModeConfig(null, mults), null);
+});
+
+test('hard mode quickens bombs without touching level data', async () => {
+    const { hardBombSettings } = await importModule('GameUtils.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const settings = { speed: 200, delayMin: 1000, delayMax: 5000, spread: 5 };
+    const tuned = hardBombSettings(settings, GAME_CONSTANTS.HARD_MODE);
+    assert.equal(tuned.speed, Math.round(200 * GAME_CONSTANTS.HARD_MODE.BOMB_SPEED_MULT));
+    assert.equal(tuned.delayMin, Math.round(1000 * GAME_CONSTANTS.HARD_MODE.BOMB_DELAY_MULT));
+    assert.equal(tuned.delayMax, Math.round(5000 * GAME_CONSTANTS.HARD_MODE.BOMB_DELAY_MULT));
+    assert.equal(tuned.spread, 5);
+    assert.equal(settings.speed, 200);
+});
+
+test('boarders run faster on hard and normally otherwise', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const run = (difficulty) => {
+        const director = new BoarderDirector({
+            difficulty,
+            boardersDisarmed: false,
+            boarderWave: 4,
+            player: { x: 0 },
+            boardersGroup: null,
+        });
+        director.updateBoarders();
+        return director.boarderOptions.speed;
+    };
+    assert.equal(
+        run('hard'),
+        GAME_CONSTANTS.BOARDER_SPEED * GAME_CONSTANTS.HARD_MODE.BOARDER_SPEED_MULT
+    );
+    assert.equal(run('normal'), GAME_CONSTANTS.BOARDER_SPEED);
+    assert.equal(run(undefined), GAME_CONSTANTS.BOARDER_SPEED);
+});
+
+test('hard mode marks the hud level text and level banner', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const texts = [];
+    const ui = new UIManager({ difficulty: 'hard', levelConfig: { phaser: true } });
+    ui.levelText = { setText: (text) => texts.push(text) };
+    ui.currentLevel = 8;
+    ui.weaponName = 'Scatter';
+    ui.refreshLevelText();
+    assert.deepEqual(texts, ['Level 8 · Hard · Scatter']);
+    ui.scene.difficulty = 'normal';
+    ui.refreshLevelText();
+    assert.deepEqual(texts.slice(1), ['Level 8 · Scatter']);
+
+    const seen = [];
+    const chain = {
+        setOrigin: () => chain,
+        setScrollFactor: () => chain,
+        setDepth: () => chain,
+        setAlpha: () => chain,
+    };
+    ui.scene = {
+        difficulty: 'hard',
+        add: {
+            text: (x, y, title) => {
+                seen.push(title);
+                return chain;
+            },
+        },
+    };
+    ui.getLayoutMetrics = () => ({ fonts: { banner: 42, bannerSubtitle: 20 } });
+    ui.styleHudText = () => {};
+    ui.markUi = () => {};
+    ui.layoutLevelBanner = () => {};
+    ui.clearLevelBanner = () => {};
+    ui.showLevelBanner(8);
+    ui.showLevelBanner('PHASER');
+    assert.deepEqual(seen, ['LEVEL 8 · HARD', 'PHASER']);
+});
+
+test('title menu back toggles difficulty', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const overlays = new Overlays({ awaitingStart: true }, { setHudVisible() {} });
+    const clicks = [];
+    overlays.difficultyButton = { click: () => clicks.push('difficulty') };
+    assert.equal(overlays.handleMenuInput({ menu: { back: true } }), true);
+    assert.deepEqual(clicks, ['difficulty']);
+});
+
+test('the difficulty toggle names the current mode', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const savedDocument = global.document;
+    global.document = {
+        createElement: () => ({ className: '', textContent: '' }),
+    };
+    try {
+        const overlays = new Overlays({ difficulty: 'normal' }, { setHudVisible() {} });
+        let kids = null;
+        overlays.difficultyButton = {
+            replaceChildren: (...next) => {
+                kids = next;
+            },
+            setAttribute: () => {},
+        };
+        overlays.setDifficultyLabel();
+        assert.equal(kids[0].textContent, 'DIFFICULTY');
+        assert.equal(kids[1].textContent, 'Now: Normal');
+        overlays.scene.difficulty = 'hard';
+        overlays.setDifficultyLabel();
+        assert.equal(kids[1].textContent, 'Now: Hard');
+    } finally {
+        if (savedDocument === undefined) {
+            delete global.document;
+        } else {
+            global.document = savedDocument;
+        }
+    }
 });
 
 test('checkpoints advance on grounded crossings and never downgrade', async () => {
@@ -561,14 +835,18 @@ test('checkpoints advance on grounded crossings and never downgrade', async () =
     assert.deepEqual(scene.currentRespawnStart(2), { x: 52, y: 20 });
 });
 
-test('long contra levels expose two ordered checkpoints', async () => {
+test('long contra levels expose three ordered checkpoints', async () => {
     const { LevelConfig } = await importModule('LevelConfig.js');
     for (const level of [9, 10, 11, 12, 13, 14, 15, 16]) {
         const config = new LevelConfig(level);
-        assert.equal(config.checkpoints.length, 2);
-        const [first, second] = config.checkpoints;
-        assert.ok(first.x > 0 && first.x < second.x && second.x < config.world.width);
-        assert.ok(first.y < config.killZoneY && second.y < config.killZoneY);
+        assert.equal(config.checkpoints.length, 3);
+        const [first, second, third] = config.checkpoints;
+        assert.ok(
+            first.x > 0 && first.x < second.x && second.x < third.x && third.x < config.world.width
+        );
+        assert.ok(
+            first.y < config.killZoneY && second.y < config.killZoneY && third.y < config.killZoneY
+        );
     }
     assert.deepEqual(new LevelConfig(1).checkpoints, []);
 });
@@ -755,7 +1033,51 @@ test('remote leaderboard requests include all configured levels', async () => {
 
     const data = await manager.fetchFirebaseLeaderboards();
     assert.deepEqual(Object.keys(data), ['1', '2', '3', '4']);
-    assert.ok(calls.some((url) => url === 'https://example.test/space-chicken/api/leaderboard'));
+    assert.ok(
+        calls.some(
+            (url) => url === 'https://example.test/space-chicken/api/leaderboard?mode=normal'
+        )
+    );
+    delete global.fetch;
+});
+
+test('hard mode reads and writes its own leaderboards', async () => {
+    const { LeaderboardManager } = await importModule('LeaderboardManager.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    global.window = { localStorage: createStorage() };
+    const normal = new LeaderboardManager({ storageAvailable: true, difficulty: 'normal' });
+    const hard = new LeaderboardManager({ storageAvailable: true, difficulty: 'hard' });
+    assert.equal(normal.mode, 'normal');
+    assert.equal(hard.mode, 'hard');
+
+    assert.equal(normal.saveTime(4, 5000, 'Luna'), true);
+    assert.equal(hard.saveTime(4, 9000, 'Luna'), true);
+    assert.deepEqual(
+        normal.readLeaderboard(4).map((entry) => entry.time),
+        [5000]
+    );
+    assert.deepEqual(
+        hard.readLeaderboard(4).map((entry) => entry.time),
+        [9000]
+    );
+    assert.equal(normal.getPersonalBest(4), 5000);
+    assert.equal(hard.getPersonalBest(4), 9000);
+    const storage = global.window.localStorage;
+    assert.equal(storage.getItem(`${GAME_CONSTANTS.STORAGE_HARD_LEVEL_PREFIX}4`) !== null, true);
+
+    const calls = [];
+    global.fetch = async (url, options) => {
+        calls.push({ url, body: options?.body ? JSON.parse(options.body) : null });
+        return { ok: true, json: async () => ({ token: 't' }) };
+    };
+    hard.runTokens.set(4, Promise.resolve('t'));
+    hard.playerId = '12345678-1234-1234-1234-1234567890ab';
+    await hard.saveTimeToFirebase(4, 9000, 'Luna', 0);
+    assert.equal(calls[0].body.mode, 'hard');
+    await hard.startRun(4);
+    assert.equal(calls[1].body.mode, 'hard');
+    await hard.fetchCompetition();
+    assert.ok(calls[2].url.endsWith('/api/leaderboard?mode=hard'));
     delete global.fetch;
 });
 
@@ -1152,11 +1474,55 @@ test('bot input is ignored outside debug mode', async () => {
     delete global.window.__spaceChickenBotInput;
 });
 
-test('run token URL stays under the leaderboard API path', async () => {
+test('run token URL targets the run API route', async () => {
     const { LeaderboardManager } = await importModule('LeaderboardManager.js');
     const manager = new LeaderboardManager({ storageAvailable: false });
     manager.getLeaderboardApiUrl = () => 'https://example.test/api/leaderboard';
-    assert.equal(manager.getRunApiUrl(), 'https://example.test/api/leaderboard/run');
+    assert.equal(manager.getRunApiUrl(), 'https://example.test/api/run');
+    manager.getLeaderboardApiUrl = () => 'https://example.test/api/leaderboard/';
+    assert.equal(manager.getRunApiUrl(), 'https://example.test/api/run');
+});
+
+test('competition boards are cached per mode and refreshed after submit', async () => {
+    const { LeaderboardManager } = await importModule('LeaderboardManager.js');
+    const manager = new LeaderboardManager({ storageAvailable: false });
+    manager.getLeaderboardApiUrl = () => 'https://example.test/api/leaderboard';
+    let fetches = 0;
+    global.fetch = async () => {
+        fetches += 1;
+        return {
+            ok: true,
+            json: async () => ({ levels: {}, weekly: {}, hallOfFame: {}, week: 'w', mode: 'n' }),
+        };
+    };
+    const first = await manager.fetchCompetition('normal');
+    const second = await manager.fetchCompetition('normal');
+    assert.equal(second, first);
+    assert.equal(fetches, 1);
+    await manager.fetchCompetition('hard');
+    assert.equal(fetches, 2);
+    manager.runTokens.set(1, Promise.resolve('t'));
+    manager.getPlayerId = () => '12345678-1234-1234-1234-1234567890ab';
+    await manager.saveTimeToFirebase(1, 5000, 'Luna', 0);
+    assert.equal(manager.runTokens.has(1), false);
+    await manager.fetchCompetition('normal');
+    assert.equal(fetches, 4);
+    delete global.fetch;
+});
+
+test('name prompt triggers once on first personal best', async () => {
+    const { LeaderboardManager } = await importModule('LeaderboardManager.js');
+    const { AUDIO_SETTINGS } = await importModule('Constants.js');
+    global.window = { localStorage: createStorage() };
+    const manager = new LeaderboardManager({ storageAvailable: true });
+    assert.equal(manager.shouldPromptForName(null), true);
+    assert.equal(manager.shouldPromptForName(5000), false);
+    global.window.localStorage.setItem(AUDIO_SETTINGS.PLAYER_NAME_KEY, 'Luna');
+    assert.equal(manager.shouldPromptForName(null), false);
+    const debug = new LeaderboardManager({ storageAvailable: true, debugMode: true });
+    assert.equal(debug.shouldPromptForName(null), false);
+    const ephemeral = new LeaderboardManager({ storageAvailable: false });
+    assert.equal(ephemeral.shouldPromptForName(null), false);
 });
 
 test('bot debug APIs are only exposed in debug mode', async () => {
@@ -2705,6 +3071,9 @@ test('the first chicken to the crown wins and the other is lined up for the bomb
         getPersonalBest() {
             return null;
         },
+        shouldPromptForName() {
+            return false;
+        },
         ensurePlayerName() {
             return 'Ada';
         },
@@ -2993,8 +3362,8 @@ test('rescue bonus and temp-gun helpers follow the arcade rules', async () => {
 test('contra levels expose rescues, pods, and no branch by default', async () => {
     const { LevelConfig } = await importModule('LevelConfig.js');
     const eight = new LevelConfig(8);
-    assert.equal(eight.rescues.length, 1);
-    assert.equal(eight.pods.length, 1);
+    assert.equal(eight.rescues.length, 2);
+    assert.equal(eight.pods.length, 4);
     assert.equal(eight.pods[0].gun, 'piercer');
     assert.equal(eight.branch, null);
     assert.equal(new LevelConfig(1).rescues.length, 0);
@@ -3056,15 +3425,15 @@ test('iron vault branch leaves the womb and rejoins the foundry', async () => {
     assert.deepEqual(womb.branch, [13, 16]);
     assert.match(womb.branchInstructions, /IRON VAULT/);
     const vault = new LevelConfig(16);
-    assert.equal(vault.rescues.length, 1);
-    assert.equal(vault.pods.length, 1);
+    assert.equal(vault.rescues.length, 2);
+    assert.equal(vault.pods.length, 4);
     assert.equal(vault.pods[0].gun, 'comet');
     assert.equal(vault.crownShield, true);
     assert.deepEqual(
         vault.hazards.dynamic
             .filter((hazard) => hazard.type === 'boarder')
             .map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3]
+        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6]
     );
     assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
     assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'laser'));
@@ -3315,9 +3684,11 @@ test('the colony crown shield gates the clear on dead boarders', async () => {
 
     scene.collectGem(scene.player);
     assert.deepEqual(shaken[0], [90, 0.005]);
-    assert.equal(banners.length, 0);
+    assert.deepEqual(banners, [['CROWN GUARDED', 'Defeat the guard on this platform']]);
+    banners.length = 0;
 
     const victim = {
+        crownGuard: true,
         active: true,
         arrived: true,
         defeated: false,

@@ -82,6 +82,7 @@ export class UIManager {
         this.levelText.setScrollFactor(0);
         this.levelText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.styleHudText(this.levelText, 4);
+        this.updateLevelText(level);
 
         this.deathText = this.scene.add.text(0, 0, `Deaths ${this.scene.deathCount || 0}`, {
             fontSize: '18px',
@@ -852,9 +853,9 @@ export class UIManager {
         this.timerText.setText(`Time: ${display}`);
     }
 
-    updateCompetitionTarget(record, fullRecord = null) {
+    updateCompetitionTarget(record, fullRecord = null, online = true) {
         const personalBest = this.scene.leaderboardManager?.getPersonalBest?.(this.scene.level);
-        const recordText = record ? formatElapsedTime(record.time) : 'open';
+        const recordText = record ? formatElapsedTime(record.time) : online ? 'open' : 'offline';
         const bestText =
             personalBest === null || personalBest === undefined
                 ? 'none yet'
@@ -872,7 +873,9 @@ export class UIManager {
             const fullBestText = fullBest === null ? 'none yet' : formatElapsedTime(fullBest);
             const fullRecordText = fullRecord
                 ? `Run #1 ${formatElapsedTime(fullRecord.time)}`
-                : 'Claim full-run #1';
+                : online
+                  ? 'Claim full-run #1'
+                  : 'Full-run board offline';
             const challenge = `${fullRecordText} · Best ${fullBestText}`;
             this.overlays.titleSubtitle.setText(
                 metrics.isCompact && !metrics.isPortrait
@@ -906,10 +909,11 @@ export class UIManager {
         if (!this.levelText) {
             return;
         }
+        const hard = this.scene.difficulty === 'hard' ? ' · Hard' : '';
         if (this.weaponName && this.scene.levelConfig?.phaser) {
-            this.levelText.setText(`Level ${this.currentLevel} · ${this.weaponName}`);
+            this.levelText.setText(`Level ${this.currentLevel}${hard} · ${this.weaponName}`);
         } else {
-            this.levelText.setText(`Level ${this.currentLevel}`);
+            this.levelText.setText(`Level ${this.currentLevel}${hard}`);
         }
     }
 
@@ -1065,6 +1069,14 @@ export class UIManager {
         this.overlays.createRaceSetup();
     }
 
+    updateJumpToggleLabel() {
+        this.overlays.setJumpToggleLabel();
+    }
+
+    updateDifficultyLabel() {
+        this.overlays.setDifficultyLabel();
+    }
+
     handleMenuInput(input) {
         return this.overlays.handleMenuInput(input);
     }
@@ -1082,8 +1094,12 @@ export class UIManager {
             return;
         }
         this.clearLevelBanner();
+        const hard =
+            typeof levelOrTitle === 'number' && this.scene.difficulty === 'hard' ? ' · HARD' : '';
         const title =
-            typeof levelOrTitle === 'number' ? `LEVEL ${levelOrTitle}` : String(levelOrTitle);
+            typeof levelOrTitle === 'number'
+                ? `LEVEL ${levelOrTitle}${hard}`
+                : String(levelOrTitle);
         const metrics = this.getLayoutMetrics();
         this.bannerTitle = this.scene.add
             .text(0, 0, title, {

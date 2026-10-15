@@ -36,6 +36,7 @@ function mockDb({ session = null, changes = 1 } = {}) {
                 }),
             };
         },
+        batch: async (statements) => Promise.all(statements.map((statement) => statement.all())),
     };
 }
 
@@ -93,6 +94,39 @@ test('leaderboard api ranks every campaign level including 8-16', async () => {
     assert.equal(tooFast.status, 400);
 });
 
+test('leaderboard api binds run tokens to their mode', async () => {
+    const { onRequest } = await importModule('functions/api/leaderboard.js');
+    const minuteAgo = new Date(Date.now() - 60000).toISOString();
+    const env = {
+        DB: mockDb({ session: { name: `run:15:hard:${PLAYER_ID}`, created_at: minuteAgo } }),
+    };
+    const accepted = await onRequest({
+        request: postRequest({
+            level: 15,
+            time: 60000,
+            name: 'Hex',
+            runToken: TOKEN,
+            playerId: PLAYER_ID,
+            mode: 'hard',
+        }),
+        env,
+    });
+    assert.equal(accepted.status, 201);
+    assert.equal((await accepted.json()).entry.mode, 'hard');
+
+    const crossed = await onRequest({
+        request: postRequest({
+            level: 15,
+            time: 60000,
+            name: 'Hex',
+            runToken: TOKEN,
+            playerId: PLAYER_ID,
+        }),
+        env,
+    });
+    assert.equal(crossed.status, 400);
+});
+
 test('leaderboard api lists all campaign levels', async () => {
     const { onRequest } = await importModule('functions/api/leaderboard.js');
     const response = await onRequest({
@@ -125,4 +159,38 @@ test('run api mints tokens for every campaign level', async () => {
         env,
     });
     assert.equal(rejected.status, 400);
+});
+
+test('run api handles preflight and names invalid requests', async () => {
+    const { onRequest } = await importModule('functions/api/run.js');
+    const env = { DB: mockDb() };
+    const preflight = await onRequest({
+        request: new Request('https://example.test/api/run', { method: 'OPTIONS' }),
+        env,
+    });
+    assert.equal(preflight.status, 204);
+    const rejected = await onRequest({
+        request: postRequest({ level: 1, playerId: 'nope' }),
+        env,
+    });
+    assert.equal(rejected.status, 400);
+    assert.equal((await rejected.json()).error, 'Invalid run request');
+});
+
+test('leaderboard api returns a JSON error when the database fails', async () => {
+    const { onRequest } = await importModule('functions/api/leaderboard.js');
+    const failingDb = {
+        prepare() {
+            throw new Error('boom');
+        },
+        batch() {
+            throw new Error('boom');
+        },
+    };
+    const response = await onRequest({
+        request: new Request('https://space-chicken.ailardi.com/api/leaderboard?level=1'),
+        env: { DB: failingDb },
+    });
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), { error: 'Leaderboard request failed' });
 });

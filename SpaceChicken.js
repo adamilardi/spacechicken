@@ -19,7 +19,10 @@ import {
     cycleSelection,
     effectiveLevelTime,
     formatElapsedTime,
+    hardBombSettings,
     jumpCutVelocity,
+    normalizeDifficulty,
+    normalizeJumpMode,
     rescueBonusMs,
     WEAPON_DEFS,
 } from './GameUtils.js';
@@ -187,6 +190,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.viewport = new Viewport(this);
         this.combat = new CombatSystem(this);
         this.boarders = new BoarderDirector(this);
+        this.jumpMode = 'max';
+        this.difficulty = 'normal';
     }
 
     init(data = {}) {
@@ -198,6 +203,7 @@ export class SpaceChicken extends Phaser.Scene {
             Number.isFinite(requestedDeathCount) && requestedDeathCount >= 0
                 ? Math.floor(requestedDeathCount)
                 : 0;
+        this.levelStartDeaths = this.deathCount;
         this.runElapsedMs = Number.isFinite(data.runElapsedMs) ? data.runElapsedMs : 0;
         this.runRescues =
             Number.isFinite(data.runRescues) && data.runRescues >= 0
@@ -243,6 +249,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.isTransitioning = false;
         this.pendingSceneData = null;
         this.maxJumps = GAME_CONSTANTS.MAX_JUMPS;
+        this.jumpMode = 'max';
+        this.difficulty = 'normal';
         this.jumpCount = 0;
         this.isJetpacking = false;
         this.lastGroundedAt = 0;
@@ -258,6 +266,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.boarderGraceUntil = 0;
         this.boardersDisarmed = false;
         this.crownShielded = false;
+        this.crownHintAt = 0;
         this.boarderWave = 1;
         this.checkpointIndex = -1;
         this.checkpointIndex2 = -1;
@@ -337,6 +346,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.storageAvailable = this.checkStorageAvailability();
         this.playerName = this.leaderboardManager.loadPlayerName();
         this.musicMuted = this.audioManager.loadMusicPreference();
+        this.jumpMode = this.loadJumpMode();
+        this.difficulty = this.loadDifficulty();
         if (this.launchBot) {
             this.musicMuted = true;
         }
@@ -357,7 +368,8 @@ export class SpaceChicken extends Phaser.Scene {
             if (!this.uiManager?.destroyed) {
                 this.uiManager.updateCompetitionTarget(
                     competition?.levels?.[this.level]?.[0] || null,
-                    competition?.levels?.[0]?.[0] || null
+                    competition?.levels?.[0]?.[0] || null,
+                    competition != null
                 );
             }
         });
@@ -480,6 +492,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.switchKey1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G);
         this.switchKey2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO);
         this.retryKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        this.difficultyKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
         this.branchKey1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
         this.branchKey2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
         this.muteKey = this.input.keyboard.addKey(KEY_CODES.M);
@@ -1114,6 +1127,9 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     applyJumpCut(inputState) {
+        if (this.jumpMode !== 'fine') {
+            return;
+        }
         if (!inputState?.jumpReleased) {
             return;
         }
@@ -1171,7 +1187,6 @@ export class SpaceChicken extends Phaser.Scene {
         const gun = WEAPON_DEFS[shell.podGun] ? shell.podGun : 'phaser';
         shell.collected = true;
         shell.disableBody?.(true, true);
-        shell.podCore?.setVisible?.(false);
         chicken.tempGun = {
             id: gun,
             until: this.getGameTime() + GAME_CONSTANTS.POD_DURATION_MS,
@@ -1194,6 +1209,14 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.crownShielded && this.levelConfig?.crownShield) {
             this.cameraFor(chicken)?.shake?.(90, 0.005);
             this.audioManager?.playBonkSound?.();
+            const now = this.getGameTime();
+            if (now >= (this.crownHintAt || 0)) {
+                this.uiManager?.showLevelBanner?.(
+                    'CROWN GUARDED',
+                    'Defeat the guard on this platform'
+                );
+                this.crownHintAt = now + 2000;
+            }
             return;
         }
         if (this.player2) {
@@ -1212,13 +1235,15 @@ export class SpaceChicken extends Phaser.Scene {
         this.runRescues = (this.runRescues || 0) + rescues;
         if (this.runTracked) this.runElapsedMs += levelTime;
         const previousBest = this.leaderboardManager.getPersonalBest(this.level);
-        const playerName = this.leaderboardManager.ensurePlayerName(false);
+        const promptForName = this.leaderboardManager.shouldPromptForName(previousBest);
+        const playerName = this.leaderboardManager.ensurePlayerName(promptForName);
         this.playerName = playerName;
         if (this.uiManager) {
             this.uiManager.updatePlayerName(playerName);
         }
         if (!this.debugMode) {
-            this.leaderboardManager.saveTime(this.level, levelTime, playerName);
+            const levelDeaths = Math.max(0, (this.deathCount || 0) - (this.levelStartDeaths || 0));
+            this.leaderboardManager.saveTime(this.level, levelTime, playerName, levelDeaths);
             this.leaderboardManager.unlockLevel(this.level + 1);
         }
         const resultTitle =
@@ -1818,7 +1843,10 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     spawnBomb() {
-        const bombSettings = this.levelConfig.bombs;
+        const bombSettings =
+            this.difficulty === 'hard'
+                ? hardBombSettings(this.levelConfig.bombs, GAME_CONSTANTS.HARD_MODE)
+                : this.levelConfig.bombs;
         const x = Phaser.Math.Between(-50, this.worldWidth + 50);
         const y = bombSettings.spawnHeight;
         const bomb = this.acquireBomb(x, y);
@@ -2069,6 +2097,62 @@ export class SpaceChicken extends Phaser.Scene {
         return this.time?.now > 0 ? this.time.now : performance.now();
     }
 
+    loadJumpMode() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return 'max';
+        }
+        try {
+            return normalizeJumpMode(window.localStorage.getItem(GAME_CONSTANTS.JUMP_MODE_KEY));
+        } catch {
+            return 'max';
+        }
+    }
+
+    setJumpMode(mode) {
+        this.jumpMode = normalizeJumpMode(mode);
+        if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+                window.localStorage.setItem(GAME_CONSTANTS.JUMP_MODE_KEY, this.jumpMode);
+            } catch {
+                this.storageAvailable = false;
+            }
+        }
+        this.uiManager?.updateJumpToggleLabel?.();
+        return this.jumpMode;
+    }
+
+    toggleJumpMode() {
+        return this.setJumpMode(this.jumpMode === 'fine' ? 'max' : 'fine');
+    }
+
+    loadDifficulty() {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return 'normal';
+        }
+        try {
+            return normalizeDifficulty(window.localStorage.getItem(GAME_CONSTANTS.DIFFICULTY_KEY));
+        } catch {
+            return 'normal';
+        }
+    }
+
+    setDifficulty(mode) {
+        this.difficulty = normalizeDifficulty(mode);
+        if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+                window.localStorage.setItem(GAME_CONSTANTS.DIFFICULTY_KEY, this.difficulty);
+            } catch {
+                this.storageAvailable = false;
+            }
+        }
+        this.uiManager?.updateDifficultyLabel?.();
+        return this.difficulty;
+    }
+
+    toggleDifficulty() {
+        return this.setDifficulty(this.difficulty === 'hard' ? 'normal' : 'hard');
+    }
+
     coachSeen(key) {
         if (this.coachMemory?.has(key)) {
             return true;
@@ -2155,6 +2239,12 @@ export class SpaceChicken extends Phaser.Scene {
         }
         if (this.titleSelectRight(inputState)) {
             this.cycleTitleSelection(1);
+        }
+        if (this.phaserKeyAlt && Phaser.Input.Keyboard.JustDown(this.phaserKeyAlt)) {
+            this.toggleJumpMode();
+        }
+        if (this.difficultyKey && Phaser.Input.Keyboard.JustDown(this.difficultyKey)) {
+            this.toggleDifficulty();
         }
         if (startTriggered) {
             this.startSelectedLevel();

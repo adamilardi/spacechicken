@@ -46,6 +46,23 @@ export const GAME_CONSTANTS = {
     HAPTIC_CROWN_MS: 46,
     COACH_BONK_KEY: 'spaceChickenCoachBonk',
     COACH_PHASER_KEY: 'spaceChickenCoachPhaser',
+    JUMP_MODE_KEY: 'spaceChickenJumpMode',
+    DIFFICULTY_KEY: 'spaceChickenDifficulty',
+    STORAGE_HARD_LEVEL_PREFIX: 'spaceChickenHardLevel',
+    PERSONAL_BEST_PREFIX: 'spaceChickenBest',
+    PERSONAL_HARD_BEST_PREFIX: 'spaceChickenHardBest',
+    // Hard-mode remix multipliers. Timers and patrols shrink (faster,
+    // less safe time); speeds grow. Physics, HP, and jump tuning never change.
+    HARD_MODE: {
+        LASER_OFF_MULT: 0.65,
+        INTERVAL_MULT: 0.8,
+        WARNING_MULT: 0.85,
+        PATROL_MULT: 0.85,
+        CRUSHER_MULT: 0.85,
+        BOARDER_SPEED_MULT: 1.15,
+        BOMB_SPEED_MULT: 1.2,
+        BOMB_DELAY_MULT: 0.8,
+    },
 
     DOUBLE_TAP_THRESHOLD: 350,
     // With no gamepad connected, re-check for one this often instead of
@@ -152,6 +169,7 @@ export const GAME_CONSTANTS = {
     WARNING_POOL_SIZE: 8,
 
     LEADERBOARD_MAX_ENTRIES: 5,
+    COMPETITION_CACHE_MS: 60000,
     STORAGE_LEVEL_PREFIX: 'spaceChickenLevel',
     PLAYER_NAME_MAX_LENGTH: 24,
 
