@@ -98,6 +98,18 @@ export function availableMask(availableActions) {
 }
 
 /**
+ * Apply temperature sampling to a prob distribution. T > 1 flattens
+ * (explores), T < 1 sharpens (exploits): rollout exploration must use
+ * T > 1 or a peaked policy samples nearly deterministically.
+ */
+export function applyTemperature(probs, temperature) {
+    const t = Math.max(Number(temperature) || 1, 1e-3);
+    const tempered = probs.map((p) => Math.pow(Math.max(p, 1e-9), 1 / t));
+    const total = tempered.reduce((a, b) => a + b, 0);
+    return tempered.map((p) => p / total);
+}
+
+/**
  * Renormalize a prob distribution over the legal actions only, for
  * masked sampling (rollout) and masked argmax (play-policy). Falls back
  * to `wait` when nothing is legal rather than sampling an illegal move.

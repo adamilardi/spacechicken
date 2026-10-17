@@ -4,6 +4,13 @@
 #
 #   npm run rl:loop
 #   WORKERS=3 EPISODES=6 MAX_ITERS=10 TIME_BUDGET_MIN=120 npm run rl:loop
+#   TIMESCALE=2 npm run rl:loop  (2x game speed; best times stay 1x-comparable)
+#   ROLLOUT_TEMP=1.5 ENTROPY=0.2 npm run rl:loop  (more exploration)
+#
+# Exploration: rollout temperature stays ABOVE 1 (flatten) and the trainer
+# scales its entropy bonus up whenever policy entropy drops under its
+# target. T < 1 sharpens the policy and collapses it to a deterministic
+# repeat within a few all-fail cohorts.
 #
 # Stops on MAX_ITERS, TIME_BUDGET_MIN, or all 7 levels cleared (rerun to push
 # times lower). State lives in rl/weights/campaign.json, logs in loop.log.
@@ -20,6 +27,8 @@ POLICY=rl/weights/rl-policy.json
 CAMP=rl/weights/campaign.json
 LOG=rl/weights/loop.log
 ROLLOUT_DUR="${ROLLOUT_DUR:-75000}"
+TIMESCALE="${TIMESCALE:-1}"
+ENTROPY="${ENTROPY:-0.15}"
 # Reverse curriculum: teleport episodes to grounded late-demo states.
 # Unset/0 = full episodes from spawn (default). Warm-start wins train the
 # policy but never count as level clears (see header.warmStart filter below).
@@ -32,7 +41,7 @@ mkdir -p rl/weights rl/rollouts
 log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG"; }
 
 levels_json() { python3 -c "import json;print(' '.join(map(str,json.load(open('$CAMP'))['levels'])))"; }
-best_ms() { python3 -c "import json,sys;print(json.load(open('$CAMP')).get('bestTimes',{}).get(str(sys.argv[1]),''))" "$1"; }
+best_json() { python3 -c "import json;print(json.dumps(json.load(open('$CAMP')).get('bestTimes',{})))"; }
 
 ITER=$(python3 -c "import json;print(json.load(open('$CAMP'))['iter'])")
 START=$SECONDS
@@ -41,25 +50,37 @@ while true; do
     if [ -n "$MAX_ITERS" ] && [ "$ITER" -gt "$MAX_ITERS" ]; then log "max iters reached"; break; fi
     if [ -n "$TIME_BUDGET_MIN" ] && [ $(( (SECONDS - START) / 60 )) -ge "$TIME_BUDGET_MIN" ]; then log "time budget reached"; break; fi
     PID="iter$ITER"
-    if [ "$ITER" -lt 3 ]; then TEMP=1.0; else TEMP=0.7; fi
+    if [ -n "${ROLLOUT_TEMP:-}" ]; then
+        TEMP="$ROLLOUT_TEMP"
+    elif [ "$ITER" -lt 3 ]; then
+        TEMP=1.5
+    else
+        TEMP=1.2
+    fi
     log "=== iter $ITER policy=$PID temp=$TEMP levels=$(levels_json) ==="
 
     for f in rl/rollouts/rollout-*.jsonl; do
         case "$f" in *"$PID"*|*"iter$((ITER - 1))"*) ;; *) rm -f "$f" ;; esac
     done 2>/dev/null
 
+    BESTS="$(best_json)"
+    BASE_COUNT=$((EPISODES / WORKERS))
+    REMAINDER=$((EPISODES % WORKERS))
     i=0
-    while [ "$i" -lt "$EPISODES" ]; do
-        while [ "$(jobs -r | wc -l)" -ge "$WORKERS" ]; do wait -n; done
-        LVL=$(levels_json | tr ' ' '\n' | shuf -n 1)
-        POLICY="$POLICY" POLICY_ID="$PID" LEVEL="$LVL" SEED="$RANDOM" TEMPERATURE="$TEMP" \
-            DURATION_MS="$ROLLOUT_DUR" BEST_MS="$(best_ms "$LVL")" WARM_START="$WARM_START" ROLLOUT_OUT=rl/rollouts node scripts/rl/rollout.mjs >> "$LOG" 2>&1 &
+    while [ "$i" -lt "$WORKERS" ]; do
+        COUNT=$BASE_COUNT
+        if [ "$i" -lt "$REMAINDER" ]; then COUNT=$((COUNT + 1)); fi
+        if [ "$COUNT" -gt 0 ]; then
+            POLICY="$POLICY" POLICY_ID="$PID" LEVELS="$(levels_json)" SEED="$RANDOM" TEMPERATURE="$TEMP" \
+                DURATION_MS="$ROLLOUT_DUR" BEST_JSON="$BESTS" WARM_START="$WARM_START" ROLLOUT_OUT=rl/rollouts \
+                EPISODE_COUNT="$COUNT" TIMESCALE="$TIMESCALE" node scripts/rl/rollout.mjs >> "$LOG" 2>&1 &
+        fi
         i=$((i + 1))
     done
     wait
 
     "$PYTHON" rl/train_rl.py --rollouts rl/rollouts --policy-in "$POLICY" \
-        --policy-out "$POLICY" --epochs 4 --lr 3e-4 >> "$LOG" 2>&1 \
+        --policy-out "$POLICY" --epochs 4 --lr 3e-4 --entropy "$ENTROPY" >> "$LOG" 2>&1 \
         || { log "trainer failed; keeping previous policy"; }
 
     python3 - "$CAMP" "$PID" <<'EOF' >> "$LOG" 2>&1

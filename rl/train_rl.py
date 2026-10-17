@@ -46,9 +46,29 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--policy-out", type=Path, default=ROOT / "rl" / "weights" / "rl-policy.json")
     parser.add_argument("--value", type=Path, default=ROOT / "rl" / "weights" / "value.pt")
     parser.add_argument("--epochs", type=int, default=4)
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="auto",
+        help="Train on 'cuda', 'cpu', or 'auto' (cuda when available).",
+    )
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--gamma", type=float, default=0.995)
-    parser.add_argument("--entropy", type=float, default=0.03)
+    parser.add_argument("--entropy", type=float, default=0.15)
+    parser.add_argument(
+        "--entropy-target",
+        type=float,
+        default=0.6,
+        help="Adaptive floor: scale the entropy bonus up (max 10x) when mean "
+        "policy entropy falls below this, so all-fail cohorts cannot "
+        "collapse the policy to a deterministic repeat.",
+    )
+    parser.add_argument(
+        "--entropy-adapt-gain",
+        type=float,
+        default=4.0,
+        help="Adaptation strength for the entropy floor.",
+    )
     parser.add_argument(
         "--clip-ratio",
         type=float,
@@ -95,10 +115,27 @@ def discounted_returns(rewards, gamma):
     return out
 
 
+def resolve_device(name: str) -> torch.device:
+    if name == "auto":
+        name = "cuda" if torch.cuda.is_available() else "cpu"
+    if name == "cuda" and not torch.cuda.is_available():
+        print("WARNING: --device cuda requested but CUDA is unavailable; using cpu")
+        name = "cpu"
+    device = torch.device(name)
+    if device.type == "cuda":
+        print(f"device: cuda ({torch.cuda.get_device_name(device)})")
+    else:
+        print("device: cpu")
+    return device
+
+
 def train(args: argparse.Namespace) -> Path:
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
+    device = resolve_device(args.device)
+    if device.type == "cuda":
+        torch.cuda.manual_seed_all(args.seed)
 
     policy_id, cohort = load_cohort(args.rollouts)
     obs_all, act_all, ret_all, behavior_all = [], [], [], []
@@ -136,16 +173,19 @@ def train(args: argparse.Namespace) -> Path:
     value = ValueMLP(OBS_SIZE, hidden)
     if args.value.exists():
         value.net.load_state_dict(torch.load(args.value, map_location="cpu", weights_only=True))
+    policy.net.to(device)
+    value.net.to(device)
 
     opt = torch.optim.Adam(
         list(policy.parameters()) + list(value.parameters()), lr=args.lr
     )
-    obs_t = torch.from_numpy(obs_all)
-    act_t = torch.from_numpy(act_all)
-    ret_t = torch.from_numpy(ret_all)
-    behavior_t = torch.from_numpy(behavior_all)
+    obs_t = torch.from_numpy(obs_all).to(device)
+    act_t = torch.from_numpy(act_all).to(device)
+    ret_t = torch.from_numpy(ret_all).to(device)
+    behavior_t = torch.from_numpy(behavior_all).to(device)
     ret_norm = (ret_t - ret_t.mean()) / (ret_t.std() + 1e-6)
 
+    prev_entropy: float | None = None
     for epoch in range(args.epochs):
         policy.net.train()
         value.net.train()
@@ -167,22 +207,36 @@ def train(args: argparse.Namespace) -> Path:
         policy_loss = -(ratio * adv_norm.detach() * chosen).mean()
         value_loss = F.mse_loss(baseline, ret_norm)
         entropy = -(log_probs.exp() * log_probs).sum(dim=1).mean()
-        loss = policy_loss + 0.5 * value_loss - args.entropy * entropy
+        if prev_entropy is None:
+            ent_coef = args.entropy
+        else:
+            shortfall = max(0.0, args.entropy_target - prev_entropy) / max(
+                args.entropy_target, 1e-6
+            )
+            ent_coef = args.entropy * min(10.0, 1.0 + args.entropy_adapt_gain * shortfall)
+        loss = policy_loss + 0.5 * value_loss - ent_coef * entropy
         opt.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(
             list(policy.parameters()) + list(value.parameters()), 1.0
         )
         opt.step()
+        prev_entropy = float(entropy.detach())
         print(
             f"epoch {epoch + 1}/{args.epochs} loss={float(loss.detach()):.4f} "
-            f"ret_mean={float(ret_t.mean()):.3f} entropy={float(entropy.detach()):.3f} "
+            f"ret_mean={float(ret_t.mean()):.3f} entropy={prev_entropy:.3f} "
+            f"ent_coef={ent_coef:.3f} "
             f"ratio_mean={float(ratio.mean()):.3f} behavior_cov={behavior_coverage:.2f}"
         )
 
     payload = export_policy_json(policy, OBS_SIZE, ACTION_SIZE)
     payload["obsVersion"] = saved.get("obsVersion", 2)
-    payload["meta"] = {"trainer": "reinforce", "policyId": policy_id, "wins": wins}
+    payload["meta"] = {
+        "trainer": "reinforce",
+        "policyId": policy_id,
+        "wins": wins,
+        "device": str(device),
+    }
     args.policy_out.parent.mkdir(parents=True, exist_ok=True)
     args.policy_out.write_text(json.dumps(payload))
     torch.save(value.net.state_dict(), args.value)
