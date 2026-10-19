@@ -33,6 +33,10 @@ export function createPilotState() {
         // Crusher pistons ride tweens, which never set body velocity:
         // track each piston's y over snap.elapsedMs for rise/slam sense.
         crusherPrev: {},
+        // Double-back maneuver expiry (snap.elapsedMs): while armed, the
+        // spent double steers for the deck behind instead of the gap.
+        // Cleared on touchdown; expiry falls back to the normal escape.
+        doubledBackUntil: 0,
     };
 }
 
@@ -589,7 +593,20 @@ function applyCloseReflex(input, player, dir, snap, platforms, shooting, laneDis
 // touchdown-duel target is landed beside on purpose: the grounded
 // duel kills it point-blank, saving the double for the gap ahead.
 function descentEscape(player, snap, falling, state, dx) {
-    if (player.grounded || !falling) {
+    if (player.grounded) {
+        return null;
+    }
+    const dir = dx === 0 ? 1 : Math.sign(dx);
+    const at = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
+    // Above the falling gate on purpose: the spent double rises for a
+    // full second, and course-steering that rise carries past the deck
+    // behind before the homing ever engages. With fuel (or disarmed)
+    // the flight returns null and the rise continues untouched.
+    const flight = doubleBackFlight(player, dir, snap, state, at);
+    if (flight) {
+        return flight;
+    }
+    if (!falling) {
         return null;
     }
     const below = boarderBelow(player, snap);
@@ -615,7 +632,131 @@ function descentEscape(player, snap, falling, state, dx) {
     if (touchdownClear(player, snap, below)) {
         return null;
     }
-    return { left: dx < -10, right: dx > 10, jump: true };
+    // Crowded touchdown with a survivable hop: take it.
+    if (hopTouchdownClear(player, snap, below, dx)) {
+        return { left: dx < -10, right: dx > 10, jump: true };
+    }
+    // A deck waits behind in double range: double back to it instead
+    // of descending onto the tracker. The landing refuels for a
+    // fresh crossing, and the grounded duel answers the follower.
+    const doubleBack = doubleBackMove(player, dir, snap, state, at);
+    if (doubleBack) {
+        return doubleBack;
+    }
+    // The hop sails past the deck edge into the pit: descend into
+    // the bolt window track-facing the chaser instead. Chasers stop
+    // underfoot (8px deadband), so the kill lands at bolt level;
+    // only hop when contact is a tick away with it still alive.
+    const want = below.x >= player.x ? 'right' : 'left';
+    const lastResort = Math.abs(below.y - player.y) < 15;
+    if (player.facing !== want) {
+        return { left: want === 'left', right: want === 'right', jump: lastResort, shoot: true };
+    }
+    return { left: false, right: false, jump: lastResort, shoot: true };
+}
+
+// Widest deck behind (against the goal direction) the escape
+// double can reach, or null: within drift range, inside the landable
+// band (below the apex, above the killzone), and never the crowded
+// deck below. The widest wins: room beats nearness for the landing.
+function backDeck(player, dir, snap, platforms) {
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    if (!(gravity > 0)) {
+        return null;
+    }
+    const boots = player.y + 22;
+    const apexBoots = boots - (330 * 330) / (2 * gravity);
+    const killY = Number.isFinite(snap.killZoneY) ? snap.killZoneY : Infinity;
+    let best = null;
+    let bestWidth = 0;
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        const cx = (plat.left + plat.right) / 2;
+        if ((cx - player.x) * dir >= 0) {
+            continue;
+        }
+        if (Math.abs(cx - player.x) > 350) {
+            continue;
+        }
+        if (plat.top < apexBoots || plat.top > killY - 100 || plat.top < boots - 100) {
+            continue;
+        }
+        const width = plat.right - plat.left;
+        if (width > bestWidth) {
+            bestWidth = width;
+            best = plat;
+        }
+    }
+    return best;
+}
+
+// True when both decks are the same slab (value-compared: snapshots
+// rebuild platform objects every tick, so identity never holds).
+function sameDeck(a, b) {
+    return a != null && b != null && a.left === b.left && a.right === b.right && a.top === b.top;
+}
+
+// Double-back takeoff move, or null when no deck waits behind: arms
+// the flight window and spends the double toward the deck behind.
+// Never the crowded deck below — that lands back on the chaser.
+function doubleBackMove(player, dir, snap, state, at) {
+    const back = backDeck(player, dir, snap, snap.platforms || []);
+    if (back == null || sameDeck(back, landingBelow(player, snap.platforms || [], snap))) {
+        return null;
+    }
+    state.doubledBackUntil = at + 2500;
+    return { left: dir > 0, right: dir < 0, jump: true };
+}
+
+// Double-back in progress (spent double, armed window): keep flying
+// for the deck behind, ignoring the tracker below. Lands just inside
+// the entry edge, clear of mid-deck hardware. Null when disarmed,
+// refueled, or the deck drops out of reach (falls back to escape).
+function doubleBackFlight(player, dir, snap, state, at) {
+    if (snap.jumpCount < snap.maxJumps || at >= (state.doubledBackUntil || 0)) {
+        return null;
+    }
+    const back = backDeck(player, dir, snap, snap.platforms || []);
+    if (back == null) {
+        return null;
+    }
+    const edge = dir > 0 ? back.right - 24 : back.left + 24;
+    if (Math.abs(player.x - edge) < 8) {
+        return { left: false, right: false, jump: false };
+    }
+    return { left: edge < player.x, right: edge > player.x, jump: false };
+}
+
+// Projected touchdown of the escape air-jump (vy -330) onto the
+// deck below: true when it lands on the deck clear of the chaser.
+// With no deck below, hop as before (a leaping chaser over a pit
+// is dodged, not dueled).
+function hopTouchdownClear(player, snap, below, dx) {
+    const deck = landingBelow(player, snap.platforms || [], snap);
+    if (!deck) {
+        return true;
+    }
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    if (!(gravity > 0)) {
+        return true;
+    }
+    const dir = dx === 0 ? 1 : Math.sign(dx);
+    const boots = player.y + 22;
+    const riseT = 330 / gravity;
+    const apexBoots = boots - (330 * 330) / (2 * gravity);
+    const fall = Math.max(0, deck.top - apexBoots);
+    const t = riseT + Math.sqrt(2 * gravity * fall) / gravity;
+    if (!Number.isFinite(t)) {
+        return true;
+    }
+    const tx = player.x + dir * 160 * t;
+    if (tx < deck.left - 30 || tx > deck.right + 30) {
+        return false;
+    }
+    const chaserTx = below.x + (below.vx || 0) * t;
+    return Math.abs(chaserTx - tx) > 40;
 }
 
 // True when the touchdown point is clear of the below boarder:
@@ -702,7 +843,11 @@ function mountBlocked(player, dir, snap) {
             continue;
         }
         const ahead = (item.x - player.x) * dir;
-        if (ahead < -30 || ahead > 300 || item.y < apex - 20 || item.y > player.y - 10) {
+        // 60px behind, not 30: the mount rises forward into a drone
+        // sitting just behind the takeoff (L12's floater kills at -58).
+        // Drones further back are outrun (98px/s separation); the run
+        // continues underneath, so the wait never stalls.
+        if (ahead < -60 || ahead > 300 || item.y < apex - 20 || item.y > player.y - 10) {
             continue;
         }
         return true;
@@ -994,6 +1139,9 @@ function applyDescentEscape(input, player, snap, falling, state, dx) {
     input.left = escape.left;
     input.right = escape.right;
     input.jump = escape.jump;
+    if (escape.shoot) {
+        input.shoot = true;
+    }
     return true;
 }
 
@@ -1493,6 +1641,7 @@ export function decidePilotInput(snap, state) {
     const player = snap.player;
     if (player.grounded) {
         state.takeoffY = player.y;
+        state.doubledBackUntil = 0;
     }
     const platforms = snap.platforms || [];
     const crown = snap.crown || { x: player.x + 200, y: player.y };
@@ -1886,6 +2035,11 @@ const BRAIN_PARTS = [
     landingBelow,
     descentEscape,
     applyDescentEscape,
+    backDeck,
+    sameDeck,
+    doubleBackMove,
+    doubleBackFlight,
+    hopTouchdownClear,
     touchdownExtend,
     lethalDriftJump,
     bonkBlockerMove,

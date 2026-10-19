@@ -1528,7 +1528,9 @@ test('the pilot lands beside a duelable boarder instead of burning fuel', async 
     );
     assert.equal(pass.jump, false);
     assert.equal(pass.right, true);
-    // Synchronized shadow (matched velocity): still hop, it lands with us.
+    // Synchronized shadow (matched velocity) with a hop that sails
+    // past the deck edge: descend track-facing it instead of hopping
+    // into the pit — the bolts kill it at bolt level.
     const shadow = decidePilotInput(
         makeSnap({
             physics: { gravityY: 300 },
@@ -1558,7 +1560,45 @@ test('the pilot lands beside a duelable boarder instead of burning fuel', async 
         }),
         createPilotState()
     );
-    assert.equal(shadow.jump, true);
+    assert.equal(shadow.jump, false);
+    assert.equal(shadow.left, true);
+    assert.equal(shadow.right, false);
+    assert.equal(shadow.shoot, true);
+    // Chaser stopped underfoot mid-turn (vx 0, unknown heading): the
+    // touchdown projects crowded and the hop sails past the deck, so
+    // descend track-facing it — the kill lands at bolt level.
+    const turn = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 1,
+            maxJumps: 2,
+            player: { x: 4065, y: 371, vx: 160, vy: 375, grounded: false, facing: 'right' },
+            crown: { x: 12050, y: 236 },
+            platforms: [{ left: 4008, right: 4392, top: 468, x: 4200, w: 384 }],
+            hazards: [
+                {
+                    id: 'boarder-4',
+                    type: 'boarder',
+                    x: 4059,
+                    y: 450,
+                    w: 40,
+                    h: 48,
+                    active: true,
+                    enable: true,
+                    chasing: true,
+                    vx: 0,
+                    vy: 0,
+                },
+            ],
+            bombs: [],
+            columns: [],
+        }),
+        createPilotState()
+    );
+    assert.equal(turn.jump, false);
+    assert.equal(turn.left, true);
+    assert.equal(turn.shoot, true);
     // Another deck far below: land free, nothing to dodge.
     const free = decidePilotInput(
         makeSnap({
@@ -1581,6 +1621,120 @@ test('the pilot lands beside a duelable boarder instead of burning fuel', async 
     );
     assert.equal(free.jump, false);
     assert.equal(free.right, true);
+});
+
+test('the spent double-back flies for the deck behind, then drops on', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const platforms = [
+        { left: 4008, right: 4392, top: 468, x: 4200, w: 384 },
+        { left: 3763, right: 3897, top: 328, x: 3830, w: 134 },
+    ];
+    // Crowded touchdown, forward hop overshoots, deck behind in range:
+    // arm the window and spend the double back toward it.
+    const trigger = createPilotState();
+    const back = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 1,
+            maxJumps: 2,
+            elapsedMs: 50000,
+            player: { x: 4065, y: 371, vx: 160, vy: 375, grounded: false, facing: 'right' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+            hazards: [
+                {
+                    id: 'boarder-4',
+                    type: 'boarder',
+                    x: 4059,
+                    y: 450,
+                    w: 40,
+                    h: 48,
+                    active: true,
+                    enable: true,
+                    chasing: true,
+                    vx: 0,
+                    vy: 0,
+                },
+            ],
+            bombs: [],
+            columns: [],
+        }),
+        trigger
+    );
+    assert.equal(back.jump, true);
+    assert.equal(back.left, true);
+    assert.equal(back.right, false);
+    assert.equal(trigger.doubledBackUntil, 52500);
+    // Armed window, fuel spent, off the entry edge: fly back for it.
+    const armed = createPilotState();
+    armed.doubledBackUntil = 99999;
+    const fly = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 2,
+            maxJumps: 2,
+            elapsedMs: 51000,
+            player: { x: 4100, y: 300, vx: -160, vy: 60, grounded: false, facing: 'left' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+            hazards: [],
+        }),
+        armed
+    );
+    assert.equal(fly.left, true);
+    assert.equal(fly.right, false);
+    assert.equal(fly.jump, false);
+    // Still rising on the spent double: steer back already, so the
+    // rise carries toward the deck instead of past it.
+    const rise = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 2,
+            maxJumps: 2,
+            elapsedMs: 50200,
+            player: { x: 4060, y: 340, vx: -160, vy: -200, grounded: false, facing: 'left' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+            hazards: [],
+        }),
+        armed
+    );
+    assert.equal(rise.left, true);
+    assert.equal(rise.right, false);
+    assert.equal(rise.jump, false);
+    // Over the entry edge: hold and drop onto the deck.
+    const hold = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 2,
+            maxJumps: 2,
+            elapsedMs: 51500,
+            player: { x: 3870, y: 280, vx: 0, vy: 200, grounded: false, facing: 'left' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+            hazards: [],
+        }),
+        armed
+    );
+    assert.equal(hold.left, false);
+    assert.equal(hold.right, false);
+    assert.equal(hold.jump, false);
+    // Touchdown disarms the window so later gap doubles fly free.
+    const landed = createPilotState();
+    landed.doubledBackUntil = 99999;
+    decidePilotInput(
+        makeSnap({
+            player: { x: 3870, y: 306, vx: 0, vy: 0, grounded: true, facing: 'left' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+        }),
+        landed
+    );
+    assert.equal(landed.doubledBackUntil, 0);
 });
 
 test('the pilot brakes over deck for a head-on chaser, flies over pits', async () => {
@@ -1744,6 +1898,14 @@ test('the pilot delays a mount jump while a drone patrols the arc', async () => 
     );
     assert.equal(mount.right, true);
     assert.equal(mount.jump, true);
+    // Drone 58px behind the takeoff: still wait — the mount rises
+    // forward straight into its patrol right-end.
+    const behind = decidePilotInput(
+        makeSnap({ ...base, hazards: [drone(3119)] }),
+        createPilotState()
+    );
+    assert.equal(behind.right, true);
+    assert.equal(behind.jump, false);
 });
 
 test('the pilot jumps early when a floater hangs over the edge arc', async () => {
@@ -1857,6 +2019,22 @@ test('buildPilotSource ships a self-contained installer', async () => {
     assert.doesNotMatch(source, /__dirname/);
 });
 
+test('buildPilotSource stitches every brain function the page can call', async () => {
+    const { buildPilotSource } = await importModule('scripts/pilot-brain.mjs');
+    const fs = require('node:fs');
+    const moduleSource = fs.readFileSync(path.join(projectRoot, 'scripts/pilot-brain.mjs'), 'utf8');
+    const defined = new Set();
+    for (const match of moduleSource.matchAll(/^(?:export )?function ([A-Za-z0-9_]+)\(/gm)) {
+        if (match[1] !== 'buildPilotSource') {
+            defined.add(match[1]);
+        }
+    }
+    assert.ok(defined.size > 50, `expected dozens of brain functions, saw ${defined.size}`);
+    const stitched = buildPilotSource();
+    const missing = [...defined].filter((name) => !stitched.includes(`function ${name}(`));
+    assert.deepEqual(missing, []);
+});
+
 test('the stitched pilot installs and ticks in a bare page sandbox', async () => {
     const { buildPilotSource } = await importModule('scripts/pilot-brain.mjs');
     const callbacks = [];
@@ -1897,4 +2075,47 @@ test('the stitched pilot installs and ticks in a bare page sandbox', async () =>
         shoot: false,
         start: false,
     });
+    // A falling snap with a boarder below exercises the descent escape
+    // (bolt projection, double-back flight): it must tick without error.
+    // A missing BRAIN_PARTS entry throws here, not silently in the page.
+    sandbox.window.__spaceChickenDebug = {
+        getBotSnapshot: () => ({
+            ready: true,
+            phaser: true,
+            jumpCount: 1,
+            maxJumps: 2,
+            elapsedMs: 51000,
+            killZoneY: 740,
+            physics: { gravityY: 300 },
+            player: { x: 4065, y: 371, vx: 160, vy: 375, grounded: false, facing: 'right' },
+            crown: { x: 12050, y: 236 },
+            platforms: [
+                { left: 4008, right: 4392, top: 468, x: 4200, w: 384 },
+                { left: 3763, right: 3897, top: 328, x: 3830, w: 134 },
+            ],
+            hazards: [
+                {
+                    id: 'boarder-4',
+                    type: 'boarder',
+                    x: 4059,
+                    y: 450,
+                    w: 40,
+                    h: 48,
+                    active: true,
+                    enable: true,
+                    chasing: true,
+                    vx: 0,
+                    vy: 0,
+                },
+            ],
+            bombs: [],
+            columns: [],
+        }),
+        setBotInput: (input) => {
+            lastInput = input;
+        },
+    };
+    callbacks[0]();
+    assert.equal(sandbox.window.__spaceChickenPilotError, null);
+    assert.equal(JSON.parse(JSON.stringify(lastInput)).jump, true);
 });
