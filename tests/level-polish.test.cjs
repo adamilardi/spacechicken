@@ -104,6 +104,18 @@ test('checkpoints never sit under a drone or dust devil lane', async () => {
     }
 });
 
+test('contra finales stand within reach of the last checkpoint', async () => {
+    const { LEVEL_CONTENT, LEVEL_DEFINITIONS } = await importModule('levels/index.js');
+    for (const id of [8, 9, 10, 11, 12, 13, 14, 15, 16]) {
+        const points = LEVEL_CONTENT[id].checkpoints || [];
+        const last = points[points.length - 1];
+        assert.ok(
+            LEVEL_DEFINITIONS[id].CROWN_X - last.x <= 2000,
+            `level ${id} finale checkpoint stands before the crown run`
+        );
+    }
+});
+
 test('review checkpoints cover the specimen gauntlet and clear the drone band', async () => {
     const { LEVEL_CONTENT } = await importModule('levels/index.js');
     const wing = LEVEL_CONTENT[5].checkpoints || [];

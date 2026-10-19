@@ -83,6 +83,7 @@ export class InputController {
         scene.leftPressed = false;
         scene.rightPressed = false;
         this.gamepad.pollGamepad(state);
+        this.pollKeyboardMenu(scene, state);
         if (scene.touchJumpReleased) {
             state.jumpReleased = true;
             scene.touchJumpReleased = false;
@@ -131,6 +132,25 @@ export class InputController {
 
     pollGamepad(state) {
         return this.gamepad.pollGamepad(state);
+    }
+
+    // Keyboard menu edges: B toggles the board, arrows/A/D turn its pages.
+    // Only the leaderboard and finish screens read menu keys, so running
+    // with the arrows never leaks anywhere else while the board is closed.
+    pollKeyboardMenu(scene, state) {
+        if (!scene || !state || !state.menu) {
+            return;
+        }
+        const justDown = (key) => Boolean(key && Phaser.Input.Keyboard.JustDown(key));
+        if (justDown(scene.boardKey)) {
+            state.menu.board = true;
+        }
+        if (justDown(scene.cursors?.left) || justDown(scene.wasd?.A)) {
+            state.menu.left = true;
+        }
+        if (justDown(scene.cursors?.right) || justDown(scene.wasd?.D)) {
+            state.menu.right = true;
+        }
     }
 
     pollWeaponSwitch(state, pads) {

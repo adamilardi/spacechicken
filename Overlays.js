@@ -7,7 +7,20 @@ import {
     normalizeDifficulty,
     normalizeJumpMode,
 } from './GameUtils.js';
+import {
+    buildLeaderboardModel,
+    formatLeaderboardPlainText,
+    LEADERBOARD_COLORS,
+    medalForRank,
+} from './LeaderboardPresentation.js';
 import { BANNER_FONT, HUD_FONT } from './UIManager.js';
+
+// Callout pill paint per tone: gold crowns, cyan chases, dim asides.
+const CALLOUT_TONES = Object.freeze({
+    gold: Object.freeze({ bg: 0x3d2f10, border: 0xffe566, text: '#ffe566' }),
+    cyan: Object.freeze({ bg: 0x17334b, border: 0x8ce4ff, text: '#eaf6ff' }),
+    dim: Object.freeze({ bg: 0x1a2338, border: 0x617dad, text: '#b9c6e4' }),
+});
 
 // Title, leaderboard, finish, branch-choice, and race-setup overlays. Mutable
 // HUD state (timer/level/death texts, buttons, touch controls, banners) stays
@@ -48,6 +61,11 @@ export class Overlays {
         this.selectNextButton = null;
         this.leaderboardTextObject = null;
         this.leaderboardBackdrop = null;
+        this.leaderboardExtras = [];
+        this.leaderboardTapZone = null;
+        this.leaderboardLayout = null;
+        this.leaderboardModel = null;
+        this.leaderboardPlainText = '';
         this.leaderboardTextContent = '';
         this.leaderboardVisible = false;
         this.leaderboardRequestId = 0;
@@ -73,6 +91,15 @@ export class Overlays {
     }
 
     layoutLeaderboard() {
+        if (!this.leaderboardVisible) {
+            return;
+        }
+        if (this.leaderboardModel) {
+            // Rich board: re-render so every row, medal, and pill follows
+            // the new metrics. Resize-only cost; input state is untouched.
+            this.renderLeaderboard(this.leaderboardModel, this.leaderboardPlainText);
+            return;
+        }
         if (!this.leaderboardTextObject) {
             return;
         }
@@ -107,11 +134,15 @@ export class Overlays {
         if (this.ui.text && this.ui.text.visible && this.ui.text.alpha > 0.2) {
             bottoms.push(this.ui.text.y + (this.ui.text.height || 0));
         }
-        return Math.max(...bottoms) + (metrics.isCompact ? 24 : 28);
+        return Math.max(...bottoms) + (metrics.isCompact ? 14 : 28);
     }
 
     drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets) {
         if (!this.leaderboardBackdrop) {
+            return;
+        }
+        if (this.leaderboardLayout) {
+            this.paintLeaderboardPanel();
             return;
         }
         this.leaderboardBackdrop.clear();
@@ -124,17 +155,82 @@ export class Overlays {
         );
         const panelX = centerX - panelWidth / 2;
         const panelY = top - 18;
-        this.leaderboardBackdrop.fillStyle(0x0b1020, 0.98);
-        if (typeof this.leaderboardBackdrop.fillRoundedRect === 'function') {
-            this.leaderboardBackdrop.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
+        this.fillLeaderboardPanel(panelX, panelY, panelWidth, panelHeight);
+    }
+
+    fillLeaderboardPanel(panelX, panelY, panelWidth, panelHeight) {
+        const backdrop = this.leaderboardBackdrop;
+        backdrop.fillStyle(0x0b1020, 0.98);
+        if (typeof backdrop.fillRoundedRect === 'function') {
+            backdrop.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
         } else {
-            this.leaderboardBackdrop.fillRect(panelX, panelY, panelWidth, panelHeight);
+            backdrop.fillRect(panelX, panelY, panelWidth, panelHeight);
         }
-        this.leaderboardBackdrop.lineStyle(2, 0xffe566, 0.35);
-        if (typeof this.leaderboardBackdrop.strokeRoundedRect === 'function') {
-            this.leaderboardBackdrop.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
+        backdrop.lineStyle(2, 0xffe566, 0.35);
+        if (typeof backdrop.strokeRoundedRect === 'function') {
+            backdrop.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 14);
         } else {
-            this.leaderboardBackdrop.strokeRect(panelX, panelY, panelWidth, panelHeight);
+            backdrop.strokeRect(panelX, panelY, panelWidth, panelHeight);
+        }
+    }
+
+    // Rich panel paint: dim, navy card, gold divider, zebra rows, the
+    // player's highlight band, the callout pill, and a medal disc per
+    // ranked row. Row geometry comes from renderLeaderboard's layout.
+    paintLeaderboardPanel() {
+        const layout = this.leaderboardLayout;
+        const backdrop = this.leaderboardBackdrop;
+        if (!layout || !backdrop) {
+            return;
+        }
+        backdrop.clear();
+        backdrop.fillStyle(0x000000, 0.55);
+        backdrop.fillRect(0, 0, layout.width, layout.height);
+        this.fillLeaderboardPanel(
+            layout.panelX,
+            layout.panelY,
+            layout.panelWidth,
+            layout.panelHeight
+        );
+        const innerX = layout.panelX + 8;
+        const innerWidth = layout.panelWidth - 16;
+        backdrop.fillStyle(0xffe566, 0.25);
+        backdrop.fillRect(layout.panelX + layout.pad, layout.dividerY, innerWidth - 8, 2);
+        for (let i = 0; i < layout.rows.length; i++) {
+            const row = layout.rows[i];
+            const rowY = row.y - 2;
+            const rowHeight = row.height + 4;
+            if (row.isPlayer) {
+                backdrop.fillStyle(0xffe566, 0.1);
+                backdrop.fillRect(innerX, rowY, innerWidth, rowHeight);
+                backdrop.fillStyle(0xffe566, 0.9);
+                backdrop.fillRect(innerX, rowY, 4, rowHeight);
+            } else if (i % 2 === 1) {
+                backdrop.fillStyle(0xffffff, 0.045);
+                backdrop.fillRect(innerX, rowY, innerWidth, rowHeight);
+            }
+        }
+        const pill = layout.callout;
+        const tone = CALLOUT_TONES[pill.tone] || CALLOUT_TONES.dim;
+        backdrop.fillStyle(tone.bg, 0.95);
+        if (typeof backdrop.fillRoundedRect === 'function') {
+            backdrop.fillRoundedRect(pill.x, pill.y, pill.width, pill.height, 10);
+        } else {
+            backdrop.fillRect(pill.x, pill.y, pill.width, pill.height);
+        }
+        backdrop.lineStyle(1.5, tone.border, 0.8);
+        if (typeof backdrop.strokeRoundedRect === 'function') {
+            backdrop.strokeRoundedRect(pill.x, pill.y, pill.width, pill.height, 10);
+        } else {
+            backdrop.strokeRect(pill.x, pill.y, pill.width, pill.height);
+        }
+        for (const row of layout.rows) {
+            const medal = medalForRank(row.rank);
+            const radius = Math.max(8, Math.min(11, row.height * 0.32));
+            backdrop.fillStyle(medal.fill, 1);
+            backdrop.fillCircle(layout.medalX, row.y + row.height / 2, radius);
+            backdrop.lineStyle(2, medal.stroke, 1);
+            backdrop.strokeCircle(layout.medalX, row.y + row.height / 2, radius);
         }
     }
 
@@ -196,113 +292,59 @@ export class Overlays {
     }
 
     hideLeaderboard() {
-        if (this.leaderboardTextObject) {
-            this.leaderboardTextObject.destroy();
-        }
+        this.clearLeaderboardObjects();
         if (this.leaderboardBackdrop) {
             this.leaderboardBackdrop.destroy();
         }
-        this.leaderboardTextObject = null;
         this.leaderboardBackdrop = null;
+        this.leaderboardModel = null;
+        this.leaderboardPlainText = '';
         this.leaderboardTextContent = '';
         this.leaderboardVisible = false;
         this.leaderboardRequestId = 0;
         this.ui.refreshLeaderboardButtonStyle();
+        this.setTitleButtonsVisible(true);
         this.setFinishVisible(this.scene.gameOver);
+    }
+
+    // Title-screen DOM buttons float above the canvas (z-index 30), so they
+    // would cover the board on the title page. Hidden while it is open.
+    setTitleButtonsVisible(visible) {
+        for (const button of [this.raceSetupButton, this.jumpToggleButton, this.difficultyButton]) {
+            if (button?.style) {
+                button.style.display = visible ? '' : 'none';
+            }
+        }
+    }
+
+    clearLeaderboardObjects() {
+        const extras = this.leaderboardExtras;
+        this.leaderboardExtras = [];
+        for (const extra of extras) {
+            extra?.destroy?.();
+        }
+        if (this.leaderboardTextObject && !extras.includes(this.leaderboardTextObject)) {
+            this.leaderboardTextObject.destroy?.();
+        }
+        this.leaderboardTextObject = null;
+        if (this.leaderboardTapZone) {
+            this.leaderboardTapZone.destroy?.();
+            this.leaderboardTapZone = null;
+        }
+        this.leaderboardLayout = null;
+    }
+
+    leaderboardFooterText() {
+        return 'Tap / ←/→: turn page · B: close';
     }
 
     displayLeaderboard() {
         this.ui.clearLevelBanner();
         this.setFinishVisible(false);
+        this.setTitleButtonsVisible(false);
         const requestId = Date.now() + Math.random();
         this.leaderboardRequestId = requestId;
-        const updateTextObject = (sectionsText) => {
-            if (this.ui.destroyed || this.leaderboardRequestId !== requestId) {
-                return;
-            }
-            const boardMode = this.scene.leaderboardManager?.mode === 'hard' ? 'HARD' : 'NORMAL';
-            const leaderboardText = `LEADERBOARD · ${boardMode}\n${sectionsText}`;
-            this.leaderboardTextContent = leaderboardText;
-            if (this.leaderboardTextObject) {
-                this.leaderboardTextObject.destroy();
-            }
-            if (!this.leaderboardBackdrop) {
-                this.leaderboardBackdrop = this.scene.add.graphics();
-                this.leaderboardBackdrop.setScrollFactor(0);
-                this.leaderboardBackdrop.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH - 1);
-                this.ui.markUi(this.leaderboardBackdrop);
-            }
-            const metrics = this.ui.getLayoutMetrics();
-            this.leaderboardTextObject = this.scene.add
-                .text(0, 0, leaderboardText, {
-                    fontSize: `${metrics.fonts.leaderboard}px`,
-                    fontFamily: HUD_FONT,
-                    fill: '#ffe566',
-                    align: 'center',
-                })
-                .setOrigin(0.5, 0)
-                .setScrollFactor(0);
-            this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
-            this.leaderboardTextObject.setInteractive({ useHandCursor: true });
-            this.leaderboardTextObject.on('pointerup', () => {
-                this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
-                this.displayLeaderboard();
-            });
-            this.ui.styleHudText(this.leaderboardTextObject, 4);
-            this.ui.markUi(this.leaderboardTextObject);
-            this.layoutLeaderboard();
-            this.leaderboardVisible = true;
-            this.ui.refreshLeaderboardButtonStyle();
-        };
-
-        const buildSections = (competition) => {
-            const level = this.leaderboardPage;
-            const metrics = this.ui.getLayoutMetrics();
-            const compactLandscape = metrics.isCompact && !metrics.isPortrait;
-            const visibleCount = metrics.isTiny ? 2 : metrics.isCompact ? 3 : 5;
-            const label = level === 0 ? 'FULL RUN · ZERO DEATHS' : `LEVEL ${level}`;
-            const remoteTimes = competition?.levels?.[level] || [];
-            const best = this.scene.leaderboardManager.getPersonalBest(level);
-            const localTimes =
-                level === 0
-                    ? best === null
-                        ? []
-                        : [{ time: best, name: this.scene.playerName }]
-                    : this.scene.leaderboardManager.readLeaderboard(level);
-            const allTime = remoteTimes.length ? remoteTimes : localTimes;
-            const allTimeLabel =
-                remoteTimes.length || !localTimes.length ? 'ALL TIME' : 'THIS BROWSER';
-            const weekly = competition?.weekly?.[level] || [];
-            const winners = competition?.hallOfFame?.[level] || [];
-            const format = (times) =>
-                times.length
-                    ? this.scene.leaderboardManager.formatTimes(times.slice(0, visibleCount))
-                    : 'No times yet';
-            const weeklyTimes = weekly.slice(0, visibleCount);
-            const past = winners.length
-                ? winners
-                      .slice(0, metrics.isCompact ? 1 : 2)
-                      .map(
-                          (winner) =>
-                              `${winner.week}: ${formatElapsedTime(winner.time)} - ${winner.name}`
-                      )
-                      .join('\n')
-                : 'No past winners yet';
-            const bestLine =
-                best === null ? 'Your best: none yet' : `Your best: ${formatElapsedTime(best)}`;
-            const footer = 'Tap: next page · LEADERBOARD: close';
-            const history =
-                !competition || (compactLandscape && this.scene.gameOver)
-                    ? ''
-                    : `\nPAST WINNERS\n${past}`;
-            const weekLabel = competition
-                ? `THIS WEEK (${competition.week || 'UTC'})`
-                : 'ONLINE BOARD UNAVAILABLE';
-            const weekTimes = competition ? format(weeklyTimes) : 'Try again later';
-            return `${label}\n${bestLine}\n${allTimeLabel}\n${format(allTime)}\n${weekLabel}\n${weekTimes}${history}\n${footer}`;
-        };
-
-        updateTextObject('Loading leaderboard…');
+        this.showLeaderboardMessage('Loading leaderboard…', requestId);
 
         this.scene.leaderboardManager
             .fetchCompetition()
@@ -310,18 +352,414 @@ export class Overlays {
                 if (this.leaderboardRequestId !== requestId) {
                     return;
                 }
-                const sectionsText = buildSections(competition);
-                updateTextObject(sectionsText);
+                const model = this.createLeaderboardModel(competition);
+                this.renderLeaderboard(
+                    model,
+                    formatLeaderboardPlainText(model, this.leaderboardFooterText())
+                );
             })
             .catch(() => {
                 if (this.leaderboardRequestId !== requestId) {
                     return;
                 }
-                const fallback = this.scene.storageAvailable
-                    ? buildSections(null)
-                    : 'Saved times unavailable (local storage disabled).';
-                updateTextObject(fallback);
+                if (!this.scene.storageAvailable) {
+                    this.showLeaderboardMessage(
+                        'Saved times unavailable (local storage disabled).',
+                        requestId
+                    );
+                    return;
+                }
+                const model = this.createLeaderboardModel(null);
+                this.renderLeaderboard(
+                    model,
+                    formatLeaderboardPlainText(model, this.leaderboardFooterText())
+                );
             });
+    }
+
+    showLeaderboardMessage(message, requestId) {
+        if (this.ui.destroyed || this.leaderboardRequestId !== requestId) {
+            return;
+        }
+        const boardMode = this.scene.leaderboardManager?.mode === 'hard' ? 'HARD' : 'NORMAL';
+        this.leaderboardTextContent = `LEADERBOARD · ${boardMode}\n${message}`;
+        this.clearLeaderboardObjects();
+        this.leaderboardModel = null;
+        if (!this.leaderboardBackdrop) {
+            this.leaderboardBackdrop = this.scene.add.graphics();
+            this.leaderboardBackdrop.setScrollFactor(0);
+            this.leaderboardBackdrop.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH - 1);
+            this.ui.markUi(this.leaderboardBackdrop);
+        }
+        const metrics = this.ui.getLayoutMetrics();
+        this.leaderboardTextObject = this.scene.add
+            .text(0, 0, this.leaderboardTextContent, {
+                fontSize: `${metrics.fonts.leaderboard}px`,
+                fontFamily: HUD_FONT,
+                fill: '#ffe566',
+                align: 'center',
+            })
+            .setOrigin(0.5, 0)
+            .setScrollFactor(0);
+        this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
+        this.leaderboardTextObject.setInteractive({ useHandCursor: true });
+        this.leaderboardTextObject.on('pointerup', () => {
+            this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
+            this.displayLeaderboard();
+        });
+        this.ui.styleHudText(this.leaderboardTextObject, 4);
+        this.ui.markUi(this.leaderboardTextObject);
+        this.leaderboardVisible = true;
+        this.layoutLeaderboard();
+        this.ui.refreshLeaderboardButtonStyle();
+    }
+
+    createLeaderboardModel(competition) {
+        const level = this.leaderboardPage;
+        const metrics = this.ui.getLayoutMetrics();
+        const compactLandscape = metrics.isCompact && !metrics.isPortrait;
+        // Short landscape fits two rows per board; portrait phones have
+        // the height for three.
+        const visibleCount = metrics.isTiny
+            ? 2
+            : metrics.isCompact
+              ? metrics.isPortrait
+                  ? 3
+                  : 2
+              : 5;
+        const best = this.scene.leaderboardManager.getPersonalBest(level);
+        const localTimes =
+            level === 0
+                ? best === null
+                    ? []
+                    : [{ time: best, name: this.scene.playerName }]
+                : this.scene.leaderboardManager.readLeaderboard(level);
+        return buildLeaderboardModel({
+            level,
+            best,
+            playerName: this.scene.playerName,
+            remoteTimes: competition?.levels?.[level] || [],
+            localTimes,
+            weekly: competition?.weekly?.[level] || [],
+            winners: competition?.hallOfFame?.[level] || [],
+            week: competition?.week || null,
+            online: Boolean(competition),
+            visibleCount,
+            pastCount: metrics.isCompact ? 1 : 2,
+            hidePast: !competition || (compactLandscape && this.scene.gameOver),
+        });
+    }
+
+    // Rich board: gold header, mode badge, callout pill, medal rows with
+    // gaps, and a control footer. Row geometry is measured after each text
+    // lands so zebra bands, medals, and the pill always line up, even
+    // when long names wrap on tiny screens.
+    renderLeaderboard(model, plainText) {
+        if (this.ui.destroyed) {
+            return;
+        }
+        this.clearLeaderboardObjects();
+        this.leaderboardModel = model;
+        this.leaderboardPlainText = plainText;
+        const boardMode = this.scene.leaderboardManager?.mode === 'hard' ? 'HARD' : 'NORMAL';
+        this.leaderboardTextContent = `LEADERBOARD · ${boardMode}\n${plainText}`;
+        if (!this.leaderboardBackdrop) {
+            this.leaderboardBackdrop = this.scene.add.graphics();
+            this.leaderboardBackdrop.setScrollFactor(0);
+            this.leaderboardBackdrop.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH - 1);
+            this.ui.markUi(this.leaderboardBackdrop);
+        }
+        this.renderLeaderboardCard(model, boardMode);
+    }
+
+    // Two-pass card: short screens drop past winners rather than pushing
+    // the footer off the panel.
+    renderLeaderboardCard(model, boardMode) {
+        let ctx = this.createLeaderboardContext();
+        this.renderLeaderboardHead(ctx, model, boardMode);
+        this.renderLeaderboardBoards(ctx, model);
+        this.renderLeaderboardPast(ctx, model);
+        if (!model.hidePast && ctx.y - ctx.panelY + ctx.pad > ctx.maxPanelH) {
+            this.clearLeaderboardObjects();
+            ctx = this.createLeaderboardContext();
+            const slim = { ...model, hidePast: true };
+            this.renderLeaderboardHead(ctx, slim, boardMode);
+            this.renderLeaderboardBoards(ctx, slim);
+            this.renderLeaderboardPast(ctx, slim);
+        }
+        this.finishLeaderboardRender(ctx);
+    }
+
+    createLeaderboardContext() {
+        const metrics = this.ui.getLayoutMetrics();
+        const insets = this.ui.getSafeAreaInsets();
+        const availableWidth = Math.max(180, metrics.innerWidth - (metrics.isCompact ? 24 : 48));
+        const panelWidth = Math.min(availableWidth, 520);
+        const centerX = insets.left + metrics.innerWidth / 2;
+        const top = this.leaderboardTop(metrics, insets);
+        const pad = metrics.isCompact ? 10 : 14;
+        const rowSize = metrics.fonts.leaderboard;
+        const contentWidth = panelWidth - pad * 2;
+        const panelY = top - pad;
+        return {
+            depth: GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH,
+            metrics,
+            panelWidth,
+            centerX,
+            pad,
+            gap: metrics.isCompact ? 3 : 8,
+            rowGap: metrics.isCompact ? 0 : 1,
+            maxPanelH: Math.max(200, metrics.height - panelY - insets.bottom - 8),
+            panelX: centerX - panelWidth / 2,
+            panelY,
+            rowSize,
+            headerSize: Math.min(rowSize + 6, 26),
+            smallSize: Math.max(12, rowSize - 2),
+            tinySize: Math.max(10, rowSize - 4),
+            contentWidth,
+            rowWrap: Math.max(140, contentWidth - 60),
+            rowX: centerX + 14,
+            medalX: centerX - panelWidth / 2 + 30,
+            rows: [],
+            callout: null,
+            dividerY: top,
+            footer: null,
+            y: top,
+        };
+    }
+
+    addLeaderboardLine(
+        ctx,
+        content,
+        {
+            x = ctx.centerX,
+            size = ctx.rowSize,
+            color = LEADERBOARD_COLORS.row,
+            wrap = ctx.contentWidth,
+        } = {}
+    ) {
+        const text = this.scene.add.text(x, ctx.y, content, {
+            fontSize: `${size}px`,
+            fontFamily: HUD_FONT,
+            fill: color,
+            align: 'center',
+        });
+        text.setOrigin(0.5, 0);
+        text.setScrollFactor(0);
+        text.setDepth(ctx.depth);
+        if (wrap) {
+            text.setWordWrapWidth(wrap, true);
+        }
+        this.ui.styleHudText(text, 3);
+        this.ui.markUi(text);
+        this.leaderboardExtras.push(text);
+        ctx.y += text.height;
+        return text;
+    }
+
+    renderLeaderboardHead(ctx, model, boardMode) {
+        const header = this.addLeaderboardLine(ctx, `LEADERBOARD · ${boardMode}`, {
+            size: ctx.headerSize,
+            color: LEADERBOARD_COLORS.header,
+        });
+        this.leaderboardTextObject = header;
+        ctx.y += 2;
+        const sub = this.addLeaderboardLine(
+            ctx,
+            `${model.label} · ${this.leaderboardPage + 1}/${this.leaderboardPageCount()}`,
+            { size: ctx.smallSize, color: LEADERBOARD_COLORS.dim }
+        );
+        ctx.y += ctx.gap;
+        ctx.dividerY = ctx.y;
+        ctx.y += ctx.gap;
+
+        // Badge rides the short level line so it never covers the header
+        // on narrow panels.
+        const hard = boardMode === 'HARD';
+        const badge = this.scene.add.text(
+            ctx.panelX + ctx.panelWidth - ctx.pad,
+            sub.y - 2,
+            boardMode,
+            {
+                fontSize: `${ctx.tinySize}px`,
+                fontFamily: HUD_FONT,
+                fill: hard ? '#ff8a7a' : '#8ce4ff',
+                backgroundColor: hard ? '#5a1f2c' : '#17334b',
+                align: 'center',
+            }
+        );
+        badge.setOrigin(1, 0).setScrollFactor(0).setDepth(ctx.depth);
+        badge.setPadding(8, 3, 8, 3);
+        this.ui.styleHudText(badge, 2);
+        this.ui.markUi(badge);
+        this.leaderboardExtras.push(badge);
+
+        const tone = CALLOUT_TONES[model.callout.tone] || CALLOUT_TONES.dim;
+        const callout = this.addLeaderboardLine(ctx, model.callout.text, {
+            size: ctx.smallSize,
+            color: tone.text,
+            wrap: ctx.contentWidth - 28,
+        });
+        ctx.callout = {
+            x: ctx.centerX - callout.width / 2 - 12,
+            y: callout.y - 5,
+            width: callout.width + 24,
+            height: callout.height + 10,
+            tone: model.callout.tone,
+        };
+        ctx.y += ctx.gap;
+
+        this.addLeaderboardLine(ctx, model.bestText, {
+            size: ctx.smallSize,
+            color: LEADERBOARD_COLORS.best,
+        });
+        ctx.y += ctx.gap;
+    }
+
+    renderLeaderboardBoards(ctx, model) {
+        const sections = [
+            {
+                title: model.allTimeLabel,
+                color: LEADERBOARD_COLORS.allTimeTitle,
+                rows: model.allTimeRows,
+            },
+            {
+                title: model.online
+                    ? `THIS WEEK (${model.week || 'UTC'})`
+                    : 'ONLINE BOARD UNAVAILABLE',
+                color: LEADERBOARD_COLORS.weeklyTitle,
+                rows: model.online ? model.weeklyRows : null,
+            },
+        ];
+        for (const section of sections) {
+            this.addLeaderboardLine(ctx, section.title, {
+                size: ctx.smallSize,
+                color: section.color,
+            });
+            ctx.y += 2;
+            if (!section.rows || section.rows.length === 0) {
+                this.addLeaderboardLine(ctx, model.online ? 'No times yet' : 'Try again later', {
+                    size: ctx.smallSize,
+                    color: LEADERBOARD_COLORS.dim,
+                });
+            } else {
+                for (const row of section.rows) {
+                    this.renderLeaderboardRow(ctx, row);
+                }
+            }
+            ctx.y += ctx.gap;
+        }
+    }
+
+    renderLeaderboardRow(ctx, row) {
+        const line =
+            `${row.timeText} · ${row.name}${row.deathText} · ${row.gapText}` +
+            `${row.isPlayer ? ' · YOU' : ''}`;
+        const rowTop = ctx.y;
+        this.addLeaderboardLine(ctx, line, {
+            x: ctx.rowX,
+            size: ctx.rowSize,
+            color: row.isPlayer ? LEADERBOARD_COLORS.playerRow : LEADERBOARD_COLORS.row,
+            wrap: ctx.rowWrap,
+        });
+        ctx.rows.push({
+            y: rowTop,
+            height: ctx.y - rowTop,
+            rank: row.rank,
+            isPlayer: row.isPlayer,
+        });
+        ctx.y += ctx.rowGap;
+    }
+
+    renderLeaderboardPast(ctx, model) {
+        if (model.hidePast) {
+            return;
+        }
+        this.addLeaderboardLine(ctx, 'PAST WINNERS', {
+            size: ctx.smallSize,
+            color: LEADERBOARD_COLORS.pastTitle,
+        });
+        ctx.y += 2;
+        if (model.past.length === 0) {
+            this.addLeaderboardLine(ctx, 'No past winners yet', {
+                size: ctx.smallSize,
+                color: LEADERBOARD_COLORS.dim,
+            });
+        } else {
+            for (const winner of model.past) {
+                this.addLeaderboardLine(
+                    ctx,
+                    `${winner.week}: ${winner.timeText} - ${winner.name}`,
+                    {
+                        size: ctx.smallSize,
+                        color: LEADERBOARD_COLORS.row,
+                    }
+                );
+                ctx.y += ctx.rowGap;
+            }
+        }
+        ctx.y += ctx.gap;
+    }
+
+    finishLeaderboardRender(ctx) {
+        ctx.footer = this.addLeaderboardLine(ctx, this.leaderboardFooterText(), {
+            size: ctx.tinySize,
+            color: LEADERBOARD_COLORS.footer,
+        });
+
+        this.leaderboardLayout = {
+            width: ctx.metrics.width,
+            height: ctx.metrics.height,
+            panelX: ctx.panelX,
+            panelY: ctx.panelY,
+            panelWidth: ctx.panelWidth,
+            panelHeight: ctx.y - ctx.panelY + ctx.pad,
+            pad: ctx.pad,
+            dividerY: ctx.dividerY,
+            callout: ctx.callout,
+            rows: ctx.rows,
+            medalX: ctx.medalX,
+        };
+
+        for (const row of ctx.rows) {
+            const medal = medalForRank(row.rank);
+            const label = this.scene.add.text(ctx.medalX, row.y + row.height / 2, `${row.rank}`, {
+                fontSize: '11px',
+                fontFamily: HUD_FONT,
+                fill: medal.label,
+                align: 'center',
+            });
+            label.setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(ctx.depth);
+            this.ui.markUi(label);
+            this.leaderboardExtras.push(label);
+        }
+
+        this.paintLeaderboardPanel();
+
+        const nextPage = () => {
+            this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
+            this.displayLeaderboard();
+        };
+        if (typeof this.scene.add.zone === 'function') {
+            const zone = this.scene.add.zone(
+                ctx.centerX,
+                ctx.panelY + this.leaderboardLayout.panelHeight / 2,
+                ctx.panelWidth,
+                this.leaderboardLayout.panelHeight
+            );
+            zone.setScrollFactor(0);
+            zone.setDepth(ctx.depth);
+            zone.setInteractive({ useHandCursor: true });
+            zone.on('pointerup', nextPage);
+            this.ui.markUi(zone);
+            this.leaderboardTapZone = zone;
+        } else {
+            ctx.footer.setInteractive({ useHandCursor: true });
+            ctx.footer.on('pointerup', nextPage);
+        }
+
+        this.leaderboardVisible = true;
+        this.ui.refreshLeaderboardButtonStyle();
     }
 
     leaderboardPageCount() {

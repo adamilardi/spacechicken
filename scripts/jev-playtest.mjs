@@ -9,7 +9,8 @@
  *   JEV_RUNS=5 LEVEL=8 npm run jev:playtest  (a few seeded runs, aggregate report)
  *   JEV_RECORD_DEMOS=1 LEVEL=1 npm run jev:playtest  (raw full-obs JSONL for rl)
  *
- * The API key is read from TYPESAFE_API_KEY or typesafekey and stays in Node.
+ * The API key is read from TYPESAFE_API_KEY, JEV_API_KEY, typesafekey,
+ * or jev_api_key and stays in Node.
  */
 import { choice, TypeSafeClient } from '@typesafe-ai/sdk';
 import { chromium } from 'playwright';
@@ -43,6 +44,9 @@ const DEMO_OUT = process.env.JEV_DEMO_OUT || path.join(__dirname, '..', 'rl', 'd
 const CACHED_CHROME =
     process.env.PLAYWRIGHT_CHROME ||
     '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
+const BOT_WIDTH = Math.max(320, Number(process.env.BOT_WIDTH) || 1280);
+const BOT_HEIGHT = Math.max(200, Number(process.env.BOT_HEIGHT) || 720);
+const RENDERER = process.env.RENDERER || '';
 
 const ACTION_CRITERIA = Object.freeze({
     wait: 'Brake horizontal movement. Avoid while airborne over a gap; use only when movement is unsafe.',
@@ -79,7 +83,9 @@ function safeError(error) {
 }
 
 export function readTypeSafeApiKey(env = process.env) {
-    return String(env.TYPESAFE_API_KEY || env.typesafekey || '').trim();
+    return String(
+        env.TYPESAFE_API_KEY || env.JEV_API_KEY || env.typesafekey || env.jev_api_key || ''
+    ).trim();
 }
 
 export const JEV_MAX_SEED = 2_147_483_647;
@@ -156,6 +162,77 @@ function shootableAhead(observation, direction) {
     );
 }
 
+// Horizontal offset of the nearest live boarder near the crown pad, or
+// null. The shield breaks when the crown-platform guards die and guards
+// stay on deck, so only pad boarders are worth hunting; stragglers far
+// behind are ignored and null means push on to release more.
+function nearestLiveBoarderDx(observation, objective) {
+    const hazards = observation.nearby?.hazards || [];
+    let best = null;
+    let bestDist = Infinity;
+    for (const item of hazards) {
+        if (!item || item.type !== 'boarder' || item.active === false) continue;
+        if (!Number.isFinite(item.dx) || !Number.isFinite(item.dy)) continue;
+        if (objective == null || !Number.isFinite(objective.dx)) continue;
+        if (Math.abs(item.dx - objective.dx) >= 700) continue;
+        const dist = Math.hypot(item.dx, item.dy);
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = item.dx;
+        }
+    }
+    return best;
+}
+
+function airRecoveryAction(observation, direction) {
+    const player = observation.player;
+    const navigation = observation.navigation || {};
+    const actions = observation.availableActions || [];
+    if (player.grounded !== false) return null;
+    if ((player.vy ?? 0) <= 60) return null;
+    if ((player.jumpsRemaining ?? 0) <= 0) return null;
+    if (navigation.supportPlatformId != null) return null;
+    const recovery = `jump_${direction}`;
+    return actions.includes(recovery) ? recovery : null;
+}
+
+// Crown almost straight overhead and unshielded: the grab is a jump,
+// never a sideways shuffle. Forces straight up first: a sideways jump
+// drifts past under the crown and oscillates, and the fallback would
+// rather fire at a nearby boarder than leave the ground.
+export function overheadGrabAction(observation) {
+    const objective = observation.objective;
+    if (!objective || !Number.isFinite(objective.dx) || !Number.isFinite(objective.dy)) {
+        return null;
+    }
+    if (objective.shielded === true) return null;
+    if (Math.abs(objective.dx) >= 60 || objective.dy >= -30 || objective.dy < -320) {
+        return null;
+    }
+    const actions = observation.availableActions || [];
+    if (actions.includes('jump')) return 'jump';
+    const side = objective.dx < 0 ? 'jump_left' : 'jump_right';
+    if (actions.includes(side)) return side;
+    return fallbackAction(observation);
+}
+
+function huntDirection(observation, objective) {
+    const goalward = objective.dx < 0 ? 'left' : 'right';
+    // Shielded crown with no in-lane target, near the pad only: hunt the
+    // nearest live boarder instead of camping. The shield stays up all
+    // level, so mid-run hunts would drag backward into cleared waves
+    // instead of releasing the next one.
+    if (
+        objective.shielded !== true ||
+        shootableSides(observation).length > 0 ||
+        Math.abs(objective.dx) >= 1500
+    ) {
+        return goalward;
+    }
+    const huntDx = nearestLiveBoarderDx(observation, objective);
+    return huntDx == null ? goalward : huntDx < 0 ? 'left' : 'right';
+}
+
 export function fallbackAction(observation) {
     const actions = observation.availableActions || [];
     if (actions.length === 1) return actions[0];
@@ -163,7 +240,7 @@ export function fallbackAction(observation) {
     const objective = observation.objective;
     if (!player || !objective || !Number.isFinite(objective.dx)) return 'wait';
 
-    const direction = objective.dx < 0 ? 'left' : 'right';
+    const direction = huntDirection(observation, objective);
     // Fire only at boarders on our facing side with a hot gun; turning to
     // face a target is a move action, and a cooling gun wastes the slot.
     if (observation.combat?.ready !== false) {
@@ -177,13 +254,18 @@ export function fallbackAction(observation) {
         }
     }
     const navigation = observation.navigation || {};
+    const huntSign = direction === 'left' ? -1 : 1;
+    // Airborne with no support and jumps to spend: recover at once
+    // instead of drifting past the landing.
+    const recovery = airRecoveryAction(observation, direction);
+    if (recovery) return recovery;
     const forwardHazard = (observation.nearby?.hazards || [])
         .concat(observation.nearby?.bombs || [])
         .some(
             (item) =>
                 item.active &&
-                item.dx * Math.sign(objective.dx || 1) > 0 &&
-                item.dx * Math.sign(objective.dx || 1) < 100 &&
+                item.dx * huntSign > 0 &&
+                item.dx * huntSign < 100 &&
                 Math.abs(item.dy) < 80
         );
     const shouldJump =
@@ -226,8 +308,11 @@ export async function chooseJevAction(client, observation, recentActions = []) {
                             'Use velocity, direction, and path endpoints for moving platforms, drones, and rovers.',
                             'For lasers and cosmic rays, cooldown is safe, warning means leave the column, and active means do not cross; use timeUntilPhaseChangeMs.',
                             'Jump to cross a gap, reach a higher landing window, or avoid an immediate threat.',
+                            'When airborne and falling with no support below and jumpsRemaining above zero, spend a jump toward the objective at once instead of drifting; never fall past a landing you could have reached.',
+                            'When the crown floats almost straight above (|dx| under 60, dy negative), stop shuffling sideways and jump for it: pick jump, or jump toward its side. A grounded shuffle under an overhead crown never collects it.',
                             'A hazard with bonkable true grants a boost jump when stomped from above. Touching its side still fails the run.',
                             'A hazard with type boarder (cyan chest ring, with wave and chasing flags) dies to phaser bolts; touching one fails the run. Bolts leave horizontally from player.facing with ~820px range, so fire toward the facing side only when combat.ready is true and a boarder is on that side and roughly level.',
+                            'When observation.objective.shielded is true the crown cannot be collected: the shield breaks only when the crown-platform guards die, and guards stay on the pad deck. Within 1500px of it (|dx| < 1500), hunt live hazards with type boarder whose dx sits within 700px of objective.dx until the shield drops; never wait beside a shielded crown and never U-turn for stragglers far behind. Farther out, keep pushing toward the crown to release the next wave instead of chasing cleared zones.',
                             'Gold-capped bonk enemies cannot be shot. Stomp them from above exactly when stompableNow is true: falling with your feet above the cap.',
                             'navigation.nearestThreat tracks the closest live danger in any direction, including behind and above; immediateThreat only covers the path ahead.',
                             'physics differs per level: gravityY, jumpVelocityY, runSpeedX and maxJumps set how far a leap carries. Heavy-gravity levels need earlier jumps.',
@@ -249,6 +334,14 @@ export async function chooseJevAction(client, observation, recentActions = []) {
     } else if (action === 'wait' && answer.confidence < 0.35 && observation.phase === 'playing') {
         action = fallbackAction(observation);
         source = 'policy_low_confidence_wait';
+    } else if (!action.startsWith('jump') && observation.phase === 'playing') {
+        // Overhead crown: sideways shuffles never collect it. Override
+        // with the fallback grab (a jump when fuel allows).
+        const grab = overheadGrabAction(observation);
+        if (grab) {
+            action = grab;
+            source = 'policy_overhead_grab';
+        }
     }
     return {
         action,
@@ -316,6 +409,9 @@ async function preparePage(page, baseURL, seed) {
     url.searchParams.set('level', String(LEVEL));
     url.searchParams.set('seed', String(seed));
     url.searchParams.set('timeScale', String(TIME_SCALE));
+    if (RENDERER) {
+        url.searchParams.set('renderer', RENDERER);
+    }
     const response = await page.goto(url.toString(), { waitUntil: 'load', timeout: 45_000 });
     if (!response || !response.ok()) {
         throw new Error(`Failed to load game: ${response && response.status()}`);
@@ -478,7 +574,9 @@ function writeRawDemo(rawSteps, resultRest, seed, when) {
 
 async function runValidationRun(client, browser, gameServer, runIndex) {
     const seed = seedForRun(SEED, runIndex);
-    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const context = await browser.newContext({
+        viewport: { width: BOT_WIDTH, height: BOT_HEIGHT },
+    });
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(String(error.message || error)));
@@ -541,7 +639,7 @@ async function main() {
     const apiKey = readTypeSafeApiKey();
     if (!apiKey) {
         throw new Error(
-            'Set TYPESAFE_API_KEY or typesafekey in the environment. The key stays in Node and is not sent to the page.'
+            'Set TYPESAFE_API_KEY, JEV_API_KEY, typesafekey, or jev_api_key in the environment. The key stays in Node and is not sent to the page.'
         );
     }
     fs.mkdirSync(OUT_DIR, { recursive: true });

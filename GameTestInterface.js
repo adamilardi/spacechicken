@@ -310,6 +310,7 @@ export function createTestObservation(snapshot, seed = null) {
               dx: round(crown.x - player.x),
               dy: round(crown.y - player.y),
               distance: round(Math.hypot(crown.x - player.x, crown.y - player.y)),
+              shielded: crown.shielded === true,
           }
         : { kind: 'collect_crown', unavailable: true };
     observation.world = {

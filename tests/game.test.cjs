@@ -151,7 +151,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         harborBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8]
     );
     assert.ok(harborBoarders.every((hazard) => hazard.key === 'skitterling'));
     assert.ok(
@@ -165,7 +165,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         foundryBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8]
     );
     assert.ok(foundryBoarders.every((hazard) => hazard.key === 'gnawer'));
     assert.ok(
@@ -180,7 +180,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         skyhookBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8]
     );
     assert.ok(skyhookBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -280,7 +280,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         colonyBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8]
     );
     assert.ok(
         new LevelConfig(8).platforms.static.some((platform) => platform.key === 'colonyDeck')
@@ -291,7 +291,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         hiveBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7]
     );
     assert.ok(hiveBoarders.every((hazard) => hazard.key === 'gnawer'));
     assert.ok(
@@ -312,7 +312,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         spireBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7]
     );
     assert.ok(spireBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -328,7 +328,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         bastionBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6]
     );
     assert.ok(bastionBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -341,7 +341,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         wombBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7]
     );
     assert.ok(wombBoarders.every((hazard) => hazard.key === 'gnawer'));
     assert.ok(
@@ -835,17 +835,23 @@ test('checkpoints advance on grounded crossings and never downgrade', async () =
     assert.deepEqual(scene.currentRespawnStart(2), { x: 52, y: 20 });
 });
 
-test('long contra levels expose three ordered checkpoints', async () => {
+test('long contra levels expose four ordered checkpoints', async () => {
     const { LevelConfig } = await importModule('LevelConfig.js');
-    for (const level of [9, 10, 11, 12, 13, 14, 15, 16]) {
+    for (const level of [8, 9, 10, 11, 12, 13, 14, 15, 16]) {
         const config = new LevelConfig(level);
-        assert.equal(config.checkpoints.length, 3);
-        const [first, second, third] = config.checkpoints;
+        const points = config.checkpoints;
+        assert.ok(points.length >= 4, `level ${level} keeps checkpoint coverage`);
+        for (let i = 0; i < points.length; i++) {
+            assert.ok(points[i].y < config.killZoneY, `level ${level} checkpoint clears death`);
+            if (i === 0) {
+                assert.ok(points[i].x > 0, `level ${level} checkpoints start inside the world`);
+            } else {
+                assert.ok(points[i - 1].x < points[i].x, `level ${level} checkpoints run in order`);
+            }
+        }
         assert.ok(
-            first.x > 0 && first.x < second.x && second.x < third.x && third.x < config.world.width
-        );
-        assert.ok(
-            first.y < config.killZoneY && second.y < config.killZoneY && third.y < config.killZoneY
+            points[points.length - 1].x < config.world.width,
+            `level ${level} checkpoints end inside the world`
         );
     }
     assert.deepEqual(new LevelConfig(1).checkpoints, []);
@@ -3152,15 +3158,29 @@ test('the Jev playtest keeps the API key in Node and walks toward the crown', as
     const { fallbackAction, readTypeSafeApiKey } = await importModule('scripts/jev-playtest.mjs');
     const savedOfficial = process.env.TYPESAFE_API_KEY;
     const savedAlias = process.env.typesafekey;
+    const savedJev = process.env.JEV_API_KEY;
+    const savedJevLower = process.env.jev_api_key;
     delete process.env.TYPESAFE_API_KEY;
+    delete process.env.JEV_API_KEY;
+    delete process.env.jev_api_key;
     process.env.typesafekey = 'alias-key';
     assert.equal(readTypeSafeApiKey(), 'alias-key');
+    process.env.jev_api_key = 'jev-key';
+    assert.equal(readTypeSafeApiKey(), 'alias-key');
+    delete process.env.typesafekey;
+    assert.equal(readTypeSafeApiKey(), 'jev-key');
+    process.env.JEV_API_KEY = 'JEV-key';
+    assert.equal(readTypeSafeApiKey(), 'JEV-key');
     process.env.TYPESAFE_API_KEY = 'official-key';
     assert.equal(readTypeSafeApiKey(), 'official-key');
     if (savedOfficial === undefined) delete process.env.TYPESAFE_API_KEY;
     else process.env.TYPESAFE_API_KEY = savedOfficial;
     if (savedAlias === undefined) delete process.env.typesafekey;
     else process.env.typesafekey = savedAlias;
+    if (savedJev === undefined) delete process.env.JEV_API_KEY;
+    else process.env.JEV_API_KEY = savedJev;
+    if (savedJevLower === undefined) delete process.env.jev_api_key;
+    else process.env.jev_api_key = savedJevLower;
 
     const action = fallbackAction({
         availableActions: ['wait', 'move_right', 'jump_right'],
@@ -3198,6 +3218,108 @@ test('the Jev fallback fires at a level boarder instead of walking into it', asy
         },
     });
     assert.equal(noGun, 'move_right');
+});
+
+test('the Jev fallback hunts pad guards off-lane when the crown is shielded', async () => {
+    const { fallbackAction } = await importModule('scripts/jev-playtest.mjs');
+    const action = fallbackAction({
+        availableActions: [
+            'wait',
+            'move_left',
+            'move_right',
+            'fire_left',
+            'fire_right',
+            'jump_left',
+            'jump_right',
+        ],
+        canShoot: true,
+        combat: { ready: true },
+        player: { grounded: true, facing: 'right' },
+        objective: { dx: 420, dy: 8, shielded: true },
+        navigation: {},
+        nearby: {
+            hazards: [{ type: 'boarder', active: true, dx: -200, dy: 200 }],
+            bombs: [],
+        },
+    });
+    assert.equal(action, 'move_left');
+    // Stragglers far from the pad are not the guard: push crownward.
+    const straggler = fallbackAction({
+        availableActions: [
+            'wait',
+            'move_left',
+            'move_right',
+            'fire_left',
+            'fire_right',
+            'jump_left',
+            'jump_right',
+        ],
+        canShoot: true,
+        combat: { ready: true },
+        player: { grounded: true, facing: 'right' },
+        objective: { dx: 420, dy: 8, shielded: true },
+        navigation: {},
+        nearby: {
+            hazards: [{ type: 'boarder', active: true, dx: -300, dy: 200 }],
+            bombs: [],
+        },
+    });
+    assert.equal(straggler, 'move_right');
+    const push = fallbackAction({
+        availableActions: ['wait', 'move_left', 'move_right', 'jump_left', 'jump_right'],
+        canShoot: true,
+        combat: { ready: true },
+        player: { grounded: true, facing: 'right' },
+        objective: { dx: 4200, dy: 8, shielded: true },
+        navigation: {},
+        nearby: {
+            hazards: [{ type: 'boarder', active: true, dx: -200, dy: 200 }],
+            bombs: [],
+        },
+    });
+    assert.equal(push, 'move_right');
+});
+
+test('the Jev fallback spends an air jump instead of drifting past landings', async () => {
+    const { fallbackAction } = await importModule('scripts/jev-playtest.mjs');
+    const action = fallbackAction({
+        availableActions: ['wait', 'move_right', 'jump', 'jump_left', 'jump_right'],
+        player: { grounded: false, vy: 170, jumpsRemaining: 2, facing: 'right' },
+        objective: { dx: 485, dy: -52 },
+        navigation: { supportPlatformId: null },
+        nearby: { hazards: [], bombs: [] },
+    });
+    assert.equal(action, 'jump_right');
+});
+
+test('the Jev overhead grab jumps for crowns straight above', async () => {
+    const { overheadGrabAction } = await importModule('scripts/jev-playtest.mjs');
+    const base = {
+        availableActions: ['wait', 'move_left', 'move_right', 'jump', 'jump_left', 'jump_right'],
+        canShoot: false,
+        combat: { ready: false },
+        player: { grounded: true, vy: 0, jumpsRemaining: 2, facing: 'right' },
+        navigation: {},
+        nearby: { hazards: [], bombs: [] },
+    };
+    assert.equal(overheadGrabAction({ ...base, objective: { dx: -5, dy: -204 } }), 'jump');
+    assert.equal(overheadGrabAction({ ...base, objective: { dx: 400, dy: -52 } }), null);
+    assert.equal(
+        overheadGrabAction({ ...base, objective: { dx: -5, dy: -204, shielded: true } }),
+        null
+    );
+    // A nearby boarder must not turn the grab into a sideways firefight:
+    // the jump wins even when a shot is available.
+    const wary = overheadGrabAction({
+        ...base,
+        availableActions: [...base.availableActions, 'fire_left', 'fire_right'],
+        canShoot: true,
+        combat: { ready: true },
+        player: { grounded: true, vy: 0, jumpsRemaining: 2, facing: 'right' },
+        nearby: { hazards: [{ type: 'boarder', active: true, dx: 120, dy: 10 }], bombs: [] },
+        objective: { dx: 8, dy: -204 },
+    });
+    assert.equal(wary, 'jump');
 });
 
 test('the Jev validation offsets seeds per run and summarizes them', async () => {
@@ -3362,8 +3484,8 @@ test('rescue bonus and temp-gun helpers follow the arcade rules', async () => {
 test('contra levels expose rescues, pods, and no branch by default', async () => {
     const { LevelConfig } = await importModule('LevelConfig.js');
     const eight = new LevelConfig(8);
-    assert.equal(eight.rescues.length, 2);
-    assert.equal(eight.pods.length, 4);
+    assert.equal(eight.rescues.length, 3);
+    assert.equal(eight.pods.length, 5);
     assert.equal(eight.pods[0].gun, 'piercer');
     assert.equal(eight.branch, null);
     assert.equal(new LevelConfig(1).rescues.length, 0);
@@ -3425,15 +3547,15 @@ test('iron vault branch leaves the womb and rejoins the foundry', async () => {
     assert.deepEqual(womb.branch, [13, 16]);
     assert.match(womb.branchInstructions, /IRON VAULT/);
     const vault = new LevelConfig(16);
-    assert.equal(vault.rescues.length, 2);
-    assert.equal(vault.pods.length, 4);
+    assert.equal(vault.rescues.length, 3);
+    assert.equal(vault.pods.length, 5);
     assert.equal(vault.pods[0].gun, 'comet');
     assert.equal(vault.crownShield, true);
     assert.deepEqual(
         vault.hazards.dynamic
             .filter((hazard) => hazard.type === 'boarder')
             .map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6]
+        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6, 6, 7, 7]
     );
     assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
     assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'laser'));

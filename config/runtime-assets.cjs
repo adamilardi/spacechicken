@@ -48,6 +48,7 @@ const rootFiles = Object.freeze([
     'UIManager.js',
     'Overlays.js',
     'LeaderboardManager.js',
+    'LeaderboardPresentation.js',
     'SpriteFactory.js',
     'sprites/chicken.js',
     'sprites/chrome.js',

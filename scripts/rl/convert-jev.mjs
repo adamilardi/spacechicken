@@ -148,7 +148,12 @@ function convertRaw(rawPath) {
             action: index,
             actionName: row.action,
             reward: Number.isFinite(row.reward) ? row.reward : 0,
-            weight: 1,
+            weight: sampleWeight({
+                confidence: Number.isFinite(Number(row.meta?.confidence))
+                    ? Number(row.meta.confidence)
+                    : 1,
+                source: row.meta?.source,
+            }),
             partial: false,
             mask: availableMask(row.obs?.availableActions),
             meta: row.meta ?? null,

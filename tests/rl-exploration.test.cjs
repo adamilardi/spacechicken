@@ -32,6 +32,27 @@ test('rl loop samples with exploratory temperature (T >= 1)', () => {
     }
 });
 
+test('rl loop speeds up without lengthening each action, and biases the frontier', () => {
+    const loop = fs.readFileSync(path.join(projectRoot, 'scripts/rl/loop.sh'), 'utf8');
+    assert.match(loop, /TIMESCALE="\$\{TIMESCALE:-2\}"/);
+    assert.match(loop, /DECISION_MS=\$\(\(150 \/ TIMESCALE\)\)/);
+    assert.match(loop, /ROLLOUT_DUR=\$\(\(75000 \/ TIMESCALE\)\)/);
+    assert.match(loop, /reps = 4/);
+    assert.match(loop, /LEVELS="\$\(levels_weighted\)"/);
+});
+
+test('rl loop replays clears, exploits them at temperature 1, and can open every level', () => {
+    const loop = fs.readFileSync(path.join(projectRoot, 'scripts/rl/loop.sh'), 'utf8');
+    const trainer = fs.readFileSync(path.join(projectRoot, 'rl/train_rl.py'), 'utf8');
+    assert.match(loop, /top < 16/);
+    assert.doesNotMatch(loop, /top < 10/);
+    assert.match(loop, /rl\/weights\/success/);
+    assert.match(loop, /LEVEL_SWEEP=1/);
+    assert.match(loop, /EXPLOIT_TEMP=1\.0/);
+    assert.match(trainer, /"--success"/);
+    assert.match(trainer, /\["replay"\] = True/);
+});
+
 test('rl trainer keeps a meaningful entropy bonus with an adaptive floor', () => {
     const trainer = fs.readFileSync(path.join(projectRoot, 'rl/train_rl.py'), 'utf8');
     const match = trainer.match(/"--entropy", type=float, default=([0-9.]+)/);
@@ -41,4 +62,10 @@ test('rl trainer keeps a meaningful entropy bonus with an adaptive floor', () =>
         `entropy default ${match[1]} is too weak to prevent collapse`
     );
     assert.ok(trainer.includes('"--entropy-target"'), 'trainer exposes --entropy-target floor');
+    assert.ok(trainer.includes('"--ppo-clip"'), 'trainer exposes PPO clipping');
+    assert.ok(trainer.includes('"--gae-lambda"'), 'trainer exposes GAE');
+    assert.ok(
+        trainer.includes('value_loss = F.smooth_l1_loss(value_pred, returns)'),
+        'critic loss must be computed from a live value head'
+    );
 });

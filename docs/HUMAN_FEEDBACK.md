@@ -22,6 +22,12 @@ None yet.
 
 ## Resolved
 
+## 2026-10-18 — Contra arc — more fun, impress the critic
+
+- Feedback: “make the contra levels more fun and really impress the contra critic in my skills”
+- Context: goal-driven tuning pass over levels 8–16, data-only, preserving the existing working-tree changes.
+- Disposition: implemented — finale checkpoint on every level, bridge/stair/climb pair fights, seven new sentry toys (guards and skip lines), five finale escorts, and a new polish rule locking finale-checkpoint reach. Report: docs/level-builds/contra-fun.md. Human feel validation still open.
+
 ## 2026-10-11 — Contra arc — more fun
 
 - Feedback: “Can you review the contra style levels and make then more fun?”
@@ -39,3 +45,9 @@ None yet.
 - Feedback: “Let's make those contra levels double the length and more FUN!!!”
 - Context: local extension of levels 8–16, preserving the existing working-tree changes.
 - Disposition: implemented — every contra world is twice as wide with a new middle act (fresh decks and shelves, two extra waves, themed hazards, a gun pod or two, a rescue, and a third checkpoint); finales moved intact. Pilot cleared doubled Level 8 twice; all 9 load clean. Whether the new acts feel fun still needs human play.
+
+## 2026-10-16 — Contra arc — full stage length
+
+- Feedback: “Can you do a full level validate and improvement loop for the contra style levels. Increase the lenght of the level to a normal contra stage length”
+- Context: local extension of levels 8–16, preserving the existing working-tree changes.
+- Disposition: implemented — every contra world grew one more act (+3600px: 10,000–12,800px total) with a new wave, themed hazards, a gun pod, a rescue, and a fourth checkpoint; finales moved intact. Full suite matches baseline (190 pass, same 8 pre-existing infra failures); all level/pacing/polish gates green. No browser was available in the build environment, so start-to-crown playthroughs still need a real browser. Report: docs/level-builds/contra-length.md.

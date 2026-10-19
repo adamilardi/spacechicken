@@ -36,6 +36,7 @@
         "playtest:headed": "HEADLESS=0 node scripts/playtest-bot.mjs",
         "jev:playtest": "node scripts/jev-playtest.mjs",
         "jev:playtest:headed": "HEADLESS=0 node scripts/jev-playtest.mjs",
+        "rl:baseline": "node scripts/rl/record-baseline.mjs",
         "rl:convert": "node scripts/rl/convert-jev.mjs",
         "rl:train": "python3 rl/train_bc.py",
         "rl:train-rl": "python3 rl/train_rl.py",

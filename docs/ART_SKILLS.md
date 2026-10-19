@@ -1,6 +1,6 @@
 # Space Chicken art skills
 
-The eight skills in `skills/` are Markdown instructions for this game. Ask an agent to read the relevant `SKILL.md`. Putting them in this folder does not install them globally.
+The art and pipeline skills in `skills/` are Markdown instructions for this game. Ask an agent to read the relevant `SKILL.md`. Putting them in this folder does not install them globally. Role skills for design, code, audio, story, production, QA, and UI live alongside them and are indexed in [ROLE_SKILLS.md](ROLE_SKILLS.md).
 
 They follow the NovaWing skill set in `/home/adam/rtype-prototype/skills`, rewritten for Space Chicken. Pictures are canvas paint functions in `SpriteFactory.js` and layouts in `BackgroundRenderer.js`. Do not use image generation. The art style stays the one already on screen.
 

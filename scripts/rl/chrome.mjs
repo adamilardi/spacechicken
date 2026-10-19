@@ -3,12 +3,14 @@
  *
  * Linux Chromium in WSL crashes in EGL/libd3d12core and silently falls back
  * to SwiftShader (~180ms/frame vs ~16ms/frame on a real GPU). So rollouts
- * launch native Windows Chrome with GPU and drive it from WSL over CDP.
+ * launch native Windows Chrome with GPU and drive it from WSL over CDP:
+ * directly on 127.0.0.1 for mirrored networking, else through a TCP relay
+ * bound to the Windows host IP (the default gateway) for NAT networking.
  *
  * Escape hatch: SPACECHICKEN_SWIFTSHADER=1 explicitly allows slow Linux
  * --use-gl=swiftshader rendering.
  */
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -92,13 +94,75 @@ export function defaultLaunchOptions(headless) {
     return opts;
 }
 
-function wslHostIp() {
-    try {
-        const match = fs.readFileSync('/etc/resolv.conf', 'utf8').match(/nameserver\s+(\S+)/);
-        return match ? match[1] : null;
-    } catch {
-        return null;
+/**
+ * Parse the default gateway out of /proc/net/route text (little-endian hex).
+ * Exported for tests; prefer wslHostIp() at runtime.
+ * @returns {string|null} dotted-quad gateway or null
+ */
+export function parseDefaultGateway(routeTableText) {
+    for (const line of String(routeTableText).split('\n').slice(1)) {
+        const fields = line.split(/\s+/);
+        const [dest, gateway] = [fields[1], fields[2]];
+        if (dest === '00000000' && gateway && gateway.length === 8) {
+            const bytes = [6, 4, 2, 0].map((i) => parseInt(gateway.slice(i, i + 2), 16));
+            if (bytes.every((b) => Number.isFinite(b))) return bytes.join('.');
+        }
     }
+    return null;
+}
+
+/**
+ * Resolve the Windows host IP from route-table and resolv.conf text.
+ * The gateway wins; the nameserver is a fallback unless it is WSL's
+ * DNS-tunneling virtual (10.255.255.254), which is unreachable.
+ * Exported for tests; prefer wslHostIp() at runtime.
+ * @returns {string|null} dotted-quad host or null
+ */
+export function wslHostIpFromSources(routeTableText, resolvConfText) {
+    const gateway = parseDefaultGateway(routeTableText || '');
+    if (gateway) return gateway;
+    const match = String(resolvConfText || '').match(/nameserver\s+(\S+)/);
+    const nameserver = match ? match[1] : null;
+    if (nameserver && nameserver !== '10.255.255.254') return nameserver;
+    return null;
+}
+
+let cachedNetworkingMode = null;
+
+function wslNetworkingMode() {
+    // 'nat' | 'mirrored' | 'unknown'. Cached: it cannot change under us.
+    if (cachedNetworkingMode) return cachedNetworkingMode;
+    try {
+        const out = execFileSync('wslinfo', ['--networking-mode'], {
+            timeout: 3000,
+            stdio: ['ignore', 'pipe', 'ignore'],
+        })
+            .toString()
+            .trim()
+            .toLowerCase();
+        cachedNetworkingMode = out === 'nat' || out === 'mirrored' ? out : 'unknown';
+    } catch {
+        cachedNetworkingMode = 'unknown';
+    }
+    return cachedNetworkingMode;
+}
+
+function wslHostIp() {
+    // NAT-mode WSL: the default gateway is the Windows host. resolv.conf is
+    // unreliable here since DNS tunneling reports a virtual nameserver.
+    let routes = '';
+    let resolv = '';
+    try {
+        routes = fs.readFileSync('/proc/net/route', 'utf8');
+    } catch {
+        // Non-Linux or unreadable route table.
+    }
+    try {
+        resolv = fs.readFileSync('/etc/resolv.conf', 'utf8');
+    } catch {
+        // No resolv.conf.
+    }
+    return wslHostIpFromSources(routes, resolv);
 }
 
 function windowsChromePath() {
@@ -190,42 +254,26 @@ async function sweepStaleProfiles() {
 
 async function removeProfile(token) {
     const dir = `${WIN_PUBLIC}/spacechicken-${token}`;
-    // Windows keeps profile files locked briefly after the process exits;
-    // retry before falling back to a Windows-side delete.
-    for (let attempt = 0; attempt < 15; attempt++) {
+    // Windows keeps profile files locked briefly after the process exits.
+    // Retry only briefly: a leftover is reaped by the next launch's stale
+    // sweep (dead owner + 10min old), and blocking teardown here used to
+    // cost more wall time than an entire episode.
+    for (let attempt = 0; attempt < 3; attempt++) {
         try {
             fs.rmSync(dir, { recursive: true, force: true });
             return;
         } catch {
             // Still locked; wait and retry.
         }
-        await new Promise((r) => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, 400));
     }
-    await new Promise((resolve) => {
-        if (!fs.existsSync(WIN_POWERSHELL)) {
-            resolve();
-            return;
-        }
-        const child = spawn(WIN_POWERSHELL, [
-            '-NoProfile',
-            '-Command',
-            `Remove-Item -Recurse -Force 'C:\\Users\\Public\\spacechicken-${token}' -ErrorAction SilentlyContinue`,
-        ]);
-        const timer = setTimeout(() => resolve(), 15000);
-        const done = () => {
-            clearTimeout(timer);
-            resolve();
-        };
-        child.on('exit', done);
-        child.on('error', done);
-    });
     try {
         fs.rmSync(dir, { recursive: true, force: true });
     } catch {
-        // Give up loudly so loop logs show the leak.
+        // Give up loudly so loop logs show the leak for the sweep.
     }
     if (fs.existsSync(dir)) {
-        console.error(`[browser] profile left behind: ${dir}`);
+        console.error(`[browser] profile left for sweep: ${dir}`);
     }
 }
 
@@ -266,68 +314,21 @@ async function ensureRelay() {
     return exe;
 }
 
-/**
- * Launch native Windows Chrome (GPU) and connect over CDP through a TCP
- * relay bound to the Windows vNIC IP, since the DevTools port is
- * loopback-only and WSL cannot dial it directly.
- * @returns {Promise<import('playwright').Browser|null>}
- */
-async function tryWindowsChrome(chromium, headless, slowMo = 0) {
-    const chromePath = windowsChromePath();
-    const host = wslHostIp();
-    if (!chromePath || !host) {
-        console.error('[browser] winchrome skip', Boolean(chromePath), host);
-        return null;
-    }
-    const token = `sccdp${process.pid}x${Date.now()}`;
-    const chromePort = 20000 + Math.floor(Math.random() * 20000);
-    const relayPort = chromePort + 1;
-    const profile = `C:\\Users\\Public\\spacechicken-${token}`;
-    let relayExe;
-    try {
-        relayExe = await ensureRelay();
-    } catch (error) {
-        console.error('[browser] winchrome relay', error);
-        return null;
-    }
-    const args = [
-        '--use-angle=d3d11',
-        '--enable-gpu',
-        '--ignore-gpu-blocklist',
-        '--disable-gpu-vsync',
-        '--disable-frame-rate-limit',
-        '--no-first-run',
-        '--disable-extensions',
-        '--mute-audio',
-        '--autoplay-policy=no-user-gesture-required',
-        `--remote-debugging-port=${chromePort}`,
-        `--user-data-dir=${profile}`,
-        'about:blank',
-    ];
-    if (headless) args.unshift('--headless=new');
-    const chromeChild = run(chromePath, args);
-    const relayChild = run(relayExe, [host, String(relayPort), String(chromePort), token]);
-    const endpoint = `http://${host}:${relayPort}`;
-    const deadline = Date.now() + 15000;
-    let up = false;
+async function pollEndpoint(endpoint, timeoutMs) {
+    const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         try {
             const res = await httpGet(`${endpoint}/json/version`);
-            if (res.status === 200 && res.body.includes('Browser')) {
-                up = true;
-                break;
-            }
+            if (res.status === 200 && res.body.includes('Browser')) return true;
         } catch {
             // Chrome or the relay is still starting.
         }
         await new Promise((r) => setTimeout(r, 200));
     }
-    const children = [chromeChild, relayChild];
-    if (!up) {
-        console.error('[browser] winchrome down', endpoint, token);
-        await stopWindowsChrome(token, children);
-        return null;
-    }
+    return false;
+}
+
+async function connectCdp(chromium, endpoint, token, children, slowMo) {
     try {
         const browser = await chromium.connectOverCDP(endpoint, { slowMo });
         const close = browser.close.bind(browser);
@@ -345,6 +346,74 @@ async function tryWindowsChrome(chromium, headless, slowMo = 0) {
         await stopWindowsChrome(token, children);
         return null;
     }
+}
+
+/**
+ * Launch native Windows Chrome (GPU) and connect over CDP. Mirrored-mode
+ * WSL shares localhost with Windows, so try the DevTools port directly
+ * first; NAT-mode WSL goes through a TCP relay bound to the Windows host
+ * IP, since the DevTools port is loopback-only there.
+ * @returns {Promise<import('playwright').Browser|null>}
+ */
+async function tryWindowsChrome(chromium, headless, slowMo = 0) {
+    const chromePath = windowsChromePath();
+    if (!chromePath) {
+        console.error('[browser] winchrome skip (no Windows chrome)');
+        return null;
+    }
+    const token = `sccdp${process.pid}x${Date.now()}`;
+    const chromePort = 20000 + Math.floor(Math.random() * 20000);
+    const relayPort = chromePort + 1;
+    const profile = `C:\\Users\\Public\\spacechicken-${token}`;
+    const args = [
+        '--use-angle=d3d11',
+        '--enable-gpu',
+        '--ignore-gpu-blocklist',
+        '--disable-gpu-vsync',
+        '--disable-frame-rate-limit',
+        '--no-first-run',
+        '--disable-extensions',
+        '--mute-audio',
+        '--autoplay-policy=no-user-gesture-required',
+        `--remote-debugging-port=${chromePort}`,
+        `--user-data-dir=${profile}`,
+        'about:blank',
+    ];
+    if (headless) args.unshift('--headless=new');
+    const chromeChild = run(chromePath, args);
+    // Mirrored networking shares localhost with Windows, so the DevTools
+    // port answers directly; on NAT the port is unreachable and probing it
+    // just burns 5s, so skip straight to the relay.
+    if (wslNetworkingMode() !== 'nat') {
+        const direct = `http://127.0.0.1:${chromePort}`;
+        if (await pollEndpoint(direct, 5000)) {
+            console.error(`[browser] winchrome direct ${direct}`);
+            return connectCdp(chromium, direct, token, [chromeChild], slowMo);
+        }
+    }
+    const host = wslHostIp();
+    if (!host) {
+        console.error('[browser] winchrome skip (no WSL host ip)');
+        await stopWindowsChrome(token, [chromeChild]);
+        return null;
+    }
+    let relayExe;
+    try {
+        relayExe = await ensureRelay();
+    } catch (error) {
+        console.error('[browser] winchrome relay', error);
+        await stopWindowsChrome(token, [chromeChild]);
+        return null;
+    }
+    const relayChild = run(relayExe, [host, String(relayPort), String(chromePort), token]);
+    const endpoint = `http://${host}:${relayPort}`;
+    const children = [chromeChild, relayChild];
+    if (!(await pollEndpoint(endpoint, 15000))) {
+        console.error('[browser] winchrome down', endpoint, token);
+        await stopWindowsChrome(token, children);
+        return null;
+    }
+    return connectCdp(chromium, endpoint, token, children, slowMo);
 }
 
 /**

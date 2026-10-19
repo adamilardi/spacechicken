@@ -144,7 +144,8 @@ window.__spaceChickenTest.checkObjectives();
 ```
 
 Run a server-side Jev pilot with `npm run jev:playtest`. The runner starts a temporary
-local game server unless `SPACE_CHICKEN_URL` is set, reads `TYPESAFE_API_KEY` only from
+local game server unless `SPACE_CHICKEN_URL` is set, reads `TYPESAFE_API_KEY`
+(`JEV_API_KEY`, `typesafekey`, or `jev_api_key` also work) only from
 the Node environment, and writes its action history, assertions, token usage, API
 errors, and final screenshot under `.jev-runs/`. Use `LEVEL=2`, `SEED=42`,
 `JEV_DURATION_MS=90000`, or `HEADLESS=0` to adjust a run. Jev can only select the

@@ -274,6 +274,28 @@ test('game config scales to any window and keeps desktop + mobile input ready', 
     }
 });
 
+test('the game config honors a canvas renderer override for bot runs', async () => {
+    const { resolveRendererType, createGameConfig } = await importModule('GameConfig.js');
+    global.Phaser.CANVAS = 'CANVAS';
+    const savedLocation = global.location;
+    try {
+        global.location = { search: '' };
+        assert.equal(resolveRendererType(), 'AUTO');
+        global.location = { search: '?renderer=canvas' };
+        assert.equal(resolveRendererType(), 'CANVAS');
+        assert.equal(
+            createGameConfig({ width: 800, height: 450 }, function FakeScene() {}).type,
+            'CANVAS'
+        );
+        global.location = { search: '?renderer=webgl' };
+        assert.equal(resolveRendererType(), 'AUTO');
+    } finally {
+        if (savedLocation === undefined) delete global.location;
+        else global.location = savedLocation;
+        delete global.Phaser.CANVAS;
+    }
+});
+
 test('multitouch movement survives a second finger and release order', async () => {
     const { InputController } = await importModule('InputController.js');
     const { GAME_CONSTANTS } = await importModule('Constants.js');

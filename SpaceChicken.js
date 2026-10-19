@@ -43,7 +43,7 @@ function readLaunchQuery() {
         seed: query.get('seed'),
         timeScale:
             query.has('timeScale') && Number.isFinite(requestedTimeScale)
-                ? Phaser.Math.Clamp(requestedTimeScale, 0.1, 1)
+                ? Phaser.Math.Clamp(requestedTimeScale, 0.1, 4)
                 : 1,
     };
 }
@@ -496,6 +496,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.branchKey1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
         this.branchKey2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
         this.muteKey = this.input.keyboard.addKey(KEY_CODES.M);
+        this.boardKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
         this.debugSkipKey = this.debugMode
             ? this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N)
             : null;
@@ -2997,6 +2998,7 @@ export class SpaceChicken extends Phaser.Scene {
             },
             timeScale
         );
+        const botPlayer = describePlayer(this.player);
         return {
             ready: Boolean(this.player),
             capturedAtMs: performance.now(),
@@ -3019,7 +3021,13 @@ export class SpaceChicken extends Phaser.Scene {
             simulationTimeScale: this.testTimeScale,
             jumpCount: this.jumpCount,
             maxJumps: this.maxJumps,
-            player: describePlayer(this.player),
+            player: botPlayer
+                ? {
+                      ...botPlayer,
+                      jumpsRemaining: Math.max(0, this.maxJumps - this.jumpCount),
+                      maxJumps: this.maxJumps,
+                  }
+                : null,
             hud: {
                 timer: hudField(this.uiManager, 'timerText'),
                 deaths: hudField(this.uiManager, 'deathText'),
@@ -3040,7 +3048,9 @@ export class SpaceChicken extends Phaser.Scene {
                       zoom: camera.zoom || 1,
                   }
                 : null,
-            crown: this.crown ? { x: this.crown.x, y: this.crown.y } : null,
+            crown: this.crown
+                ? { x: this.crown.x, y: this.crown.y, shielded: Boolean(this.crownShielded) }
+                : null,
             phaser: Boolean(this.levelConfig && this.levelConfig.phaser),
             combat: this.describePhaserState(),
             physics: {

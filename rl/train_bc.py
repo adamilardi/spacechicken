@@ -70,6 +70,17 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--lr", type=float, default=3e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--batch", type=int, default=256)
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="auto",
+        help="Train on 'cuda', 'cpu', or 'auto' (cuda when available).",
+    )
+    parser.add_argument(
+        "--no-amp",
+        action="store_true",
+        help="Disable automatic mixed precision on CUDA.",
+    )
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--val-frac", type=float, default=0.15)
     parser.add_argument(
@@ -137,10 +148,61 @@ def class_weights(samples: List[Sample]) -> torch.Tensor:
     return torch.tensor(weights, dtype=torch.float32)
 
 
+def resolve_device(name: str) -> torch.device:
+    if name == "auto":
+        name = "cuda" if torch.cuda.is_available() else "cpu"
+    if name == "cuda" and not torch.cuda.is_available():
+        print("WARNING: --device cuda requested but CUDA is unavailable; using cpu")
+        name = "cpu"
+    device = torch.device(name)
+    if device.type == "cuda":
+        print(f"device: cuda ({torch.cuda.get_device_name(device)})")
+    else:
+        print("device: cpu")
+    return device
+
+
+def run_epoch(policy, loader, opt, balance, device, scaler, use_amp):
+    """One weighted-NLL epoch. Returns (total, correct, loss_sum)."""
+    policy.net.train()
+    total, correct, loss_sum = 0, 0, 0.0
+    for obs, act, weight, mask in loader:
+        obs = obs.to(device, non_blocking=True)
+        act = act.to(device, non_blocking=True)
+        weight = weight.to(device, non_blocking=True)
+        mask = mask.to(device, non_blocking=True)
+        opt.zero_grad()
+        with torch.amp.autocast(device.type, enabled=use_amp):
+            logits = policy(obs)
+            # Mask illegal actions so the policy never spends probability
+            # on moves the game would reject (rows without a mask train
+            # unmasked for backward compatibility with legacy demos).
+            # Mask in fp32: -1e9 overflows the fp16 logits AMP produces.
+            masked = logits.float().masked_fill(mask <= 0, -1e9)
+            use_masked = bool(((mask > 0).sum(dim=1) > 0).all())
+            scored = masked if use_masked else logits
+            nll = F.cross_entropy(scored, act, reduction="none")
+            if balance is not None:
+                nll = nll * balance[act]
+            loss = (nll * weight).mean()
+        scaler.scale(loss).backward()
+        scaler.step(opt)
+        scaler.update()
+        total += act.numel()
+        correct += int((scored.argmax(dim=1) == act).sum())
+        loss_sum += float(loss.detach()) * act.numel()
+    return total, correct, loss_sum
+
+
 def train(args: argparse.Namespace) -> Path:
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
+    device = resolve_device(args.device)
+    if device.type == "cuda":
+        torch.cuda.manual_seed_all(args.seed)
+    use_amp = device.type == "cuda" and not args.no_amp
+    scaler = torch.amp.GradScaler(device.type, enabled=use_amp)
 
     samples, meta = load_bc_samples(args.demos)
     samples = select_samples(samples, args.keep_partial)
@@ -154,8 +216,11 @@ def train(args: argparse.Namespace) -> Path:
     print(f"masks: {masked_steps}/{len(samples)} steps carry legal-action masks")
     hidden = [int(w) for w in args.hidden.split(",") if w.strip()]
     policy = PolicyMLP(OBS_SIZE, hidden, ACTION_SIZE)
+    policy.net.to(device)
     opt = torch.optim.Adam(policy.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     balance = class_weights(samples) if not args.no_balance else None
+    if balance is not None:
+        balance = balance.to(device)
 
     dataset = DemoDataset(samples)
     n_val = max(1, int(len(dataset) * args.val_frac)) if len(dataset) > 10 else 0
@@ -167,33 +232,19 @@ def train(args: argparse.Namespace) -> Path:
         )
     else:
         train_set, val_set = dataset, None
-    loader = DataLoader(train_set, batch_size=args.batch, shuffle=True)
+    pin = device.type == "cuda"
+    loader = DataLoader(train_set, batch_size=args.batch, shuffle=True, pin_memory=pin)
 
     for epoch in range(args.epochs):
-        policy.net.train()
-        total, correct, loss_sum = 0, 0, 0.0
-        for obs, act, weight, mask in loader:
-            logits = policy(obs)
-            # Mask illegal actions so the policy never spends probability
-            # on moves the game would reject (rows without a mask train
-            # unmasked for backward compatibility with legacy demos).
-            masked = logits.masked_fill(mask <= 0, -1e9)
-            use_masked = bool(((mask > 0).sum(dim=1) > 0).all())
-            nll = F.cross_entropy(masked if use_masked else logits, act, reduction="none")
-            if balance is not None:
-                nll = nll * balance[act]
-            loss = (nll * weight).mean()
-            opt.zero_grad()
-            loss.backward()
-            opt.step()
-            total += act.numel()
-            correct += int(((masked if use_masked else logits).argmax(dim=1) == act).sum())
-            loss_sum += float(loss.detach()) * act.numel()
+        total, correct, loss_sum = run_epoch(
+            policy, loader, opt, balance, device, scaler, use_amp
+        )
         val_line = ""
         if val_set is not None:
             policy.net.eval()
             with torch.no_grad():
                 vo, va, _, vm = next(iter(DataLoader(val_set, batch_size=len(val_set))))
+                vo, va, vm = vo.to(device), va.to(device), vm.to(device)
                 vlogits = policy(vo)
                 masked_val = vlogits.masked_fill(vm <= 0, -1e9)
                 use_masked_val = bool(((vm > 0).sum(dim=1) > 0).all())
@@ -217,32 +268,19 @@ def train(args: argparse.Namespace) -> Path:
                 policy.parameters(), lr=ft_lr, weight_decay=args.weight_decay
             )
             ft_balance = class_weights(top) if not args.no_balance else None
+            if ft_balance is not None:
+                ft_balance = ft_balance.to(device)
             ft_loader = DataLoader(
-                DemoDataset(top), batch_size=args.batch, shuffle=True
+                DemoDataset(top), batch_size=args.batch, shuffle=True, pin_memory=pin
             )
             print(
                 f"ft: {len(top)}/{len(samples)} top-tier steps, "
                 f"lr={ft_lr}, epochs={args.ft_epochs}"
             )
             for ft_epoch in range(args.ft_epochs):
-                policy.net.train()
-                total, correct, loss_sum = 0, 0, 0.0
-                for obs, act, weight, mask in ft_loader:
-                    logits = policy(obs)
-                    masked = logits.masked_fill(mask <= 0, -1e9)
-                    use_masked = bool(((mask > 0).sum(dim=1) > 0).all())
-                    nll = F.cross_entropy(
-                        masked if use_masked else logits, act, reduction="none"
-                    )
-                    if ft_balance is not None:
-                        nll = nll * ft_balance[act]
-                    loss = (nll * weight).mean()
-                    ft_opt.zero_grad()
-                    loss.backward()
-                    ft_opt.step()
-                    total += act.numel()
-                    correct += int(((masked if use_masked else logits).argmax(dim=1) == act).sum())
-                    loss_sum += float(loss.detach()) * act.numel()
+                total, correct, loss_sum = run_epoch(
+                    policy, ft_loader, ft_opt, ft_balance, device, scaler, use_amp
+                )
                 print(
                     f"ft epoch {ft_epoch + 1}/{args.ft_epochs} "
                     f"loss={loss_sum / total:.4f} acc={correct / total:.3f}"
@@ -259,6 +297,8 @@ def train(args: argparse.Namespace) -> Path:
     payload["meta"] = {
         "epochs": args.epochs,
         "hidden": hidden,
+        "device": str(device),
+        "amp": use_amp,
         "demoMeta": meta,
         **ft_meta,
     }

@@ -1,6 +1,18 @@
+export function resolveRendererType() {
+    try {
+        const search = typeof location === 'undefined' ? '' : location.search || '';
+        if (new URLSearchParams(search).get('renderer') === 'canvas') {
+            return Phaser.CANVAS;
+        }
+    } catch (err) {
+        // Fall through to AUTO.
+    }
+    return Phaser.AUTO;
+}
+
 export function createGameConfig(size, scene) {
     return {
-        type: Phaser.AUTO,
+        type: resolveRendererType(),
         width: size.width,
         height: size.height,
         scale: {

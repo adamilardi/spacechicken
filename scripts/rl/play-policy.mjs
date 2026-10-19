@@ -26,6 +26,7 @@ const POLICY_PATH = process.env.POLICY || path.join(ROOT, 'rl', 'weights', 'bc-p
 const LEVEL = process.env.LEVEL ? Number(process.env.LEVEL) : null;
 const DURATION_MS = Number(process.env.DURATION_MS || 120000);
 const DECISION_MS = Number(process.env.DECISION_MS || 250);
+const TIMESCALE = Math.min(4, Math.max(1, Number(process.env.TIMESCALE || 1)));
 const EXPLORE = process.env.EXPLORE === '1';
 const EPSILON = Number(process.env.EPSILON || 0.1);
 const HEADLESS = process.env.HEADLESS !== '0';
@@ -93,6 +94,7 @@ async function main() {
     url.searchParams.set('bot', 'policy');
     url.searchParams.set('debug', '1');
     if (LEVEL) url.searchParams.set('level', String(LEVEL));
+    url.searchParams.set('timeScale', String(TIMESCALE));
     await page.goto(url.toString(), { waitUntil: 'load', timeout: 45000 });
     await page.waitForFunction(
         () => window.__spaceChickenTest && window.__spaceChickenDebug?.ready(),

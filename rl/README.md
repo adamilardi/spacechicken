@@ -7,7 +7,7 @@ browser play. Built for **offline** training runs; nothing here deploys
 ## Pipeline
 
 ```
-JEV_RECORD_DEMOS=1 npm run jev:playtest   # full-observation raw demos (needs TYPESAFE_API_KEY)
+JEV_RECORD_DEMOS=1 npm run jev:playtest   # full-observation raw demos (needs TYPESAFE_API_KEY, JEV_API_KEY, typesafekey, or jev_api_key)
 npm run rl:convert            # reports + raw demos -> rl/demos/demo-*.jsonl
 npm run rl:train              # rl/train_bc.py -> rl/weights/bc-policy.json
 npm run rl:play               # play weights in the live game (LEVEL=1, EXPLORE=1)
@@ -41,12 +41,18 @@ it by hand. `rl/contract.py` mirrors the constants for Python.
 ## Offline training
 
 ```bash
-uv pip install -r rl/requirements.txt \
-    --index-url https://download.pytorch.org/whl/cpu \
-    --extra-index-url https://pypi.org/simple
-python3 rl/train_bc.py --epochs 60 --hidden 128,64
+uv venv
+uv pip install --python .venv/bin/python -r rl/requirements.txt
+.venv/bin/python rl/train_bc.py --epochs 60 --hidden 128,64
 LEVEL=2 npm run rl:play
 ```
+
+Both trainers take `--device auto|cuda|cpu` (`auto` uses CUDA when
+available; BC also uses mixed precision on CUDA unless `--no-amp`). The
+speedrun loop honors `PYTHON`, so run it on the project env with
+`PYTHON=.venv/bin/python npm run rl:loop`. Without a GPU, pass the
+`.../whl/cpu` index at install (see `rl/requirements.txt`) and the same
+commands train on `cpu` instead.
 
 Useful flags: `--lr`, `--batch`, `--seed`, `--val-frac`, `--demos <dir>`,
 `--keep-partial` (skip the auto-supersede once 200+ full steps exist),
@@ -59,14 +65,26 @@ Useful flags: `--lr`, `--batch`, `--seed`, `--val-frac`, `--demos <dir>`,
 npm run rl:loop                                    # runs until stopped
 WORKERS=3 EPISODES=6 MAX_ITERS=20 npm run rl:loop  # bounded
 TIME_BUDGET_MIN=480 npm run rl:loop                # 8h overnight
+WORKERS=6 EPISODES=12 TIMESCALE=2 npm run rl:loop  # GPU box: more, faster
 ```
 
-Each iteration fans out `WORKERS` temperature-sampling rollouts
-(`scripts/rl/rollout.mjs`), runs one REINFORCE update (`rl/train_rl.py`,
-learned baseline + entropy bonus, latest cohort only), and records best
-clear times in `rl/weights/campaign.json`. The curriculum starts on level 1
-and adds the next level whenever the current top is cleared. Needs torch in
-`$PYTHON` (default `python3`). Monitor with `tail -f rl/weights/loop.log`.
+Each iteration fans out `EPISODES` temperature-sampling rollouts spread over
+`WORKERS` browser processes (`scripts/rl/rollout.mjs` runs several episodes
+per browser, reusing the page when the level repeats), runs one PPO update
+(`rl/train_rl.py`: masked actions, temperature importance weights, GAE once
+the critic explains any variance, entropy bonus, latest cohort only), and
+records best clear times in `rl/weights/campaign.json`. Rollouts are weighted
+toward the highest unsolved level. The curriculum starts on level 1 and adds
+the next level whenever the current top is cleared. `$PYTHON` defaults to
+`.venv/bin/python` when that env exists. Monitor with
+`tail -f rl/weights/loop.log`.
+
+The loop defaults to `TIMESCALE=2` (validated: identical cruise velocity and
+jump apex per game-time, BC policy wins held 3/3 on L1 at both scales) and
+shortens the decision interval so each action still covers about 150ms of
+game time. The timeout shrinks the same way, and the speed bonus is scaled
+back to 1x-equivalent ms, so best times stay comparable. Set `TIMESCALE=1`
+to run at wall-clock speed.
 
 ## Files
 
@@ -77,7 +95,7 @@ and adds the next level whenever the current top is cleared. Needs torch in
 | `rl/demos_io.py`              | JSONL demo loader                                    |
 | `rl/model.py`                 | MLP + JSON weight codec (+ numpy reference forward)  |
 | `rl/train_bc.py`              | weighted-NLL BC trainer                              |
-| `rl/train_rl.py`              | REINFORCE fine-tuner (baseline + entropy)            |
+| `rl/train_rl.py`              | PPO fine-tuner (masked GAE + entropy)                |
 | `rl/requirements.txt`         | torch (CPU) + numpy                                  |
 | `rl/demos/`                   | converted JEV episodes (regenerate with rl:convert)  |
 | `rl/weights/`                 | trained policies (prettier-ignored generated output) |
@@ -86,5 +104,5 @@ and adds the next level whenever the current top is cleared. Needs torch in
 | `scripts/rl/policy-infer.mjs` | dependency-free JS forward pass                      |
 | `scripts/rl/play-policy.mjs`  | node-side policy player (argmax, optional explore)   |
 | `scripts/rl/rollout.mjs`      | temperature-sampling rollout collector for RL        |
-| `scripts/rl/loop.sh`          | speedrun loop: rollout → train → best times          |
+| `scripts/rl/loop.sh`          | speedrun loop: rollout → PPO → best times            |
 | `tests/rl-demos.test.cjs`     | contract conformance for demos + weights             |

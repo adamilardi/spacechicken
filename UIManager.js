@@ -194,6 +194,8 @@ export class UIManager {
             this.bannerTitle,
             this.bannerSubtitle,
             this.overlays.leaderboardTextObject,
+            ...(this.overlays.leaderboardExtras || []),
+            this.overlays.leaderboardTapZone,
             this.overlays.leaderboardBackdrop,
             this.overlays.finishBackdrop,
             this.overlays.finishDim,

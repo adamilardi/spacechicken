@@ -355,9 +355,12 @@ async function main() {
     activeBrowser = browser;
     // Sample all levels up front and group equal levels so back-to-back
     // episodes reuse the page via reset() instead of reloading.
+    const SWEEP = process.env.LEVEL_SWEEP === '1';
     const plan = [];
     for (let ep = 0; ep < EPISODE_COUNT; ep++) {
-        plan.push(LEVELS.length ? LEVELS[Math.floor(Math.random() * LEVELS.length)] : LEVEL);
+        if (!LEVELS.length) plan.push(LEVEL);
+        else if (SWEEP) plan.push(LEVELS[ep % LEVELS.length]);
+        else plan.push(LEVELS[Math.floor(Math.random() * LEVELS.length)]);
     }
     plan.sort((a, b) => a - b);
     let active = null;

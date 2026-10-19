@@ -10,6 +10,9 @@
  *   LEVEL=2 npm run bot
  *   TRIALS=5 npm run bot
  *   HEADLESS=0 RECORD_VIDEO=1 npm run bot
+ *
+ * Low-overhead runs (software GL on shared/weak machines):
+ *   HEADLESS=1 RENDERER=canvas BOT_WIDTH=800 BOT_HEIGHT=450 npm run bot
  */
 import { chromium } from 'playwright';
 import fs from 'fs';
@@ -30,6 +33,9 @@ const CACHED_CHROME =
     '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
 const SCREENSHOT_DIR = process.env.BOT_SCREENSHOT_DIR || path.join(__dirname, '..', '.bot-runs');
 const RECORD_VIDEO = process.env.RECORD_VIDEO === '1';
+const BOT_WIDTH = Math.max(320, Number(process.env.BOT_WIDTH) || 1280);
+const BOT_HEIGHT = Math.max(200, Number(process.env.BOT_HEIGHT) || 720);
+const RENDERER = process.env.RENDERER || '';
 
 export function outcomeFromSnapshot(snap, lockedLevel) {
     if (!snap) {
@@ -63,6 +69,9 @@ async function runOnce(browser, trialIndex) {
     if (process.env.LEVEL) {
         url.searchParams.set('level', String(process.env.LEVEL));
     }
+    if (RENDERER) {
+        url.searchParams.set('renderer', RENDERER);
+    }
 
     const videoDir = path.join(SCREENSHOT_DIR, 'video');
     if (RECORD_VIDEO) {
@@ -71,10 +80,10 @@ async function runOnce(browser, trialIndex) {
     fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
     const context = await browser.newContext({
-        viewport: { width: 1280, height: 720 },
+        viewport: { width: BOT_WIDTH, height: BOT_HEIGHT },
         deviceScaleFactor: 1,
         recordVideo: RECORD_VIDEO
-            ? { dir: videoDir, size: { width: 1280, height: 720 } }
+            ? { dir: videoDir, size: { width: BOT_WIDTH, height: BOT_HEIGHT } }
             : undefined,
     });
     const page = await context.newPage();

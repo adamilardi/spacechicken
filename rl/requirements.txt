@@ -1,6 +1,11 @@
 # Space Chicken RL training (Python trains, JSON weights play in the browser)
 #
-# Install CPU-only wheels with:
+# GPU (CUDA) install into the project env:
+#   uv venv
+#   uv pip install --python .venv/bin/python -r rl/requirements.txt
+# (PyPI torch wheels bundle CUDA; needs an NVIDIA driver, no toolkit.)
+#
+# CPU-only install instead with:
 #   uv pip install -r rl/requirements.txt \
 #       --index-url https://download.pytorch.org/whl/cpu \
 #       --extra-index-url https://pypi.org/simple

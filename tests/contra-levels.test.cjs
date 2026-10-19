@@ -202,22 +202,24 @@ test('contra boarder waves sit at or past their release line', async () => {
     }
 });
 
-test('contra levels run double length', async () => {
+test('contra levels run full stage length', async () => {
     const { LEVEL_DEFINITIONS } = await importModule('levels/index.js');
-    // Every contra world is twice its original span (old width in the comment).
-    const doubled = {
-        8: 8400, // was 4200
-        9: 7600, // was 3800
-        10: 8800, // was 4400
-        11: 8400, // was 4200
-        12: 8800, // was 4400
-        13: 9200, // was 4600
-        14: 9200, // was 4600
-        15: 9200, // was 4600
-        16: 6400, // was 3200
+    // Every contra world grew one full act (+3600px) past its doubled span
+    // (pre-extension width in the comment) to reach a normal Contra stage
+    // length: three acts plus the gated finale.
+    const fullLength = {
+        8: 12000, // was 8400
+        9: 11200, // was 7600
+        10: 12400, // was 8800
+        11: 12000, // was 8400
+        12: 12400, // was 8800
+        13: 12800, // was 9200
+        14: 12800, // was 9200
+        15: 12800, // was 9200
+        16: 10000, // was 6400
     };
-    for (const [id, width] of Object.entries(doubled)) {
-        assert.equal(LEVEL_DEFINITIONS[id].WORLD_WIDTH, width, `level ${id} runs double length`);
+    for (const [id, width] of Object.entries(fullLength)) {
+        assert.equal(LEVEL_DEFINITIONS[id].WORLD_WIDTH, width, `level ${id} runs full length`);
         assert.ok(
             LEVEL_DEFINITIONS[id].CROWN_X > width / 2,
             `level ${id} crown sits in the second half`
