@@ -218,9 +218,11 @@ function boarderAhead(player, dir, snap) {
 
 // A duel target: live boarder ahead worth holding fire for. Level
 // targets die to held bolts before aggro range; drops (still falling
-// into the lane) and chasers are held the same way instead of letting
-// them land on or run past the pilot. Parked bodies (enable false)
-// count: they arm on a timer and bolts connect then. Unreleased waves
+// into the lane, wave-flagged or not) and chasers are held the same
+// way instead of letting them land on or run past the pilot. Aimed
+// hop dives still dodge: they fall with sideways hop speed, while
+// wave drops fall straight down. Parked bodies (enable false) count:
+// they arm on a timer and bolts connect then. Unreleased waves
 // (active false) do not: holding for them would stall the trigger.
 function duelTarget(player, dir, snap, range) {
     if (!snap || snap.phaser !== true) {
@@ -241,12 +243,19 @@ function duelTarget(player, dir, snap, range) {
         const dy = item.y - player.y;
         const vy = item.vy || 0;
         // Level bolts only connect near the line: hold point-blank and
-        // for straight passive drops (they fall into the bolts), but an
-        // aimed chasing dive closes through the bolt flight untouched —
-        // dodge divers by running, their leaps are committed and land
-        // where the pilot stood.
+        // for straight drops (they fall into the bolts), but an aimed
+        // chasing dive closes through the bolt flight untouched — dodge
+        // divers by running, their leaps are committed and land where
+        // the pilot stood. Wave drops fall straight down (no horizontal
+        // drive) even after aggro flags them chasing; hop dives keep
+        // hop speed sideways (|vx| >= 133), so near-zero vx tells them
+        // apart (L7 wave-2 touchdown).
         const level = Math.abs(dy) < 30;
-        const dropping = item.chasing !== true && vy > 50 && dy < 30 && dy > -300;
+        const dropping =
+            vy > 50 &&
+            dy < 30 &&
+            dy > -300 &&
+            (item.chasing !== true || Math.abs(item.vx || 0) < 50);
         const chasing = item.chasing === true && Math.abs(dy) <= 60 && Math.abs(vy) < 150;
         if (!level && !dropping && !chasing) {
             continue;

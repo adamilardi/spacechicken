@@ -820,9 +820,10 @@ test('the pilot dodges an aimed dive instead of dueling it', async () => {
         platforms: [{ left: -100, right: 1200, top: 634, x: 550, w: 1300 }],
     };
     // Steep aimed dive off the bolt line: keep running, the committed
-    // leap lands where the pilot stood.
+    // leap lands where the pilot stood. Real hop dives keep sideways
+    // hop speed (|vx| >= 133); still air (vx 0) is a wave drop instead.
     const dodge = decidePilotInput(
-        makeSnap({ ...base, hazards: [boarder(400, 500, { vy: 220 })] }),
+        makeSnap({ ...base, hazards: [boarder(400, 500, { vx: -190, vy: 220 })] }),
         createPilotState()
     );
     assert.equal(dodge.right, true);
@@ -834,6 +835,56 @@ test('the pilot dodges an aimed dive instead of dueling it', async () => {
     );
     assert.equal(duel.shoot, true);
     assert.equal(duel.right, false);
+});
+
+test('the pilot pre-fires a wave drop instead of leaping over it', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const boarder = (x, y, overrides = {}) => ({
+        id: `boarder-${x}`,
+        type: 'boarder',
+        x,
+        y,
+        w: 22,
+        h: 36,
+        top: y - 18,
+        active: true,
+        enable: true,
+        chasing: true,
+        vx: 0,
+        ...overrides,
+    });
+    const base = {
+        phaser: true,
+        player: { x: 1490, y: 586, vx: 160, vy: 0, grounded: true },
+        crown: { x: 3640, y: 400 },
+        platforms: [{ left: 1015, right: 2540, top: 602, x: 1777, w: 1525 }],
+    };
+    // L7 wave-2 drop falling straight into the lane: hold and pre-fire,
+    // it lands in the bolts (the old close reflex leapt over it into
+    // the next chaser and died at x 2147).
+    const drop = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 1310, y: 586, vx: 160, vy: 0, grounded: true },
+            hazards: [boarder(1560, 450, { vy: 150 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(drop.shoot, true);
+    assert.equal(drop.jump, false);
+    assert.equal(drop.left, false);
+    assert.equal(drop.right, false);
+    // Same drop inside the old reflex band (dy -35, dist 70): still no leap.
+    const close = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 1490, y: 586, vx: 160, vy: 0, grounded: true },
+            hazards: [boarder(1560, 551, { vy: 253 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(close.shoot, true);
+    assert.equal(close.jump, false);
 });
 
 test('the pilot hops over lethal hazards instead of landing on them', async () => {
