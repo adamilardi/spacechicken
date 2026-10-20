@@ -349,28 +349,19 @@ async function connectCdp(chromium, endpoint, token, children, slowMo) {
 }
 
 /**
- * Launch native Windows Chrome (GPU) and connect over CDP. Mirrored-mode
- * WSL shares localhost with Windows, so try the DevTools port directly
- * first; NAT-mode WSL goes through a TCP relay bound to the Windows host
- * IP, since the DevTools port is loopback-only there.
- * @returns {Promise<import('playwright').Browser|null>}
+ * CLI flags for native Windows Chrome (GPU) over CDP. Rollouts uncap the
+ * frame rate; normal bots pass preserveFrameRate to keep vsync pacing.
+ * @returns {string[]}
  */
-async function tryWindowsChrome(chromium, headless, slowMo = 0) {
-    const chromePath = windowsChromePath();
-    if (!chromePath) {
-        console.error('[browser] winchrome skip (no Windows chrome)');
-        return null;
-    }
-    const token = `sccdp${process.pid}x${Date.now()}`;
-    const chromePort = 20000 + Math.floor(Math.random() * 20000);
-    const relayPort = chromePort + 1;
-    const profile = `C:\\Users\\Public\\spacechicken-${token}`;
+export function windowsChromeArgs(
+    headless,
+    { chromePort, profile, preserveFrameRate = false } = {}
+) {
     const args = [
         '--use-angle=d3d11',
         '--enable-gpu',
         '--ignore-gpu-blocklist',
-        '--disable-gpu-vsync',
-        '--disable-frame-rate-limit',
+        ...(preserveFrameRate ? [] : ['--disable-gpu-vsync', '--disable-frame-rate-limit']),
         '--no-first-run',
         '--disable-extensions',
         '--mute-audio',
@@ -380,6 +371,27 @@ async function tryWindowsChrome(chromium, headless, slowMo = 0) {
         'about:blank',
     ];
     if (headless) args.unshift('--headless=new');
+    return args;
+}
+
+/**
+ * Launch native Windows Chrome (GPU) and connect over CDP. Mirrored-mode
+ * WSL shares localhost with Windows, so try the DevTools port directly
+ * first; NAT-mode WSL goes through a TCP relay bound to the Windows host
+ * IP, since the DevTools port is loopback-only there.
+ * @returns {Promise<import('playwright').Browser|null>}
+ */
+async function tryWindowsChrome(chromium, headless, slowMo = 0, preserveFrameRate = false) {
+    const chromePath = windowsChromePath();
+    if (!chromePath) {
+        console.error('[browser] winchrome skip (no Windows chrome)');
+        return null;
+    }
+    const token = `sccdp${process.pid}x${Date.now()}`;
+    const chromePort = 20000 + Math.floor(Math.random() * 20000);
+    const relayPort = chromePort + 1;
+    const profile = `C:\\Users\\Public\\spacechicken-${token}`;
+    const args = windowsChromeArgs(headless, { chromePort, profile, preserveFrameRate });
     const chromeChild = run(chromePath, args);
     // Mirrored networking shares localhost with Windows, so the DevTools
     // port answers directly; on NAT the port is unreachable and probing it
@@ -421,10 +433,14 @@ async function tryWindowsChrome(chromium, headless, slowMo = 0) {
  * failing fast if hardware WebGL is not actually present. Never silently
  * continues on SwiftShader.
  */
-export async function launchBrowser(chromium, headless, { slowMo = 0, recordVideo = false } = {}) {
+export async function launchBrowser(
+    chromium,
+    headless,
+    { slowMo = 0, recordVideo = false, preserveFrameRate = false } = {}
+) {
     await sweepStaleProfiles().catch(() => {});
     if (!recordVideo && windowsChromePath()) {
-        const windows = await tryWindowsChrome(chromium, headless, slowMo);
+        const windows = await tryWindowsChrome(chromium, headless, slowMo, preserveFrameRate);
         if (!windows) {
             throw new Error(
                 'Windows GPU browser failed to start. Set SPACECHICKEN_SWIFTSHADER=1 to explicitly allow slow software rendering.'

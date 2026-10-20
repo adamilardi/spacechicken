@@ -27,3 +27,23 @@ test('wsl host ip prefers the gateway over the dns-tunneling virtual', async () 
     // But the tunneling virtual alone resolves to nothing, not to itself.
     assert.equal(wslHostIpFromSources('', TUNNELED_RESOLV), null);
 });
+
+test('windows chrome args uncap the frame rate for rollouts only', async () => {
+    const { windowsChromeArgs } = await importModule('scripts/rl/chrome.mjs');
+    const fast = windowsChromeArgs(true, { chromePort: 21234, profile: 'C:\\profile' });
+    assert.equal(fast[0], '--headless=new');
+    assert.ok(fast.includes('--enable-gpu'));
+    assert.ok(fast.includes('--disable-gpu-vsync'));
+    assert.ok(fast.includes('--disable-frame-rate-limit'));
+    assert.ok(fast.includes('--remote-debugging-port=21234'));
+    const normal = windowsChromeArgs(true, {
+        chromePort: 21234,
+        profile: 'C:\\profile',
+        preserveFrameRate: true,
+    });
+    assert.ok(normal.includes('--enable-gpu'));
+    assert.ok(!normal.includes('--disable-gpu-vsync'));
+    assert.ok(!normal.includes('--disable-frame-rate-limit'));
+    const headed = windowsChromeArgs(false, { chromePort: 21234, profile: 'C:\\profile' });
+    assert.ok(!headed.includes('--headless=new'));
+});
