@@ -43,6 +43,8 @@ POLICY=rl/weights/rl-policy.json
 CAMP=rl/weights/campaign.json
 LOG=rl/weights/loop.log
 TIMESCALE="${TIMESCALE:-2}"
+# Fast mode advances original 60 Hz ticks; duration/decision settings are game ms.
+if [ "${FAST:-0}" = "1" ]; then TIMESCALE=1; fi
 case "$TIMESCALE" in
     ''|*[!0-9]*) TIMESCALE=2 ;;
 esac

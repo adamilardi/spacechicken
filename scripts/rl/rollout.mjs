@@ -334,6 +334,10 @@ async function runEpisode(page, weights, level, seed) {
 }
 
 async function main() {
+    if (process.env.FAST === '1') {
+        const { runFast } = await import('../fast/run.mjs');
+        return runFast({ policy: true });
+    }
     const weights = JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8'));
     if (weights.obsSize !== OBS_SIZE || weights.actionSize !== ACTION_NAMES.length) {
         throw new Error(`Policy contract mismatch in ${POLICY_PATH}`);

@@ -15,6 +15,7 @@
  *   HEADLESS=1 RENDERER=canvas BOT_WIDTH=800 BOT_HEIGHT=450 npm run bot
  */
 import { chromium } from 'playwright';
+import { launchBrowser as launchGpuBrowser } from './rl/chrome.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -189,6 +190,10 @@ async function runOnce(browser, trialIndex) {
 }
 
 async function main() {
+    if (process.env.FAST === '1') {
+        const { runFast } = await import('./fast/run.mjs');
+        return runFast({ policy: false });
+    }
     console.log('Space Chicken play-test bot (in-page pilot)');
     console.log(`URL: ${BASE}`);
     console.log(
@@ -211,7 +216,13 @@ async function main() {
         launchOptions.executablePath = CACHED_CHROME;
     }
 
-    const browser = await chromium.launch(launchOptions);
+    if (process.env.BOT_GPU === '1' && RECORD_VIDEO) {
+        throw Error('BOT_GPU=1 does not support RECORD_VIDEO=1; use the normal recording runner');
+    }
+    const browser =
+        process.env.BOT_GPU === '1'
+            ? await launchGpuBrowser(chromium, HEADLESS, { preserveFrameRate: true })
+            : await chromium.launch(launchOptions);
     const results = [];
     try {
         for (let i = 1; i <= TRIALS; i++) {

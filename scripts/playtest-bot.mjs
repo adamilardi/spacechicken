@@ -10,6 +10,7 @@
  *   SCENARIO=l1-play,death-gap HEADLESS=0 npm run playtest
  */
 import { chromium } from 'playwright';
+import { launchBrowser as launchGpuBrowser } from './rl/chrome.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -24,6 +25,10 @@ const CACHED_CHROME =
     process.env.PLAYWRIGHT_CHROME ||
     '/home/adam/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome';
 const OUT_DIR = process.env.PLAYTEST_OUT || path.join(__dirname, '..', '.bot-runs');
+
+const RENDERER = process.env.RENDERER || '';
+const BOT_WIDTH = Math.max(320, Number(process.env.BOT_WIDTH) || 1280);
+const BOT_HEIGHT = Math.max(200, Number(process.env.BOT_HEIGHT) || 720);
 
 export const SCENARIOS = {
     'l1-play': { level: 1, durationMs: 25000, description: 'Play toward the level 1 crown' },
@@ -191,6 +196,9 @@ export function installInPageWatchdog() {
 }
 
 async function launchBrowser() {
+    if (process.env.BOT_GPU === '1') {
+        return launchGpuBrowser(chromium, HEADLESS, { preserveFrameRate: true });
+    }
     const options = {
         headless: HEADLESS,
         args: [
@@ -272,7 +280,10 @@ async function runScenario(browser, name, scenario) {
     url.searchParams.set('debug', '1');
     url.searchParams.set('playtest', name);
     url.searchParams.set('level', String(scenario.level));
-    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    if (RENDERER) url.searchParams.set('renderer', RENDERER);
+    const context = await browser.newContext({
+        viewport: { width: BOT_WIDTH, height: BOT_HEIGHT },
+    });
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (err) => pageErrors.push(String(err && err.message ? err.message : err)));
@@ -294,7 +305,7 @@ async function runScenario(browser, name, scenario) {
     );
     await page
         .locator('#phaser-game canvas')
-        .click({ position: { x: 640, y: 360 } })
+        .click({ position: { x: BOT_WIDTH / 2, y: BOT_HEIGHT / 2 } })
         .catch(() => {});
     if (scenario.chaos !== 'gap') {
         await page.evaluate(buildPilotSource());

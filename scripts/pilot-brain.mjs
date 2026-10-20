@@ -29,10 +29,32 @@ export function createPilotState() {
         duelSince: 0,
         duelSkipId: null,
         duelSkipUntil: 0,
+        // Dismount veto tracking: a mover holding the touchdown zone
+        // forever (a patrol fully inside the threat radius) must not
+        // pin the ride — leap over after 2.5s of veto.
+        dismountVetoId: null,
+        dismountVetoSince: 0,
+        // Rescue-aim latch: the touchdown projection uses current vx,
+        // which the aim itself reverses — without the latch the gate
+        // flaps every tick and the flight vibrates instead of landing.
+        rescueHeld: false,
         huntId: null,
         // Crusher pistons ride tweens, which never set body velocity:
         // track each piston's y over snap.elapsedMs for rise/slam sense.
         crusherPrev: {},
+        // Lift position history (same tween blindness): boarding and
+        // riding need the lift's velocity, tracked per id.
+        liftPrev: {},
+        // Committed beam leap: { fromX, dir, untilMs }. A leap arc is
+        // verified clear at takeoff, so the flight holds its line
+        // instead of letting a mid-air veer drag it back.
+        beamLeap: null,
+        // Patrol position history, same idea: landing vetoes time
+        // drones and rovers instead of holding forever.
+        threatPrev: {},
+        // Set per tick when the pilot deliberately holds still (lift
+        // waits, backing up, riding): suppresses stuck recovery.
+        holdStill: false,
         // Double-back maneuver expiry (snap.elapsedMs): while armed, the
         // spent double steers for the deck behind instead of the gap.
         // Cleared on touchdown; expiry falls back to the normal escape.
@@ -65,27 +87,82 @@ function yOverlaps(py, item, pad) {
     return py + 22 > top - pad && py - 22 < top + height + pad;
 }
 
-function columnAhead(px, py, dir, snap) {
+// A hazard tall enough to gate the lane: beams report their strike
+// height, but cosmic-ray snapshots only carry the emitter — an active
+// ray is a full-height column regardless of its snapshot h.
+function tallColumnHazard(item) {
+    if (!item || !item.active || item.enable === false) {
+        return false;
+    }
+    return (item.h || 0) >= 160 || item.type === 'cosmic_ray';
+}
+
+// Vertical overlap with a column threat: ray beams span from the
+// emitter down, so anything below the emitter is in the strike.
+function columnOverlapY(py, item, pad) {
+    if (item.type === 'cosmic_ray') {
+        return py > item.y - 20;
+    }
+    return yOverlaps(py, item, pad);
+}
+
+function columnAhead(px, py, dir, snap, riding) {
     const reach = 82;
-    const columns = snap.columns || [];
-    for (let i = 0; i < columns.length; i++) {
-        const dx = columns[i].x - px;
-        if (dx * dir > 6 && dx * dir < reach) {
-            return true;
+    // Riders skip the column freeze (holding rides into the strike —
+    // the emergency dismount leaps instead) but still freeze for tall
+    // hazards ahead.
+    if (!riding) {
+        const columns = snap.columns || [];
+        for (let i = 0; i < columns.length; i++) {
+            const dx = columns[i].x - px;
+            if (dx * dir > 6 && dx * dir < reach) {
+                return true;
+            }
         }
     }
     const hazards = snap.hazards || [];
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
-        if (!item.active || item.enable === false || (item.h || 0) < 160) {
+        if (!tallColumnHazard(item)) {
             continue;
         }
         const dx = item.x - px;
-        if (dx * dir > 6 && dx * dir < reach && yOverlaps(py, item, 8)) {
+        if (dx * dir > 6 && dx * dir < reach && columnOverlapY(py, item, 8)) {
             return true;
         }
     }
     return false;
+}
+
+// Ray column (warning or live strike) overlapping the pilot: freezing
+// beside it is suicide (the strike edge touches), so step away. Returns
+// the escape direction (-1/0/1). The 40px radius clears the 8px strike
+// plus a body width while keeping lift riders aboard their deck.
+function rayEvacuate(player, snap) {
+    const px = player.x;
+    let best = 0;
+    let bestDist = 40;
+    const columns = snap.columns || [];
+    for (let i = 0; i < columns.length; i++) {
+        const dx = columns[i].x - px;
+        if (Math.abs(dx) < bestDist) {
+            bestDist = Math.abs(dx);
+            best = dx >= 0 ? -1 : 1;
+        }
+    }
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'cosmic_ray' || !item.active || item.enable === false) {
+            continue;
+        }
+        const dx = item.x - px;
+        if (Math.abs(dx) < bestDist && columnOverlapY(player.y, item, 8)) {
+            bestDist = Math.abs(dx);
+            best = dx >= 0 ? -1 : 1;
+        }
+    }
+    return best;
 }
 
 function hazardInPath(px, py, dir, hazards, bombs, reach) {
@@ -93,6 +170,11 @@ function hazardInPath(px, py, dir, hazards, bombs, reach) {
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         if (!item.active || item.enable === false) {
+            continue;
+        }
+        // Timed beams are owned end-to-end by the laser gate above; as a
+        // blocker their tall span would freeze the run-through.
+        if (item.type === 'laser') {
             continue;
         }
         const dx = item.x - px;
@@ -157,9 +239,15 @@ function duelTarget(player, dir, snap, range) {
             continue;
         }
         const dy = item.y - player.y;
+        const vy = item.vy || 0;
+        // Level bolts only connect near the line: hold point-blank and
+        // for straight passive drops (they fall into the bolts), but an
+        // aimed chasing dive closes through the bolt flight untouched —
+        // dodge divers by running, their leaps are committed and land
+        // where the pilot stood.
         const level = Math.abs(dy) < 30;
-        const dropping = (item.vy || 0) > 50 && dy < 30 && dy > -300;
-        const chasing = item.chasing === true && Math.abs(dy) < 150;
+        const dropping = item.chasing !== true && vy > 50 && dy < 30 && dy > -300;
+        const chasing = item.chasing === true && Math.abs(dy) <= 60 && Math.abs(vy) < 150;
         if (!level && !dropping && !chasing) {
             continue;
         }
@@ -293,7 +381,12 @@ function chaserBehind(player, dir, snap) {
             continue;
         }
         const behind = (player.x - item.x) * dir;
-        if (behind < -10 || behind >= bestDist || Math.abs(item.y - player.y) >= 70) {
+        if (
+            behind < -10 ||
+            behind >= bestDist ||
+            Math.abs(item.y - player.y) >= 70 ||
+            Math.abs(item.vy || 0) >= 150
+        ) {
             continue;
         }
         bestDist = behind;
@@ -372,7 +465,17 @@ function applyFrontDuel(input, player, dir, snap, state) {
     if (!player.grounded) {
         return false;
     }
-    if (duelGate(duelTarget(player, dir, snap, 450), player, snap, state) == null) {
+    const target = duelTarget(player, dir, snap, 450);
+    if (target == null) {
+        return false;
+    }
+    // A nearer chaser behind preempts the ahead fixation: standing
+    // here dies to the heels while dueling the far lane (L14 death 2).
+    const rear = chaserBehind(player, dir, snap);
+    if (rear != null && (player.x - rear.x) * dir < (target.x - player.x) * dir) {
+        return false;
+    }
+    if (duelGate(target, player, snap, state) == null) {
         return false;
     }
     input.shoot = true;
@@ -388,8 +491,18 @@ function applyRearDuel(input, player, dir, snap, state) {
     if (!player.grounded) {
         return false;
     }
-    const rear = duelGate(chaserBehind(player, dir, snap), player, snap, state);
-    if (!rear || devilAhead(player, dir, snap, 100) != null) {
+    const chaser = chaserBehind(player, dir, snap);
+    if (chaser == null || devilAhead(player, dir, snap, 100) != null) {
+        return false;
+    }
+    // Level bolts only: an off-line chaser (leaping over, pacing
+    // another deck) eats held fire forever while converging past the
+    // bolt line — run instead of standing (L14 stall, death 3).
+    if (Math.abs(chaser.y - player.y) >= 30) {
+        return false;
+    }
+    const rear = duelGate(chaser, player, snap, state);
+    if (!rear) {
         return false;
     }
     const want = rear.x < player.x ? 'left' : 'right';
@@ -480,56 +593,269 @@ function applyBonkBlocker(input, player, dx, blocker, spring, seek, hop, platfor
     input.jump = move.jump;
 }
 
+// True when a patrol (never a dueling boarder) closes on the pilot:
+// those relocate during long low-g flights, so hops wait for the
+// opening instead of landing on them.
+function patrolClosing(player, snap, state, blocker) {
+    if (!blocker || !blocker.id || blocker.type === 'boarder') {
+        return false;
+    }
+    if ((snap.bombs || []).indexOf(blocker) !== -1) {
+        return false;
+    }
+    if (state.threatPrev[blocker.id] == null) {
+        threatVelocity(blocker, snap, state);
+        return true;
+    }
+    const v = threatVelocity(blocker, snap, state);
+    return (player.x - blocker.x) * v.vx > 0;
+}
+
 // Leap over small hazards with runway, or hold too close to clear
-// and let patrols pass. True when it handles the tick (airborne and
-// close falls through to the descent steering).
-function applyHopLeap(input, player, dx, dist) {
+// and let patrols pass. Closing patrols hold the hop (they relocate
+// under the arc) and back off when crowded. True when it handles the
+// tick (airborne and close falls through to the descent steering).
+// True when a running hop from dist px out apexes over an overhead
+// blocker: rise at the crossing must top the blocker's crown. A
+// too-close takeoff rises into its body instead (L14 death 1: 62px
+// out, 132px up — the arc pierces the patrol).
+function hopClearsOverhead(player, blocker, snap, dist) {
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    if (!(gravity > 0)) {
+        return false;
+    }
+    const t = dist / 160;
+    const rise = 330 * t - (gravity / 2) * t * t;
+    if (!(rise > 0)) {
+        return false;
+    }
+    const halfH = (blocker.h || 30) / 2;
+    return player.y + 22 - rise < blocker.y - halfH - 10;
+}
+
+function applyHopLeap(input, player, dx, dist, snap, state, blocker, platforms) {
+    // Overhead floater (a drone crossing the takeoff): a standing hop
+    // rises straight into it, so back up for a running hop-over
+    // instead — running hops clear over the top. Closing patrols back
+    // out as before; without runway footing, hold for it to pass.
+    if (player.grounded && blocker.type !== 'bomb' && dist < 130) {
+        const dy = blocker.y - player.y;
+        if (dy < -10 && dy > -200) {
+            if (dist < 120 && patrolClosing(player, snap, state, blocker)) {
+                input.left = player.x < blocker.x;
+                input.right = player.x > blocker.x;
+                return true;
+            }
+            if (Math.abs(player.vx || 0) > 100 && dist >= 35) {
+                if (hopClearsOverhead(player, blocker, snap, dist)) {
+                    input.right = dx > 10;
+                    input.left = dx < -10;
+                    input.jump = true;
+                    return true;
+                }
+                // Too close to apex over it: stop and let the patrol
+                // pass instead of hopping into its body (L14 death 1).
+                input.left = false;
+                input.right = false;
+                return true;
+            }
+            if (Math.abs(player.vx || 0) > 100) {
+                input.left = false;
+                input.right = false;
+                return true;
+            }
+            const back = blocker.x >= player.x ? -1 : 1;
+            if (supportAt(player.x + back * 56, player.y + 6, platforms)) {
+                input.left = back < 0;
+                input.right = back > 0;
+                return true;
+            }
+            return true;
+        }
+    }
     if (dist > 45) {
+        if (player.grounded && dist < 120 && patrolClosing(player, snap, state, blocker)) {
+            return true;
+        }
+        if (!player.grounded) {
+            // Airborne: veer off. Steering toward only lines up a leap
+            // that never comes (no takeoff), abandoning the arc — a
+            // bomb near the drop hijacks the steering into the pit.
+            input.left = dx > 10;
+            input.right = dx < -10;
+            return true;
+        }
         input.right = dx > 10;
         input.left = dx < -10;
         input.jump = player.grounded;
         return true;
     }
-    return player.grounded;
+    if (!player.grounded) {
+        return false;
+    }
+    if (patrolClosing(player, snap, state, blocker)) {
+        // Crowded by a closing patrol: back out of its span for a
+        // runway instead of standing in it.
+        const away = blocker.x > player.x ? -1 : 1;
+        if (supportAt(player.x + away * 56, player.y + 6, platforms)) {
+            input.left = away < 0;
+            input.right = away > 0;
+        }
+    }
+    return true;
 }
 
 // A boarder already under fire may still die first, so only wait
 // those out; anything else squatting on the landing holds the leap.
 // True when it waits out the tick.
-function applyLandingWait(player, gap, landing, snap, shooting, laneDist) {
+function applyLandingWait(player, dir, gap, landing, snap, state, shooting, laneDist) {
     if (!gap || !player.grounded) {
         return false;
     }
-    const squatter = landingThreat(landing, snap);
+    const squatter = landingThreat(dir, landing, snap, state);
     return Boolean(squatter && !(squatter.type === 'boarder' && shooting && laneDist < 400));
+}
+
+// Level ground to run onto ahead: the current deck extending past a
+// stride, or another level deck within a jump. The high hold only pins
+// the pilot when running forward leads nowhere level.
+function levelGroundAhead(player, dir, snap, under, platforms) {
+    if (under) {
+        const edge = dir > 0 ? under.right : under.left;
+        if ((edge - player.x) * dir > 60) {
+            return true;
+        }
+    }
+    const { range } = jumpBallistics(snap);
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        if (sameDeck(plat, under)) {
+            continue;
+        }
+        if (plat.top < player.y - 100 || plat.top > player.y + 100) {
+            continue;
+        }
+        const near = dir > 0 ? plat.left : plat.right;
+        const dist = (near - player.x) * dir;
+        if (dist > 0 && dist < range + 100) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Perched over a far drop with no spring in reach: stay put so the
 // run-off does not become a suicide leap. True when it holds the tick.
-function applyHighHold(input, player, under, landing) {
+// Flat routes keep running when level ground continues ahead, even with
+// a high platform nearby (stepUp/grabCrown engage it when close).
+function applyHighHold(input, player, dir, snap, under, landing, platforms) {
     if (!under || !landing || under.top - landing.top <= 200 || !player.grounded) {
         return false;
     }
-    if (player.x > under.x + 10) {
-        input.left = true;
-    } else if (player.x < under.x - 10) {
-        input.right = true;
+    if (levelGroundAhead(player, dir, snap, under, platforms)) {
+        return false;
     }
     return true;
 }
 
 // Bombs rain from above: sidestep on solid ground, never into a gap.
 // Cosmic-ray columns freeze the whole move. True when it handles the tick.
-function applyAmbushHolds(input, player, dir, snap, platforms) {
+function applyAmbushHolds(input, player, dir, snap, platforms, under) {
+    const riding = under != null && under.type === 'moving_platform';
+    // A ray column on top of the pilot evacuates first: freezing beside
+    // the strike (or riding through it) touches the bolt edge. Riders
+    // skip the sidestep (it walks off the lift edge) for the emergency
+    // dismount downstream instead.
+    const evac = riding ? 0 : rayEvacuate(player, snap);
+    if (evac !== 0) {
+        input.left = evac < 0;
+        input.right = evac > 0;
+        // Evacuating a fall with fuel and no landing: double out of
+        // the plane instead of dropping through it.
+        if (
+            !player.grounded &&
+            player.vy > 28 &&
+            snap.jumpCount < snap.maxJumps &&
+            touchdownDeck(player, snap, platforms) == null
+        ) {
+            input.jump = true;
+        }
+        return true;
+    }
     const dodge = bombDodge(player, snap);
     if (dodge !== 0) {
-        if (supportAt(player.x + dodge * 56, player.y + 6, platforms)) {
-            input.left = dodge < 0;
-            input.right = dodge > 0;
-            return true;
+        // Grounded sidesteps need footing (never into a gap); mid-air
+        // velocity sets instantly, so dodge unconditionally.
+        if (player.grounded && !supportAt(player.x + dodge * 56, player.y + 6, platforms)) {
+            return columnAhead(player.x, player.y, dir, snap, riding);
+        }
+        input.left = dodge < 0;
+        input.right = dodge > 0;
+        return true;
+    }
+    // A falling pilot with a drone inside the contact box: steer clear
+    // of it before any hold or brake freezes the move — holds land the
+    // pilot on the patrol line. Rising and apex-hovering arcs hold
+    // their line (takeoffs and doubles are committed — veering mid-rise
+    // abandons the landing), and grounded pilots keep the mount-delay
+    // and hop-leap handlers (running under patrols beats sidestepping
+    // into gaps).
+    const drone = player.grounded || player.vy < 28 ? 0 : droneDodge(player, snap);
+    if (drone !== 0) {
+        input.left = drone < 0;
+        input.right = drone > 0;
+        return true;
+    }
+    // Warning column ahead: hold outside it (hover if airborne).
+    // Riders never hold into the strike (the dismount leaps instead).
+    if (columnAhead(player.x, player.y, dir, snap, riding)) {
+        // Falling before the plane with fuel and no landing: holding
+        // drops into the killzone, so double back out instead.
+        if (
+            !riding &&
+            !player.grounded &&
+            snap.jumpCount < snap.maxJumps &&
+            touchdownDeck(player, snap, platforms) == null
+        ) {
+            const colX = nearestColumnX(player.x, player.y, dir, snap);
+            if (colX != null) {
+                input.left = colX > player.x;
+                input.right = colX < player.x;
+                input.jump = player.vy > 28;
+                return true;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+// Nearest warning column / tall strike in the approach lane, or null.
+function nearestColumnX(px, py, dir, snap) {
+    let bestX = null;
+    let bestDist = 82;
+    const columns = snap.columns || [];
+    for (let i = 0; i < columns.length; i++) {
+        const dx = (columns[i].x - px) * dir;
+        if (dx > 6 && dx < bestDist) {
+            bestDist = dx;
+            bestX = columns[i].x;
         }
     }
-    return columnAhead(player.x, player.y, dir, snap);
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!tallColumnHazard(item)) {
+            continue;
+        }
+        const dx = (item.x - px) * dir;
+        if (dx > 6 && dx < bestDist && columnOverlapY(py, item, 8)) {
+            bestDist = dx;
+            bestX = item.x;
+        }
+    }
+    return bestX;
 }
 
 // Applies the dust-devil leap to the input; true when it handles the
@@ -752,8 +1078,41 @@ function hopTouchdownClear(player, snap, below, dx) {
         return true;
     }
     const tx = player.x + dir * 160 * t;
-    if (tx < deck.left - 30 || tx > deck.right + 30) {
+    // The hop may sail past this deck onto the next: any deck catching
+    // tx near the arc height lands it (deck tops within a jump of each
+    // other shift tx by under 15px).
+    const platforms = snap.platforms || [];
+    let landing = null;
+    if (tx >= deck.left - 30 && tx <= deck.right + 30) {
+        landing = deck;
+    } else {
+        for (let i = 0; i < platforms.length; i++) {
+            const plat = platforms[i];
+            if (tx < plat.left - 30 || tx > plat.right + 30) {
+                continue;
+            }
+            if (Math.abs(plat.top - deck.top) > 100) {
+                continue;
+            }
+            if (Number.isFinite(snap.killZoneY) && plat.top > snap.killZoneY - 100) {
+                continue;
+            }
+            landing = plat;
+            break;
+        }
+    }
+    if (!landing) {
         return false;
+    }
+    // A tracking chaser shadows ballistics: any deck outruns it (it must
+    // re-approach after the landing). Only one sprinting away from the
+    // touchdown trusts the coast projection instead.
+    if (below.chasing) {
+        const pvx = below.vx || 0;
+        const openingFast = (tx - below.x) * pvx < 0 && Math.abs(pvx) > 100;
+        if (!openingFast) {
+            return true;
+        }
     }
     const chaserTx = below.x + (below.vx || 0) * t;
     return Math.abs(chaserTx - tx) > 40;
@@ -761,6 +1120,8 @@ function hopTouchdownClear(player, snap, below, dx) {
 
 // True when the touchdown point is clear of the below boarder:
 // both coast ballistically to the deck landing and end up separated.
+// A tracking chaser shadows the descent, so only one sprinting away
+// from the touchdown (opening fast) counts as clear.
 function touchdownClear(player, snap, below) {
     const deck = landingBelow(player, snap.platforms || [], snap);
     if (!deck) {
@@ -778,6 +1139,13 @@ function touchdownClear(player, snap, below) {
         return false;
     }
     const tx = player.x + (player.vx || 0) * t;
+    if (below.chasing) {
+        const pvx = below.vx || 0;
+        const openingFast = (tx - below.x) * pvx < 0 && Math.abs(pvx) > 100;
+        if (!openingFast) {
+            return false;
+        }
+    }
     const chaserTx = below.x + (below.vx || 0) * t;
     return Math.abs(chaserTx - tx) > 40;
 }
@@ -878,9 +1246,94 @@ function aggroAhead(player, dir, snap) {
     return best;
 }
 
+// Applies the takeoff hold; true when it handles the tick. Two
+// committed takeoffs trade mid-air and must wait: a grounded
+// gap-edge jump into a converging chase-dive (the leap meets the
+// diver where bolts never reach — L14 x=6500 loop), and any grounded
+// jump whose rise column holds a drone the arc can reach (L14
+// chain-deck kills at x=9120). Divers land or pass and drones
+// patrol on within a second; grounded runners stay exempt so wave
+// triggers still release on approach.
+function applyTakeoffHold(input, player, dir, snap, gap) {
+    if (!player.grounded) {
+        return false;
+    }
+    const { rise } = jumpBallistics(snap);
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || !item.active || item.enable === false) {
+            continue;
+        }
+        const ahead = (item.x - player.x) * dir;
+        const dy = item.y - player.y;
+        if (item.type === 'boarder') {
+            if (
+                gap &&
+                item.chasing === true &&
+                Math.abs(item.vy || 0) > 80 &&
+                ahead > 8 &&
+                ahead < 350 &&
+                dy > -250 &&
+                dy < 60
+            ) {
+                input.left = false;
+                input.right = false;
+                input.jump = false;
+                return true;
+            }
+        } else if (item.type === 'drone') {
+            const halfH = (item.h || 30) / 2;
+            if (ahead > -10 && ahead < 70 && dy < -10 && rise > -dy - halfH - 6) {
+                // At a gap edge the takeoff waits for the patrol to
+                // pass; on flat ground run under it (the rise is the
+                // threat, not the position).
+                input.left = !gap && dir < 0;
+                input.right = !gap && dir > 0;
+                input.jump = false;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 // True when the descent meets a head-on chaser over landable deck:
 // brake and land short so the grounded duel kills it. (The blocker
 // scan caps the range at 70px; 40px is too late to stop.)
+// Head-on with a live boarder while engaging: brake the descent and
+// land short (the grounded duel kills it), brake the rise and duel
+// aligned, or gun it down advancing. Flying the descent collides
+// with it at the touchdown; rising into it ends under its leap.
+function applyHeadOnDuel(input, player, dir, dx, snap, falling, blocker) {
+    // Rising head-on into an aggressive chaser: brake (hold position,
+    // keep facing it) and hold fire while misaligned — bolts fly flat,
+    // so firing early wastes the cooldown; the aligned crossing kills
+    // outright, and the grounded duel below finishes anything that
+    // lands. Falling flights keep the brake-or-fly rule below (over a
+    // pit with no landing, flying past beats hovering into it), and
+    // dormant boarders still advance (shot on sight).
+    if (
+        !player.grounded &&
+        !falling &&
+        (blocker.x - player.x) * dir > 8 &&
+        (blocker.chasing === true || (blocker.vx || 0) * dir < -50)
+    ) {
+        input.left = false;
+        input.right = false;
+        if (Math.abs(blocker.y - player.y) >= 30) {
+            input.shoot = false;
+        }
+        return;
+    }
+    if (!player.grounded && falling && brakeForChaser(player, dir, blocker, snap)) {
+        return;
+    }
+    // Gun it down first; jumping in just trades.
+    input.right = dx > 10;
+    input.left = dx < -10;
+}
+
 function brakeForChaser(player, dir, blocker, snap) {
     const ahead = (blocker.x - player.x) * dir;
     if (ahead < 40 || Math.abs(blocker.y - player.y) >= 120) {
@@ -959,10 +1412,41 @@ function landingBelow(player, platforms, snap) {
         if (player.x < plat.left - 30 || player.x > plat.right + 30) {
             continue;
         }
-        if (plat.top > boots && plat.top < player.y + 260) {
+        // Touchdown zone: boots within 12px above the deck are landing,
+        // not falling past it — doubling here bounces off every landing
+        // into a hover loop instead of touching down.
+        if (plat.top >= boots - 12 && plat.top < player.y + 260) {
             if (snap != null && deckInUnsafeBeam(plat, snap)) {
                 continue;
             }
+            return plat;
+        }
+    }
+    return null;
+}
+
+// Projected touchdown deck, or null: the first deck below whose top
+// the ballistic arc reaches while over it. landingBelow answers
+// "deck underfoot" for grounded strides; this answers "will this
+// flight land" for the double decision (a deck 8px behind the boots
+// with 160px/s of away-speed is not a landing, but a touchdown 24px
+// past the edge still clips down). Same 260px look-down as
+// landingBelow: a deck further below is recovered to, not landed on.
+function touchdownDeck(player, snap, platforms) {
+    const boots = player.y + 22;
+    const gravity = snap.physics?.gravityY ?? 300;
+    const vx = player.vx || 0;
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        if (plat.top < boots - 12 || plat.top > player.y + 260) {
+            continue;
+        }
+        const t = fallTimeTo(player.y, player.vy, gravity, plat.top);
+        if (t == null || t > 4) {
+            continue;
+        }
+        const tx = player.x + vx * t;
+        if (tx > plat.left - 30 && tx < plat.right + 30) {
             return plat;
         }
     }
@@ -978,7 +1462,7 @@ function deckInUnsafeBeam(plat, snap) {
     const dx = plat.x ?? (plat.left + plat.right) / 2;
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
-        if (!item || item.type !== 'laser') {
+        if (!item || item.type !== 'laser' || !item.active || item.enable === false) {
             continue;
         }
         const halfW = (item.w || 0) / 2;
@@ -1033,9 +1517,15 @@ function laserLeapMove(player, left, right, cooling) {
 // Inside a beam span: sit tight only while cooling with margin to
 // spare, else rush out the nearest edge.
 function laserInsideMove(player, left, right, cooling, windowMs) {
-    const exitMs = (Math.min(player.x - left, right - player.x) / 160) * 1000 + 400;
+    const nearEdge = Math.min(player.x - left, right - player.x);
+    const exitMs = (nearEdge / 160) * 1000 + 400;
     if (cooling && windowMs > exitMs + 600) {
         return null;
+    }
+    // Shallow exits step out and land; only deep ones spend the double
+    // to extend past the span.
+    if (nearEdge <= 60) {
+        return player.x - left < right - player.x ? 'L' : 'R';
     }
     return player.x - left < right - player.x ? 'left' : 'right';
 }
@@ -1044,6 +1534,76 @@ function laserInsideMove(player, left, right, cooling, windowMs) {
 // to rush out of a closing one, 'leap' to jump clean over it, null when
 // it does not constrain. Airborne pilots test a wider span: descents
 // must steer out before they are over the beam, not after.
+// True when the beam cools with a known window covering the crossing.
+function laserWindowCovers(item, spanWidth) {
+    if (item.phase !== 'cooldown' || !Number.isFinite(item.timeUntilPhaseChangeMs)) {
+        return false;
+    }
+    return item.timeUntilPhaseChangeMs >= (spanWidth / 160) * 1000 + 350;
+}
+
+// Beam proximity reach: grounded pilots run to the edge in any phase
+// (safe outside the span) and only the entry is window-gated — a
+// window that covers the span can still expire on a 140px approach.
+// Airborne pilots keep the wide gate: with no brakes the veer-off
+// must start early to land short.
+function laserReach(player) {
+    return player.grounded ? 30 : 140;
+}
+
+// True when the current ballistic arc geometrically clears the REAL
+// (unpadded) beam rect. A hopper near a beam sits inside the padded
+// span for the whole jump, and the pad rush-out (back out the near
+// edge) aborts every hop — the L14 chain-deck loop. An arc that
+// clears the rect is safe in any phase, so the span check holds its
+// line; anything else falls through to the rush/veer below.
+// Release-speed projection: clearing hands the tick to the patrol /
+// hop logic, which drives the travel direction at run speed — so a
+// weak or opposing vx projects at run speed instead of the momentary
+// strafe (which would always "pierce" by stalling under the span).
+function beamArcClears(player, item, snap, dir) {
+    const halfW = (item.w || 0) / 2;
+    const halfH = (item.h || 0) / 2;
+    const realLeft = (item.left ?? item.x - halfW) - 14;
+    const realRight = (item.right ?? item.x + halfW) + 14;
+    const realTop = item.top ?? item.y - halfH;
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    if (!Number.isFinite(gravity) || gravity < 0) {
+        return false;
+    }
+    const vx = Number.isFinite(player.vx) ? player.vx : 0;
+    const approach = vx * dir > 40 ? vx : dir * 160;
+    const vy = Number.isFinite(player.vy) ? player.vy : 0;
+    let tEnter;
+    let tExit;
+    if (approach > 0) {
+        if (player.x > realRight) {
+            return true;
+        }
+        tEnter = Math.max(0, (realLeft - player.x) / approach);
+        tExit = (realRight - player.x) / approach;
+    } else {
+        if (player.x < realLeft) {
+            return true;
+        }
+        tEnter = Math.max(0, (realRight - player.x) / approach);
+        tExit = (realLeft - player.x) / approach;
+    }
+    if (tExit < 0 || tEnter > 2) {
+        return true;
+    }
+    const feet = player.y + 22;
+    const heightAt = (t) => feet + vy * t + (gravity / 2) * t * t;
+    const endA = heightAt(Math.min(tEnter, 2));
+    const endB = heightAt(Math.min(tExit, 2));
+    const hi = Math.max(endA, endB);
+    // Clear only over the crown. Under-passes stay gated: every
+    // level's beams are vertical deck-sitters, so below the base is
+    // inside the deck, and falling arcs keep their rush-out.
+    return hi <= realTop - 4;
+}
+
 function laserSpanMove(player, dir, item, snap) {
     const pad = 26;
     const air = player.grounded ? 0 : 80;
@@ -1057,41 +1617,130 @@ function laserSpanMove(player, dir, item, snap) {
     if (player.y + 22 <= top || player.y - 22 >= bottom) {
         return null;
     }
+    if (!player.grounded && beamArcClears(player, item, snap, dir)) {
+        return null;
+    }
+    const dormant = !item.active || item.enable === false;
+    const inside = player.x > left && player.x < right;
+    const edge = dir > 0 ? left - player.x : player.x - right;
+    // Far dormant spans do not exist yet (their cooldown rest used to
+    // phantom-leap from kilometers away), but near ones arm on
+    // proximity — leap over (or hold out of) them, never stroll in.
+    if (dormant && !inside && (edge < 0 || edge > laserReach(player))) {
+        return null;
+    }
+    // A known window that covers the crossing runs through, even over
+    // leapable spans: leaping a narrow cooling beam launches a 350px
+    // flight over whatever waits past it (like L11's wardens), while
+    // the grounded duel underneath kills it instead. Dormant timers
+    // are not windows (release fires instantly), so never run through.
+    if (!dormant && laserWindowCovers(item, right - left)) {
+        return null;
+    }
+    // Distance gate before the leap: a live beam across the level must
+    // not phantom-leap or phantom-hold either.
+    if (!inside && (edge < 0 || edge > laserReach(player))) {
+        return null;
+    }
+    return laserEntryMove(player, dir, item, snap, right - left, inside, left, right);
+}
+
+// Solid deck under the veer target (80px back) and outside the
+// lane/span: the veer-off lands on it instead of sailing into the
+// pit past it. Target-based, not deck-center-based — a deck whose
+// middle sits under a firing beam still catches a veer onto its
+// safe end. Fuel-blind: landing short saves the double for gaps.
+function veerLanding(player, dir, snap, avoidLeft, avoidRight) {
+    const tx = player.x - dir * 80;
+    if (tx > avoidLeft - 10 && tx < avoidRight + 10) {
+        return false;
+    }
+    const boots = player.y + 22;
+    const decks = snap.platforms || [];
+    for (let i = 0; i < decks.length; i++) {
+        const deck = decks[i];
+        if (tx < deck.left - 30 || tx > deck.right + 30) {
+            continue;
+        }
+        if (deck.top > boots && deck.top < player.y + 260) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Beam entry resolution once proximity is established. Inside with a
+// deck below, rush out on foot (0.2s beats a 1s leap up through the
+// band); inside over a pit, leap out, running cannot. Outside over
+// deck, floor beams wait for the window and run through — leaping a
+// floor beam launches a risky flight for no reason. Outside over a
+// pit (gap beams), leapable arcs fly over.
+function laserEntryMove(player, dir, item, snap, spanWidth, inside, left, right) {
     const cooling = item.phase === 'cooldown';
-    // Leapable arcs fly over the span instead of negotiating it.
-    // (Veering back here would cancel the leap and pogo forever.)
-    if (beamLeapable(player, item, right - left, snap)) {
-        return laserLeapMove(player, left, right, cooling);
-    }
-    let windowMs = cooling ? 10000 : 0;
-    if (Number.isFinite(item.timeUntilPhaseChangeMs)) {
-        windowMs = item.timeUntilPhaseChangeMs;
-    }
-    if (player.x > left && player.x < right) {
+    const dormant = !item.active || item.enable === false;
+    const platforms = snap.platforms || [];
+    if (inside) {
+        if (landingBelow(player, platforms, snap) == null) {
+            return 'leap';
+        }
+        let windowMs = cooling ? 10000 : 0;
+        if (Number.isFinite(item.timeUntilPhaseChangeMs)) {
+            windowMs = item.timeUntilPhaseChangeMs;
+        }
         return laserInsideMove(player, left, right, cooling, windowMs);
     }
-    const edge = dir > 0 ? left - player.x : player.x - right;
-    if (edge < 0 || edge > 140) {
-        return null;
+    const spanDeck = supportAt((left + right) / 2, player.y + 6, platforms) != null;
+    if (!dormant && spanDeck) {
+        let windowMs = cooling ? 10000 : 0;
+        if (Number.isFinite(item.timeUntilPhaseChangeMs)) {
+            windowMs = item.timeUntilPhaseChangeMs;
+        }
+        const crossMs = (spanWidth / 160) * 1000 + 350;
+        if (cooling && windowMs >= crossMs) {
+            return null;
+        }
+        if (player.grounded) {
+            return 'hold';
+        }
+        return veerLanding(player, dir, snap, left, right) ? (dir > 0 ? 'L' : 'R') : null;
     }
-    const crossMs = ((right - left) / 160) * 1000 + 350;
-    if (cooling && windowMs >= crossMs) {
-        return null;
+    if (beamLeapable(player, item, spanWidth, snap, dir)) {
+        return laserLeapMove(player, left, right, cooling);
+    }
+    // Too close to arc over the crown: the low arc transits the band,
+    // so leap only on a dark window verified to cover the transit —
+    // leaping into a phase flip dies. Otherwise hold for the next
+    // dark (grounded) or veer out (airborne).
+    if (cooling && laserTransitCovers(item, spanWidth)) {
+        return laserLeapMove(player, left, right, cooling);
     }
     if (player.grounded) {
         return 'hold';
     }
-    // No brakes mid-air: veer off to land short of the span.
-    return dir > 0 ? 'left' : 'right';
+    return veerLanding(player, dir, snap, left, right) ? (dir > 0 ? 'L' : 'R') : null;
 }
 
-// True when a grounded takeoff arcs over the beam and lands past it:
-// apex feet above the beam crown with two jumps of run to spare.
-function beamLeapable(player, item, spanWidth, snap) {
-    const halfH = (item.h || 0) / 2;
-    const crown = item.top ?? item.y - halfH;
-    const { rise, range } = jumpBallistics(snap);
-    return player.y - rise + 22 < crown - 6 && range * 2 > spanWidth + 120;
+// True when a takeoff arc clears the beam crown before entering the
+// span: projects the takeoff (run speed, jump velocity) against the
+// real beam rect. The old apex/range check passed takeoffs 45px out
+// whose arc enters the span still below the crown (L14 death 2).
+function beamLeapable(player, item, spanWidth, snap, dir) {
+    const { range } = jumpBallistics(snap);
+    if (!(range > spanWidth)) {
+        return false;
+    }
+    const takeoff = dir || (snap.crown && snap.crown.x < player.x ? -1 : 1);
+    const vx = takeoff * 160;
+    return beamArcClears({ x: player.x, y: player.y, vx, vy: -330 }, item, snap, takeoff);
+}
+
+// True when the dark window covers a low transit through the span:
+// a too-close leap survives only while the beam stays dark.
+function laserTransitCovers(item, spanWidth) {
+    if (!Number.isFinite(item.timeUntilPhaseChangeMs)) {
+        return false;
+    }
+    return item.timeUntilPhaseChangeMs >= (spanWidth / 160) * 1000 + 300;
 }
 
 // Timed-beam crossing: never enter an active span, and only enter a
@@ -1145,8 +1794,31 @@ function applyDescentEscape(input, player, snap, falling, state, dx) {
     return true;
 }
 
+// A committed leap arc holds its line: the arc was verified clear at
+// takeoff, so mid-air veers and rushes that would drag the flight
+// back to the span edge are suppressed until the pilot lands, flies
+// past the beam zone, or the arc times out. True when committing.
+function beamLeapCommit(input, player, dir, snap, state) {
+    const leap = state.beamLeap;
+    if (!leap || player.grounded || leap.dir !== dir) {
+        state.beamLeap = null;
+        return false;
+    }
+    const now = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
+    if (now > leap.untilMs || (player.x - leap.fromX) * dir >= 200) {
+        state.beamLeap = null;
+        return false;
+    }
+    input.left = dir < 0;
+    input.right = dir > 0;
+    return true;
+}
+
 // Applies the beam constraint to the input; true when it handles the tick.
 function applyLaserMove(input, player, dir, snap, state) {
+    if (beamLeapCommit(input, player, dir, snap, state)) {
+        return true;
+    }
     const laser = laserMove(player, dir, snap);
     if (laser === 'hold') {
         return true;
@@ -1155,9 +1827,18 @@ function applyLaserMove(input, player, dir, snap, state) {
         return false;
     }
     if (laser === 'leap') {
+        const now = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
+        state.beamLeap = { fromX: player.x, dir, untilMs: now + 1500 };
         input.left = dir < 0;
         input.right = dir > 0;
         input.jump = true;
+        return true;
+    }
+    if (laser === 'L' || laser === 'R') {
+        // Shallow step-out (or veer onto a short landing): move, never
+        // double — doubling here bounces off every touchdown instead.
+        input.left = laser === 'L';
+        input.right = laser === 'R';
         return true;
     }
     input.left = laser === 'left';
@@ -1239,8 +1920,46 @@ function crusherSpanMove(player, dir, item, snap, state) {
     if (player.grounded) {
         return 'hold';
     }
-    // No brakes mid-air: veer off to land short of the lane.
+    // No brakes mid-air: veer off onto a deck already underfoot,
+    // commit to the crossing past open gap (the over-double lifts the
+    // arc clear). Fuel-blind: landing short saves the double for gaps.
+    if (!veerLanding(player, dir, snap, left, right)) {
+        return null;
+    }
     return dir > 0 ? 'left' : 'right';
+}
+
+// Airborne arc crossing a piston lane: double over it when the piston
+// sits below the boots (the rise lifts away with margin). A piston in
+// the rise path holds the double — leaping into it is certain doom,
+// while waiting may still clear as it slams.
+function crusherOverDouble(player, dir, snap) {
+    if (player.grounded || player.vy < -100) {
+        return false;
+    }
+    if (snap.jumpCount >= snap.maxJumps) {
+        return false;
+    }
+    const boots = player.y + 22;
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'crusher' || !item.active || item.enable === false) {
+            continue;
+        }
+        const ahead = (item.x - player.x) * dir;
+        // Late window only: doubling from 260px out lands in the NEXT
+        // lane (L11's pistons sit 200px apart). Firing inside 170px
+        // sails past it onto clear deck instead.
+        if (ahead < -40 || ahead > 170) {
+            continue;
+        }
+        const top = item.top != null ? item.top : item.y - (item.h || 40) / 2;
+        if (top > boots + 10) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Crusher timing: never enter a piston lane unless the gate is open.
@@ -1273,18 +1992,739 @@ function applyCrusherMove(input, player, dir, snap, state) {
     return true;
 }
 
+// Lift velocity across ticks, px/s: lifts ride tweens, which never set
+// body velocity, so track x/y over snap.elapsedMs. Zero on first sight.
+function liftVelocity(item, snap, state) {
+    const t = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
+    const prev = state.liftPrev[item.id];
+    const v =
+        prev && t > prev.t
+            ? {
+                  vx: ((item.x - prev.x) / (t - prev.t)) * 1000,
+                  vy: ((item.y - prev.y) / (t - prev.t)) * 1000,
+              }
+            : { vx: 0, vy: 0 };
+    state.liftPrev[item.id] = { x: item.x, y: item.y, t };
+    return v;
+}
+
+// True when the lift can be boarded by walking: level with the boots
+// and adjacent (no pit between the deck edge and the lift).
+function liftWalkable(player, dir, under, lift) {
+    if (Math.abs(lift.top - (player.y + 22)) > 14) {
+        return false;
+    }
+    const myEdge = dir > 0 ? under.right : under.left;
+    const liftEdge = dir > 0 ? lift.left : lift.right;
+    return (liftEdge - myEdge) * dir < 30;
+}
+
+// True when the boots sit inside the lift's vertical stroke (from its
+// origin/target endpoints): a walk-on window will come around.
+function liftLevelInStroke(player, lift) {
+    const boots = player.y + 22;
+    const half = (lift.h || 24) / 2;
+    const tops = [lift.top];
+    if (lift.origin && Number.isFinite(lift.origin.y)) {
+        tops.push(lift.origin.y - half);
+    }
+    if (lift.target && Number.isFinite(lift.target.y)) {
+        tops.push(lift.target.y - half);
+    }
+    const lo = Math.min.apply(null, tops) - 14;
+    const hi = Math.max.apply(null, tops) + 14;
+    return boots >= lo && boots <= hi;
+}
+
+// Lift boarding decision: 'run' (walk on now), 'jump' (apex takeoff
+// window open, phase open), 'wait' (in position, phase closed), 'back'
+// (too close for the arc and no walk-on coming: back up to the window),
+// false (no lift business). Full jumps cannot land short on a lift, so
+// boarding jumps apex OVER the lift and the descent drops onto it.
+function liftBoarding(player, dir, snap, under, landing, state) {
+    if (!player.grounded || under == null || landing == null) {
+        return false;
+    }
+    if (landing.type !== 'moving_platform' || under.type === 'moving_platform') {
+        return false;
+    }
+    if (sameDeck(under, landing)) {
+        return false;
+    }
+    const liftCx = (landing.left + landing.right) / 2;
+    if ((liftCx - player.x) * dir <= 0) {
+        return false;
+    }
+    if (liftWalkable(player, dir, under, landing)) {
+        return 'run';
+    }
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    if (!(gravity > 0)) {
+        return false;
+    }
+    const riseRun = (160 * 330) / gravity;
+    const rise = Math.min(260, (330 * 330) / (2 * gravity));
+    const apexX = player.x + dir * riseRun;
+    const apexBoots = player.y + 22 - rise;
+    const pastWindow = (apexX - liftCx) * dir > 60;
+    // Short side matches the drop glide (~120px): a further apex falls
+    // short of the deck and burns the double on the recovery.
+    const inWindow = !pastWindow && (liftCx - apexX) * dir < 100;
+    const v = liftVelocity(landing, snap, state);
+    const phaseOpen = apexBoots < landing.top + 60 && v.vy > -40;
+    if (inWindow) {
+        return phaseOpen ? 'jump' : 'wait';
+    }
+    if (pastWindow) {
+        return liftLevelInStroke(player, landing) ? 'wait' : 'back';
+    }
+    return false;
+}
+
+// Airborne lift to drop onto, as a steer target ({x}), or null: a lift
+// below within catch range. Centered drops return the player's own x so
+// horizontal dies and the fall goes straight down onto the deck.
+// Rescue aim for a spent-fuel descent over nothing landable: the
+// nearest static deck in the fall window, steered by touchdown
+// projection (the game sets horizontal velocity directly, so the
+// controller brakes with hover-drops and re-evaluates every tick).
+// Low-gravity flights overshoot every deck at full run speed; braking
+// onto a deck resets the fuel instead of sailing into the next gap.
+// Falling only: engaging mid-rise anchors the flight onto the takeoff
+// deck into a vertical pogo. Decks under a live crusher lane are
+// skipped, as are decks with no clear touchdown.
+function deckDropTarget(player, dir, snap) {
+    const boots = player.y + 22;
+    const gravity = snap.physics?.gravityY ?? 300;
+    let best = null;
+    let bestScore = Infinity;
+    let bestT = 0;
+    const platforms = snap.platforms || [];
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        if (!plat || plat.type === 'moving_platform') {
+            continue;
+        }
+        if (plat.top < boots - 120 || plat.top > boots + 420) {
+            continue;
+        }
+        const cx = (plat.left + plat.right) / 2;
+        if (Math.abs(cx - player.x) > 260) {
+            continue;
+        }
+        if (crusherOverAim(plat, snap)) {
+            continue;
+        }
+        const t = fallTimeTo(player.y, player.vy, gravity, plat.top);
+        if (t == null) {
+            continue;
+        }
+        const aim = deckAimX(plat, snap, dir);
+        if (aim == null) {
+            continue;
+        }
+        // Beyond horizontal reach: the fall ends before the aim is
+        // reached, so fly on (and double) instead of chasing it.
+        if (Math.abs(aim - player.x) > 160 * t + 40) {
+            continue;
+        }
+        const behind = (cx - player.x) * dir < 0 ? 40 : 0;
+        const score = Math.abs(cx - player.x) + Math.max(0, plat.top - boots) * 0.3 + behind;
+        if (score < bestScore) {
+            bestScore = score;
+            best = plat;
+            bestT = t;
+        }
+    }
+    if (!best) {
+        return null;
+    }
+    const aimX = deckAimX(best, snap, dir);
+    // Full speed past the aim: hover and let the fall close the
+    // distance instead of sailing over the deck.
+    if (Math.abs(aimX - player.x) >= 12 && 160 * bestT > Math.abs(aimX - player.x) + 15) {
+        return { x: player.x };
+    }
+    return Math.abs(aimX - player.x) < 12 ? { x: player.x } : { x: aimX };
+}
+
+// Seconds until the ballistic arc reaches a deck top arriving from
+// above, or null when it never does (rising through from below does
+// not count: that landing needs a fall, not a bonk).
+function fallTimeTo(y, vy, gravity, top) {
+    const disc = vy * vy - 2 * gravity * (y - top);
+    if (!(disc >= 0) || !(gravity > 0)) {
+        return null;
+    }
+    const root = Math.sqrt(disc);
+    const candidates = [(root - vy) / gravity, (-root - vy) / gravity];
+    let best = null;
+    for (let i = 0; i < candidates.length; i++) {
+        const t = candidates[i];
+        if (!(t >= 0) || t > 4 || vy + gravity * t <= 0) {
+            continue;
+        }
+        if (best == null || t < best) {
+            best = t;
+        }
+    }
+    return best;
+}
+
+// True when a live crusher slams over the deck: landing in its lane
+// is death, so the rescue aim skips the deck entirely.
+function crusherOverAim(plat, snap) {
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'crusher' || !item.active || item.enable === false) {
+            continue;
+        }
+        if (item.x > plat.left - 50 && item.x < plat.right + 50) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Aim point on a rescue deck: the first touchdown candidate with
+// 70px clearance from every live threat — center first (nearest
+// self-anchors the flight into a vertical pogo), then the ahead end,
+// then the behind end — or null when the whole deck is covered.
+function deckAimX(plat, snap, dir) {
+    const cx = (plat.left + plat.right) / 2;
+    const candidates =
+        dir > 0 ? [cx, plat.right - 35, plat.left + 35] : [cx, plat.left + 35, plat.right - 35];
+    const hazards = snap.hazards || [];
+    for (let c = 0; c < candidates.length; c++) {
+        let clear = true;
+        for (let i = 0; i < hazards.length; i++) {
+            const item = hazards[i];
+            if (!item || !item.active || item.enable === false) {
+                continue;
+            }
+            if (
+                item.type !== 'rover' &&
+                item.type !== 'drone' &&
+                item.type !== 'boarder' &&
+                item.type !== 'rock' &&
+                item.type !== 'roller' &&
+                item.type !== 'boulder'
+            ) {
+                continue;
+            }
+            if (Math.abs(item.y - plat.top) >= 130) {
+                continue;
+            }
+            if (Math.abs(item.x - candidates[c]) < 70) {
+                clear = false;
+                break;
+            }
+        }
+        if (clear) {
+            return candidates[c];
+        }
+    }
+    return null;
+}
+
+// Cruise steering target: the lift drop, the rescue deck, a bonk
+// bounce's high landing, or the goal. Returns the rescue target (for
+// the double gate) after pointing the input at the winner.
+function applyRideSteer(input, player, dir, snap, state, falling, platforms, landing, goal) {
+    // Riding a bonk bounce (rises faster than any jump): steer for the
+    // high landing instead of the far crown so the bounce converts.
+    // Falling over a lift: steer the drop onto its deck instead.
+    const riding = !player.grounded && player.vy < -400;
+    const dropLift = !player.grounded && falling ? liftDropTarget(player, snap) : null;
+    // Spent-fuel descent over nothing landable: brake onto the rescue
+    // deck instead of sailing past it at full run speed.
+    const dropDeck = rescueDeckTarget(player, dir, snap, state, falling, platforms, dropLift);
+    const rideTarget =
+        dropLift || dropDeck || (riding && landing && landing.top < player.y ? landing : goal);
+    input.right = rideTarget.x - player.x > 10;
+    input.left = rideTarget.x - player.x < -10;
+    return dropDeck;
+}
+
+// Rescue target for a spent-fuel descent, or null when goal steering
+// stays: decks below (or a lift drop) keep the routine crossing.
+function rescueDeckTarget(player, dir, snap, state, falling, platforms, dropLift) {
+    if (player.grounded || snap.jumpCount <= 0 || dropLift || !falling) {
+        state.rescueHeld = false;
+        return null;
+    }
+    // Spent-fuel descent from high above, any gravity: brake toward
+    // the projected touchdown deck instead of sailing past it at full
+    // run speed — a double apex strands normal-gravity flights
+    // hundreds of pixels up just like low-g ones.
+    if (snap.jumpCount >= snap.maxJumps && touchdownUnsafe(player, snap, platforms)) {
+        const deepDeck = deckDropTarget(player, dir, snap);
+        if (deepDeck != null) {
+            state.rescueHeld = true;
+            return deepDeck;
+        }
+    }
+    // Low-gravity flights only: normal arcs are short enough to land
+    // themselves at full run speed, while low-g arcs stretch past
+    // every deck without arrival control.
+    if ((snap.physics?.gravityY ?? 300) >= 250) {
+        state.rescueHeld = false;
+        return null;
+    }
+    // Land when must: with no fuel left, a deck in the below column
+    // is mandatory — brake to its center instead of sailing past it
+    // (there is no double to recover with).
+    const mustLand =
+        snap.jumpCount >= snap.maxJumps && landingBelow(player, platforms, snap) != null;
+    if (!touchdownUnsafe(player, snap, platforms) && !state.rescueHeld && !mustLand) {
+        return null;
+    }
+    const dropDeck = deckDropTarget(player, dir, snap);
+    state.rescueHeld = dropDeck != null;
+    return dropDeck;
+}
+
+// True when the ballistic touchdown misses every deck (or lands on a
+// rock): straight-below says "deck" at edges the arc sails past, so
+// project the touchdown instead of trusting the column. Routine
+// crossings whose touchdown lands mid-deck keep goal steering.
+function touchdownUnsafe(player, snap, platforms) {
+    const below = landingBelow(player, platforms, snap);
+    if (!below) {
+        return true;
+    }
+    const gravity = snap.physics?.gravityY ?? 300;
+    const t = fallTimeTo(player.y, player.vy, gravity, below.top);
+    if (t == null) {
+        return true;
+    }
+    const tx = player.x + (player.vx || 0) * t;
+    if (tx < below.left + 10 || tx > below.right - 10) {
+        return true;
+    }
+    return touchdownBlocked(below, tx, snap);
+}
+
+// True when a static lethal sits on the touchdown: rocks never clear,
+// so the rescue aim offsets to the far end instead of landing on one.
+function touchdownBlocked(below, tx, snap) {
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || !item.active || item.enable === false) {
+            continue;
+        }
+        if (item.type !== 'rock' && item.type !== 'roller' && item.type !== 'boulder') {
+            continue;
+        }
+        if (Math.abs(item.x - tx) < 45 && Math.abs(item.y - below.top) < 80) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function liftDropTarget(player, snap) {
+    const boots = player.y + 22;
+    let best = null;
+    let bestScore = Infinity;
+    const platforms = snap.platforms || [];
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        if (plat.type !== 'moving_platform') {
+            continue;
+        }
+        if (plat.top < boots - 40 || plat.top > boots + 260) {
+            continue;
+        }
+        const cx = (plat.left + plat.right) / 2;
+        const dx = Math.abs(cx - player.x);
+        if (dx > 130) {
+            continue;
+        }
+        const score = dx + (plat.top - boots) * 0.3;
+        if (score < bestScore) {
+            bestScore = score;
+            best = plat;
+        }
+    }
+    if (!best) {
+        return null;
+    }
+    const cx = (best.left + best.right) / 2;
+    return Math.abs(cx - player.x) < 12 ? { x: player.x } : { x: cx };
+}
+
+// Nearest static deck ahead within dismount reach (never another lift).
+function liftDismountTarget(player, dir, snap) {
+    let best = null;
+    let bestDist = 320;
+    const platforms = snap.platforms || [];
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        if (plat.type === 'moving_platform') {
+            continue;
+        }
+        if (plat.top < player.y - 230 || plat.top > player.y + 120) {
+            continue;
+        }
+        const edge = dir > 0 ? plat.left : plat.right;
+        const dist = (edge - player.x) * dir;
+        if (dist < -40 || dist > bestDist) {
+            continue;
+        }
+        bestDist = dist;
+        best = plat;
+    }
+    return best;
+}
+
+// Tallest bonkable head in the spring runway (within 210px ahead, same
+// lane): the bounce target. Longer than the hop-blocker range (70px)
+// so the runway back-up can engage — at 70px backing out drops the
+// target and pogos on the boundary instead of ever bouncing.
+// Deliberate spring use: height-seeking bonkable, canyon-hop bounce,
+// or tall face-blocker. Returns { spring, seek, hop } for the runway
+// and reflex logic downstream.
+function findSpringTarget(player, dir, snap, platforms, landing, crown, gap) {
+    const landingHigh = Boolean(landing) && landing.top < player.y - 200;
+    const crownHigh = crown.y < player.y - 240;
+    // The bounce only needs to reach the lowest out-of-reach subgoal —
+    // usually the shelf overhead, sometimes the landing or the crown.
+    let goalY = null;
+    if (landingHigh || crownHigh) {
+        goalY = landingHigh ? landing.top : crown.y;
+        if (crownHigh && landingHigh) {
+            goalY = Math.max(goalY, crown.y);
+        }
+        const shelf = shelfAbove(player, platforms);
+        if (shelf != null && shelf < player.y - 200) {
+            goalY = Math.max(goalY, shelf);
+        }
+    }
+    const seek = goalY == null ? null : bonkTarget(player, dir, snap, goalY);
+    // Canyon hop: no landing within jump range, but a live bonkable floats
+    // over the gap. Bounce across it — the spring levels are built for this.
+    // Canyon hop only over a true pit (no deck below at all): gap is
+    // height-gated, so a deck 100px+ below reads as a gap and the hop
+    // would center back onto a passed spring forever instead of flying on.
+    const pit = gap && landingBelow(player, platforms, snap) == null;
+    const hop = !seek && pit && !landing ? bonkTarget(player, dir, snap, 0, true) : null;
+    // A tall bonkable right in the face is a de facto spring even with no
+    // height purpose: the only way past is over, and the bonk clears it.
+    const tallBlocker = springBonkable(player, dir, snap);
+    return { spring: seek || hop || tallBlocker, seek, hop };
+}
+
+function springBonkable(player, dir, snap) {
+    const hazards = snap.hazards || [];
+    let best = null;
+    let bestDist = 210;
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || !item.bonkable || !item.active || item.enable === false) {
+            continue;
+        }
+        const ahead = (item.x - player.x) * dir;
+        if (ahead < 0 || ahead > bestDist) {
+            continue;
+        }
+        if (!yOverlaps(player.y, item, 18)) {
+            continue;
+        }
+        const top = item.top ?? item.y - (item.h || 44) / 2;
+        if (top >= player.y + 22 - 12) {
+            continue;
+        }
+        best = item;
+        bestDist = ahead;
+    }
+    return best;
+}
+
+// Spring steering toward a usable bonkable. Grounded takeoffs need a
+// runway — jumping from inside 130px rises straight into tall heads.
+function applySpringMove(input, player, snap, state, spring, falling, platforms) {
+    const head = spring.top != null ? spring.top : spring.y - (spring.h || 44) / 2;
+    const dxSeek = spring.x - player.x;
+    if (player.grounded) {
+        const runway = Math.abs(dxSeek);
+        if (runway < 130) {
+            const away = dxSeek > 0 ? -1 : 1;
+            if (supportAt(player.x + away * 56, player.y + 6, platforms)) {
+                input.left = away < 0;
+                input.right = away > 0;
+            }
+            return;
+        }
+        input.left = dxSeek < 0;
+        input.right = dxSeek > 0;
+        input.jump = runway <= 210;
+        return;
+    }
+    if (player.y + 22 <= head + 44) {
+        // At or above head level: work toward the centered drop.
+        if (player.vy < 0 && head < player.y + 22 - 30) {
+            // Still rising with the head above the boots: hold off.
+            // Centering now would rise straight into the body, and
+            // only the falling drop bonks.
+            return;
+        }
+        input.left = dxSeek < -24;
+        input.right = dxSeek > 24;
+        input.jump =
+            falling && Math.abs(dxSeek) > 56 && !state.lastJump && snap.jumpCount < snap.maxJumps;
+        return;
+    }
+    // Airborne below head level: veer off. Rising or drifting into
+    // the body from the side is lethal; only the falling drop bonks.
+    input.left = dxSeek > 0;
+    input.right = dxSeek < 0;
+}
+
+// True when the lift's vertical stroke reaches the deck height (from
+// its origin/target endpoints): riding up boards level with the deck.
+function liftStrokeReaches(lift, top) {
+    const half = (lift.h || 24) / 2;
+    let minTop = lift.top;
+    if (lift.origin && Number.isFinite(lift.origin.y)) {
+        minTop = Math.min(minTop, lift.origin.y - half);
+    }
+    if (lift.target && Number.isFinite(lift.target.y)) {
+        minTop = Math.min(minTop, lift.target.y - half);
+    }
+    return minTop <= top + 10;
+}
+
+// Dismount action: 'leap' (deck above, or too far to drift onto),
+// 'runoff' (level/below deck in drift range — a leap would overshoot by
+// hundreds of pixels at low gravity), null (wait: rising toward an
+// above deck, or no dismount). Run-offs never climb: above decks leap.
+// Threats a dismount leap clears vertically: patrollers and rollers,
+// whose zones never empty. Tall or static killers (devils, beams,
+// crushers, rocks) keep holding the ride.
+// Ray column threatening a ridden lift ({x, flee} or null): a warning
+// or live strike over the span. Flee (leap away) when the strike is
+// live or under 400ms out — crossing the plane then dies — otherwise
+// leap toward the target, which exits before the strike lands.
+function liftColumnThreat(under, snap) {
+    const cx = (under.left + under.right) / 2;
+    const halfW = (under.right - under.left) / 2 + 30;
+    const schedules = snap.hazardSchedules || [];
+    for (let i = 0; i < schedules.length; i++) {
+        const item = schedules[i];
+        if (!item || item.type !== 'cosmic_ray' || Math.abs(item.x - cx) >= halfW) {
+            continue;
+        }
+        if (item.phase === 'active') {
+            return { x: item.x, flee: true };
+        }
+        if (item.phase === 'warning') {
+            const soon = Number.isFinite(item.timeUntilPhaseChangeMs)
+                ? item.timeUntilPhaseChangeMs < 400
+                : false;
+            return { x: item.x, flee: soon };
+        }
+    }
+    const columns = snap.columns || [];
+    for (let i = 0; i < columns.length; i++) {
+        if (Math.abs(columns[i].x - cx) < halfW) {
+            return { x: columns[i].x, flee: false };
+        }
+    }
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'cosmic_ray' || !item.active || item.enable === false) {
+            continue;
+        }
+        if (Math.abs(item.x - cx) < halfW) {
+            return { x: item.x, flee: true };
+        }
+    }
+    return null;
+}
+
+function leapOverMover(item) {
+    return (
+        item.type === 'rover' ||
+        item.type === 'drone' ||
+        item.type === 'boarder' ||
+        item.type === 'roller' ||
+        item.type === 'boulder'
+    );
+}
+
+function liftDismountAction(player, dir, snap, state, under, target) {
+    if (!target) {
+        return null;
+    }
+    const threat = landingThreat(dir, target, snap, state);
+    // Emergency: a warning column over the lift fries waiting riders,
+    // so dismount at once instead of timing the veto out.
+    if (threat) {
+        const column = liftColumnThreat(under, snap);
+        if (column) {
+            return column.flee ? 'flee' : 'leap';
+        }
+    }
+    // Static lethals hold the dismount; clearing movers time out (the
+    // patrol-timing tests pin that). But a mover that never clears its
+    // zone pins the ride forever, so leap over after 2.5s of veto —
+    // jump arcs clear patrollers vertically, then the flight continues
+    // past the deck.
+    if (threat && !leapOverMover(threat)) {
+        return null;
+    }
+    if (!threat) {
+        state.dismountVetoId = null;
+    }
+    if (Math.abs(under.top - target.top) >= 70) {
+        return null;
+    }
+    if (threat) {
+        const key = threat.id ?? `${threat.type}@${Math.round(threat.x)}`;
+        const now = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
+        if (state.dismountVetoId !== key) {
+            state.dismountVetoId = key;
+            state.dismountVetoSince = now;
+            return null;
+        }
+        if (now - state.dismountVetoSince < 2500) {
+            return null;
+        }
+        return 'leap';
+    }
+    if (target.top < under.top - 5) {
+        const v = liftVelocity(under, snap, state);
+        if (v.vy < -10 && liftStrokeReaches(under, target.top)) {
+            return null;
+        }
+        return 'leap';
+    }
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    if (!(gravity > 0)) {
+        return 'leap';
+    }
+    const liftEdge = dir > 0 ? under.right : under.left;
+    const targetNear = dir > 0 ? target.left : target.right;
+    const gap = (targetNear - liftEdge) * dir;
+    if (gap < 0) {
+        return 'runoff';
+    }
+    const drop = Math.max(20, target.top - under.top);
+    const drift = 160 * Math.sqrt((2 * drop) / gravity) + 40;
+    return gap > drift ? 'leap' : 'runoff';
+}
+
+// True when the double may fire despite the ceiling check: a bonk
+// beats the killzone (the rise often clears beside the lid), so the
+// veto lifts when the floor is about to kill.
+function doubleClearsBonk(player, driftDir, platforms, snap) {
+    if (!doubleBonk(player, driftDir, platforms)) {
+        return true;
+    }
+    return Number.isFinite(snap.killZoneY) && snap.killZoneY - player.y < 150;
+}
+
+// True when a deck crosses the double's rise column, here or 40px
+// along the drift: jumping now bonks the underside and wastes fuel.
+// Hold the jump and drift out instead of burning it on the ceiling.
+function doubleBonk(player, driftDir, platforms) {
+    const head = player.y - 22;
+    const checkX = [player.x];
+    if (driftDir !== 0) {
+        checkX.push(player.x + driftDir * 40);
+    }
+    for (let c = 0; c < checkX.length; c++) {
+        for (let i = 0; i < platforms.length; i++) {
+            const plat = platforms[i];
+            if (checkX[c] < plat.left - 10 || checkX[c] > plat.right + 10) {
+                continue;
+            }
+            const bottom = plat.top + (plat.h || 24);
+            if (bottom <= head - 260 || plat.top >= head) {
+                continue;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+// Riding a lift: stay aboard until a dismount opens (a static deck in
+// reach near the lift's height with a clear touchdown), tracking
+// horizontal lifts so they don't slide out. True when it handles the
+// tick. Leaping off early strands the pilot in the pit the lift spans.
+function applyLiftRide(input, player, dir, snap, state, under, crown) {
+    if (!player.grounded || under == null || under.type !== 'moving_platform') {
+        return false;
+    }
+    if (
+        crown &&
+        Math.abs(crown.x - player.x) < 180 &&
+        player.y > crown.y + 18 &&
+        player.y < crown.y + 240
+    ) {
+        return false;
+    }
+    const target = liftDismountTarget(player, dir, snap);
+    const dismount = liftDismountAction(player, dir, snap, state, under, target);
+    if (dismount) {
+        // Fleeing a live strike: leap away from the column plane, never
+        // across it (crossing a firing column dies mid-leap).
+        const column = dismount === 'flee' ? liftColumnThreat(under, snap) : null;
+        const goalX = column ? player.x + (player.x < column.x ? -160 : 160) : target.x;
+        input.left = goalX < player.x;
+        input.right = goalX > player.x;
+        input.jump = dismount !== 'runoff';
+        return true;
+    }
+    const v = liftVelocity(under, snap, state);
+    // Stay aboard: a moving lift slides out from under a standing
+    // passenger, and a graze landing starts at the edge — center up
+    // before either becomes a walk-off.
+    const cx = (under.left + under.right) / 2;
+    const halfW = (under.right - under.left) / 2;
+    if (Math.abs(v.vx) > 25 || Math.abs(player.x - cx) > halfW - 25) {
+        input.left = player.x > cx + 10;
+        input.right = player.x < cx - 10;
+    }
+    return true;
+}
+
 // High landing the current arc falls short of: double at the apex
 // instead of waiting for the fall below takeoff (which never comes
 // when the landing sits above the takeoff). Gated on a near miss
 // (<200px, one double covers) so spring-level heights still wait
 // for their bonkable, and on a close landing so wide pits keep
 // their committed-fall double.
-function climbDouble(player, snap, state, platforms) {
+function climbDouble(player, snap, state, platforms, driftDir) {
     if (player.grounded || snap.jumpCount >= snap.maxJumps || state.lastJump) {
         return false;
     }
     if (state.takeoffY == null || player.vy < -60) {
         return false;
+    }
+    // Grounded-flicker guard: segmented decks drop `grounded` for a
+    // tick mid-stride while support sits right underfoot. Climbing
+    // from deck level burns the jump into the lid above.
+    if (player.vy < 100) {
+        const boots = player.y + 22;
+        for (let i = 0; i < platforms.length; i++) {
+            const plat = platforms[i];
+            if (
+                player.x >= plat.left &&
+                player.x <= plat.right &&
+                plat.top >= boots - 10 &&
+                plat.top <= boots + 25
+            ) {
+                return false;
+            }
+        }
     }
     let deck = null;
     let deckDist = 300;
@@ -1319,12 +2759,238 @@ function climbDouble(player, snap, state, platforms) {
         return false;
     }
     const { range } = jumpBallistics(snap);
-    return deckDist < range + 60;
+    if (deckDist >= range + 60) {
+        return false;
+    }
+    // Verify the double actually lands ON the deck: a near-miss deck
+    // under the flight path sails past it (the double apexes far above
+    // and descends beyond the far edge), wasting the jump. Verified in
+    // the flight direction — a deck behind never catches a goalward
+    // double, however landable the backward arc looks.
+    return doubleLandsOn(player, deck, gravity, driftDir);
+}
+
+// Early gap takeoff: when jump range nears the gap period, an edge-56
+// takeoff lands in the NEXT gap (L1/L2's 300px-spaced runs). If jumping
+// NOW lands on the next platform but jumping at the edge sails past
+// it, take off now instead of running to the edge. Only fires when the
+// edge jump is known-bad, so normal gaps behave exactly as before.
+function earlyGapJump(player, dir, snap, state, under, landing) {
+    if (!player.grounded || under == null || landing == null) {
+        return false;
+    }
+    if (sameDeck(under, landing)) {
+        return false;
+    }
+    if (landing.type === 'moving_platform') {
+        return false;
+    }
+    // Level flights only: step-ups climb, step-downs run off, and drops
+    // stretch the range past the prediction.
+    if (landing.top < player.y - 28 || landing.top > player.y + 22 + 40) {
+        return false;
+    }
+    const crown = snap.crown;
+    if (crown && Math.abs(crown.x - player.x) < 200) {
+        return false;
+    }
+    const myEdge = dir > 0 ? under.right : under.left;
+    const nearEdge = dir > 0 ? landing.left : landing.right;
+    const farEdge = dir > 0 ? landing.right : landing.left;
+    if ((nearEdge - myEdge) * dir < 10) {
+        return false;
+    }
+    if (landingThreat(dir, landing, snap, state) != null) {
+        return false;
+    }
+    const { range } = jumpBallistics(snap);
+    const landNow = player.x + dir * range;
+    const nowOn = (landNow - nearEdge) * dir > 8 && (farEdge - landNow) * dir > 8;
+    if (!nowOn) {
+        return false;
+    }
+    const landEdge = myEdge + dir * (range - 56);
+    const edgeOn = (landEdge - nearEdge) * dir > 8 && (farEdge - landEdge) * dir > 8;
+    return !edgeOn;
+}
+
+// True when a double jump from here (vy -330) touches down on the deck:
+// apex boots above the deck top and landing x inside the span, flown
+// in the drift direction (zero drifts straight up onto a spanning deck).
+function doubleLandsOn(player, deck, gravity, dir) {
+    const riseT = 330 / gravity;
+    const apexBoots = player.y + 22 - (330 * 330) / (2 * gravity);
+    if (apexBoots > deck.top - 6) {
+        return false;
+    }
+    const fall = deck.top - apexBoots;
+    const t = riseT + Math.sqrt((2 * fall) / gravity);
+    if (!Number.isFinite(t)) {
+        return false;
+    }
+    const landX = player.x + (dir || 0) * 160 * t;
+    // Near-edge margin: airtime shortfall (drag, slow frames) scales
+    // with flight distance, so marginal corner-grazes from max range
+    // fall back to the safe arc instead of sliding off the deck side.
+    const margin = 20 + Math.abs(landX - player.x) * 0.15;
+    const nearOK = dir < 0 ? landX < deck.right - margin : landX > deck.left + margin;
+    return nearOK && landX > deck.left + 6 && landX < deck.right - 6;
 }
 
 // Hold the air jump until the fall commits: below takeoff height, soon
 // past the kill plane, or falling too fast to wait. Firing at the first
 // falling tick burns the double at the apex over wide pits.
+// A reason to spend the double mid-flight: a gap to cross, a step up,
+// the crown — or dying soon (falling past a wall reads as "footing
+// ahead" through support tolerance, which would otherwise veto the
+// only jump that extends the flight).
+// Grounded jump plan: whether to take off plus the climb/crown
+// subgoals the double gate reuses mid-flight.
+function groundJumpPlan(
+    player,
+    dir,
+    snap,
+    state,
+    platforms,
+    landing,
+    under,
+    board,
+    gap,
+    dropSmall,
+    crownDx
+) {
+    const crown = snap.crown || { x: player.x + 200, y: player.y };
+    const stepUp =
+        wantStepUp(player, dir, landing, snap) &&
+        (landing == null || landing.type !== 'moving_platform' || board === 'jump');
+    const grabCrown =
+        Math.abs(crownDx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
+    // Final-approach hops only: when the crown is close, hop toward it
+    // instead of running underneath. (An unrestricted climb-above rule
+    // turned the pilot into a pogo stick: airborne bolts fly over
+    // boarder heads while bombs and chasers connect. Ascents are
+    // covered by stepUp/grabCrown.)
+    const closePush = player.grounded && Math.abs(crownDx) < 150;
+    const earlyGap = earlyGapJump(player, dir, snap, state, under, landing);
+    const shouldJump =
+        (gap && !dropSmall && board !== 'run') ||
+        earlyGap ||
+        board === 'jump' ||
+        stepUp ||
+        grabCrown ||
+        closePush ||
+        wantPreJump(player, dir, snap, platforms);
+    return { shouldJump, stepUp, grabCrown };
+}
+
+function doubleReason(player, snap, gap, stepUp, grabCrown) {
+    if (gap || stepUp || grabCrown) {
+        return true;
+    }
+    return Number.isFinite(snap.killZoneY) && snap.killZoneY - player.y < 220;
+}
+
+// True when the falling flight should spend its double: a committed
+// fall (or a walk-off, which never planned an arc — waiting drops it
+// past the support it left) with a reason to extend, no touchdown
+// projected (or a trap-deck touchdown to fly over instead of landing),
+// no rescue aim engaged (the aim lands the flight itself), and fuel.
+function canSpendDouble(
+    player,
+    snap,
+    state,
+    dir,
+    falling,
+    gap,
+    stepUp,
+    grabCrown,
+    platforms,
+    dropDeck
+) {
+    if (
+        player.grounded ||
+        !falling ||
+        !doubleReason(player, snap, gap, stepUp, grabCrown) ||
+        dropDeck != null ||
+        snap.jumpCount >= snap.maxJumps
+    ) {
+        return false;
+    }
+    const touchdown = touchdownDeck(player, snap, platforms);
+    // Safe deck below: land on it. Trap deck (no clear touchdown):
+    // double over it instead of landing beside a rover.
+    if (touchdown != null && deckAimX(touchdown, snap, dir) != null) {
+        return false;
+    }
+    // Doomed arc: falling past the apex with no touchdown projected
+    // but a lower deck ahead in double range — waiting for the
+    // committed-fall gate only spends the altitude the double needs to
+    // extend onto it. Decks at or above boot level stay gated (a
+    // max-range climb double grazes the deck corner instead of landing).
+    // Elective doubles (this one and walk-offs below) also hold while
+    // a patrol sits in the rise arc — drifting clear first beats rising
+    // into it. Committed plummets still fire (no time to drift).
+    const riseClear = !mountBlocked(player, dir, snap);
+    if (touchdown == null && player.vy > 100 && riseClear) {
+        const { range } = jumpBallistics(snap);
+        if (
+            extendableDeck(player, dir, platforms, range + 120) &&
+            !doubleArcCrossesBeam(player, dir, snap)
+        ) {
+            return true;
+        }
+    }
+    return committedFall(player, snap, state) || (snap.jumpCount === 0 && riseClear);
+}
+
+// True when a laser core intersects the double's flight corridor:
+// an early high double falls back through the beam's airspace while
+// its phase flips, so hold for the low late double that skims under
+// instead. All lasers count (off phases flip on mid-flight).
+function doubleArcCrossesBeam(player, dir, snap) {
+    const ahead = player.x + dir * 500;
+    const left = Math.min(player.x, ahead);
+    const right = Math.max(player.x, ahead);
+    const top = player.y - 260;
+    const bottom = player.y + 300;
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'laser') {
+            continue;
+        }
+        const halfW = (item.w || 0) / 2;
+        const halfH = (item.h || 0) / 2;
+        const beamLeft = item.left ?? item.x - halfW;
+        const beamRight = item.right ?? item.x + halfW;
+        const beamTop = item.top ?? item.y - halfH;
+        const beamBottom = beamTop + (item.h || 10);
+        if (beamRight > left && beamLeft < right && beamBottom > top && beamTop < bottom) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// A deck ahead meaningfully below the boots and inside double reach:
+// the double extends the descent onto it instead of climbing at max
+// range to reach it. Decks behind, underfoot, or past reach never
+// count (a flight already over its deck brakes for it instead).
+function extendableDeck(player, dir, platforms, reach) {
+    const boots = player.y + 22;
+    for (let i = 0; i < platforms.length; i++) {
+        const plat = platforms[i];
+        const near = dir > 0 ? plat.left - player.x : player.x - plat.right;
+        if (near < 0 || near > reach) {
+            continue;
+        }
+        if (plat.top > boots + 20 && plat.top < player.y + 260) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function committedFall(player, snap, state) {
     const killRoom = Number.isFinite(snap.killZoneY) ? snap.killZoneY - player.y : Infinity;
     return (
@@ -1489,10 +3155,14 @@ function nearestThreat(px, py, snap, radius) {
 // A bomb falling onto our head: which way to sidestep (-1/0/1).
 // Grounded only; never dodge blind.
 function bombDodge(player, snap) {
-    if (!player.grounded) {
-        return 0;
-    }
     const bombs = snap.bombs || [];
+    // Airborne rule is emergency-only (a box overhead): dodging
+    // distant bombs mid-flight diverts crossings, but a bomb inside
+    // the box kills within half a second. The airborne box is wide
+    // because the dodge releases at its edge — a tight box weaves in
+    // and out of the bomb lane instead of clearing it.
+    const box = player.grounded ? 55 : 90;
+    const height = player.grounded ? 280 : 260;
     for (let i = 0; i < bombs.length; i++) {
         const bomb = bombs[i];
         if (!bomb || !bomb.active || bomb.enable === false) {
@@ -1501,28 +3171,91 @@ function bombDodge(player, snap) {
         if ((bomb.vy || 0) <= 0) {
             continue;
         }
-        const dx = bomb.x - player.x;
         const above = player.y - bomb.y;
-        if (Math.abs(dx) < 55 && above > 0 && above < 280) {
+        if (above <= 0 || above >= height) {
+            continue;
+        }
+        // Bombs are aimed, not homing: the velocity commits at spawn,
+        // so dodge the projected aim point (where the bomb reaches boot
+        // level), not the falling body — sidestepping away from a
+        // drifting bomb's x runs into its path.
+        const aimX = bomb.x + ((bomb.vx || 0) * above) / bomb.vy;
+        const dx = aimX - player.x;
+        if (Math.abs(dx) < box) {
             return dx >= 0 ? -1 : 1;
         }
     }
     return 0;
 }
 
-// Lethal, non-stompable hazard squatting on the landing spot.
-function landingThreat(landing, snap) {
+// Nearest live drone inside the contact box, or 0: steer to the far
+// side of it. Drones patrol their lane, so the dodge releases once
+// the pilot clears the box or the drone patrols away. The box stays
+// tight (70px): wider boxes hijack takeoff and apex arcs that pass
+// near patrol lanes on their way to safe landings.
+function droneDodge(player, snap) {
+    const hazards = snap.hazards || [];
+    let best = 0;
+    let bestDist = 70;
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'drone' || !item.active || item.enable === false) {
+            continue;
+        }
+        const dx = item.x - player.x;
+        const dy = item.y - player.y;
+        const dist = Math.max(Math.abs(dx), Math.abs(dy));
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = dx >= 0 ? -1 : 1;
+        }
+    }
+    return best;
+}
+
+// Patrol velocity across ticks, px/s: drones and rovers ride tweens,
+// which never set body velocity. Zero on first sight or missing id.
+function threatVelocity(item, snap, state) {
+    if (!item.id) {
+        return { vx: 0, vy: 0 };
+    }
+    const t = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
+    const prev = state.threatPrev[item.id];
+    const v =
+        prev && t > prev.t
+            ? { vx: ((item.x - prev.x) / (t - prev.t)) * 1000, vy: 0 }
+            : { vx: 0, vy: 0 };
+    state.threatPrev[item.id] = { x: item.x, t };
+    return v;
+}
+
+// Lethal, non-stompable hazard holding the touchdown (the landing's near
+// side, where leaps come down). Patrols inside 60px always hold; wider
+// ones only while closing, so the leap releases as they move away
+// instead of holding forever on a deck they sweep.
+function landingThreat(dir, landing, snap, state) {
     if (!landing) {
         return null;
     }
+    const touchdown = dir > 0 ? landing.left + 50 : landing.right - 50;
     const hazards = snap.hazards || [];
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
         if (!item || !item.active || item.enable === false || item.bonkable) {
             continue;
         }
-        if (Math.abs(item.x - landing.x) < 90 && Math.abs(item.y - landing.top) < 130) {
+        if (Math.abs(item.y - landing.top) >= 130) {
+            continue;
+        }
+        const dx = Math.abs(item.x - touchdown);
+        if (dx < 60) {
             return item;
+        }
+        if (dx < 140) {
+            const v = threatVelocity(item, snap, state);
+            if ((touchdown - item.x) * v.vx > 0) {
+                return item;
+            }
         }
     }
     return null;
@@ -1627,6 +3360,7 @@ function bonkTarget(player, dir, snap, goalY, forDistance) {
 // eslint-disable-next-line complexity
 export function decidePilotInput(snap, state) {
     const input = { left: false, right: false, jump: false, shoot: false, start: false };
+    state.holdStill = false;
     if (!snap || !snap.ready || !snap.player) {
         return input;
     }
@@ -1651,8 +3385,15 @@ export function decidePilotInput(snap, state) {
     let laneDist = boarderAhead(player, dir, snap);
     let shooting = laneDist >= 0;
     input.shoot = shooting;
+    // Support underfoot, computed early: riders skip ray holds (a lift
+    // passenger sidesteps off the edge — the emergency dismount leaps
+    // instead).
+    const under =
+        supportAt(player.x, player.y + 6, platforms) ||
+        supportAt(player.x - 14, player.y + 6, platforms) ||
+        supportAt(player.x + 14, player.y + 6, platforms);
     // Bombs rain from above; ray columns freeze the whole move.
-    if (applyAmbushHolds(input, player, dir, snap, platforms)) {
+    if (applyAmbushHolds(input, player, dir, snap, platforms, under)) {
         return input;
     }
     // Timed beams gate the whole move.
@@ -1706,12 +3447,8 @@ export function decidePilotInput(snap, state) {
             return input;
         }
     }
-    const blocker = hazardInPath(player.x, player.y, dir, snap.hazards || [], snap.bombs || [], 70);
-    // Airborne over a devil: hold the arc, never freeze mid-flight.
-    if (blocker && !isHopable(blocker) && (player.grounded || blocker.type !== 'dust_devil')) {
-        return input;
-    }
-    const under = supportAt(player.x, player.y + 6, platforms);
+    // Body-wide support: the center alone misses edge stands (the game
+    // grounds the full body), which dropped lift rides into run-offs.
     const ahead = supportAt(player.x + dir * 56, player.y + 6, platforms);
     const landing = nextPlatform(player.x, player.y, dir, platforms);
     const falling = player.vy > 28;
@@ -1721,41 +3458,48 @@ export function decidePilotInput(snap, state) {
     // chasers shadow it, the double goes to dodging them, and the
     // next real gap finds the tank empty.
     const dropSmall = smallStepDown(player, dir, gap, landing);
+    // Lift boarding waits and back-ups come before the hop reflexes: a
+    // patrol hop mid-boarding spends the jump on a doomed arc instead
+    // of the apex takeoff. Survival above still wins.
+    const board = liftBoarding(player, dir, snap, under, landing, state);
+    state.holdStill = board === 'wait' || board === 'back';
+    if (board === 'wait') {
+        return input;
+    }
+    if (board === 'back') {
+        const liftCx = (landing.left + landing.right) / 2;
+        const away = liftCx > player.x ? -1 : 1;
+        input.left = away < 0;
+        input.right = away > 0;
+        return input;
+    }
+    const blocker = hazardInPath(player.x, player.y, dir, snap.hazards || [], snap.bombs || [], 70);
+    // Airborne over a devil: hold the arc, never freeze mid-flight.
+    if (blocker && !isHopable(blocker) && (player.grounded || blocker.type !== 'dust_devil')) {
+        return input;
+    }
     // Deliberate spring use, computed before the close-range reflexes so a
     // crowded spring gets runway treatment instead of a suicide hop. The
     // pin below says "stay, the way up is out of reach", and a usable
     // bonkable is exactly the exception.
-    const landingHigh = Boolean(landing) && landing.top < player.y - 200;
-    const crownHigh = crown.y < player.y - 240;
-    // The bounce only needs to reach the lowest out-of-reach subgoal —
-    // usually the shelf overhead, sometimes the landing or the crown.
-    let goalY = null;
-    if (landingHigh || crownHigh) {
-        goalY = landingHigh ? landing.top : crown.y;
-        if (crownHigh && landingHigh) {
-            goalY = Math.max(goalY, crown.y);
-        }
-        const shelf = shelfAbove(player, platforms);
-        if (shelf != null && shelf < player.y - 200) {
-            goalY = Math.max(goalY, shelf);
-        }
-    }
-    const seek = goalY == null ? null : bonkTarget(player, dir, snap, goalY);
-    // Canyon hop: no landing within jump range, but a live bonkable floats
-    // over the gap. Bounce across it — the spring levels are built for this.
-    const hop = !seek && gap && !landing ? bonkTarget(player, dir, snap, 0, true) : null;
-    // A tall bonkable right in the face is a de facto spring even with no
-    // height purpose: the only way past is over, and the bonk clears it.
-    const blockerTop = blocker == null ? null : (blocker.top ?? blocker.y - (blocker.h || 44) / 2);
-    const tallBlocker = blocker?.bonkable && blockerTop < player.y + 22 - 12 ? blocker : null;
-    const spring = seek || hop || tallBlocker;
+    const springPlan = findSpringTarget(player, dir, snap, platforms, landing, crown, gap);
+    const spring = springPlan.spring;
+    const seek = springPlan.seek;
+    const hop = springPlan.hop;
     if (blocker && isHopable(blocker)) {
         const dist = Math.abs(blocker.x - player.x);
         if (blocker.bonkable) {
             applyBonkBlocker(input, player, dx, blocker, spring, seek, hop, platforms);
             return input;
         }
-        if (lethalDriftJump(player, snap, falling, state) && !touchdownDuel(player, blocker)) {
+        // Drift-jumps never trigger on bombs: leaping toward one wastes
+        // fuel on a dodge the veer-off below handles.
+        const blockerIsBomb = (snap.bombs || []).indexOf(blocker) !== -1;
+        if (
+            lethalDriftJump(player, snap, falling, state) &&
+            !blockerIsBomb &&
+            !touchdownDuel(player, blocker)
+        ) {
             input.right = dx > 10;
             input.left = dx < -10;
             input.jump = true;
@@ -1763,21 +3507,13 @@ export function decidePilotInput(snap, state) {
         }
         const engaging = shooting && blocker.type === 'boarder';
         if (engaging) {
-            // Airborne into a head-on chaser: brake and land short —
-            // the grounded duel kills it. Flying the descent collides
-            // with it at the touchdown point.
-            if (!player.grounded && falling && brakeForChaser(player, dir, blocker, snap)) {
-                return input;
-            }
-            // Gun it down first; jumping in just trades.
-            input.right = dx > 10;
-            input.left = dx < -10;
+            applyHeadOnDuel(input, player, dir, dx, snap, falling, blocker);
             return input;
         }
         // Leap over drones, rollers, rovers, or hold too close to
         // clear. Airborne pilots keep flying instead — the descent
         // logic below steers the touchdown.
-        if (applyHopLeap(input, player, dx, dist)) {
+        if (applyHopLeap(input, player, dx, dist, snap, state, blocker, platforms)) {
             return input;
         }
     }
@@ -1787,96 +3523,87 @@ export function decidePilotInput(snap, state) {
     if (touchdownExtend(input, player, snap, falling, state, dx)) {
         return input;
     }
+    // Lift riding, ahead of springs and holds: lifts are the route
+    // transit (springs are detours). Boarding waits already returned
+    // before the hop reflexes so takeoffs stay clean.
+    if (applyLiftRide(input, player, dir, snap, state, under, crown)) {
+        state.holdStill = true;
+        return input;
+    }
     // Spring steering, ahead of the high-landing hold: a usable bonkable
-    // is the exception to staying put. Grounded takeoffs need a runway —
-    // jumping from inside 130px rises straight into tall heads.
+    // is the exception to staying put.
     if (spring) {
-        const head = spring.top != null ? spring.top : spring.y - (spring.h || 44) / 2;
-        const dxSeek = spring.x - player.x;
-        if (player.grounded) {
-            const runway = Math.abs(dxSeek);
-            if (runway < 130) {
-                const away = dxSeek > 0 ? -1 : 1;
-                if (supportAt(player.x + away * 56, player.y + 6, platforms)) {
-                    input.left = away < 0;
-                    input.right = away > 0;
-                }
-                return input;
-            }
-            input.left = dxSeek < 0;
-            input.right = dxSeek > 0;
-            input.jump = runway <= 210;
-            return input;
-        }
-        if (player.y + 22 <= head + 44) {
-            // At or above head level: work toward the centered drop.
-            if (player.vy < 0 && head < player.y + 22 - 30) {
-                // Still rising with the head above the boots: hold off.
-                // Centering now would rise straight into the body, and
-                // only the falling drop bonks.
-                return input;
-            }
-            input.left = dxSeek < -24;
-            input.right = dxSeek > 24;
-            input.jump =
-                falling &&
-                Math.abs(dxSeek) > 56 &&
-                !state.lastJump &&
-                snap.jumpCount < snap.maxJumps;
-            return input;
-        }
-        // Airborne below head level: veer off. Rising or drifting into
-        // the body from the side is lethal; only the falling drop bonks.
-        input.left = dxSeek > 0;
-        input.right = dxSeek < 0;
+        applySpringMove(input, player, snap, state, spring, falling, platforms);
         return input;
     }
-    if (applyHighHold(input, player, under, landing)) {
+    if (applyHighHold(input, player, dir, snap, under, landing, platforms)) {
         return input;
     }
-    // Riding a bonk bounce (rises faster than any jump): steer for the
-    // high landing instead of the far crown so the bounce converts.
-    const riding = !player.grounded && player.vy < -400;
-    const rideTarget = riding && landing && landing.top < player.y ? landing : goal;
-    input.right = rideTarget.x - player.x > 10;
-    input.left = rideTarget.x - player.x < -10;
-    const stepUp = wantStepUp(player, dir, landing, snap);
-    const grabCrown =
-        Math.abs(crownDx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
-    // Final-approach hops only: when the crown is close, hop toward it
-    // instead of running underneath. (An unrestricted climb-above rule
-    // turned the pilot into a pogo stick: airborne bolts fly over
-    // boarder heads while bombs and chasers connect. Ascents are
-    // covered by stepUp/grabCrown.)
-    const closePush = player.grounded && Math.abs(crownDx) < 150;
+    const dropDeck = applyRideSteer(
+        input,
+        player,
+        dir,
+        snap,
+        state,
+        falling,
+        platforms,
+        landing,
+        goal
+    );
     // Don't leap into a landing occupied by something lethal.
-    if (applyLandingWait(player, gap, landing, snap, shooting, laneDist)) {
+    if (applyLandingWait(player, dir, gap, landing, snap, state, shooting, laneDist)) {
         return input;
     }
-    const shouldJump =
-        (gap && !dropSmall) ||
-        stepUp ||
-        grabCrown ||
-        closePush ||
-        wantPreJump(player, dir, snap, platforms);
-    const climb = climbDouble(player, snap, state, platforms);
+    // Committed takeoffs that trade mid-air hold for the threat to
+    // clear instead (deliberate hop/lift/spring jumps already returned
+    // above and keep their timing).
+    if (applyTakeoffHold(input, player, dir, snap, gap)) {
+        return input;
+    }
+    const jumpPlan = groundJumpPlan(
+        player,
+        dir,
+        snap,
+        state,
+        platforms,
+        landing,
+        under,
+        board,
+        gap,
+        dropSmall,
+        crownDx
+    );
+    const driftDir = input.right ? 1 : input.left ? -1 : 0;
+    const climb = climbDouble(player, snap, state, platforms, driftDir);
     // Unleapable devil ahead (a low lid caps the arc): give ground to
     // the west until a mount engages — the deck over the devil is the
     // bridge.
-    if (applyDevilRetreat(input, player, dir, snap, platforms, shouldJump)) {
+    if (applyDevilRetreat(input, player, dir, snap, platforms, jumpPlan.shouldJump)) {
         return input;
     }
-    const canDouble =
-        !player.grounded &&
-        falling &&
-        committedFall(player, snap, state) &&
-        (gap || stepUp || grabCrown) &&
-        landingBelow(player, platforms, snap) == null &&
-        snap.jumpCount < snap.maxJumps;
+    const canDouble = canSpendDouble(
+        player,
+        snap,
+        state,
+        dir,
+        falling,
+        gap,
+        jumpPlan.stepUp,
+        jumpPlan.grabCrown,
+        platforms,
+        dropDeck
+    );
     if (player.grounded) {
-        input.jump = shouldJump;
-    } else if ((canDouble || climb) && !state.lastJump) {
-        input.jump = true;
+        // No headroom: the rise bonks the ceiling deck (wasting the
+        // jump and a fuel count), so run off instead — the walk-off air
+        // jumps fire past the ceiling with clear sky. Step-ups mount the
+        // deck above (the rise is the route) and timed boarding jumps
+        // belong to the lift logic, so both keep their jump.
+        input.jump =
+            jumpPlan.shouldJump &&
+            (jumpPlan.stepUp || board === 'jump' || !doubleBonk(player, driftDir, platforms));
+    } else if ((canDouble || climb || crusherOverDouble(player, dir, snap)) && !state.lastJump) {
+        input.jump = doubleClearsBonk(player, driftDir, platforms, snap);
     }
     return input;
 }
@@ -1960,8 +3687,9 @@ function pilotMain() {
             // stuck-hop while they are actually near. (This used to latch
             // on first contact and disable recovery for the whole run.)
             const suppressed =
-                snap.player != null &&
-                nearestThreat(snap.player.x, snap.player.y, snap, 150) != null;
+                state.holdStill === true ||
+                (snap.player != null &&
+                    nearestThreat(snap.player.x, snap.player.y, snap, 150) != null);
             applyStuckRecovery(snap, input, state, suppressed);
             // Pulse latch: airborne branches fire only on release, so
             // consecutive air jumps edge-fire instead of holding one edge.
@@ -2000,6 +3728,8 @@ const BRAIN_PARTS = [
     supportAt,
     lockedLevel,
     yOverlaps,
+    tallColumnHazard,
+    columnOverlapY,
     columnAhead,
     hazardInPath,
     isHopable,
@@ -2011,6 +3741,8 @@ const BRAIN_PARTS = [
     touchdownDuel,
     touchdownClear,
     aggroAhead,
+    applyTakeoffHold,
+    applyHeadOnDuel,
     brakeForChaser,
     wantStepUp,
     wantPreJump,
@@ -2018,6 +3750,16 @@ const BRAIN_PARTS = [
     dripMove,
     applyDripMove,
     chaserBehind,
+    nearestColumnX,
+    liftColumnThreat,
+    deckDropTarget,
+    fallTimeTo,
+    crusherOverAim,
+    deckAimX,
+    touchdownUnsafe,
+    touchdownBlocked,
+    applyRideSteer,
+    rescueDeckTarget,
     devilAhead,
     devilLidded,
     devilLeapable,
@@ -2026,13 +3768,17 @@ const BRAIN_PARTS = [
     applyRearDuel,
     applyDevilLeap,
     applyDevilRetreat,
+    levelGroundAhead,
     applyHighHold,
     applyLandingWait,
     applyBonkBlocker,
+    patrolClosing,
+    hopClearsOverhead,
     applyHopLeap,
     applyAmbushHolds,
     applyCloseReflex,
     landingBelow,
+    touchdownDeck,
     descentEscape,
     applyDescentEscape,
     backDeck,
@@ -2044,14 +3790,28 @@ const BRAIN_PARTS = [
     lethalDriftJump,
     bonkBlockerMove,
     climbDouble,
+    doubleLandsOn,
+    earlyGapJump,
+    groundJumpPlan,
+    doubleReason,
+    canSpendDouble,
     committedFall,
+    extendableDeck,
+    doubleArcCrossesBeam,
     deckInUnsafeBeam,
     jumpBallistics,
     beamLeapable,
     laserLeapMove,
     laserInsideMove,
+    laserWindowCovers,
+    laserReach,
+    beamArcClears,
+    laserTransitCovers,
+    veerLanding,
+    laserEntryMove,
     laserSpanMove,
     laserMove,
+    beamLeapCommit,
     applyLaserMove,
     crusherVy,
     crusherRestY,
@@ -2059,8 +3819,25 @@ const BRAIN_PARTS = [
     crusherReaches,
     crusherOpen,
     crusherSpanMove,
+    crusherOverDouble,
     crusherMove,
     applyCrusherMove,
+    liftVelocity,
+    liftWalkable,
+    liftLevelInStroke,
+    liftBoarding,
+    liftDropTarget,
+    liftDismountTarget,
+    liftStrokeReaches,
+    leapOverMover,
+    liftDismountAction,
+    doubleBonk,
+    doubleClearsBonk,
+    findSpringTarget,
+    springBonkable,
+    applyLiftRide,
+    applySpringMove,
+    rayEvacuate,
     bonkOverhead,
     laneBoarderX,
     laneBoarderDy,
@@ -2068,7 +3845,9 @@ const BRAIN_PARTS = [
     shieldHuntTarget,
     nearestThreat,
     bombDodge,
+    droneDodge,
     landingThreat,
+    threatVelocity,
     smallStepDown,
     nextPlatform,
     shelfAbove,

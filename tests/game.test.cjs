@@ -4331,3 +4331,95 @@ test('the game page opts into a mobile visual viewport', () => {
     assert.match(config, /activePointers:\s*4/);
     assert.match(html, /createGameConfig/);
 });
+
+test('the Jev pilot fallback runs the shared brain and maps its input', async () => {
+    const { pilotFallbackAction, pilotInputToAction } = await importModule(
+        'scripts/jev-playtest.mjs'
+    );
+    const { createPilotState } = await importModule('scripts/pilot-brain.mjs');
+    assert.equal(pilotInputToAction({ jump: true, right: true }), 'jump_right');
+    assert.equal(pilotInputToAction({ shoot: true, left: true }), 'fire_left');
+    assert.equal(pilotInputToAction({ shoot: true }), 'fire');
+    assert.equal(pilotInputToAction({ right: true }), 'move_right');
+    assert.equal(pilotInputToAction({}), 'wait');
+    assert.equal(pilotInputToAction(null), 'wait');
+
+    // Flat run toward the crown: the shared brain runs right.
+    const run = pilotFallbackAction(
+        {
+            ready: true,
+            awaitingStart: false,
+            gameOver: false,
+            pendingLevel: null,
+            dying: false,
+            jumpCount: 0,
+            maxJumps: 2,
+            phaser: false,
+            player: { x: 100, y: 700, vx: 0, vy: 0, grounded: true },
+            crown: { x: 900, y: 690 },
+            platforms: [{ left: -100, right: 1200, top: 706, x: 550, w: 1300 }],
+            hazards: [],
+            bombs: [],
+            columns: [],
+        },
+        {
+            availableActions: [
+                'wait',
+                'move_left',
+                'move_right',
+                'jump',
+                'jump_left',
+                'jump_right',
+            ],
+        },
+        createPilotState()
+    );
+    assert.equal(run, 'move_right');
+
+    // Gap at the boots: the shared brain jumps, mapped to jump_right.
+    const state = createPilotState();
+    const gap = pilotFallbackAction(
+        {
+            ready: true,
+            awaitingStart: false,
+            gameOver: false,
+            pendingLevel: null,
+            dying: false,
+            jumpCount: 0,
+            maxJumps: 2,
+            phaser: false,
+            player: { x: 100, y: 700, vx: 0, vy: 0, grounded: true },
+            crown: { x: 900, y: 690 },
+            platforms: [{ left: -100, right: 120, top: 706, x: 10, w: 220 }],
+            hazards: [],
+            bombs: [],
+            columns: [],
+        },
+        {
+            availableActions: [
+                'wait',
+                'move_left',
+                'move_right',
+                'jump',
+                'jump_left',
+                'jump_right',
+            ],
+        },
+        state
+    );
+    assert.equal(gap, 'jump_right');
+
+    // No snapshot: degrades to the geometric heuristic, never throws.
+    const degraded = pilotFallbackAction(
+        null,
+        {
+            availableActions: ['wait', 'move_right'],
+            player: { grounded: true },
+            objective: { dx: 420, dy: 8 },
+            navigation: {},
+            nearby: { hazards: [], bombs: [] },
+        },
+        createPilotState()
+    );
+    assert.equal(degraded, 'move_right');
+});

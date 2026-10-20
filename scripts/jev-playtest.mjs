@@ -14,12 +14,14 @@
  */
 import { choice, TypeSafeClient } from '@typesafe-ai/sdk';
 import { chromium } from 'playwright';
+import { launchBrowser as launchGpuBrowser } from './rl/chrome.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { LEVEL_IDS } from '../levels/index.js';
 import { installInPageWatchdog } from './playtest-bot.mjs';
+import { applyStuckRecovery, createPilotState, decidePilotInput } from './pilot-brain.mjs';
 import { stepReward, terminalBonus } from './rl/features.mjs';
 
 const require = createRequire(import.meta.url);
@@ -285,7 +287,59 @@ function criteriaFor(availableActions) {
     );
 }
 
-export async function chooseJevAction(client, observation, recentActions = []) {
+// Map a pilot-brain input to the closest test action. Jump wins over
+// shoot (no combined action exists): movement safety first, bolts later.
+export function pilotInputToAction(input) {
+    if (!input) return 'wait';
+    if (input.start) return 'start';
+    const side = input.left ? 'left' : input.right ? 'right' : null;
+    if (input.jump) return side ? `jump_${side}` : 'jump';
+    if (input.shoot) return side ? `fire_${side}` : 'fire';
+    if (side) return `move_${side}`;
+    return 'wait';
+}
+
+function pilotSuppressed(botSnap) {
+    const player = botSnap?.player;
+    if (!player) return false;
+    const lists = [botSnap.hazards || [], botSnap.bombs || []];
+    for (const items of lists) {
+        for (const item of items) {
+            if (!item || item.active === false || item.enable === false) continue;
+            if (Math.hypot(item.x - player.x, item.y - player.y) < 150) return true;
+        }
+    }
+    return false;
+}
+
+// Combined-bot fallback: run the real pilot brain (same code as the
+// simple bot) over the raw snapshot and map its input to a test action.
+// Falls back to the geometric heuristic when no snapshot is available.
+export function pilotFallbackAction(botSnap, observation, pilotState) {
+    const availableActions = observation?.availableActions || [];
+    if (!botSnap || !pilotState || availableActions.length === 0) {
+        return fallbackAction(observation);
+    }
+    if (availableActions.length === 1) return availableActions[0];
+    const input = decidePilotInput(botSnap, pilotState);
+    applyStuckRecovery(
+        botSnap,
+        input,
+        pilotState,
+        pilotState.holdStill === true || pilotSuppressed(botSnap)
+    );
+    pilotState.lastJump = Boolean(input.jump);
+    const mapped = pilotInputToAction(input);
+    if (availableActions.includes(mapped)) return mapped;
+    // Shed modifiers until the action is legal (jump with no fuel, etc).
+    const side = mapped.endsWith('_left') ? 'left' : mapped.endsWith('_right') ? 'right' : null;
+    for (const candidate of [side ? `move_${side}` : 'wait', 'move_right', 'move_left', 'wait']) {
+        if (availableActions.includes(candidate)) return candidate;
+    }
+    return availableActions[0];
+}
+
+export async function chooseJevAction(client, observation, recentActions = [], pilotAction = null) {
     const availableActions = observation.availableActions || [];
     if (availableActions.length === 1) {
         return { action: availableActions[0], source: 'game_rule', confidence: 1 };
@@ -328,11 +382,15 @@ export async function chooseJevAction(client, observation, recentActions = []) {
     const answer = response.answers.nextAction;
     let action = answer.choice;
     let source = 'jev';
+    const combinedFallback =
+        pilotAction && availableActions.includes(pilotAction)
+            ? pilotAction
+            : fallbackAction(observation);
     if (!availableActions.includes(action)) {
-        action = fallbackAction(observation);
+        action = combinedFallback;
         source = 'fallback_invalid_answer';
     } else if (action === 'wait' && answer.confidence < 0.35 && observation.phase === 'playing') {
-        action = fallbackAction(observation);
+        action = combinedFallback;
         source = 'policy_low_confidence_wait';
     } else if (!action.startsWith('jump') && observation.phase === 'playing') {
         // Overhead crown: sideways shuffles never collect it. Override
@@ -342,6 +400,18 @@ export async function chooseJevAction(client, observation, recentActions = []) {
             action = grab;
             source = 'policy_overhead_grab';
         }
+    }
+    if (
+        pilotAction &&
+        pilotAction.startsWith('jump') &&
+        !action.startsWith('jump') &&
+        observation.phase === 'playing' &&
+        availableActions.includes(pilotAction)
+    ) {
+        // Pilot veto: the per-tick brain sees a gap, climb, or double
+        // the 450ms Jev cadence missed. Jump urgency always wins.
+        action = pilotAction;
+        source = 'pilot_veto_jump';
     }
     return {
         action,
@@ -371,6 +441,9 @@ async function startGameServer() {
 }
 
 async function launchBrowser() {
+    if (process.env.BOT_GPU === '1') {
+        return launchGpuBrowser(chromium, HEADLESS, { preserveFrameRate: true });
+    }
     const options = {
         headless: HEADLESS,
         args: [
@@ -388,6 +461,10 @@ async function readGameState(page) {
     return page.evaluate(() => ({
         observation: window.__spaceChickenTest.observe(),
         objective: window.__spaceChickenTest.checkObjectives(),
+        botSnap:
+            window.__spaceChickenDebug && window.__spaceChickenDebug.getBotSnapshot
+                ? window.__spaceChickenDebug.getBotSnapshot()
+                : null,
     }));
 }
 
@@ -448,6 +525,7 @@ async function runPlaytest(client, page) {
     let jevDecisions = 0;
     const rawSteps = [];
     let pendingRaw = null;
+    const pilotState = createPilotState();
 
     while (Date.now() - startedAt < DURATION_MS) {
         const state = await readGameState(page);
@@ -455,12 +533,14 @@ async function runPlaytest(client, page) {
         objective = state.objective;
         if (objective.passed) break;
 
+        const pilotAction = pilotFallbackAction(state.botSnap, state.observation, pilotState);
         let decision;
         try {
             decision = await chooseJevAction(
                 client,
                 state.observation,
-                actions.slice(-6).map(({ action, source }) => ({ action, source }))
+                actions.slice(-6).map(({ action, source }) => ({ action, source })),
+                pilotAction
             );
             if (decision.model) jevDecisions += 1;
             usage.input_tokens += decision.usage?.input_tokens || 0;
@@ -469,7 +549,7 @@ async function runPlaytest(client, page) {
             const detail = safeError(error);
             jevErrors.push({ atMs: Date.now() - startedAt, ...detail });
             decision = {
-                action: fallbackAction(state.observation),
+                action: pilotAction,
                 source: 'fallback_api_error',
                 error: detail,
             };
