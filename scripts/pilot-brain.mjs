@@ -192,6 +192,16 @@ function isHopable(item) {
     return (item.w || 0) < 80 && (item.h || 0) < 60;
 }
 
+// Airborne over a devil: hold the arc, never freeze mid-flight.
+// Airborne over a boss: fall through to the descent escape, which
+// steers the touchdown — holding here lands inside the body.
+function blockerHoldsArc(player, blocker) {
+    if (player.grounded) {
+        return true;
+    }
+    return blocker.type !== 'dust_devil' && blocker.type !== 'boss';
+}
+
 // Contra aim distilled from the L7 JEV traces: bolts fly horizontally
 // from your facing with ~820px range, so hold fire while a live boarder
 // (cyan chest ring) is ahead of you and roughly level. Gated on the
@@ -205,7 +215,10 @@ function boarderAhead(player, dir, snap) {
     const hazards = snap.hazards || [];
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
-        if (!item || item.type !== 'boarder' || !item.active || item.enable === false) {
+        if (!item || (item.type !== 'boarder' && item.type !== 'boss')) {
+            continue;
+        }
+        if (!item.active || item.enable === false) {
             continue;
         }
         const ahead = (item.x - player.x) * dir;
@@ -214,6 +227,218 @@ function boarderAhead(player, dir, snap) {
         }
     }
     return nearest;
+}
+
+// A boss winding up or bearing down ahead: jump now, keep running and
+// firing. Standing to duel a charge trades; the arc clears it. Dormant
+// and recovering bosses let the pilot walk the trigger up normally.
+function bossEvadeTarget(player, dir, snap) {
+    if (!snap || snap.phaser !== true) {
+        return null;
+    }
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'boss' || !item.active || item.enable === false) {
+            continue;
+        }
+        const ahead = (item.x - player.x) * dir;
+        if (ahead <= 0 || ahead > 450) {
+            continue;
+        }
+        // Only the charge's reach matters: a telegraph past it never
+        // connects, so hold fire instead of jumping at shadows.
+        const reach = (item.chargeRange || 380) + 70;
+        if ((item.phase === 'telegraph' || item.phase === 'charge') && ahead <= reach) {
+            return item;
+        }
+        // Pace, summonTell, and recover all sit out the trigger window:
+        // kite them, or the hunt goal walks the pilot into the body.
+        if (
+            (item.phase === 'pace' || item.phase === 'summonTell' || item.phase === 'recover') &&
+            ahead < 150
+        ) {
+            return item;
+        }
+    }
+    return null;
+}
+
+// A live boss anywhere in the snapshot: the crown grab is a trap
+// while she holds the shield, so the pilot fights instead.
+function liveBoss(snap) {
+    const hazards = snap?.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'boss' || !item.active || item.enable === false) {
+            continue;
+        }
+        if (item.hp == null || item.hp > 0) {
+            return item;
+        }
+    }
+    return null;
+}
+
+// True when it handles the tick: kite at range, never run into her.
+// The shield holds until she dies, so advancing past is pointless;
+// grounded bolts on the pace, the arc over the charge. A threat from
+// behind turns at range and plants to fire instead of fumbling a
+// shielded crown or walking into her.
+function applyBossEvade(input, player, dir, dx, snap, shooting) {
+    const threat = bossEvadeTarget(player, dir, snap) || bossEvadeTarget(player, -dir, snap);
+    if (!player.grounded || threat == null) {
+        return false;
+    }
+    // The jump only lasts ~700ms, so a fresh 800ms telegraph outlasts
+    // it: hold fire until the charge is imminent, then go. A missing
+    // timer jumps now (the safe default).
+    const timeLeft = threat.timeUntilPhaseChangeMs;
+    const imminent =
+        threat.phase === 'charge' ||
+        (threat.phase === 'telegraph' && (timeLeft == null || timeLeft <= 350));
+    const behind = (threat.x - player.x) * dir < 0;
+    if (!behind) {
+        const dist = Math.abs(threat.x - player.x);
+        const pace = threat.phase !== 'telegraph' && threat.phase !== 'charge' && dist >= 140;
+        if (pace && !bossSharesDeck(player, threat, snap)) {
+            // Off her deck at snipe range with no charge coming:
+            // abstain and let the grounded hunt close — it marches,
+            // hops steps, and dismounts lifts. Planting here snipes
+            // air while her adds close in (L15 lift); marching here
+            // as a second controller jitters against the kite at the
+            // 140px boundary and pins the fight (L13 step).
+            return false;
+        }
+    }
+    if (behind) {
+        // Threat behind: face it without walking into it. Facing flips
+        // on a step key, so step to face it, plant and fire once faced,
+        // and cross over (never through) when it is on top of us.
+        const want = threat.x > player.x ? 'right' : 'left';
+        const faced = player.facing === want;
+        const dist = Math.abs(threat.x - player.x);
+        const incoming = threat.phase === 'telegraph' || threat.phase === 'charge';
+        input.shoot = true;
+        if (incoming && imminent) {
+            input.jump = true;
+            input.right = !faced && want === 'right';
+            input.left = !faced && want === 'left';
+            return true;
+        }
+        if (incoming) {
+            // Fresh telegraph behind: hold and fire, the jump goes late.
+            input.jump = false;
+            input.right = false;
+            input.left = false;
+            return true;
+        }
+        if (dist <= 70) {
+            input.right = want === 'right';
+            input.left = want === 'left';
+            input.jump = true;
+            return true;
+        }
+        if (!faced) {
+            input.right = want === 'right';
+            input.left = want === 'left';
+            input.jump = false;
+            return true;
+        }
+        // Faced with a pacer closing in: cross over before it arrives;
+        // planting only wins against a threat that holds still.
+        const closingSpeed = Math.sign(player.x - threat.x) * (threat.vx || 0);
+        if (closingSpeed > 15 && dist <= 115) {
+            input.right = want === 'right';
+            input.left = want === 'left';
+            input.jump = true;
+            return true;
+        }
+        input.right = false;
+        input.left = false;
+        input.jump = false;
+        return true;
+    }
+    bossEvadeAhead(input, player, threat, snap, imminent);
+    input.shoot = shooting;
+    return true;
+}
+
+// Threat ahead: plant and fire unless something forces a move. Bolts
+// reach 820px, so spacing past 140px only spends position and walks
+// toward pits; only a connectable charge or a close body earns feet.
+function bossEvadeAhead(input, player, threat, snap, imminent) {
+    const incoming = threat.phase === 'telegraph' || threat.phase === 'charge';
+    const dist = Math.abs(threat.x - player.x);
+    if (dist >= 300) {
+        input.right = false;
+        input.left = false;
+        input.jump = imminent;
+        return;
+    }
+    const reach = (threat.chargeRange || 380) + 70;
+    const connectable = incoming && dist <= reach + 40;
+    const still = !incoming && Math.abs(threat.vx || 0) < 20;
+    if ((!connectable && dist >= 140) || still) {
+        input.right = false;
+        input.left = false;
+        input.jump = false;
+        return;
+    }
+    if (corneredByBoss(player, snap, threat)) {
+        // No floor behind: go over the top instead of backing off it.
+        input.right = threat.x > player.x;
+        input.left = threat.x < player.x;
+        input.jump = true;
+        return;
+    }
+    input.right = threat.x < player.x;
+    input.left = threat.x > player.x;
+    input.jump = imminent;
+}
+
+// The static deck underfoot, or null on a mover or mid-stride. The
+// boss shares it when her body stands over the same span.
+export function footingDeck(player, platforms) {
+    for (const deck of platforms || []) {
+        if (!deck || deck.top == null || deck.left == null || deck.right == null) {
+            continue;
+        }
+        if (player.x < deck.left || player.x > deck.right) {
+            continue;
+        }
+        if (deck.top < player.y - 60 || deck.top > player.y + 40) {
+            continue;
+        }
+        return deck;
+    }
+    return null;
+}
+
+export function bossSharesDeck(player, threat, snap) {
+    const footing = footingDeck(player, snap.platforms || []);
+    return footing != null && threat.x >= footing.left && threat.x <= footing.right;
+}
+
+// True when the floor under the pilot ends within 90px on the flee
+// side: backing away would drop into the gap, so attack through.
+function corneredByBoss(player, snap, threat) {
+    const platforms = snap.platforms || [];
+    const fleeLeft = threat.x > player.x;
+    for (let i = 0; i < platforms.length; i++) {
+        const deck = platforms[i];
+        if (!deck || deck.top == null || deck.left == null || deck.right == null) {
+            continue;
+        }
+        if (player.x < deck.left || player.x > deck.right) {
+            continue;
+        }
+        if (deck.top < player.y - 60 || deck.top > player.y + 40) {
+            continue;
+        }
+        return fleeLeft ? player.x - deck.left < 90 : deck.right - player.x < 90;
+    }
+    return false;
 }
 
 // A duel target: live boarder ahead worth holding fire for. Level
@@ -268,6 +493,93 @@ function duelTarget(player, dir, snap, range) {
     return best;
 }
 
+// Wide boss body with no grounded duel to land into: clear the column
+// early, hop when close. The 80px boarder gate below would leave a
+// 108px body unavoidable. A committed cross above the body holds
+// course instead: reversing mid-arc drops onto the near half.
+// True when the current drift's touchdown clears the boss's far
+// edge: the only drift worth holding. Gravity-aware fall time (the
+// linear drop/vy overestimates flight 2-3x and holds drifts that
+// land inside her), measured against where she is going, not where
+// she is — a pacer walks into a merely static clearance.
+function bossCrossClears(player, below, snap) {
+    const driftVx = player.vx || 0;
+    if (driftVx === 0) {
+        return false;
+    }
+    const deckBelow = landingBelow(player, snap.platforms || [], snap);
+    const feetNow = player.y + 18;
+    const dropNow = deckBelow ? deckBelow.top - feetNow : -1;
+    const bossTop = Number.isFinite(below.top) ? below.top : below.y - 33;
+    if (dropNow <= 0 || feetNow >= bossTop) {
+        return false;
+    }
+    const halfBody = (below.w || 108) / 2 + 17;
+    const gravity =
+        snap.physics && Number.isFinite(snap.physics.gravityY) ? snap.physics.gravityY : 400;
+    const vyNow = Math.max(player.vy || 0, 0);
+    const fallT =
+        gravity > 0
+            ? (Math.sqrt(vyNow * vyNow + 2 * gravity * dropNow) - vyNow) / gravity
+            : dropNow / Math.max(player.vy || 0, 60);
+    const touchdown = player.x + driftVx * fallT;
+    const bossFutureX = below.x + (below.vx || 0) * fallT;
+    const pastHer =
+        driftVx > 0 ? touchdown > bossFutureX + halfBody : touchdown < bossFutureX - halfBody;
+    // Past her and onto a deck: sailing beyond the edge is the pit,
+    // not a crossing.
+    if (!pastHer) {
+        return false;
+    }
+    return landingBelow({ x: touchdown, y: player.y }, snap.platforms || [], snap) != null;
+}
+
+function descentBossMove(player, below, snap) {
+    // `below` is the boss herself, never a landing spot: a drift only
+    // holds when its touchdown clears her far edge, or the arc rides
+    // into her. Everything short of clearing steers away.
+    const away = below.x >= player.x ? -1 : 1;
+    const driftVx = player.vx || 0;
+    if (driftVx !== 0 && bossCrossClears(player, below, snap)) {
+        return { left: driftVx < 0, right: driftVx > 0, jump: false };
+    }
+    // Land fast: steering always clears a boss that cannot shadow it,
+    // while a hop trades the landing for another full flight (and the
+    // boss repositions under it). Hop only with no deck below, or when
+    // the steered touchdown still lands inside the body. When full
+    // steering would leave the deck, hold the drift if it lands safe
+    // and brake only against outward momentum: the column re-evaluates
+    // every tick, and landing near her beats the pit.
+    const deck = landingBelow(player, snap.platforms || [], snap);
+    if (deck == null) {
+        return { left: away > 0, right: away < 0, jump: true };
+    }
+    const feet = player.y + 18;
+    const drop = deck.top - feet;
+    const vy = Math.max(player.vy || 0, 60);
+    const tx = player.x + away * 240 * (drop / vy);
+    const nx = player.x + (player.vx || 0) * (drop / vy);
+    const lands = (x) => landingBelow({ x, y: player.y }, snap.platforms || [], snap) != null;
+    const halfBody = (below.w || 108) / 2 + 17;
+    // Low with the drift touchdown inside her and steering that
+    // leaves the deck: neither path lands safe, so hop out. Higher
+    // up the column re-evaluates with room to correct.
+    if (drop > 0 && drop <= 150 && Math.abs(nx - below.x) < halfBody && !lands(tx)) {
+        return { left: away < 0, right: away > 0, jump: true };
+    }
+    // Low with the steered touchdown off-deck: hold the drift when it
+    // lands safe, brake only against outward momentum. High up, steer
+    // regardless — later ticks still have room to correct.
+    if (drop > 0 && drop <= 150 && !lands(tx)) {
+        if (!lands(nx) && (player.vx || 0) * away > 60) {
+            return { left: away > 0, right: away < 0, jump: false };
+        }
+        return { left: false, right: false, jump: false };
+    }
+    const near = drop > 0 && Math.abs(tx - below.x) < halfBody;
+    return { left: away < 0, right: away > 0, jump: near };
+}
+
 // A live boarder in the descent column: landing on it kills, and bolts
 // fired over its head never clear it first.
 function boarderBelow(player, snap) {
@@ -277,11 +589,20 @@ function boarderBelow(player, snap) {
     const hazards = snap.hazards || [];
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
-        if (!item || item.type !== 'boarder' || !item.active || item.enable === false) {
+        if (!item || (item.type !== 'boarder' && item.type !== 'boss')) {
+            continue;
+        }
+        if (!item.active || item.enable === false) {
             continue;
         }
         const dy = item.y - player.y;
-        if (Math.abs(item.x - player.x) < 70 && dy > 0 && dy < 230) {
+        // Bosses need the whole fall: a 108px body under a 350px drop
+        // is unavoidable when steering starts at boarder range. The
+        // column must exceed contact reach (55px body + 17px pilot),
+        // or the escape sleeps inside the kill zone.
+        const dyWindow = item.type === 'boss' ? 420 : 230;
+        const dxWindow = item.type === 'boss' ? 110 : 70;
+        if (Math.abs(item.x - player.x) < dxWindow && dy > 0 && dy < dyWindow) {
             return item;
         }
     }
@@ -717,13 +1038,17 @@ function applyHopLeap(input, player, dx, dist, snap, state, blocker, platforms) 
 
 // A boarder already under fire may still die first, so only wait
 // those out; anything else squatting on the landing holds the leap.
-// True when it waits out the tick.
+// Chasers are never waited: they come to the leaper, so waiting only
+// cedes the meeting point (L15 trace). True when it waits out the tick.
 function applyLandingWait(player, dir, gap, landing, snap, state, shooting, laneDist) {
     if (!gap || !player.grounded) {
         return false;
     }
     const squatter = landingThreat(dir, landing, snap, state);
-    return Boolean(squatter && !(squatter.type === 'boarder' && shooting && laneDist < 400));
+    if (!squatter || squatter.chasing === true) {
+        return false;
+    }
+    return Boolean(!(squatter.type === 'boarder' && shooting && laneDist < 400));
 }
 
 // Level ground to run onto ahead: the current deck extending past a
@@ -927,31 +1252,56 @@ function applyCloseReflex(input, player, dir, snap, platforms, shooting, laneDis
 // A boarder on another deck is landed past for free, and a
 // touchdown-duel target is landed beside on purpose: the grounded
 // duel kills it point-blank, saving the double for the gap ahead.
+// Spent fuel over a threat column: steer away — but never off the
+// deck. Past the edge, brake toward its middle instead and let the
+// grounded kit fight the landing; over the void, fly for distance.
+// Band-free: high falls must see the deck from altitude.
+function noFuelColumnSteer(player, below, snap) {
+    const away = below.x >= player.x ? -1 : 1;
+    const decks = snap.platforms || [];
+    const feet = player.y + 18;
+    const under = (x) =>
+        decks.some((plat) => x >= plat.left - 30 && x <= plat.right + 30 && plat.top > feet);
+    if (!under(player.x) || under(player.x + away * 60)) {
+        return { left: away < 0, right: away > 0, jump: false };
+    }
+    const deck = decks.find(
+        (plat) => player.x >= plat.left - 30 && player.x <= plat.right + 30 && plat.top > feet
+    );
+    const middle = (deck.left + deck.right) / 2;
+    const centerDir = middle >= player.x ? 1 : -1;
+    return { left: centerDir < 0, right: centerDir > 0, jump: false };
+}
+
 function descentEscape(player, snap, falling, state, dx) {
     if (player.grounded) {
         return null;
     }
     const dir = dx === 0 ? 1 : Math.sign(dx);
     const at = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
-    // Above the falling gate on purpose: the spent double rises for a
-    // full second, and course-steering that rise carries past the deck
-    // behind before the homing ever engages. With fuel (or disarmed)
-    // the flight returns null and the rise continues untouched.
-    const flight = doubleBackFlight(player, dir, snap, state, at);
-    if (flight) {
-        return flight;
+    const below = boarderBelow(player, snap);
+    if (!below) {
+        // Above the falling gate on purpose: the spent double rises for
+        // a full second, and course-steering that rise carries past the
+        // deck behind before the homing ever engages. With fuel (or
+        // disarmed) the flight returns null and the rise continues
+        // untouched. A threat in the column preempts the flight: it
+        // steers for the deck blind, and a deck with a chaser under it
+        // is a landing on the chaser.
+        const flight = doubleBackFlight(player, dir, snap, state, at);
+        if (flight) {
+            return flight;
+        }
+        return null;
     }
     if (!falling) {
         return null;
     }
-    const below = boarderBelow(player, snap);
-    if (!below) {
-        return null;
-    }
     if (snap.jumpCount >= snap.maxJumps || state.lastJump) {
-        // No fuel to spend: always steer — dodging the column is free.
-        const away = below.x >= player.x ? -1 : 1;
-        return { left: away < 0, right: away > 0, jump: false };
+        return noFuelColumnSteer(player, below, snap);
+    }
+    if (below.type === 'boss') {
+        return descentBossMove(player, below, snap);
     }
     if (Math.abs(below.y - player.y) >= 80) {
         return null;
@@ -967,9 +1317,11 @@ function descentEscape(player, snap, falling, state, dx) {
     if (touchdownClear(player, snap, below)) {
         return null;
     }
-    // Crowded touchdown with a survivable hop: take it.
-    if (hopTouchdownClear(player, snap, below, dx)) {
-        return { left: dx < -10, right: dx > 10, jump: true };
+    // Crowded touchdown with a survivable hop: take it, away from
+    // the threat — hopping along the goal sails into pits and shadows.
+    if (hopTouchdownClear(player, snap, below)) {
+        const away = below.x >= player.x ? -1 : 1;
+        return { left: away < 0, right: away > 0, jump: true };
     }
     // A deck waits behind in double range: double back to it instead
     // of descending onto the tracker. The landing refuels for a
@@ -1067,7 +1419,7 @@ function doubleBackFlight(player, dir, snap, state, at) {
 // deck below: true when it lands on the deck clear of the chaser.
 // With no deck below, hop as before (a leaping chaser over a pit
 // is dodged, not dueled).
-function hopTouchdownClear(player, snap, below, dx) {
+function hopTouchdownClear(player, snap, below) {
     const deck = landingBelow(player, snap.platforms || [], snap);
     if (!deck) {
         return true;
@@ -1077,7 +1429,7 @@ function hopTouchdownClear(player, snap, below, dx) {
     if (!(gravity > 0)) {
         return true;
     }
-    const dir = dx === 0 ? 1 : Math.sign(dx);
+    const dir = below.x >= player.x ? -1 : 1;
     const boots = player.y + 22;
     const riseT = 330 / gravity;
     const apexBoots = boots - (330 * 330) / (2 * gravity);
@@ -2046,6 +2398,30 @@ function liftLevelInStroke(player, lift) {
 }
 
 // Lift boarding decision: 'run' (walk on now), 'jump' (apex takeoff
+// True while a fight forbids slow lift transit: an awake boss, or a
+// chaser closing within 400px. Boarding strands the rider for the
+// rise while the threat sprints in (L15 trace).
+function liftTransitPressure(player, snap) {
+    const boss = liveBoss(snap);
+    if (boss && boss.phase !== 'dormant') {
+        return true;
+    }
+    const hazards = snap.hazards || [];
+    for (let i = 0; i < hazards.length; i++) {
+        const item = hazards[i];
+        if (!item || item.type !== 'boarder' || item.chasing !== true) {
+            continue;
+        }
+        if (!item.active || item.enable === false) {
+            continue;
+        }
+        if (Math.abs(item.x - player.x) < 400 && Math.abs(item.y - player.y) < 300) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // window open, phase open), 'wait' (in position, phase closed), 'back'
 // (too close for the arc and no walk-on coming: back up to the window),
 // false (no lift business). Full jumps cannot land short on a lift, so
@@ -2055,6 +2431,13 @@ function liftBoarding(player, dir, snap, under, landing, state) {
         return false;
     }
     if (landing.type !== 'moving_platform' || under.type === 'moving_platform') {
+        return false;
+    }
+    // No slow transit under pressure: boarding a low lift strands the
+    // rider for the whole rise while a live fight closes in (L15
+    // trace: 2.4s ride + veto vs a 2.3s summon sprint = death on the
+    // lift). Jump the gap on foot instead; the lift serves peace.
+    if (liftTransitPressure(player, snap)) {
         return false;
     }
     if (sameDeck(under, landing)) {
@@ -2566,6 +2949,16 @@ function leapOverMover(item) {
     );
 }
 
+// A dismount threat worth vetoing: static lethals and clearing movers
+// wait out, but chasers never veto — they come to the rider, so
+// waiting only cedes the meeting point (L15 trace).
+function dismountVetoThreat(threat) {
+    if (!threat || threat.chasing === true) {
+        return null;
+    }
+    return threat;
+}
+
 function liftDismountAction(player, dir, snap, state, under, target) {
     if (!target) {
         return null;
@@ -2584,16 +2977,17 @@ function liftDismountAction(player, dir, snap, state, under, target) {
     // zone pins the ride forever, so leap over after 2.5s of veto —
     // jump arcs clear patrollers vertically, then the flight continues
     // past the deck.
-    if (threat && !leapOverMover(threat)) {
+    const vetoable = dismountVetoThreat(threat);
+    if (vetoable && !leapOverMover(vetoable)) {
         return null;
     }
-    if (!threat) {
+    if (!vetoable) {
         state.dismountVetoId = null;
     }
     if (Math.abs(under.top - target.top) >= 70) {
         return null;
     }
-    if (threat) {
+    if (vetoable) {
         const key = threat.id ?? `${threat.type}@${Math.round(threat.x)}`;
         const now = Number.isFinite(snap.elapsedMs) ? snap.elapsedMs : 0;
         if (state.dismountVetoId !== key) {
@@ -2869,17 +3263,21 @@ function groundJumpPlan(
     crownDx
 ) {
     const crown = snap.crown || { x: player.x + 200, y: player.y };
+    // A shielded crown with a live boss is a trap, not a grab: jumping
+    // for it burns both jumps over the boss and falls onto her. Fight
+    // first (boss evade), collect after the shield drops.
+    const crownOpen = snap.crown?.shielded !== true || !liveBoss(snap);
     const stepUp =
         wantStepUp(player, dir, landing, snap) &&
         (landing == null || landing.type !== 'moving_platform' || board === 'jump');
     const grabCrown =
-        Math.abs(crownDx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
+        crownOpen && Math.abs(crownDx) < 180 && player.y > crown.y + 18 && player.y < crown.y + 240;
     // Final-approach hops only: when the crown is close, hop toward it
     // instead of running underneath. (An unrestricted climb-above rule
     // turned the pilot into a pogo stick: airborne bolts fly over
     // boarder heads while bombs and chasers connect. Ascents are
     // covered by stepUp/grabCrown.)
-    const closePush = player.grounded && Math.abs(crownDx) < 150;
+    const closePush = crownOpen && player.grounded && Math.abs(crownDx) < 150;
     const earlyGap = earlyGapJump(player, dir, snap, state, under, landing);
     const shouldJump =
         (gap && !dropSmall && board !== 'run') ||
@@ -3110,11 +3508,86 @@ function shieldHuntTarget(player, snap, crown, laneDist, state) {
     return hunt;
 }
 
-// Nearest live boarder near the crown pad, or null. The shield breaks
-// when the crown-platform guards die (BoarderDirector), and guards stay
-// on deck — so only pad boarders are worth hunting. Stragglers behind
-// the run are ignored: U-turning for them burns jumps and walks the
-// pilot back into cleared packs.
+// Area hazards gate the whole move before duels and goals: bombs rain
+// from above, timed beams gate the lane, crusher pistons gate it the
+// same way, and falling drips hold for the pass.
+function hazardGatesHold(input, player, dir, snap, platforms, under, state) {
+    if (applyAmbushHolds(input, player, dir, snap, platforms, under)) {
+        return true;
+    }
+    if (applyLaserMove(input, player, dir, snap, state)) {
+        return true;
+    }
+    if (applyCrusherMove(input, player, dir, snap, state)) {
+        return true;
+    }
+    if (applyDripMove(input, player, dir, snap)) {
+        return true;
+    }
+    return false;
+}
+
+// Airborne near a live boss: never chase the hunt into her column —
+// hold the arc (usually the evade takeoff running away) and let the
+// descent escape steer the touchdown. Bolts still catch the hunt
+// in-lane; chasing it mid-air ends inside the charge.
+// Shielded crown with an active boss, airborne: the crown goal
+// pulls the drift through her body onto a touchdown inside
+// contact. Hold x and let the descent escape steer — unless the
+// drift already clears her far edge (a committed cross-over).
+// Airborne drift override near an active boss under a shielded
+// crown: null keeps the goal, 0 holds x, away*200 flees. The crown
+// goal pulls the drift through her body onto a touchdown inside
+// contact, so toward-drift holds — but a telegraph or charge
+// needs separation, not stillness, so incoming phases flee.
+// Grounded evades plant already; dormant contact is safe. Only
+// with a deck below: holding over the pit strands the flight.
+function shieldBossDrift(player, snap, dx) {
+    if (player.grounded || snap.crown?.shielded !== true || dx === 0) {
+        return null;
+    }
+    const boss = liveBoss(snap);
+    if (!boss || boss.phase === 'dormant') {
+        return null;
+    }
+    const separation = Math.abs(boss.x - player.x);
+    const deck = landingBelow(player, snap.platforms || [], snap);
+    if (deck == null) {
+        return null;
+    }
+    // The hold parks the arc, so the boots must come down ON the
+    // deck — inside its span, not inside landingBelow's stride
+    // margin. Holding 25px short of the edge strands the flight
+    // over the void (L14 trace): keep the goal drift instead.
+    if (player.x < deck.left + 14 || player.x > deck.right - 14) {
+        return null;
+    }
+    if ((boss.x - player.x) * dx <= 0) {
+        return null;
+    }
+    if (separation >= 300 || bossCrossClears(player, boss, snap)) {
+        return null;
+    }
+    if (boss.phase === 'telegraph' || boss.phase === 'charge') {
+        return (boss.x >= player.x ? -1 : 1) * 200;
+    }
+    return 0;
+}
+
+function holdArcNearBoss(player, snap, hunt) {
+    if (player.grounded || !hunt || hunt.type !== 'boarder') {
+        return false;
+    }
+    const boss = liveBoss(snap);
+    return Boolean(boss && Math.hypot(boss.x - player.x, boss.y - player.y) < 250);
+}
+
+// Nearest live boarder or boss near the crown pad, or null. The shield
+// breaks when the crown-platform guards die, and guards stay on deck —
+// so only pad guards are worth hunting. Stragglers behind the run are
+// ignored: U-turning for them burns jumps and walks the pilot back into
+// cleared packs. A live boss always qualifies: walking back to her
+// beats idling at a shielded crown until she arrives.
 function nearestBoarder(player, snap, crown) {
     if (!snap || snap.phaser !== true) {
         return null;
@@ -3124,7 +3597,13 @@ function nearestBoarder(player, snap, crown) {
     const hazards = snap.hazards || [];
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
-        if (!item || item.type !== 'boarder' || !item.active || item.enable === false) {
+        if (!item || (item.type !== 'boarder' && item.type !== 'boss')) {
+            continue;
+        }
+        if (!item.active || item.enable === false) {
+            continue;
+        }
+        if (item.type === 'boss' && item.hp != null && item.hp <= 0) {
             continue;
         }
         if (crown == null || Math.abs(item.x - crown.x) >= 700) {
@@ -3251,6 +3730,14 @@ function landingThreat(dir, landing, snap, state) {
     for (let i = 0; i < hazards.length; i++) {
         const item = hazards[i];
         if (!item || !item.active || item.enable === false || item.bonkable) {
+            continue;
+        }
+        // A boss squatting the landing never leaves, so waiting her
+        // out strands the approach (L15 trace: the dismount veto and
+        // the gap wait both held forever while her summon closed in).
+        // Land anyway — the boss evade owns the encounter on arrival,
+        // and the airborne telegraph flee covers a charge mid-flight.
+        if (item.type === 'boss') {
             continue;
         }
         if (Math.abs(item.y - landing.top) >= 130) {
@@ -3401,20 +3888,11 @@ export function decidePilotInput(snap, state) {
         supportAt(player.x, player.y + 6, platforms) ||
         supportAt(player.x - 14, player.y + 6, platforms) ||
         supportAt(player.x + 14, player.y + 6, platforms);
-    // Bombs rain from above; ray columns freeze the whole move.
-    if (applyAmbushHolds(input, player, dir, snap, platforms, under)) {
+    if (hazardGatesHold(input, player, dir, snap, platforms, under, state)) {
         return input;
     }
-    // Timed beams gate the whole move.
-    if (applyLaserMove(input, player, dir, snap, state)) {
-        return input;
-    }
-    // Crusher pistons gate the lane the same way: enter only on the rise.
-    if (applyCrusherMove(input, player, dir, snap, state)) {
-        return input;
-    }
-    // Falling drips: hold for the pass, never leap into the fall.
-    if (applyDripMove(input, player, dir, snap)) {
+    // Boss winding up or bearing down: jump now, keep running and firing.
+    if (applyBossEvade(input, player, dir, dx, snap, shooting)) {
         return input;
     }
     if (applyCloseReflex(input, player, dir, snap, platforms, shooting, laneDist)) {
@@ -3435,12 +3913,26 @@ export function decidePilotInput(snap, state) {
     const crownDx = crown.x - player.x;
     const hunt = shieldHuntTarget(player, snap, crown, laneDist, state);
     if (hunt) {
-        goal = hunt;
-        dx = hunt.x - player.x;
+        // An airborne boss hunt stands off at bolt range: chasing her
+        // body trades. Grounded hunts still close into evade range;
+        // evades and duels own it from there.
+        if (!(hunt.type === 'boss' && !player.grounded && Math.abs(hunt.x - player.x) < 250)) {
+            goal = hunt;
+            dx = hunt.x - player.x;
+        }
         dir = dx === 0 ? dir : Math.sign(dx);
         laneDist = boarderAhead(player, dir, snap);
         shooting = laneDist >= 0;
         input.shoot = shooting;
+    }
+    if (holdArcNearBoss(player, snap, hunt)) {
+        goal = { x: player.x, y: player.y };
+        dx = 0;
+    }
+    const shieldDrift = shieldBossDrift(player, snap, dx);
+    if (shieldDrift != null) {
+        goal = { x: player.x + shieldDrift, y: player.y };
+        dx = shieldDrift;
     }
     // Dust devils sweep too fast to time on foot but arc cleanly.
     if (applyDevilLeap(input, player, dir, dx, snap, platforms)) {
@@ -3483,8 +3975,7 @@ export function decidePilotInput(snap, state) {
         return input;
     }
     const blocker = hazardInPath(player.x, player.y, dir, snap.hazards || [], snap.bombs || [], 70);
-    // Airborne over a devil: hold the arc, never freeze mid-flight.
-    if (blocker && !isHopable(blocker) && (player.grounded || blocker.type !== 'dust_devil')) {
+    if (blocker && !isHopable(blocker) && blockerHoldsArc(player, blocker)) {
         return input;
     }
     // Deliberate spring use, computed before the close-range reflexes so a
@@ -3742,7 +4233,18 @@ const BRAIN_PARTS = [
     columnAhead,
     hazardInPath,
     isHopable,
+    blockerHoldsArc,
     boarderAhead,
+    holdArcNearBoss,
+    shieldBossDrift,
+    hazardGatesHold,
+    bossEvadeTarget,
+    applyBossEvade,
+    bossEvadeAhead,
+    footingDeck,
+    bossSharesDeck,
+    corneredByBoss,
+    liveBoss,
     duelTarget,
     boarderBelow,
     duelHold,
@@ -3789,6 +4291,9 @@ const BRAIN_PARTS = [
     landingBelow,
     touchdownDeck,
     descentEscape,
+    noFuelColumnSteer,
+    bossCrossClears,
+    descentBossMove,
     applyDescentEscape,
     backDeck,
     sameDeck,
@@ -3834,11 +4339,13 @@ const BRAIN_PARTS = [
     liftVelocity,
     liftWalkable,
     liftLevelInStroke,
+    liftTransitPressure,
     liftBoarding,
     liftDropTarget,
     liftDismountTarget,
     liftStrokeReaches,
     leapOverMover,
+    dismountVetoThreat,
     liftDismountAction,
     doubleBonk,
     doubleClearsBonk,

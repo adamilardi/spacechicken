@@ -1,0 +1,87 @@
+{
+    "brief": {
+        "name": "Warden Prime",
+        "level": 10,
+        "levelTheme": "Spire Crown: the final ascent up a golden spire in low gravity. Wardens (armored spear aliens) hold the steps; gold beams sweep the hall on a beat. Ride the lift to the crown deck.",
+        "bossFiction": "The prime warden dueling on the crown deck: gold plume and pauldrons, alloy cuirass, one big cyan lens. The spire’s champion.",
+        "rule": "Duel her pace, jump her charge late, keep bolts on the lens.",
+        "tell": "She crouches and flashes red for 800ms, then charges 378px across the deck.",
+        "safeResponse": "Hold fire on the pace, strafe to room, jump as the charge leaves. Low gravity stretches every arc.",
+        "hp": 12,
+        "phases": ["fast pace", "telegraph (crouch + red flash)", "charge", "recover"],
+        "enrage": "Below half HP she charges faster with shorter rests, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, WARDEN PRIME DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 10,
+        "boss": "Warden Prime",
+        "outcome": "boss-defeated",
+        "durationSec": 12.2,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 11,
+        "hpMin": 0,
+        "phasesSeen": ["pace", "telegraph", "charge", "recover"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 3,
+            "fairness": 3.05,
+            "theme": 3,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.91,
+                "fairness": 0.77,
+                "theme": 0.87,
+                "verdict": 0.7
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 3.16,
+            "fairness": 2.85,
+            "theme": 3.03,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.77,
+                "fairness": 0.7,
+                "theme": 0.82,
+                "verdict": 0.7
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.85,
+            "fairness": 2.82,
+            "theme": 2.97,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.81,
+                "fairness": 0.68,
+                "theme": 0.85,
+                "verdict": 0.43
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 3.08,
+            "fairness": 2.97,
+            "theme": 3.07,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.86,
+                "fairness": 0.78,
+                "theme": 0.82,
+                "verdict": 0.59
+            }
+        }
+    ],
+    "passed": true
+}

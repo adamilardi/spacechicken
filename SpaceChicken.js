@@ -11,7 +11,8 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { CombatSystem } from './CombatSystem.js';
-import { BoarderDirector } from './BoarderDirector.js';
+import { BoarderDirector, crownGuardsDefeated } from './BoarderDirector.js';
+import { BossDirector } from './BossDirector.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
 import {
     canBonkFromAbove,
@@ -100,6 +101,10 @@ function listGroupBodies(group, now = 0, defaults = {}, timeScale = 1) {
             intervalMs: meta.intervalMs ?? null,
             wave: meta.wave ?? null,
             chasing: sprite.aggro === true,
+            hp: Number.isFinite(sprite.bossHp) ? sprite.bossHp : null,
+            maxHp: Number.isFinite(sprite.bossMaxHp) ? sprite.bossMaxHp : null,
+            bossName: meta.bossName || null,
+            chargeRange: Number.isFinite(meta.chargeRange) ? meta.chargeRange : null,
         });
     }
     return out;
@@ -190,6 +195,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.viewport = new Viewport(this);
         this.combat = new CombatSystem(this);
         this.boarders = new BoarderDirector(this);
+        this.bosses = new BossDirector(this);
         this.jumpMode = 'max';
         this.difficulty = 'normal';
     }
@@ -393,6 +399,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.platforms = this.physics.add.staticGroup();
         this.hazards = this.physics.add.staticGroup();
+        this.bossesGroup = this.physics.add.group();
         const builtWorld = this.worldBuilder.build(this.levelConfig);
         this.movingPlatforms = builtWorld.movingPlatforms;
         this.dynamicHazardsGroup = builtWorld.dynamicHazardsGroup;
@@ -404,6 +411,10 @@ export class SpaceChicken extends Phaser.Scene {
             if (this.movingPlatforms) {
                 this.physics.add.collider(this.boardersGroup, this.movingPlatforms);
             }
+        }
+        this.physics.add.collider(this.bossesGroup, this.platforms);
+        if (this.movingPlatforms) {
+            this.physics.add.collider(this.bossesGroup, this.movingPlatforms);
         }
 
         this.crown = this.physics.add.staticSprite(
@@ -476,6 +487,7 @@ export class SpaceChicken extends Phaser.Scene {
         });
         this.physics.add.overlap(this.player, this.bombs, this.failFromHazard, null, this);
         this.wireBoarders(this.player);
+        this.bosses?.wireBosses?.(this.player);
         this.setupPhaser();
         this.applyStartWeapons();
 
@@ -1366,6 +1378,11 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.awaitingStart || this.isTransitioning || this.gameOver || this.raceFinale) {
             return;
         }
+        // Bosses live in the dynamic-hazards group for the snapshot but
+        // touchBoss owns their contact (dormant/defeated/grace guards).
+        if (hazard?.testMeta?.type === 'boss') {
+            return;
+        }
         if (canBonkFromAbove(chicken, hazard, GAME_CONSTANTS.BONK_MIN_FALL_SPEED)) {
             this.boostFromBonk(chicken, hazard);
             return;
@@ -1503,6 +1520,23 @@ export class SpaceChicken extends Phaser.Scene {
         this.boarders.updateBoarders();
     }
 
+    updateBosses() {
+        this.bosses.updateBosses();
+    }
+
+    damageBoss(boss) {
+        this.bosses.damageBoss(boss);
+    }
+
+    releaseCrownShieldIfCleared() {
+        if (!this.crownShielded || !this.levelConfig?.crownShield) {
+            return;
+        }
+        if (crownGuardsDefeated(this.boardersGroup, this.bossesGroup)) {
+            this.breakCrownShield();
+        }
+    }
+
     stepBoarder(alien, targets, allies, options) {
         this.boarders.stepBoarder(alien, targets, allies, options);
     }
@@ -1583,6 +1617,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         const kind =
             reason === 'fall' || reason === 'laser' || reason === 'boarder' ? reason : 'hazard';
+        this.lastDeathKind = kind;
         this.playDeathStinger(kind);
         this.pulsePads(GAME_CONSTANTS.HAPTIC_DEATH_MS, 0.85, 0.4);
         this.restartLevel();
@@ -1654,6 +1689,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.boarderWave = 1;
         this.haltBoarders();
         this.resetBoarders();
+        this.bosses.resetBosses();
         if (this.player?.body) {
             this.player.body.enable = false;
         }
@@ -2039,6 +2075,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.updateCombat(inputState);
         this.updateBoarders();
+        this.updateBosses();
         this.syncBonkMarkers();
         this.updateBombTrails();
         this.cleanupOffscreenBombs();
@@ -2387,6 +2424,7 @@ export class SpaceChicken extends Phaser.Scene {
         );
         this.physics.add.overlap(this.player2, this.bombs, this.failFromHazard, null, this);
         this.wireBoarders(this.player2);
+        this.bosses?.wireBosses?.(this.player2);
         this.attachPhaserSprite(this.player2);
         if (typeof this.startWeapons?.p2 === 'string') {
             this.player2.weapon = this.baseWeaponOf({ weapon: this.startWeapons.p2 });
@@ -2821,6 +2859,7 @@ export class SpaceChicken extends Phaser.Scene {
 
         this.dynamicHazardsGroup = null;
         this.boardersGroup = null;
+        this.bossesGroup = null;
         this.phaserBolts = null;
         this.bombs = null;
 
@@ -2891,6 +2930,23 @@ export class SpaceChicken extends Phaser.Scene {
             goToLevel: (level) => this.debugGoToLevel(level),
             skipLevel: () => this.debugSkipLevel(),
             teleport: (x, y) => this.debugTeleport(x, y),
+            bossBodies: () =>
+                (this.bossesGroup?.getChildren?.() || []).map((boss) => ({
+                    x: boss.x,
+                    y: boss.y,
+                    bodyX: boss.body?.x,
+                    bodyY: boss.body?.y,
+                    bodyW: boss.body?.width,
+                    bodyH: boss.body?.height,
+                    allowGravity: boss.body?.allowGravity,
+                    checkUp: boss.body?.checkCollision?.up,
+                    checkDown: boss.body?.checkCollision?.down,
+                    moves: boss.body?.moves,
+                    immovable: boss.body?.immovable,
+                    enable: boss.body?.enable,
+                    colliding: { ...boss.body?.touching },
+                    blocked: { ...boss.body?.blocked },
+                })),
         };
         window.__spaceChickenTest = {
             observe: () => this.gameTestInterface.observe(),
@@ -3015,6 +3071,7 @@ export class SpaceChicken extends Phaser.Scene {
             awaitingStart: this.awaitingStart,
             transitioning: this.isTransitioning,
             gameOver: this.gameOver,
+            lastDeathKind: this.lastDeathKind ?? null,
             dying: Boolean(this.isTransitioning && !this.gameOver && pendingLevel == null),
             pendingLevel,
             elapsedMs: performance.now() - this.startTime,

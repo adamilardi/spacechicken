@@ -14,12 +14,13 @@ export const level = {
         KILLZONE_HEIGHT: 36,
         PHASER: true,
         NEXT_LEVEL: 10,
+        CROWN_SHIELD: true,
     },
     content: {
         instructions:
-            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: F or J. A spore-beam guards the crown deck: cross on the dark. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: F or J. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         touchInstructions:
-            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires. New gun: PIERCER. The gun button swaps guns. Pods grant 30s guns.',
+            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires. New gun: PIERCER. The gun button swaps guns. The HIVE MOTHER guards the crown: burn her, duel her young. Pods grant 30s guns.',
         background: {
             type: 'hive',
             style: 'warrens',
@@ -64,7 +65,7 @@ export const level = {
             { x: 9250, y: 290, key: 'hiveFang', scaleX: 2.6 },
             { x: 10250, y: 460, key: 'hiveChitin', scaleX: 3.6 },
             { x: 10750, y: 360, key: 'hiveChitin', scaleX: 3.0 },
-            { x: 11000, y: 260, key: 'hiveChitin', scaleX: 2.8 },
+            { x: 11000, y: 260, key: 'hiveChitin', scaleX: 5.0 },
         ],
         floor: null,
         moving: [],
@@ -103,7 +104,6 @@ export const level = {
             { wave: 4, x: 3350 },
             { wave: 5, x: 4600 },
             { wave: 6, x: 6500 },
-            { wave: 7, x: 10500 },
         ],
         dynamic: [
             {
@@ -152,18 +152,6 @@ export const level = {
             { type: 'boarder', key: 'gnawer', x: 2350, y: 580, wave: 2 },
             { type: 'boarder', key: 'gnawer', x: 2700, y: 500, wave: 3 },
             { type: 'boarder', key: 'gnawer', x: 3150, y: 380, wave: 3 },
-            {
-                type: 'laser',
-                x: 10950,
-                y: 180,
-                length: 120,
-                width: 14,
-                orientation: 'vertical',
-                tint: 0x67ffd2,
-                onDuration: 780,
-                offDuration: 1180,
-                startDelay: 500,
-            },
             {
                 type: 'bonk',
                 enemy: 'brute',
@@ -243,8 +231,39 @@ export const level = {
             },
             { type: 'boarder', key: 'gnawer', x: 7160, y: 464, wave: 6 },
             { type: 'boarder', key: 'gnawer', x: 9080, y: 384, wave: 6 },
-            { type: 'boarder', key: 'gnawer', x: 10800, y: 320, wave: 7 },
-            { type: 'boarder', key: 'gnawer', x: 10900, y: 220, wave: 7 },
+            {
+                type: 'boss',
+                key: 'hiveMother',
+                bossName: 'Hive Mother',
+                x: 10990,
+                y: 215,
+                hp: 16,
+                crownGuard: true,
+                triggerX: 10500,
+                minX: 10870,
+                maxX: 11130,
+                paceSpeed: 40,
+                telegraphMs: 800,
+                chargeSpeed: 300,
+                chargeMs: 550,
+                recoverMs: 900,
+                // Summoner first: births carry the fight, but when pressed
+                // she heaves her bulk across the deck — a slow short
+                // charge (165px) on a long clock, after the first birth.
+                initialAttackMs: 6000,
+                cooldownMs: 5200,
+                enrageCooldownMs: 4200,
+                enrageChargeMult: 1.15,
+                summon: {
+                    intervalMs: 3500,
+                    initialDelayMs: 2500,
+                    count: 1,
+                    key: 'gnawer',
+                    maxAlive: 4,
+                    tellMs: 600,
+                    spread: 90,
+                },
+            },
         ],
     },
 };

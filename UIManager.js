@@ -28,6 +28,9 @@ export class UIManager {
         this.bannerTitle = null;
         this.bannerSubtitle = null;
         this.bannerHideEvent = null;
+        this.bossBarText = null;
+        this.bossBarGfx = null;
+        this.bossBarFrac = 1;
         this.instructionFadeEvent = null;
         this.destroyed = false;
         this.lastTimerDisplay = '';
@@ -193,6 +196,8 @@ export class UIManager {
             this.overlays.selectNextButton,
             this.bannerTitle,
             this.bannerSubtitle,
+            this.bossBarText,
+            this.bossBarGfx,
             this.overlays.leaderboardTextObject,
             ...(this.overlays.leaderboardExtras || []),
             this.overlays.leaderboardTapZone,
@@ -528,6 +533,71 @@ export class UIManager {
         this.layoutFinishScreen();
         this.layoutTitleScreen();
         this.layoutLevelBanner();
+        this.layoutBossBar();
+    }
+
+    showBossBar(name, hp, maxHp) {
+        if (this.destroyed) {
+            return;
+        }
+        if (!this.bossBarText) {
+            this.bossBarText = this.scene.add
+                .text(0, 0, String(name).toUpperCase(), {
+                    fontSize: '18px',
+                    fontFamily: HUD_FONT,
+                    fill: '#ffb3b3',
+                    align: 'center',
+                })
+                .setOrigin(0.5)
+                .setScrollFactor(0)
+                .setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.styleHudText(this.bossBarText, 4);
+            this.markUi(this.bossBarText);
+        } else {
+            this.bossBarText.setText(String(name).toUpperCase());
+        }
+        if (!this.bossBarGfx) {
+            this.bossBarGfx = this.scene.add.graphics();
+            this.bossBarGfx.setScrollFactor(0);
+            this.bossBarGfx.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.markUi(this.bossBarGfx);
+        }
+        this.bossBarText.setVisible(true);
+        this.bossBarGfx.setVisible(true);
+        this.updateBossBar(hp, maxHp);
+    }
+
+    updateBossBar(hp, maxHp) {
+        if (!this.bossBarGfx) {
+            return;
+        }
+        this.bossBarFrac = maxHp > 0 ? Math.max(0, Math.min(1, hp / maxHp)) : 0;
+        this.layoutBossBar();
+    }
+
+    hideBossBar() {
+        this.bossBarText?.setVisible(false);
+        this.bossBarGfx?.setVisible(false);
+    }
+
+    layoutBossBar() {
+        if (!this.bossBarText || !this.bossBarGfx || !this.bossBarGfx.visible) {
+            return;
+        }
+        const insets = this.getSafeAreaInsets();
+        const metrics = this.getLayoutMetrics();
+        const width = Math.min(320, Math.max(160, metrics.innerWidth - 64));
+        const x = metrics.width / 2 - width / 2;
+        const y = insets.top + metrics.hudPadding;
+        this.bossBarText.setPosition(metrics.width / 2, y + 8);
+        const gfx = this.bossBarGfx;
+        gfx.clear();
+        gfx.fillStyle(0x1a0d12, 0.85);
+        gfx.fillRect(x - 2, y + 20, width + 4, 14);
+        gfx.fillStyle(0x5e1440, 1);
+        gfx.fillRect(x, y + 22, width, 10);
+        gfx.fillStyle(this.bossBarFrac > 0.5 ? 0xd63c8c : 0xff4a5a, 1);
+        gfx.fillRect(x, y + 22, Math.round(width * this.bossBarFrac), 10);
     }
 
     getSafeAreaInsets() {

@@ -2,31 +2,34 @@
 
 ## Rule
 
-The crown pad is a gatehouse: two crushers slam on either side of the pad on
-an alternating beat (780ms duration, 390ms offset, 280ms hold). The safe
-center between the slam footprints is 176px wide with the crown in it.
+The GATEKEEPER holds the crown deck (480px bastion deck,
+x11400-11880): the first hybrid. She paces at 60px/s, telegraphs
+800ms (crouch + red tint), and charges 378px at 420px/s every 2.6s
+(2.0s enraged past half HP, same charge speed) — and every 12s (8.4s enraged) she births
+one spireWarden (max 1 alive) with a 600ms gold summonTell. 12 HP
+behind the crown shield; the shield opens when she dies and her
+warden dissolves with her. The old gatehouse crusher pair is gone (the boss is
+the gatehouse now); mid-level crushers stay.
 
-- Tell: crusher blocks riding above the pad edges, alternating slams.
-- Safe response: climb from deck 5 on the off-beat, stand center, take the
-  crown between slams. Every landing around the pad stays legal.
-- Mechanic: two `crusher` configs in `levels/bastion-relay.js`, no new
-  spawner. Distinct from the L8 shield, the L9 jaw bridge, and the L10 lift:
-  the timing gate IS the crown pad.
+- Tell: red crouch = charge; gold rear-up = birth.
+- Safe response: plant on the pace, strafe the telegraph, jump as
+  the charge leaves, gun down the newborn before it spreads.
+- The crown hangs over the deck; grab it after the kill.
 
 ## Paint and texture keys
 
-No new actor paint. Reuses the shipped `crusher` texture and the
-`bastionDeck` crown pad. Wave runners wear `spireWarden`.
+`gatekeeper` (130x90: relay antennae, hull dome, conduit seams,
+alert-red lens, girder shoulders, treads) on the `bastionDeck`
+deck. Boss HP bar via the shared boss UI.
 
 ## Files
 
-`levels/bastion-relay.js`, `tests/game.test.cjs` (crusher presence),
-`tests/contra-levels.test.cjs` (pad width, hop reachability).
+`levels/bastion-relay.js` (boss entry, shield, deck, instructions),
+`BossDirector.js` + `enemies/boss.js` (framework), `sprites/enemies.js`
+(`paintGatekeeper`).
 
 ## Play
 
-`http://127.0.0.1:3000/?level=11` — cross from deck 5, hold center, take the
-crown. Bot reached the pad approach (x3651) but has not cleared; the gate
-timing (alternating 780/390 like the verified L9 jaw doors) is unit-covered
-by config assertion only. Co-op shares the pad; pause freezes the slam
-tweens by scene-clock construction (not separately run).
+`http://127.0.0.1:3000/?level=11` — cross the base, duel the
+Gatekeeper, take the crown. Panel report:
+`docs/boss-reviews/level-11.json`.

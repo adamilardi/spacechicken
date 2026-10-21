@@ -151,9 +151,17 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         harborBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7]
     );
     assert.ok(harborBoarders.every((hazard) => hazard.key === 'skitterling'));
+    // The wave-8 guard is the Scrapjaw boss, the crown guard.
+    const harborBosses = new LevelConfig(13).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(harborBosses.length, 1);
+    assert.equal(harborBosses[0].bossName, 'Scrapjaw');
+    assert.equal(harborBosses[0].crownGuard, true);
+    assert.ok(harborBosses[0].hp > 1);
     assert.ok(
         new LevelConfig(13).platforms.static.some((platform) => platform.key === 'harborDeck')
     );
@@ -165,24 +173,40 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         foundryBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7]
     );
     assert.ok(foundryBoarders.every((hazard) => hazard.key === 'gnawer'));
+    // The wave-8 pack is the Embermaw boss, the crown guard.
+    const foundryBosses = new LevelConfig(14).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(foundryBosses.length, 1);
+    assert.equal(foundryBosses[0].bossName, 'Embermaw');
+    assert.equal(foundryBosses[0].crownGuard, true);
+    assert.equal(foundryBosses[0].summon.key, 'gnawer');
     assert.ok(
         new LevelConfig(14).platforms.static.some((platform) => platform.key === 'foundryDeck')
     );
     assert.ok(new LevelConfig(14).props.some((prop) => prop.key === 'foundryVent'));
     assert.ok(new LevelConfig(14).hazards.dynamic.some((hazard) => hazard.type === 'laser'));
     assert.ok(new LevelConfig(14).platforms.moving.length >= 1);
-    assert.equal(new LevelConfig(14).crownShield, false);
+    assert.equal(new LevelConfig(14).crownShield, true);
     const skyhookBoarders = new LevelConfig(15).hazards.dynamic.filter(
         (hazard) => hazard.type === 'boarder'
     );
     assert.deepEqual(
         skyhookBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7]
     );
     assert.ok(skyhookBoarders.every((hazard) => hazard.key === 'spireWarden'));
+    // The wave-8 guard is the Highroost boss, the crown guard.
+    const skyhookBosses = new LevelConfig(15).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(skyhookBosses.length, 1);
+    assert.equal(skyhookBosses[0].bossName, 'Highroost');
+    assert.equal(skyhookBosses[0].crownGuard, true);
+    assert.equal(skyhookBosses[0].summon.key, 'spireWarden');
     assert.ok(
         new LevelConfig(15).platforms.static.some((platform) => platform.key === 'skyhookDeck')
     );
@@ -280,8 +304,16 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         colonyBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7, 8, 8]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7]
     );
+    // Wave 8 is the Broodmother boss, the crown guard.
+    const colonyBosses = new LevelConfig(8).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(colonyBosses.length, 1);
+    assert.equal(colonyBosses[0].bossName, 'Broodmother');
+    assert.equal(colonyBosses[0].crownGuard, true);
+    assert.ok(colonyBosses[0].hp > 1);
     assert.ok(
         new LevelConfig(8).platforms.static.some((platform) => platform.key === 'colonyDeck')
     );
@@ -291,9 +323,18 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         hiveBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7, 7]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6]
     );
     assert.ok(hiveBoarders.every((hazard) => hazard.key === 'gnawer'));
+    // The finale wave is the Hive Mother boss, the crown guard.
+    const hiveBosses = new LevelConfig(9).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(hiveBosses.length, 1);
+    assert.equal(hiveBosses[0].bossName, 'Hive Mother');
+    assert.equal(hiveBosses[0].crownGuard, true);
+    assert.equal(hiveBosses[0].summon.key, 'gnawer');
+    assert.equal(new LevelConfig(9).crownShield, true);
     assert.ok(
         new LevelConfig(9).platforms.static.some((platform) => platform.key === 'hiveChitin')
     );
@@ -323,6 +364,15 @@ test('level configuration exposes every playable level', async () => {
             (hazard) => hazard.type === 'drone' && hazard.key === 'voltOrb'
         )
     );
+    // The finale is Warden Prime, the crown guard.
+    const spireBosses = new LevelConfig(10).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(spireBosses.length, 1);
+    assert.equal(spireBosses[0].bossName, 'Warden Prime');
+    assert.equal(spireBosses[0].crownGuard, true);
+    assert.ok(spireBosses[0].hp > 1);
+    assert.equal(new LevelConfig(10).crownShield, true);
     const bastionBoarders = new LevelConfig(11).hazards.dynamic.filter(
         (hazard) => hazard.type === 'boarder'
     );
@@ -336,14 +386,31 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.ok(new LevelConfig(11).props.some((prop) => prop.key === 'bastionPylon'));
     assert.ok(new LevelConfig(11).hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
+    // The finale is the Gatekeeper hybrid, the crown guard.
+    const bastionBosses = new LevelConfig(11).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(bastionBosses.length, 1);
+    assert.equal(bastionBosses[0].bossName, 'Gatekeeper');
+    assert.equal(bastionBosses[0].crownGuard, true);
+    assert.equal(bastionBosses[0].summon.key, 'spireWarden');
+    assert.equal(new LevelConfig(11).crownShield, true);
     const wombBoarders = new LevelConfig(12).hazards.dynamic.filter(
         (hazard) => hazard.type === 'boarder'
     );
     assert.deepEqual(
         wombBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6]
     );
     assert.ok(wombBoarders.every((hazard) => hazard.key === 'gnawer'));
+    // The wave-7 guard pack is the Crimson Heart boss, the crown guard.
+    const wombBosses = new LevelConfig(12).hazards.dynamic.filter(
+        (hazard) => hazard.type === 'boss'
+    );
+    assert.equal(wombBosses.length, 1);
+    assert.equal(wombBosses[0].bossName, 'Crimson Heart');
+    assert.equal(wombBosses[0].crownGuard, true);
+    assert.ok(wombBosses[0].hp > 1);
     assert.ok(
         new LevelConfig(12).platforms.static.some((platform) => platform.key === 'wombFlesh')
     );
@@ -707,6 +774,25 @@ test('boarders run faster on hard and normally otherwise', async () => {
     );
     assert.equal(run('normal'), GAME_CONSTANTS.BOARDER_SPEED);
     assert.equal(run(undefined), GAME_CONSTANTS.BOARDER_SPEED);
+});
+
+test('boss summons drop the chase past the arena leash', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const director = new BoarderDirector({ difficulty: 'normal' });
+    const boss = { bossConfig: { minX: 12270, maxX: 12530 } };
+    const chicken = { x: 11800, y: 370 };
+    // Inside the leash with the chicken near: aggro holds.
+    const home = { x: 12300, y: 280, aggro: true, summonedBy: boss };
+    director.updateBoarderAggro(home, { x: 12200, y: 280 });
+    assert.equal(home.aggro, true);
+    // Past the leash chasing the re-approach: drop it even adjacent.
+    const roaming = { x: 12005, y: 338, aggro: true, summonedBy: boss };
+    director.updateBoarderAggro(roaming, { x: 12005, y: 338 });
+    assert.equal(roaming.aggro, false);
+    // Wave boarders keep the long chase: no leash applies.
+    const wave = { x: 12005, y: 338, aggro: true, summonedBy: null };
+    director.updateBoarderAggro(wave, chicken);
+    assert.equal(wave.aggro, true);
 });
 
 test('hard mode marks the hud level text and level banner', async () => {
@@ -3555,8 +3641,14 @@ test('iron vault branch leaves the womb and rejoins the foundry', async () => {
         vault.hazards.dynamic
             .filter((hazard) => hazard.type === 'boarder')
             .map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6, 6, 7, 7]
+        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6, 6]
     );
+    // The wave-7 guard pair is the Tumbler boss, the crown guard.
+    const vaultBosses = vault.hazards.dynamic.filter((hazard) => hazard.type === 'boss');
+    assert.equal(vaultBosses.length, 1);
+    assert.equal(vaultBosses[0].bossName, 'Tumbler');
+    assert.equal(vaultBosses[0].crownGuard, true);
+    assert.ok(vaultBosses[0].hp > 1);
     assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'crusher'));
     assert.ok(vault.hazards.dynamic.some((hazard) => hazard.type === 'laser'));
     assert.ok(vault.props.some((prop) => prop.key === 'vaultSeal'));

@@ -36,3 +36,28 @@ cross the beam on the dark, slip the slam, take the crown. Probe-verified:
 the shielded crown holds on touch (still level 15) and the finale renders
 with zero page errors. Full playthrough and the final-clear screen are not
 yet run; co-op shares the wave pool and the gate.
+
+## Boss: Highroost
+
+The wave-8 crown guard is now Highroost, the roost-mother of the skyhook:
+a colossal cyber-hen (tether-cable plumage, anchor spurs, red comb, cyan
+lens) nesting on the crown pad. 16 HP hybrid: paces at 60px/s, telegraphs
+(crouch + red flash, 800ms) into a 378px charge, and births one
+spireWarden every 12s (gold 600ms tell, max 1 alive). Below half HP she
+rests shorter and births 30% faster, tinted purple with an ENRAGED banner.
+The approach beam and the pad slam stay: the finale presses every gate at
+once. Kill opens the shield; wounds persist through player death.
+
+Texture key `highroost` (`paintHighroost` in `sprites/enemies.js`, 130x90).
+Config in `levels/skyhook-anchor.js` (triggerX 12260, arena 12320-12560,
+approach beam pulled west to 12100 so the deck-edge standoff is out of
+the beam); panel brief in `scripts/boss-review.mjs` (`BRIEFS[15]`,
+approach teleport [11850, 380]).
+
+Arena floor: the crown deck is two pieces (west scaleX 4.0 centered
+12334, east scaleX 1.6 centered 12578). The west piece meets deck A,
+closing the lift-gap void that ate mid-fight dodges; the east piece
+carries the summon leash past the slam. Two pieces because one 499px
+span trips the pilot's 400px wide-deck horizon and stalls the crossing
+(the landing target flips to the lift). Her summoned warden dissolves
+on the kill (`BossDirector.dissolveSummons`), like all summoners.

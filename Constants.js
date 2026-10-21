@@ -62,6 +62,8 @@ export const GAME_CONSTANTS = {
         BOARDER_SPEED_MULT: 1.15,
         BOMB_SPEED_MULT: 1.2,
         BOMB_DELAY_MULT: 0.8,
+        BOSS_SPEED_MULT: 1.15,
+        BOSS_COOLDOWN_MULT: 0.8,
     },
 
     DOUBLE_TAP_THRESHOLD: 350,

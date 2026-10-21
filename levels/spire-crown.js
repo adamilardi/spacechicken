@@ -13,13 +13,14 @@ export const level = {
         BOMB_SPEED: 200,
         KILLZONE_HEIGHT: 36,
         PHASER: true,
+        CROWN_SHIELD: true,
         NEXT_LEVEL: 11,
     },
     content: {
         instructions:
-            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. Face them and press F or J to fire. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press F or J to fire. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. The bolt button fires. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
+            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. WARDEN PRIME holds the deck: jump her charge, burn the lens. The bolt button fires. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'spire',
             style: 'crown',
@@ -67,7 +68,7 @@ export const level = {
             { x: 4650, y: 280, key: 'spireGlass', scaleX: 3.0 },
             { x: 6400, y: 200, key: 'spireGlass', scaleX: 2.6 },
             { x: 11400, y: 260, key: 'spireAlloy', scaleX: 2.6 },
-            { x: 11950, y: 240, key: 'spireAlloy', scaleX: 3.2 },
+            { x: 11950, y: 240, key: 'spireAlloy', scaleX: 5.0 },
         ],
         floor: null,
         moving: [
@@ -115,7 +116,7 @@ export const level = {
             { wave: 4, x: 3300 },
             { wave: 5, x: 4600 },
             { wave: 6, x: 7600 },
-            { wave: 7, x: 11400 },
+            { wave: 7, x: 11000 },
         ],
         dynamic: [
             {
@@ -260,7 +261,27 @@ export const level = {
                 bodyWidth: 30,
                 bodyHeight: 30,
             },
-            { type: 'boarder', key: 'spireWarden', x: 11800, y: 200, wave: 7 },
+            { type: 'boarder', key: 'spireWarden', x: 11500, y: 220, wave: 7 },
+            {
+                type: 'boss',
+                key: 'wardenPrime',
+                bossName: 'Warden Prime',
+                x: 11920,
+                y: 194,
+                hp: 12,
+                crownGuard: true,
+                triggerX: 11400,
+                minX: 11900,
+                maxX: 12100,
+                paceSpeed: 60,
+                telegraphMs: 800,
+                chargeSpeed: 420,
+                chargeMs: 900,
+                recoverMs: 800,
+                cooldownMs: 2600,
+                enrageCooldownMs: 1600,
+                enrageChargeMult: 1.2,
+            },
         ],
     },
 };

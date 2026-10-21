@@ -8,6 +8,7 @@ import { spawn as spawnDrip } from './drip.js';
 import { spawn as spawnRoller } from './roller.js';
 import { spawn as spawnDustDevil } from './dust-devil.js';
 import { spawn as spawnBoarder } from './boarder.js';
+import { spawn as spawnBoss } from './boss.js';
 import { spawn as spawnGeneric } from './generic.js';
 
 const DYNAMIC_SPAWNERS = {
@@ -20,6 +21,7 @@ const DYNAMIC_SPAWNERS = {
     drip: spawnDrip,
     roller: spawnRoller,
     dustDevil: spawnDustDevil,
+    boss: spawnBoss,
 };
 
 export const spawners = {

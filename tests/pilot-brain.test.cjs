@@ -887,6 +887,553 @@ test('the pilot pre-fires a wave drop instead of leaping over it', async () => {
     assert.equal(close.jump, false);
 });
 
+function bossHaz(x, y, overrides = {}) {
+    return {
+        id: 'boss-1',
+        type: 'boss',
+        x,
+        y,
+        w: 108,
+        h: 66,
+        top: y - 33,
+        active: true,
+        enable: true,
+        phase: 'pace',
+        hp: 14,
+        maxHp: 14,
+        ...overrides,
+    };
+}
+
+function bossBase() {
+    return {
+        phaser: true,
+        player: { x: 11400, y: 442, vx: 160, vy: 0, grounded: true },
+        crown: { x: 11700, y: 400 },
+        platforms: [{ left: 11427, right: 11773, top: 458, x: 11600, w: 346 }],
+    };
+}
+
+test('the pilot jumps a boss telegraph and fires on the lane', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const boss = bossHaz;
+    const base = bossBase();
+    // Telegraph ahead inside 300px: jump away, keep firing.
+    const evade = decidePilotInput(
+        makeSnap({ ...base, hazards: [boss(11600, 427, { phase: 'telegraph' })] }),
+        createPilotState()
+    );
+    assert.equal(evade.jump, true);
+    assert.equal(evade.right, false);
+    assert.equal(evade.left, true);
+    assert.equal(evade.shoot, true);
+    // Charging boss: same answer, never stand to duel it.
+    const charge = decidePilotInput(
+        makeSnap({ ...base, hazards: [boss(11600, 427, { phase: 'charge', vx: -420 })] }),
+        createPilotState()
+    );
+    assert.equal(charge.jump, true);
+    assert.equal(charge.left, true);
+    // Pacing close: kite grounded for level bolts, no panic jump.
+    const kite = decidePilotInput(
+        makeSnap({ ...base, hazards: [boss(11500, 427, { phase: 'pace', vx: -60 })] }),
+        createPilotState()
+    );
+    assert.equal(kite.jump, false);
+    assert.equal(kite.left, true);
+    assert.equal(kite.shoot, true);
+    // Cornered at the pad edge by a closing pacer: go over the top.
+    const cornered = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11480, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11600, 427, { phase: 'pace', vx: -60 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(cornered.jump, true);
+    assert.equal(cornered.right, true);
+    assert.equal(cornered.left, false);
+    // Cornered by a nesting boss with nothing incoming: plant and fire.
+    const nest = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11480, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11600, 427, { phase: 'pace', vx: 0 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(nest.jump, false);
+    assert.equal(nest.right, false);
+    assert.equal(nest.left, false);
+    assert.equal(nest.shoot, true);
+    // Fresh telegraph: strafe for separation and fire, jump goes late.
+    const fresh = decidePilotInput(
+        makeSnap({
+            ...base,
+            hazards: [boss(11600, 427, { phase: 'telegraph', timeUntilPhaseChangeMs: 700 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(fresh.jump, false);
+    assert.equal(fresh.left, true);
+    assert.equal(fresh.shoot, true);
+    // Late telegraph: jump now.
+    const late = decidePilotInput(
+        makeSnap({
+            ...base,
+            hazards: [boss(11600, 427, { phase: 'telegraph', timeUntilPhaseChangeMs: 200 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(late.jump, true);
+    // SummonTell close: plant and fire, never walk in mid-tell.
+    const tell = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11550, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11600, 427, { phase: 'summonTell' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(tell.jump, false);
+    assert.equal(tell.right, false);
+    assert.equal(tell.left, false);
+    assert.equal(tell.shoot, true);
+    // Recover close: plant and fire through the breather.
+    const breather = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11550, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11600, 427, { phase: 'recover', vx: 0 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(breather.jump, false);
+    assert.equal(breather.right, false);
+    assert.equal(breather.left, false);
+    assert.equal(breather.shoot, true);
+    // Far telegraph: hold ground, jump the incoming charge.
+    const hold = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11200, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11600, 427, { phase: 'telegraph' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(hold.jump, true);
+    assert.equal(hold.right, false);
+    assert.equal(hold.left, false);
+    assert.equal(hold.shoot, true);
+    // Short-charge telegraph past its reach: hold fire, no jump.
+    const past = decidePilotInput(
+        makeSnap({
+            ...base,
+            platforms: [{ left: 11000, right: 11773, top: 458, x: 11386, w: 773 }],
+            player: { x: 11200, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11600, 427, { phase: 'telegraph', chargeRange: 266 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(past.jump, false);
+    assert.equal(past.right, true);
+    assert.equal(past.shoot, true);
+    // Pacing far: run the lane and hold fire, no panic jump.
+    const lane = decidePilotInput(
+        makeSnap({ ...base, hazards: [boss(11700, 427, { phase: 'pace' })] }),
+        createPilotState()
+    );
+    assert.equal(lane.jump, false);
+    assert.equal(lane.shoot, true);
+    // Dormant: walk the trigger up normally.
+    const calm = decidePilotInput(
+        makeSnap({ ...base, hazards: [boss(11600, 427, { phase: 'dormant' })] }),
+        createPilotState()
+    );
+    assert.equal(calm.jump, false);
+    assert.equal(calm.right, true);
+});
+
+test('airborne drift holds short of an active boss under a shielded crown', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const boss = bossHaz;
+    const deck = [{ left: 11302, right: 11878, top: 528, x: 11590, w: 576 }];
+    const crown = { x: 11660, y: 470, shielded: true };
+    // Landing graze toward a telling boss: hold x and fire, never drift
+    // the touchdown into contact (L11 trace: the crown goal walked the
+    // landing into her).
+    const graze = decidePilotInput(
+        makeSnap({
+            phaser: true,
+            physics: { gravityY: 300 },
+            jumpCount: 0,
+            platforms: deck,
+            crown,
+            player: { x: 11433, y: 508, vx: 0, vy: 5, grounded: false, facing: 'left' },
+            hazards: [boss(11530, 495, { phase: 'summonTell', hp: 5, maxHp: 12 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(graze.left, false);
+    assert.equal(graze.right, false);
+    assert.equal(graze.shoot, true);
+    // Dormant boss: contact is safe, the approach runs on through.
+    const approach = decidePilotInput(
+        makeSnap({
+            phaser: true,
+            physics: { gravityY: 300 },
+            jumpCount: 0,
+            platforms: deck,
+            crown,
+            player: { x: 11433, y: 508, vx: 0, vy: 5, grounded: false, facing: 'left' },
+            hazards: [boss(11530, 495, { phase: 'dormant', hp: 12, maxHp: 12 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(approach.right, true);
+    // Committed cross-over that clears her: the drift flies on.
+    const cross = decidePilotInput(
+        makeSnap({
+            phaser: true,
+            physics: { gravityY: 300 },
+            jumpCount: 1,
+            platforms: [{ left: 11427, right: 11773, top: 458, x: 11600, w: 346 }],
+            crown,
+            player: { x: 11590, y: 240, vx: 160, vy: 200, grounded: false, facing: 'right' },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(cross.right, true);
+    assert.equal(cross.left, false);
+    // Over the pit with no deck below: never hold — the flight must
+    // steer or jump to safety (L8 trace: holding stranded her).
+    const pit = decidePilotInput(
+        makeSnap({
+            phaser: true,
+            physics: { gravityY: 300 },
+            jumpCount: 0,
+            platforms: [
+                { left: 10749, right: 11191, top: 548, x: 10970, w: 442 },
+                { left: 11427, right: 11773, top: 458, x: 11600, w: 346 },
+            ],
+            crown: { x: 11700, y: 400, shielded: true },
+            player: { x: 11300, y: 429, vx: 0, vy: 185, grounded: false, facing: 'right' },
+            hazards: [boss(11450, 429, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(pit.right, true);
+    assert.equal(pit.left, false);
+    // Drift away from her keeps flying: only toward-drift holds (L14
+    // trace: zeroing escape drift landed the pilot inside the charge).
+    const flee = decidePilotInput(
+        makeSnap({
+            phaser: true,
+            physics: { gravityY: 300 },
+            jumpCount: 0,
+            platforms: [{ left: 12208, right: 12592, top: 314, x: 12400, w: 384 }],
+            crown: { x: 12600, y: 470, shielded: true },
+            player: { x: 12436, y: 150, vx: 0, vy: 185, grounded: false, facing: 'right' },
+            hazards: [boss(12325, 287, { phase: 'telegraph' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(flee.right, true);
+    assert.equal(flee.left, false);
+    // Crown on her side during a telegraph: flee for separation,
+    // never hold into the charge (L14 trace: holding landed at dx 111
+    // as the charge left).
+    const incoming = decidePilotInput(
+        makeSnap({
+            phaser: true,
+            physics: { gravityY: 300 },
+            jumpCount: 0,
+            platforms: [{ left: 12208, right: 12592, top: 314, x: 12400, w: 384 }],
+            crown: { x: 12400, y: 470, shielded: true },
+            player: { x: 12436, y: 150, vx: 0, vy: 185, grounded: false, facing: 'right' },
+            hazards: [boss(12325, 287, { phase: 'telegraph' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(incoming.right, true);
+    assert.equal(incoming.left, false);
+});
+
+test('the pilot faces rear boss threats and holds the shielded crown', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const boss = bossHaz;
+    const base = bossBase();
+    // Threat from behind, mis-faced at range: step to face it.
+    const rear = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11700, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11580, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(rear.jump, false);
+    assert.equal(rear.right, false);
+    assert.equal(rear.left, true);
+    assert.equal(rear.shoot, true);
+    // Threat behind, faced at range: plant and fire, never advance.
+    const plant = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11700, y: 442, vx: 0, vy: 0, grounded: true, facing: 'left' },
+            hazards: [boss(11580, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(plant.jump, false);
+    assert.equal(plant.right, false);
+    assert.equal(plant.left, false);
+    assert.equal(plant.shoot, true);
+    // Threat behind, faced and on top: cross over, never stand in it.
+    const cross = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11640, y: 442, vx: 0, vy: 0, grounded: true, facing: 'left' },
+            hazards: [boss(11580, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(cross.jump, true);
+    assert.equal(cross.right, false);
+    assert.equal(cross.left, true);
+    // Threat behind, faced, pacer closing at 90: cross before it arrives.
+    const closing = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11670, y: 442, vx: 0, vy: 0, grounded: true, facing: 'left' },
+            hazards: [boss(11580, 427, { phase: 'pace', vx: 70 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(closing.jump, true);
+    assert.equal(closing.right, false);
+    assert.equal(closing.left, true);
+    // Threat behind, mis-faced and on top: cross over, never step in.
+    const turn = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11640, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11580, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(turn.jump, true);
+    assert.equal(turn.right, false);
+    assert.equal(turn.left, true);
+    // Threat behind telegraphing: jump it, turning mid-air.
+    const rearTele = decidePilotInput(
+        makeSnap({
+            ...base,
+            player: { x: 11700, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11580, 427, { phase: 'telegraph' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(rearTele.jump, true);
+    assert.equal(rearTele.left, true);
+    // Shielded crown with a live boss: hold the grab, hunt her instead.
+    const trap = decidePilotInput(
+        makeSnap({
+            ...base,
+            crown: { x: 11700, y: 400, shielded: true },
+            player: { x: 11700, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [boss(11500, 427, { phase: 'pace', hp: 10 })],
+        }),
+        createPilotState()
+    );
+    assert.equal(trap.jump, false);
+    assert.equal(trap.left, true);
+    // Same spot, open crown: grab it.
+    const grab = decidePilotInput(
+        makeSnap({
+            ...base,
+            crown: { x: 11700, y: 400, shielded: false },
+            player: { x: 11700, y: 442, vx: 0, vy: 0, grounded: true },
+            hazards: [],
+        }),
+        createPilotState()
+    );
+    assert.equal(grab.jump, true);
+});
+
+test('the pilot steers boss-column descents and holds its crossings', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const boss = bossHaz;
+    const base = bossBase();
+    // Falling from high above the boss column: steer the whole way down.
+    const high = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 2,
+            player: { x: 11600, y: 100, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(high.left, true);
+    assert.equal(high.jump, false);
+    // Falling onto the boss column: steer away early and land fast.
+    const steer = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11600, y: 277, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(steer.left, true);
+    assert.equal(steer.jump, false);
+    const hop = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11600, y: 327, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(hop.left, true);
+    assert.equal(hop.jump, false);
+    // Committed cross whose touchdown clears the far edge: hold course,
+    // never reverse the arc (reversing drops onto the near half).
+    const crossArc = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11590, y: 240, vx: 160, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(crossArc.right, true);
+    assert.equal(crossArc.left, false);
+    assert.equal(crossArc.jump, false);
+    // Low cross short of the far edge with steering that leaves the
+    // deck: neither touchdown lands safe, so hop out (L11 trace:
+    // holding this shape falls onto her head).
+    const shortCross = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11560, y: 300, vx: 160, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(shortCross.left, true);
+    assert.equal(shortCross.right, false);
+    assert.equal(shortCross.jump, true);
+    // Falling at 100px off a boss column: steer early, still no hop yet.
+    const wide = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11510, y: 200, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(wide.left, true);
+    assert.equal(wide.jump, false);
+    // Low with the touchdown inside the body: hop is the only out.
+    const low = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11600, y: 420, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(low.left, true);
+    assert.equal(low.jump, true);
+    // Low with the touchdown clear of the body: steer and land fast.
+    const lowClear = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11510, y: 420, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(lowClear.left, true);
+    assert.equal(lowClear.jump, false);
+    // Low with outward momentum past the edge: brake back over the deck.
+    const brake = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11740, y: 300, vx: 200, vy: 200, grounded: false },
+            hazards: [boss(11640, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(brake.left, true);
+    assert.equal(brake.right, false);
+    assert.equal(brake.jump, false);
+    // Low with a safe drift when steering would leave: hold the drift.
+    const hold = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11740, y: 300, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11640, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(hold.left, false);
+    assert.equal(hold.right, false);
+    assert.equal(hold.jump, false);
+    // No deck below at all: brake and hop for time.
+    const voidHop = decidePilotInput(
+        makeSnap({
+            ...base,
+            platforms: [],
+            jumpCount: 1,
+            player: { x: 11600, y: 300, vx: 0, vy: 200, grounded: false },
+            hazards: [boss(11610, 427, { phase: 'pace' })],
+        }),
+        createPilotState()
+    );
+    assert.equal(voidHop.right, true);
+    assert.equal(voidHop.jump, true);
+    // Airborne with the hunt inside the boss column: hold the arc, never chase in.
+    const holdArc = decidePilotInput(
+        makeSnap({
+            ...base,
+            jumpCount: 1,
+            player: { x: 11480, y: 300, vx: 0, vy: 100, grounded: false },
+            crown: { x: 11700, y: 400, shielded: true },
+            hazards: [
+                {
+                    id: 'boarder-1',
+                    type: 'boarder',
+                    x: 11650,
+                    y: 427,
+                    w: 40,
+                    h: 48,
+                    active: true,
+                    enable: true,
+                },
+                boss(11690, 427, { phase: 'pace', hp: 8 }),
+            ],
+        }),
+        createPilotState()
+    );
+    assert.equal(holdArc.left, false);
+    assert.equal(holdArc.right, false);
+    assert.equal(holdArc.jump, false);
+});
+
 test('the pilot hops over lethal hazards instead of landing on them', async () => {
     const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
     // Descending onto a live boarder with fuel: hop over on course.
@@ -2258,6 +2805,120 @@ test('the spent double-back flies for the deck behind, then drops on', async () 
         landed
     );
     assert.equal(landed.doubledBackUntil, 0);
+});
+
+test('a column threat preempts the double-back flight, and the hop flees it', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const platforms = [
+        { left: 4008, right: 4392, top: 468, x: 4200, w: 384 },
+        { left: 3763, right: 3897, top: 328, x: 3830, w: 134 },
+    ];
+    const wideDeck = [{ left: 3700, right: 4392, top: 468, x: 4046, w: 692 }];
+    const chaser = (x, y, overrides = {}) => ({
+        id: 'boarder-9',
+        type: 'boarder',
+        x,
+        y,
+        w: 40,
+        h: 48,
+        active: true,
+        enable: true,
+        chasing: true,
+        vx: 0,
+        vy: 0,
+        ...overrides,
+    });
+    // Control: no threat, armed window, fuel spent — the flight steers
+    // back for the deck behind (left).
+    const armed = createPilotState();
+    armed.doubledBackUntil = 99999;
+    const fly = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 2,
+            maxJumps: 2,
+            elapsedMs: 51000,
+            player: { x: 4100, y: 300, vx: -160, vy: 200, grounded: false, facing: 'left' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+            hazards: [],
+        }),
+        armed
+    );
+    assert.equal(fly.left, true);
+    assert.equal(fly.right, false);
+    // Same flight with a chaser in the column: steer away from the
+    // threat (right) instead of riding the flight into it.
+    const dodge = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 2,
+            maxJumps: 2,
+            elapsedMs: 51000,
+            player: { x: 4100, y: 300, vx: -160, vy: 200, grounded: false, facing: 'left' },
+            crown: { x: 12050, y: 236 },
+            platforms,
+            hazards: [chaser(4080, 450)],
+        }),
+        armed
+    );
+    assert.equal(dodge.left, false);
+    assert.equal(dodge.right, true);
+    assert.equal(dodge.jump, false);
+    // Crowded touchdown with fuel: hop away from the chaser (left),
+    // not along the goal (right) into the pit past the edge.
+    const hop = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 1,
+            maxJumps: 2,
+            elapsedMs: 51000,
+            player: { x: 4100, y: 400, vx: 0, vy: 200, grounded: false, facing: 'right' },
+            crown: { x: 12050, y: 236 },
+            platforms: wideDeck,
+            hazards: [chaser(4130, 470)],
+        }),
+        createPilotState()
+    );
+    assert.equal(hop.left, true);
+    assert.equal(hop.right, false);
+    assert.equal(hop.jump, true);
+    // Spent fuel falling past a boss column at the deck edge: brake
+    // toward the middle instead of riding away into the pit (L14 trace).
+    const spent = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 2,
+            maxJumps: 2,
+            elapsedMs: 51000,
+            player: { x: 12580, y: -99, vx: 160, vy: 125, grounded: false, facing: 'right' },
+            crown: { x: 12400, y: 254, shielded: true },
+            platforms: [{ left: 12208, right: 12592, top: 314, x: 12400, w: 384 }],
+            hazards: [
+                {
+                    id: 'boss-1',
+                    type: 'boss',
+                    x: 12570,
+                    y: 283,
+                    w: 130,
+                    h: 90,
+                    active: true,
+                    enable: true,
+                    phase: 'pace',
+                    hp: 11,
+                    maxHp: 14,
+                },
+            ],
+        }),
+        createPilotState()
+    );
+    assert.equal(spent.left, true);
+    assert.equal(spent.right, false);
+    assert.equal(spent.jump, false);
 });
 
 test('the pilot brakes over deck for a head-on chaser, flies over pits', async () => {
@@ -5139,4 +5800,253 @@ test('the pilot still jumps the gap past a settling chaser', async () => {
         createPilotState()
     );
     assert.equal(input.jump, true);
+});
+
+test('the shield hold keeps flying when the arc lands short of the deck edge', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const deck = { left: 12208, right: 12592, top: 314, x: 12400, w: 384 };
+    const boss = {
+        type: 'boss',
+        x: 12434,
+        y: 283,
+        vx: 60,
+        vy: 0,
+        w: 96,
+        h: 90,
+        top: 238,
+        active: true,
+        enable: true,
+        hp: 12,
+        phase: 'pace',
+        chargeRange: 380,
+    };
+    // 25px short of the edge: inside landingBelow's stride margin
+    // but off the span — hold would strand the flight (L14 trace).
+    const short = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 1,
+            player: { x: 12183, y: 223, vx: 160, vy: -110, grounded: false, facing: 'right' },
+            crown: { x: 12400, y: 290, shielded: true },
+            platforms: [deck],
+            hazards: [boss],
+        }),
+        createPilotState()
+    );
+    assert.equal(short.right, true);
+    assert.equal(short.left, false);
+    // Boots over the span: the hold parks the arc as before.
+    const over = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            jumpCount: 1,
+            player: { x: 12300, y: 223, vx: 160, vy: -110, grounded: false, facing: 'right' },
+            crown: { x: 12400, y: 290, shielded: true },
+            platforms: [deck],
+            hazards: [boss],
+        }),
+        createPilotState()
+    );
+    assert.equal(over.right, false);
+    assert.equal(over.left, false);
+});
+
+test('the evade abstains off-deck so the hunt closes onto the boss deck', async () => {
+    const { createPilotState, decidePilotInput, footingDeck, bossSharesDeck } =
+        await importModule('scripts/pilot-brain.mjs');
+    const decks = [
+        { left: 11758, right: 12142, top: 398, x: 11950, w: 384 },
+        { left: 12248, right: 12632, top: 314, x: 12440, w: 384 },
+    ];
+    const boss = {
+        type: 'boss',
+        x: 12307,
+        y: 270,
+        vx: -60,
+        vy: 0,
+        w: 130,
+        h: 90,
+        top: 225,
+        active: true,
+        enable: true,
+        hp: 16,
+        phase: 'pace',
+        chargeRange: 380,
+    };
+    // On the lift past the approach deck: no static footing, so the
+    // evade abstains and the hunt/dismount closes east instead of
+    // holding and sniping air (L15 trace).
+    const lift = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            player: { x: 12159, y: 406, vx: 0, vy: 0, grounded: true, facing: 'right' },
+            crown: { x: 12400, y: 290, shielded: true },
+            platforms: decks,
+            hazards: [boss],
+        }),
+        createPilotState()
+    );
+    assert.equal(lift.right, true);
+    assert.equal(lift.left, false);
+    // The mechanism: no static footing on the lift, shared footing
+    // on her deck.
+    const liftPlayer = { x: 12159, y: 406 };
+    const deckPlayer = { x: 12300, y: 292 };
+    assert.equal(footingDeck(liftPlayer, decks), null);
+    assert.equal(bossSharesDeck(liftPlayer, boss, { platforms: decks }), false);
+    assert.equal(bossSharesDeck(deckPlayer, { ...boss, x: 12440 }, { platforms: decks }), true);
+    // On her deck at plant spacing (a 140px pacer still counts as a
+    // threat): the plant holds as before.
+    const deck = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            player: { x: 12300, y: 292, vx: 0, vy: 0, grounded: true, facing: 'right' },
+            crown: { x: 12400, y: 290, shielded: true },
+            platforms: decks,
+            hazards: [{ ...boss, x: 12440 }],
+        }),
+        createPilotState()
+    );
+    assert.equal(deck.right, false);
+    assert.equal(deck.left, false);
+});
+
+test('a boss on the landing does not veto the gap jump or the dismount', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const decks = [
+        { left: 11758, right: 12142, top: 398, x: 11950, w: 384 },
+        { left: 12248, right: 12632, top: 398, x: 12440, w: 384 },
+    ];
+    const boss = {
+        type: 'boss',
+        x: 12300,
+        y: 354,
+        vx: 60,
+        vy: 0,
+        w: 130,
+        h: 90,
+        top: 309,
+        active: true,
+        enable: true,
+        hp: 16,
+        phase: 'pace',
+        chargeRange: 380,
+    };
+    // Grounded at the approach edge with the boss pacing the landing
+    // deck: jump the gap instead of waiting her out (L15 trace).
+    const cross = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            player: { x: 12130, y: 376, vx: 0, vy: 0, grounded: true, facing: 'right' },
+            crown: { x: 12400, y: 338, shielded: true },
+            platforms: decks,
+            hazards: [boss],
+        }),
+        createPilotState()
+    );
+    assert.equal(cross.right, true);
+    // A live boarder squatting the same landing still holds the leap.
+    const wait = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            player: { x: 12140, y: 376, vx: 0, vy: 0, grounded: true, facing: 'right' },
+            crown: { x: 12400, y: 338, shielded: true },
+            platforms: decks,
+            hazards: [
+                {
+                    type: 'boarder',
+                    x: 12300,
+                    y: 370,
+                    vx: 0,
+                    vy: 0,
+                    w: 40,
+                    h: 56,
+                    active: true,
+                    enable: true,
+                    chasing: false,
+                },
+            ],
+        }),
+        createPilotState()
+    );
+    assert.equal(wait.right, false);
+    assert.equal(wait.left, false);
+    // An in-lane chasing squatter is dueled, not waited and not
+    // marched into: plant and fire.
+    const duel = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            player: { x: 12140, y: 376, vx: 0, vy: 0, grounded: true, facing: 'right' },
+            crown: { x: 12400, y: 338, shielded: true },
+            platforms: decks,
+            hazards: [
+                {
+                    type: 'boarder',
+                    x: 12300,
+                    y: 370,
+                    vx: -80,
+                    vy: 0,
+                    w: 40,
+                    h: 56,
+                    active: true,
+                    enable: true,
+                    chasing: true,
+                },
+            ],
+        }),
+        createPilotState()
+    );
+    assert.equal(duel.right, false);
+    assert.equal(duel.shoot, true);
+    // Riding the lift with a chaser on the target deck: the dismount
+    // veto never waits chasers — leap onto the deck instead of
+    // holding until contact (L15 trace).
+    const ride = decidePilotInput(
+        makeSnap({
+            physics: { gravityY: 300 },
+            phaser: true,
+            player: { x: 12160, y: 356, vx: 0, vy: 0, grounded: true, facing: 'right' },
+            crown: { x: 12400, y: 338, shielded: true },
+            platforms: [
+                { left: 11758, right: 12142, top: 398, x: 11950, w: 384 },
+                {
+                    type: 'moving_platform',
+                    x: 12150,
+                    y: 390,
+                    left: 12094,
+                    right: 12206,
+                    top: 378,
+                    w: 112,
+                    h: 24,
+                    origin: { x: 12150, y: 480 },
+                    target: { x: 12150, y: 390 },
+                },
+                { left: 12248, right: 12632, top: 314, x: 12440, w: 384 },
+            ],
+            hazards: [
+                {
+                    type: 'boarder',
+                    x: 12300,
+                    y: 290,
+                    vx: -80,
+                    vy: 0,
+                    w: 40,
+                    h: 56,
+                    active: true,
+                    enable: true,
+                    chasing: true,
+                },
+            ],
+        }),
+        createPilotState()
+    );
+    assert.equal(ride.right, true);
+    assert.equal(ride.jump, true);
 });

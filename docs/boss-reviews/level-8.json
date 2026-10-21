@@ -1,0 +1,87 @@
+{
+    "brief": {
+        "name": "Broodmother",
+        "level": 8,
+        "levelTheme": "Colony Drop: a beachhead landing on a colony world. Skitterers (fast crab aliens) rush the line in waves while the chicken holds the pad with the space phaser.",
+        "bossFiction": "A giant skitterling matriarch nesting on the crown pad, guarding the colony crown. Magenta crab body, spike crown, one big cyan lens.",
+        "rule": "Hold fire on the lens; jump her telegraphed charge.",
+        "tell": "She crouches and flashes red for 800ms, then charges across the pad.",
+        "safeResponse": "Jump the charge (it runs under you), keep bolts on her while she recovers.",
+        "hp": 14,
+        "phases": ["pace toward the player", "telegraph (crouch + red flash)", "charge", "recover"],
+        "enrage": "Below half HP she charges faster with shorter rests, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, BROODMOTHER DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 8,
+        "boss": "Broodmother",
+        "outcome": "boss-defeated",
+        "durationSec": 5.5,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 14,
+        "hpMin": 0,
+        "phasesSeen": ["dormant", "pace", "telegraph", "charge", "recover"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 2.94,
+            "fairness": 3.28,
+            "theme": 3.13,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.82,
+                "fairness": 0.67,
+                "theme": 0.87,
+                "verdict": 0.71
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 2.97,
+            "fairness": 3.03,
+            "theme": 3.14,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.79,
+                "fairness": 0.64,
+                "theme": 0.8,
+                "verdict": 0.58
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.79,
+            "fairness": 3.15,
+            "theme": 3.08,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.77,
+                "fairness": 0.65,
+                "theme": 0.85,
+                "verdict": 0.62
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 3.01,
+            "fairness": 3.17,
+            "theme": 3.16,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.8,
+                "fairness": 0.69,
+                "theme": 0.8,
+                "verdict": 0.74
+            }
+        }
+    ],
+    "passed": true
+}

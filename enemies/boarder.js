@@ -1,7 +1,7 @@
 export function spawn(builder, group, config) {
     const alien = group.create(config.x, config.y, config.key || 'boarder');
     if (!alien) {
-        return;
+        return null;
     }
     alien.shootable = true;
     alien.crownGuard = config.crownGuard === true;
@@ -27,4 +27,5 @@ export function spawn(builder, group, config) {
         alien.setActive(false);
         alien.setVisible(false);
     }
+    return alien;
 }

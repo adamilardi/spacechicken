@@ -1,0 +1,87 @@
+{
+    "brief": {
+        "name": "Crimson Heart",
+        "level": 12,
+        "levelTheme": "Crimson Womb: the heart of the enemy. Gnawers swarm the flesh, drips fall in the low run, devils patrol, and a spore-beam guards the last gap before the crown deck.",
+        "bossFiction": "The beating heart of the womb itself on the crown deck: twin crimson lobes, artery stubs, glow sacs, and one cyan lens. She paces and slam-charges with the heartbeat.",
+        "rule": "Jump her slam-charge late, keep bolts on the lens between slams.",
+        "tell": "Heartbeat double-thump, crouch and red flash for 800ms means a 378px charge.",
+        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, burn the lens between slams.",
+        "hp": 12,
+        "phases": ["pace", "telegraph (crouch + red flash)", "charge", "recover"],
+        "enrage": "Below half HP she rests shorter and charges 20% faster, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, CRIMSON HEART DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 12,
+        "boss": "Crimson Heart",
+        "outcome": "boss-defeated",
+        "durationSec": 8.6,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 10,
+        "hpMin": 0,
+        "phasesSeen": ["pace", "telegraph", "charge", "recover"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 2.99,
+            "fairness": 3.15,
+            "theme": 2.98,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.88,
+                "fairness": 0.74,
+                "theme": 0.67,
+                "verdict": 0.73
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 3.17,
+            "fairness": 3,
+            "theme": 3.1,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.73,
+                "fairness": 0.71,
+                "theme": 0.62,
+                "verdict": 0.64
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.88,
+            "fairness": 2.86,
+            "theme": 2.88,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.78,
+                "fairness": 0.68,
+                "theme": 0.62,
+                "verdict": 0.51
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 3.15,
+            "fairness": 3.06,
+            "theme": 3.16,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.77,
+                "fairness": 0.79,
+                "theme": 0.65,
+                "verdict": 0.72
+            }
+        }
+    ],
+    "passed": true
+}

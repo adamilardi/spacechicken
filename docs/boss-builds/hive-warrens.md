@@ -2,26 +2,32 @@
 
 ## Rule
 
-A vertical spore-beam (teal laser, x3550) sweeps the crown deck on a
-780ms-on / 1180ms-off beat. Touching the crown means crossing the beam
-lane on the dark: land on the crown deck, wait out the burn, step in on
-the off-beat. Uses the shipped laser hazard only — no new code.
+The HIVE MOTHER nests on the crown deck (x10990) and births gnawers: adds only,
+never a charge. She sits the whole
+fight behind a screen of her young. Two gnawers at most, one every
+6s (4.2s enraged past half HP). Her body is lethal to touch; her
+10 HP bar burns down under flat phaser fire. Kill order is the
+player's call: burn her lens through the gaps or duel the young
+first.
 
-- Tell: beam glow and hum phase; the off-beat is the safe window.
-- Safe response: hold on the deck edge, cross during the 1180ms dark.
-- The crown stays reachable every cycle, including co-op (shared beam).
+- Tell: 600ms summonTell crouch + glow before each birth; the young
+  spawn 90px to her open side (never on the challenger).
+- Safe response: hold the deck, keep bolts on her lens, hop or duel
+  the hopping young. Nothing crosses the deck at you.
+- The crown shield opens when she dies; her young dissolve with her.
 
 ## Paint and texture keys
 
-No new actor paint. Beam uses the `laserBeamVertical` texture with a teal
-tint; the deck is the new `hiveChitin` key.
+`hiveMother` (brood-sac lens, jaw fringe) on the `hiveChitin` deck;
+summoned `gnawer` boarders. Boss HP bar via the shared boss UI.
 
 ## Files
 
-`levels/hive-warrens.js` (laser entry over the crown approach).
+`levels/hive-warrens.js` (boss entry, deck, instructions),
+`BossDirector.js` + `enemies/boss.js` (framework), `sprites/enemies.js`
+(`paintHiveMother`).
 
 ## Play
 
-`http://127.0.0.1:3000/?level=9` — ride the tunnel route, time the final
-beam, take the crown. Bot playthrough pending an idle box. Pause freezes
-the beam cycle with the scene (not separately run).
+`http://127.0.0.1:3000/?level=9` — climb the fang shaft, hold the deck,
+burn the Mother. Panel report: `docs/boss-reviews/level-9.json`.

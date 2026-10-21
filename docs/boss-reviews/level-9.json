@@ -1,0 +1,93 @@
+{
+    "brief": {
+        "name": "Hive Mother",
+        "level": 9,
+        "levelTheme": "Hive Warrens: the alien nest. Gnawers (toothy purple swarmers) answer to the space phaser; a teal spore-beam sweeps the crown deck on a timed beat.",
+        "bossFiction": "A bloated gnawer matriarch nesting on the crown deck, egg sacs glowing, one big cyan lens. She births live gnawers mid-fight.",
+        "rule": "Burn her lens; duel each newborn gnawer the moment it drops; hop her rare heave-charge.",
+        "tell": "Gold flash and rear-up for 600ms means a birth; a red crouch with rising tone means a slow 165px charge — jump it late.",
+        "safeResponse": "Hold the deck, gun down newborns before they spread, keep bolts on her between births, hop the charge.",
+        "hp": 16,
+        "phases": [
+            "pacing (40px/s)",
+            "summon tell (gold, every 3.5s)",
+            "birth (max 4 alive)",
+            "rare slow charge (165px, ~5s clock)",
+            "recover"
+        ],
+        "enrage": "Below half HP she births 30% faster and charges on a 4.2s clock, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, HIVE MOTHER DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 9,
+        "boss": "Hive Mother",
+        "outcome": "boss-defeated",
+        "durationSec": 9.2,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 16,
+        "hpMin": 0,
+        "phasesSeen": ["pace", "summonTell", "recover", "telegraph", "charge"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 2.96,
+            "fairness": 2.87,
+            "theme": 3.07,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.84,
+                "fairness": 0.71,
+                "theme": 0.86,
+                "verdict": 0.41
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 3.2,
+            "fairness": 2.73,
+            "theme": 3.13,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.68,
+                "fairness": 0.64,
+                "theme": 0.75,
+                "verdict": 0.49
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.82,
+            "fairness": 2.81,
+            "theme": 3.07,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.78,
+                "fairness": 0.68,
+                "theme": 0.82,
+                "verdict": 0.4
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 3.1,
+            "fairness": 2.86,
+            "theme": 3.19,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.8,
+                "fairness": 0.79,
+                "theme": 0.77,
+                "verdict": 0.59
+            }
+        }
+    ],
+    "passed": true
+}

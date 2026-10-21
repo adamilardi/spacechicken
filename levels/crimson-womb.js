@@ -19,11 +19,11 @@ export const level = {
     },
     content: {
         instructions:
-            'CRIMSON WOMB - The heart of the enemy. Gnawers swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Drips fall in the low run, devils patrol the flesh. Cross the marrow bridge to the crown deck. A spore-beam guards the last gap: cross on the dark. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HAIL, a fan that punches through. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'CRIMSON WOMB - The heart of the enemy. Gnawers swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Drips fall in the low run, devils patrol the flesh. Cross the marrow bridge to the crown deck. A spore-beam guards the last gap: cross on the dark. The CRIMSON HEART holds the crown deck: jump her slam-charge, burn the lens. New gun: HAIL, a fan that punches through. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         branchInstructions:
             'Shoot the wounded core. Finish this level to choose: RUST HARBOR or the IRON VAULT branch. The vault rejoins the foundry.',
         touchInstructions:
-            'CRIMSON WOMB - The alien heart. The bolt button fires. New gun: HAIL. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Cross the beam on the dark. Pods grant 30s guns.',
+            'CRIMSON WOMB - The alien heart. The bolt button fires. New gun: HAIL. The CRIMSON HEART holds the deck: jump her charge, burn the lens. Cross the beam on the dark. Pods grant 30s guns.',
         background: {
             type: 'womb',
             style: 'lair',
@@ -68,7 +68,7 @@ export const level = {
             { x: 6600, y: 240, key: 'wombBone', scaleX: 2.6 },
             { x: 11300, y: 300, key: 'wombFlesh', scaleX: 3.2 },
             { x: 11750, y: 290, key: 'wombFlesh', scaleX: 3.0 },
-            { x: 12050, y: 296, key: 'wombFlesh', scaleX: 3.0 },
+            { x: 12050, y: 296, key: 'wombFlesh', scaleX: 4.0 },
         ],
         floor: null,
         moving: [],
@@ -107,7 +107,6 @@ export const level = {
             { wave: 4, x: 3800 },
             { wave: 5, x: 5000 },
             { wave: 6, x: 7400 },
-            { wave: 7, x: 11600 },
         ],
         dynamic: [
             { type: 'boarder', key: 'gnawer', x: 550, y: 600, wave: 1 },
@@ -205,8 +204,27 @@ export const level = {
             { type: 'boarder', key: 'gnawer', x: 8240, y: 264, wave: 6 },
             { type: 'boarder', key: 'gnawer', x: 10160, y: 244, wave: 6 },
             { type: 'boarder', key: 'gnawer', x: 10780, y: 244, wave: 6 },
-            { type: 'boarder', key: 'gnawer', x: 11920, y: 228, wave: 7 },
-            { type: 'boarder', key: 'gnawer', x: 11970, y: 228, wave: 7, crownGuard: true },
+            {
+                type: 'boss',
+                key: 'crimsonHeart',
+                bossName: 'Crimson Heart',
+                x: 12040,
+                y: 240,
+                hp: 12,
+                crownGuard: true,
+                triggerX: 11750,
+                minX: 11920,
+                maxX: 12180,
+                paceSpeed: 60,
+                initialAttackMs: 4000,
+                telegraphMs: 800,
+                chargeSpeed: 420,
+                chargeMs: 900,
+                recoverMs: 800,
+                cooldownMs: 2600,
+                enrageCooldownMs: 1600,
+                enrageChargeMult: 1.2,
+            },
         ],
     },
 };

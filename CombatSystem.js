@@ -35,6 +35,15 @@ export class CombatSystem {
                 this
             );
         }
+        if (scene.bossesGroup) {
+            scene.physics.add.overlap(
+                scene.phaserBolts,
+                scene.bossesGroup,
+                this.phaserHitsBoss,
+                null,
+                this
+            );
+        }
     }
 
     attachPhaserSprite(chicken) {
@@ -247,6 +256,7 @@ export class CombatSystem {
         }
         bolt.setTexture?.(def.bolt);
         bolt.pierceLeft = def.pierce > 0 ? def.pierce : 0;
+        bolt.lastBossHit = null;
         bolt.setActive?.(true);
         bolt.setVisible?.(true);
         bolt.setDepth?.(8);
@@ -302,6 +312,33 @@ export class CombatSystem {
             bolt.body.stop?.();
             bolt.body.enable = false;
         }
+    }
+
+    phaserHitsBoss(bolt, boss) {
+        const scene = this.scene;
+        if (!bolt?.active || !boss?.active || boss.bossDefeated) {
+            return;
+        }
+        // One damage per bolt: piercing shots linger inside the body.
+        if (bolt.lastBossHit === boss) {
+            return;
+        }
+        bolt.lastBossHit = boss;
+        const piercing = (bolt?.pierceLeft || 0) > 0;
+        if (!piercing) {
+            this.recycleBolt(bolt);
+        } else {
+            bolt.pierceLeft -= 1;
+            if (bolt.pierceLeft <= 0) {
+                this.recycleBolt(bolt);
+            }
+        }
+        const impactX = bolt?.x ?? boss?.x;
+        const impactY = bolt?.y ?? boss?.y;
+        if (impactX != null && impactY != null) {
+            scene.effectsManager?.emitPhaserImpact?.(impactX, impactY);
+        }
+        scene.damageBoss(boss);
     }
 
     phaserHitsBoarder(bolt, alien) {

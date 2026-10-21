@@ -587,6 +587,633 @@ export function createRover(factory) {
     }
 }
 
+export function paintBroodmother(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.strokeStyle = '#3d0b26';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+        const x = 34 + i * 26;
+        ctx.beginPath();
+        ctx.moveTo(x, 58);
+        ctx.lineTo(x - 8, 80);
+        ctx.moveTo(x + 14, 58);
+        ctx.lineTo(x + 22, 80);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#5e1440';
+    ctx.beginPath();
+    ctx.ellipse(60, 48, 50, 26, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d63c8c';
+    ctx.beginPath();
+    ctx.ellipse(62, 43, 40, 19, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8f1f5c';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+        const x = 34 + i * 18;
+        ctx.beginPath();
+        ctx.moveTo(x, 30);
+        ctx.quadraticCurveTo(x + 4, 43, x, 58);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#ff9ac2';
+    for (let i = 0; i < 5; i++) {
+        const x = 26 + i * 17;
+        ctx.beginPath();
+        ctx.moveTo(x, 26);
+        ctx.lineTo(x + 8, 6);
+        ctx.lineTo(x + 16, 26);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.fillStyle = '#2a0a1c';
+    ctx.beginPath();
+    ctx.moveTo(14, 44);
+    ctx.lineTo(2, 54);
+    ctx.lineTo(14, 60);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(14, 60);
+    ctx.lineTo(4, 68);
+    ctx.lineTo(16, 66);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ff4a5a';
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(22 + i * 9, 36, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(60, 48, 10, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(60, 48, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f4a4cf';
+    ctx.beginPath();
+    ctx.ellipse(60, 66, 34, 7, 0, 0, Math.PI);
+    ctx.fill();
+}
+
+export function paintHiveMother(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.strokeStyle = '#1c0f2e';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+        const x = 30 + i * 24;
+        ctx.beginPath();
+        ctx.moveTo(x, 56);
+        ctx.lineTo(x - 7, 76);
+        ctx.moveTo(x + 12, 56);
+        ctx.lineTo(x + 19, 76);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#3d1c4e';
+    ctx.beginPath();
+    ctx.ellipse(55, 46, 46, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#5e2a6e';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 4; i++) {
+        const x = 34 + i * 17;
+        ctx.beginPath();
+        ctx.moveTo(x, 28);
+        ctx.quadraticCurveTo(x + 4, 44, x, 62);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#e9d4ff';
+    for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.arc(72 + i * 9, 62, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.fillStyle = '#e9d4ff';
+    for (let i = 0; i < 5; i++) {
+        const x = 22 + i * 15;
+        ctx.beginPath();
+        ctx.moveTo(x, 24);
+        ctx.lineTo(x + 7, 6);
+        ctx.lineTo(x + 14, 24);
+        ctx.closePath();
+        ctx.fill();
+    }
+    ctx.fillStyle = '#12081e';
+    ctx.beginPath();
+    ctx.moveTo(12, 42);
+    ctx.lineTo(2, 52);
+    ctx.lineTo(12, 58);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ff4a5a';
+    ctx.beginPath();
+    ctx.arc(20, 34, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(28, 34, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(45, 46, 9, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(45, 46, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c78bff';
+    ctx.beginPath();
+    ctx.arc(66, 30, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(82, 36, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(52, 26, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+export function paintWardenPrime(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // War plume.
+    ctx.fillStyle = '#3a2c08';
+    ctx.fillRect(52, 2, 26, 12);
+    ctx.fillStyle = '#ffe14a';
+    ctx.fillRect(52, 2, 26, 5);
+    ctx.fillRect(58, 14, 14, 6);
+    // Helm band.
+    ctx.fillStyle = '#8a6a1c';
+    ctx.fillRect(38, 18, 54, 14);
+    ctx.fillStyle = '#ffe14a';
+    ctx.fillRect(38, 18, 54, 4);
+    ctx.fillStyle = '#3a2c08';
+    ctx.fillRect(80, 22, 8, 6);
+    // Cuirass.
+    ctx.fillStyle = '#9aa6b5';
+    ctx.fillRect(24, 34, 82, 30);
+    ctx.strokeStyle = '#3a4356';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(24, 34, 82, 30);
+    ctx.fillStyle = '#d7a441';
+    ctx.fillRect(24, 46, 82, 5);
+    ctx.fillStyle = '#c7cfd8';
+    ctx.fillRect(30, 38, 10, 22);
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(65, 49, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(65, 49, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Pauldrons.
+    ctx.fillStyle = '#8a6a1c';
+    ctx.fillRect(12, 32, 14, 20);
+    ctx.fillRect(104, 32, 14, 20);
+    ctx.fillStyle = '#ffe14a';
+    ctx.fillRect(12, 32, 14, 4);
+    ctx.fillRect(104, 32, 14, 4);
+    // Tassets and greaves.
+    ctx.fillStyle = '#6d7888';
+    ctx.beginPath();
+    ctx.moveTo(24, 64);
+    ctx.lineTo(106, 64);
+    ctx.lineTo(98, 80);
+    ctx.lineTo(32, 80);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#3a2c08';
+    ctx.fillRect(40, 80, 16, 8);
+    ctx.fillRect(74, 80, 16, 8);
+    ctx.fillStyle = '#ffe14a';
+    ctx.fillRect(40, 80, 16, 3);
+    ctx.fillRect(74, 80, 16, 3);
+}
+
+export function paintGatekeeper(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // Relay antennae.
+    ctx.fillStyle = '#1c2f4d';
+    ctx.fillRect(30, 0, 6, 20);
+    ctx.fillRect(94, 0, 6, 20);
+    ctx.fillStyle = '#ff4a3c';
+    ctx.fillRect(30, 0, 6, 4);
+    ctx.fillRect(94, 0, 6, 4);
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(30, 8, 6, 3);
+    ctx.fillRect(94, 8, 6, 3);
+    // Hull dome.
+    ctx.fillStyle = '#16263f';
+    ctx.beginPath();
+    ctx.arc(65, 52, 40, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(25, 52, 80, 14);
+    ctx.strokeStyle = '#0d1626';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(65, 52, 40, Math.PI, 0);
+    ctx.stroke();
+    // Conduit seams.
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(25, 56, 80, 3);
+    ctx.fillRect(40, 20, 4, 32);
+    ctx.fillRect(86, 20, 4, 32);
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#ff4a3c';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(65, 44, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ffd9d2';
+    ctx.beginPath();
+    ctx.arc(65, 44, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Girder shoulders.
+    ctx.fillStyle = '#1c2f4d';
+    ctx.fillRect(8, 40, 16, 22);
+    ctx.fillRect(106, 40, 16, 22);
+    ctx.fillStyle = '#274b73';
+    ctx.fillRect(8, 40, 16, 4);
+    ctx.fillRect(106, 40, 16, 4);
+    // Treads.
+    ctx.fillStyle = '#080d18';
+    ctx.fillRect(28, 66, 74, 12);
+    ctx.fillStyle = '#274b73';
+    for (let x = 32; x < 100; x += 12) {
+        ctx.fillRect(x, 66, 5, 12);
+    }
+    ctx.fillStyle = '#ff4a3c';
+    ctx.fillRect(28, 78, 74, 3);
+}
+
+export function paintCrimsonHeart(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // Artery stubs.
+    ctx.fillStyle = '#5e0f1e';
+    ctx.fillRect(38, 0, 10, 22);
+    ctx.fillRect(56, 0, 10, 18);
+    ctx.fillRect(74, 0, 10, 22);
+    ctx.fillStyle = '#ff5a6a';
+    ctx.fillRect(38, 0, 10, 4);
+    ctx.fillRect(56, 0, 10, 4);
+    ctx.fillRect(74, 0, 10, 4);
+    // Twin lobes.
+    ctx.fillStyle = '#5e0f1e';
+    ctx.beginPath();
+    ctx.ellipse(42, 40, 30, 26, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(78, 40, 30, 26, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c22040';
+    ctx.beginPath();
+    ctx.ellipse(42, 38, 24, 21, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(78, 38, 24, 21, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    // Veins.
+    ctx.strokeStyle = '#7d1530';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(24 + i * 8, 26);
+        ctx.quadraticCurveTo(30 + i * 8, 42, 26 + i * 8, 58);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(96 - i * 8, 26);
+        ctx.quadraticCurveTo(90 - i * 8, 42, 94 - i * 8, 58);
+        ctx.stroke();
+    }
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#9af6ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(60, 42, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fdff';
+    ctx.beginPath();
+    ctx.arc(60, 42, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Flesh skirt.
+    ctx.fillStyle = '#5e0f1e';
+    for (let x = 22; x < 98; x += 13) {
+        ctx.fillRect(x, 62, 8, 12);
+    }
+    // Glow sacs.
+    ctx.fillStyle = '#ff9ac2';
+    for (const [sx, sy] of [
+        [30, 50],
+        [90, 50],
+        [60, 24],
+    ]) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+export function paintScrapjaw(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // Crane mast.
+    ctx.fillStyle = '#4a2c18';
+    ctx.fillRect(60, 0, 10, 26);
+    ctx.fillStyle = '#7a4a24';
+    ctx.fillRect(60, 0, 10, 4);
+    ctx.fillRect(60, 12, 10, 3);
+    // Jaw frame.
+    ctx.fillStyle = '#3a2415';
+    ctx.fillRect(18, 24, 94, 34);
+    ctx.fillStyle = '#7a4a24';
+    ctx.fillRect(18, 24, 94, 6);
+    ctx.fillRect(18, 52, 94, 6);
+    // Rivets.
+    ctx.fillStyle = '#c98a4a';
+    for (let x = 24; x < 110; x += 14) {
+        ctx.fillRect(x, 27, 3, 3);
+        ctx.fillRect(x, 52, 3, 3);
+    }
+    // Piston teeth.
+    ctx.fillStyle = '#2a1a0e';
+    for (let x = 26; x < 104; x += 13) {
+        ctx.fillRect(x, 58, 7, 12);
+    }
+    ctx.fillStyle = '#c98a4a';
+    for (let x = 26; x < 104; x += 13) {
+        ctx.fillRect(x, 66, 7, 4);
+    }
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#ff7a2a';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(65, 41, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ffe8d2';
+    ctx.beginPath();
+    ctx.arc(65, 41, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Hazard stripes.
+    ctx.fillStyle = '#ffb42a';
+    for (let x = 20; x < 110; x += 18) {
+        ctx.fillRect(x, 72, 9, 4);
+    }
+    // Treads.
+    ctx.fillStyle = '#1a120a';
+    ctx.fillRect(24, 78, 82, 10);
+    ctx.fillStyle = '#4a2c18';
+    for (let x = 28; x < 102; x += 12) {
+        ctx.fillRect(x, 78, 5, 10);
+    }
+}
+
+export function paintEmbermaw(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // Furnace horns.
+    ctx.fillStyle = '#2a1408';
+    ctx.beginPath();
+    ctx.moveTo(20, 30);
+    ctx.lineTo(8, 6);
+    ctx.lineTo(34, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(110, 30);
+    ctx.lineTo(122, 6);
+    ctx.lineTo(96, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ff6a2a';
+    ctx.fillRect(8, 6, 6, 4);
+    ctx.fillRect(116, 6, 6, 4);
+    // Iron maw.
+    ctx.fillStyle = '#241209';
+    ctx.beginPath();
+    ctx.ellipse(65, 50, 46, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#4a2408';
+    ctx.beginPath();
+    ctx.ellipse(65, 48, 38, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Molten core.
+    ctx.fillStyle = '#ff6a2a';
+    ctx.beginPath();
+    ctx.ellipse(65, 52, 26, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd42a';
+    ctx.beginPath();
+    ctx.ellipse(65, 52, 16, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Flame teeth.
+    ctx.fillStyle = '#ffe8d2';
+    for (let x = 33; x < 97; x += 11) {
+        ctx.beginPath();
+        ctx.moveTo(x, 34);
+        ctx.lineTo(x + 5, 24);
+        ctx.lineTo(x + 10, 34);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, 66);
+        ctx.lineTo(x + 5, 76);
+        ctx.lineTo(x + 10, 66);
+        ctx.closePath();
+        ctx.fill();
+    }
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#fff42a';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(65, 52, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#fffbe8';
+    ctx.beginPath();
+    ctx.arc(65, 52, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Ember feet.
+    ctx.fillStyle = '#2a1408';
+    ctx.fillRect(30, 76, 18, 12);
+    ctx.fillRect(82, 76, 18, 12);
+    ctx.fillStyle = '#ff6a2a';
+    ctx.fillRect(30, 84, 18, 4);
+    ctx.fillRect(82, 84, 18, 4);
+}
+
+export function paintHighroost(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // Tail cables fanning left and right.
+    ctx.strokeStyle = '#2a3a55';
+    ctx.lineWidth = 7;
+    for (const [x0, x1] of [
+        [30, 4],
+        [34, 12],
+        [100, 126],
+        [96, 118],
+    ]) {
+        ctx.beginPath();
+        ctx.moveTo(x0, 66);
+        ctx.quadraticCurveTo((x0 + x1) / 2, 78, x1, 52);
+        ctx.stroke();
+    }
+    ctx.strokeStyle = '#7df9ff';
+    ctx.lineWidth = 2;
+    for (const [x0, x1] of [
+        [30, 4],
+        [100, 126],
+    ]) {
+        ctx.beginPath();
+        ctx.moveTo(x0, 66);
+        ctx.quadraticCurveTo((x0 + x1) / 2, 78, x1, 52);
+        ctx.stroke();
+    }
+    // Anchor-spur feet.
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(34, 72, 16, 14);
+    ctx.fillRect(80, 72, 16, 14);
+    ctx.fillStyle = '#7df9ff';
+    ctx.beginPath();
+    ctx.moveTo(34, 86);
+    ctx.lineTo(42, 78);
+    ctx.lineTo(50, 86);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(80, 86);
+    ctx.lineTo(88, 78);
+    ctx.lineTo(96, 86);
+    ctx.closePath();
+    ctx.fill();
+    // Hen torso.
+    ctx.fillStyle = '#1d2c4d';
+    ctx.beginPath();
+    ctx.ellipse(65, 52, 44, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a3a55';
+    ctx.beginPath();
+    ctx.ellipse(65, 50, 36, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Cable-plumage arcs.
+    ctx.strokeStyle = '#7df9ff';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.ellipse(65, 52, 30 - i * 8, 19 - i * 5, 0, Math.PI * 0.15, Math.PI * 0.85);
+        ctx.stroke();
+    }
+    // Comb crest.
+    ctx.fillStyle = '#ff4a3c';
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.arc(45 + i * 10, 22 - (i % 2) * 4, 7, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.fillRect(43, 24, 44, 8);
+    // Beak under the lens.
+    ctx.fillStyle = '#ffb15a';
+    ctx.beginPath();
+    ctx.moveTo(55, 62);
+    ctx.lineTo(65, 74);
+    ctx.lineTo(75, 62);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#c77a2a';
+    ctx.fillRect(55, 62, 20, 3);
+    // Wing plates.
+    ctx.fillStyle = '#141c30';
+    ctx.beginPath();
+    ctx.ellipse(30, 52, 10, 18, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(100, 52, 10, 18, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7df9ff';
+    ctx.fillRect(24, 44, 4, 16);
+    ctx.fillRect(102, 44, 4, 16);
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#7df9ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(65, 46, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#e8fbff';
+    ctx.beginPath();
+    ctx.arc(65, 46, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+export function paintTumbler(ctx) {
+    ctx.imageSmoothingEnabled = false;
+    // Lockplate feet.
+    ctx.fillStyle = '#2c3a52';
+    ctx.fillRect(32, 72, 18, 14);
+    ctx.fillRect(80, 72, 18, 14);
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(32, 82, 18, 4);
+    ctx.fillRect(80, 82, 18, 4);
+    // Iron tumbler body.
+    ctx.fillStyle = '#1c2230';
+    ctx.beginPath();
+    ctx.ellipse(65, 52, 46, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2c3a52';
+    ctx.beginPath();
+    ctx.ellipse(65, 50, 38, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Brass pin tumblers across the face.
+    for (let i = 0; i < 5; i++) {
+        const x = 35 + i * 15;
+        ctx.fillStyle = '#8a99b5';
+        ctx.fillRect(x, 30, 10, 22);
+        ctx.fillStyle = '#ffb15a';
+        ctx.fillRect(x + 2, 30 + (i % 3) * 4, 6, 8);
+    }
+    // Keyway seams.
+    ctx.strokeStyle = '#9cecff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(27, 60);
+    ctx.lineTo(103, 60);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(65, 60);
+    ctx.lineTo(65, 72);
+    ctx.stroke();
+    // Shackle horns.
+    ctx.strokeStyle = '#8a99b5';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(22, 44);
+    ctx.quadraticCurveTo(10, 30, 22, 16);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(108, 44);
+    ctx.quadraticCurveTo(120, 30, 108, 16);
+    ctx.stroke();
+    ctx.fillStyle = '#9cecff';
+    ctx.fillRect(18, 12, 8, 6);
+    ctx.fillRect(104, 12, 8, 6);
+    // Vault seal plate below the lens.
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(53, 62, 24, 12);
+    ctx.strokeStyle = '#ffb15a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(53, 62, 24, 12);
+    // Lens: the shot reads here.
+    ctx.strokeStyle = '#ff4a3c';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(65, 46, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ffe8e8';
+    ctx.beginPath();
+    ctx.arc(65, 46, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
 export const ENEMY_SPRITES = [
     ['bonkMarker', 26, 18, paintBonkMarker],
     ['labTech', 48, 64, paintLabTech],
@@ -597,6 +1224,15 @@ export const ENEMY_SPRITES = [
     ['crusher', 72, 30, paintCrusher],
     ['boarder', 40, 48, paintBoarder],
     ['skitterling', 40, 48, paintSkitterling],
+    ['broodmother', 120, 84, paintBroodmother],
+    ['hiveMother', 110, 80, paintHiveMother],
+    ['wardenPrime', 130, 90, paintWardenPrime],
+    ['gatekeeper', 130, 90, paintGatekeeper],
+    ['crimsonHeart', 120, 84, paintCrimsonHeart],
+    ['scrapjaw', 130, 90, paintScrapjaw],
+    ['embermaw', 130, 90, paintEmbermaw],
+    ['highroost', 130, 90, paintHighroost],
+    ['tumbler', 130, 90, paintTumbler],
     ['sporeFloater', 48, 48, paintSporeFloater],
     ['hiveBrute', 56, 48, paintHiveBrute],
     ['gnawer', 40, 48, paintGnawer],

@@ -2,35 +2,36 @@
 
 ## Rule
 
-Two-phase heart gate. Phase one: the crown lands shielded (gray tint) and the
-shield drops only when every arrived gnawer is dead, announced by a
-`CROWN OPEN` banner. Phase two: a timed spore-beam (780ms on, 1180ms off)
-sweeps the last gap before the pad — cross on the dark. The clear still comes
-from touching the crown.
+The CRIMSON HEART — the beating heart of the womb itself — holds the crown
+deck past the spore-beam gap. The crown lands shielded (gray tint); the
+shield drops when she dies, announced by a `CRIMSON HEART DOWN` banner.
+Wounds persist through player death; the clear still comes from touching
+the crown.
 
-- Tell: gray crown + converging gnawers, then the beam's on/off beat.
-- Safe response: sweep the waves down the climb, wait the dark beat at the
-  gap edge, hop to the pad. Double jump clears over the beam as a hard
-  alternative.
-- Mechanic: `CROWN_SHIELD` definition flag (same path as L8) plus a `laser`
-  config in `levels/crimson-womb.js`. First two-phase finale: L8 is shield
-  only, L9 beam only.
+- Tell: heartbeat double-thump, crouch and red flash for 800ms means a
+  378px slam-charge. Pace between slams, recover after.
+- Safe response: plant on the pace, strafe the telegraph, jump as the
+  charge leaves, burn the lens between slams.
+- Mechanic: `type: 'boss'` config in `levels/crimson-womb.js` with
+  `crownGuard: true`, driven by `BossDirector` (pace / telegraph /
+  charge / recover, enrage below half HP). The wave-7 guard pack was
+  removed: she gates the crown solo. Crown deck widened to scaleX 4.0
+  for dodge room.
 
 ## Paint and texture keys
 
-No new actor paint. Shield state reuses the shipped `crown` texture (gray
-tint while held). Beam tints `0xff5a8a`. Wave runners wear `gnawer`.
+New `crimsonHeart` (120x84, `paintCrimsonHeart` in `sprites/enemies.js`,
+registered in `ENEMY_SPRITES`): twin crimson lobes, artery stubs, glow
+sacs, cyan lens. Centered hitbox trims the fringe (never `setOffset`).
 
 ## Files
 
-`levels/crimson-womb.js`, `tests/game.test.cjs` (shield flag, laser
-presence), `tests/contra-levels.test.cjs` (pad width, hop reachability,
-on-deck boarder rule).
+`levels/crimson-womb.js`, `sprites/enemies.js`, `scripts/boss-review.mjs`
+(brief 12 + approach), `tests/game.test.cjs` (wave list, boss assert).
 
 ## Play
 
-`http://127.0.0.1:3000/?level=12` — clear all six gnawers, cross the beam on
-the dark, take the crown. Screenshot-verified: shield holds at spawn with
-the wave-1 gnawer alive on its deck (an earlier gap-spawned placement opened
-the gate for free and was fixed). Full playthrough not yet run; co-op shares
-the wave pool and the gate.
+`http://127.0.0.1:3000/?level=12` — cross the beam on the dark, take the
+deck. Bot review (`BOT_GPU=1 node scripts/boss-review.mjs 12`): defeated
+in 8.6s with 0 deaths, all phases seen, Jev panel 4/4 ship
+(Marlowe/Vic/Sam/Lex). Playable.

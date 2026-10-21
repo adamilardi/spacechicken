@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Cargo slams guard the crown deck: cross between slams. The crown is shielded: defeat the guard on the crown platform to open it. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'RUST HARBOR - The breaker yard. The bolt button fires. New gun: RIPPER. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s.',
+            'RUST HARBOR - The breaker yard. The bolt button fires. New gun: RIPPER. SCRAPJAW holds the deck: jump her charge between the slams. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'harbor',
             style: 'dusk',
@@ -68,7 +68,7 @@ export const level = {
             { x: 5750, y: 420, key: 'harborPlank', scaleX: 4.0 },
             { x: 7150, y: 360, key: 'harborPlank', scaleX: 3.4 },
             { x: 12050, y: 410, key: 'harborDeck', scaleX: 4.0 },
-            { x: 12450, y: 330, key: 'harborDeck', scaleX: 3.0 },
+            { x: 12450, y: 330, key: 'harborDeck', scaleX: 4.0 },
         ],
         floor: null,
         moving: [],
@@ -112,7 +112,6 @@ export const level = {
             { wave: 5, x: 3900 },
             { wave: 6, x: 5200 },
             { wave: 7, x: 8150 },
-            { wave: 8, x: 12000 },
         ],
         dynamic: [
             { type: 'boarder', key: 'skitterling', x: 550, y: 588, wave: 1 },
@@ -151,7 +150,7 @@ export const level = {
             { type: 'boarder', key: 'skitterling', x: 3900, y: 260, wave: 4 },
             {
                 type: 'crusher',
-                x: 12100,
+                x: 11950,
                 y: 260,
                 slamY: 380,
                 duration: 780,
@@ -225,7 +224,27 @@ export const level = {
             { type: 'boarder', key: 'skitterling', x: 8990, y: 394, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 10450, y: 394, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 11350, y: 374, wave: 7 },
-            { type: 'boarder', key: 'skitterling', x: 12330, y: 262, wave: 8, crownGuard: true },
+            {
+                type: 'boss',
+                key: 'scrapjaw',
+                bossName: 'Scrapjaw',
+                x: 12440,
+                y: 270,
+                hp: 12,
+                crownGuard: true,
+                triggerX: 12100,
+                minX: 12320,
+                maxX: 12580,
+                paceSpeed: 60,
+                initialAttackMs: 4000,
+                telegraphMs: 800,
+                chargeSpeed: 420,
+                chargeMs: 900,
+                recoverMs: 800,
+                cooldownMs: 2600,
+                enrageCooldownMs: 1600,
+                enrageChargeMult: 1.2,
+            },
         ],
     },
 };

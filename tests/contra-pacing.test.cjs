@@ -27,7 +27,7 @@ test('every contra reinforcement gives at least 300px of approach and arrives be
 });
 
 test('crown shield waits for its unreleased guard, not enemies on other routes', async () => {
-    const { BoarderDirector } = await import('../BoarderDirector.js');
+    const { BoarderDirector, crownGuardsDefeated } = await import('../BoarderDirector.js');
     const first = { active: true, arrived: true };
     const later = { active: false, arrived: false, crownGuard: true };
     const bypassed = { active: true, arrived: true };
@@ -36,7 +36,13 @@ test('crown shield waits for its unreleased guard, not enemies on other routes',
         crownShielded: true,
         levelConfig: { crownShield: true },
         boardersGroup: { getChildren: () => [first, later, bypassed] },
+        bossesGroup: null,
         breakCrownShield: () => opened++,
+        releaseCrownShieldIfCleared: () => {
+            if (crownGuardsDefeated(scene.boardersGroup, scene.bossesGroup)) {
+                scene.breakCrownShield();
+            }
+        },
     };
     const director = new BoarderDirector(scene);
     director.defeatBoarder(first);
@@ -44,6 +50,15 @@ test('crown shield waits for its unreleased guard, not enemies on other routes',
     later.active = true;
     later.arrived = true;
     director.defeatBoarder(later);
+    assert.equal(opened, 1);
+    // A live boss guard holds the shield after the last boarder falls.
+    opened = 0;
+    const bossGuard = { active: true, bossCrownGuard: true, bossDefeated: false };
+    scene.bossesGroup = { getChildren: () => [bossGuard] };
+    director.defeatBoarder(bypassed);
+    assert.equal(opened, 0);
+    bossGuard.bossDefeated = true;
+    director.defeatBoarder({ active: true, arrived: true });
     assert.equal(opened, 1);
 });
 

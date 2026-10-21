@@ -1,0 +1,87 @@
+{
+    "brief": {
+        "name": "Scrapjaw",
+        "level": 13,
+        "levelTheme": "Rust Harbor: the breaker yard. Skitterlings swarm the planks, drips fall on the low run, and cargo slams pound the crown deck on a beat.",
+        "bossFiction": "A walking crusher-jaw on the crown deck: rusted girder frame, piston teeth, hazard stripes, and one orange lens. She paces and charges between the cargo slams.",
+        "rule": "Jump her charge late between slam beats, keep bolts on the lens.",
+        "tell": "Crouch and orange flash for 800ms means a 378px charge; slams telegraph with their own rise.",
+        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, never stand under a rising slam.",
+        "hp": 12,
+        "phases": ["pace", "telegraph (crouch + orange flash)", "charge", "recover"],
+        "enrage": "Below half HP she rests shorter and charges 20% faster, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, SCRAPJAW DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 13,
+        "boss": "Scrapjaw",
+        "outcome": "boss-defeated",
+        "durationSec": 18.3,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 10,
+        "hpMin": 0,
+        "phasesSeen": ["pace", "telegraph", "charge", "recover"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 2.98,
+            "fairness": 3.15,
+            "theme": 3.08,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.91,
+                "fairness": 0.77,
+                "theme": 0.84,
+                "verdict": 0.76
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 3.16,
+            "fairness": 2.9,
+            "theme": 3.2,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.77,
+                "fairness": 0.7,
+                "theme": 0.73,
+                "verdict": 0.62
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.88,
+            "fairness": 2.9,
+            "theme": 3.04,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.82,
+                "fairness": 0.73,
+                "theme": 0.82,
+                "verdict": 0.49
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 3.12,
+            "fairness": 3.06,
+            "theme": 3.09,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.82,
+                "fairness": 0.8,
+                "theme": 0.82,
+                "verdict": 0.67
+            }
+        }
+    ],
+    "passed": true
+}

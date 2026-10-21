@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: defeat the guard on the crown platform to open it. New gun: SCATTER, a 3-bolt fan. Press G to swap guns. (M toggles music)',
+            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: defeat the BROODMOTHER on the crown platform to open it. She telegraphs each charge — jump it and hold fire. New gun: SCATTER, a 3-bolt fan. Press G to swap guns. (M toggles music)',
         touchInstructions:
-            'COLONY DROP - Aliens rush the line. The bolt button fires the space phaser. New gun: SCATTER. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Pods grant 30s guns. Free cages for −2s. Arrows move, jump leaps.',
+            'COLONY DROP - Aliens rush the line. The bolt button fires the space phaser. New gun: SCATTER. The gun button swaps guns. Defeat the BROODMOTHER to open the crown; jump her charge. Pods grant 30s guns. Free cages for −2s. Arrows move, jump leaps.',
         background: {
             type: 'colony',
             style: 'beachhead',
@@ -105,7 +105,6 @@ export const level = {
             { wave: 5, x: 3900 },
             { wave: 6, x: 5400 },
             { wave: 7, x: 6700 },
-            { wave: 8, x: 11000 },
         ],
         dynamic: [
             { type: 'boarder', key: 'skitterling', x: 700, y: 540, wave: 1 },
@@ -212,8 +211,26 @@ export const level = {
             { type: 'boarder', key: 'skitterling', x: 8540, y: 540, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 9790, y: 540, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 9700, y: 540, wave: 7 },
-            { type: 'boarder', key: 'skitterling', x: 11450, y: 400, wave: 8 },
-            { type: 'boarder', key: 'skitterling', x: 11550, y: 402, wave: 8, crownGuard: true },
+            {
+                type: 'boss',
+                key: 'broodmother',
+                bossName: 'Broodmother',
+                x: 11600,
+                y: 420,
+                hp: 14,
+                crownGuard: true,
+                triggerX: 11200,
+                minX: 11560,
+                maxX: 11720,
+                paceSpeed: 60,
+                telegraphMs: 800,
+                chargeSpeed: 420,
+                chargeMs: 900,
+                recoverMs: 800,
+                cooldownMs: 2600,
+                enrageCooldownMs: 1600,
+                enrageChargeMult: 1.2,
+            },
         ],
     },
 };

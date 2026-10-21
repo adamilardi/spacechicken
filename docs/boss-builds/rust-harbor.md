@@ -2,35 +2,36 @@
 
 ## Rule
 
-Cargo-slam gate. Twin crushers (780ms slam, second offset 390ms) pound the
-crown pad, and the crown lands shielded (gray tint): the shield drops only
-when every arrived skitterling is dead, announced by a `CROWN OPEN` banner.
-The clear still comes from touching the crown.
+SCRAPJAW — a walking crusher-jaw — holds the crown deck between the cargo
+slams. The crown lands shielded (gray tint); the shield drops when she
+dies, announced by a `SCRAPJAW DOWN` banner. Wounds persist through player
+death; the clear still comes from touching the crown.
 
-- Tell: gray crown plus converging skitterlings, then the alternating slam
-  beat over the pad.
-- Safe response: sweep the waves down the climb, pick the gap between
-  slams, hop to the pad. The pad is 288px wide with the slams 140px apart,
-  so a standing gap always exists.
-- Mechanic: `CROWN_SHIELD` definition flag (same path as L8/L12) plus two
-  `crusher` configs in `levels/rust-harbor.js`. First slam-plus-shield
-  pairing: L11 is slams only, L12 is shield plus beam.
+- Tell: crouch and orange flash for 800ms means a 378px charge. The cargo
+  slams telegraph with their own rise on a 780ms beat.
+- Safe response: plant on the pace, strafe the telegraph, jump as the
+  charge leaves, never stand under a rising slam.
+- Mechanic: `type: 'boss'` config in `levels/rust-harbor.js` with
+  `crownGuard: true`, driven by `BossDirector` (pace / telegraph /
+  charge / recover, enrage below half HP). The wave-8 guard was removed:
+  she gates the crown solo. Crown deck widened to scaleX 4.0 for dodge
+  room.
 
 ## Paint and texture keys
 
-No new actor paint. Shield state reuses the shipped `crown` texture (gray
-tint while held). Slams reuse the shipped crusher. Wave runners wear
-`skitterling`.
+New `scrapjaw` (130x90, `paintScrapjaw` in `sprites/enemies.js`,
+registered in `ENEMY_SPRITES`): rusted girder frame, piston teeth,
+hazard stripes, orange lens. Centered hitbox trims the fringe (never
+`setOffset`).
 
 ## Files
 
-`levels/rust-harbor.js`, `tests/game.test.cjs` (shield flag, crusher
-presence), `tests/contra-levels.test.cjs` (pad width, hop reachability,
-on-deck boarder rule).
+`levels/rust-harbor.js`, `sprites/enemies.js`, `scripts/boss-review.mjs`
+(brief 13 + approach), `tests/game.test.cjs` (wave list, boss assert).
 
 ## Play
 
-`http://127.0.0.1:3000/?level=13` — clear all eight skitterlings, cross
-between slams, take the crown. Screenshot-probed: finale renders with zero
-page errors. Full playthrough not yet run; co-op shares the wave pool and
-the gate.
+`http://127.0.0.1:3000/?level=13` — climb the plank stair, cross between
+slams, take the deck. Bot review (`BOT_GPU=1 node scripts/boss-review.mjs
+13`): defeated in 12.2s with 0 deaths, all phases seen, Jev panel 4/4
+ship (Marlowe/Vic/Sam/Lex). Playable.

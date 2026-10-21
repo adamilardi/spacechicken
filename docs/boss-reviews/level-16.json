@@ -1,0 +1,87 @@
+{
+    "brief": {
+        "name": "Tumbler",
+        "level": 16,
+        "levelTheme": "Iron Vault: the sealed branch off the womb that rejoins the foundry. Skitterlings swarm the vault decks, a red beam sweeps the pad approach, and a crusher slams the crown pad itself.",
+        "bossFiction": "The vault’s living lock on the crown pad: a lockplate crab with brass pin tumblers, glowing keyway seams, shackle horns, and one red lens, bred from skitterling stock.",
+        "rule": "Jump his charge late between slam beats, keep bolts on the lens.",
+        "tell": "Crouch and red flash for 800ms means a 378px charge.",
+        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, never stand under a rising slam.",
+        "hp": 12,
+        "phases": ["pace", "telegraph (crouch + red flash)", "charge", "recover"],
+        "enrage": "Below half HP he rests much shorter and charges 20% faster, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, TUMBLER DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 16,
+        "boss": "Tumbler",
+        "outcome": "boss-defeated",
+        "durationSec": 15.5,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 12,
+        "hpMin": 0,
+        "phasesSeen": ["dormant", "pace", "telegraph", "recover"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 2.88,
+            "fairness": 2.73,
+            "theme": 3.11,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.8,
+                "fairness": 0.56,
+                "theme": 0.75,
+                "verdict": 0.35
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 2.93,
+            "fairness": 2.5,
+            "theme": 3.06,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.7,
+                "fairness": 0.44,
+                "theme": 0.73,
+                "verdict": 0.27
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.71,
+            "fairness": 2.68,
+            "theme": 3.04,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.7,
+                "fairness": 0.55,
+                "theme": 0.79,
+                "verdict": 0.37
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 2.94,
+            "fairness": 2.68,
+            "theme": 3.08,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.77,
+                "fairness": 0.57,
+                "theme": 0.77,
+                "verdict": 0.38
+            }
+        }
+    ],
+    "passed": true
+}

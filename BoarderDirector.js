@@ -6,6 +6,44 @@ import { boarderEntryY, boarderSteering, boarderYields, nextBoarderWave } from '
 // (groups, players, managers) lives on the scene; the director owns only its
 // hot-loop scratch buffers, reused every frame so the update allocates
 // nothing.
+export function crownGuardsDefeated(boardersGroup, bossesGroup) {
+    const guards = (boardersGroup?.getChildren?.() || []).some(
+        (boarder) => boarder.crownGuard && !boarder.defeated
+    );
+    const bossGuards = (bossesGroup?.getChildren?.() || []).some(
+        (boss) => boss.bossCrownGuard && !boss.bossDefeated
+    );
+    return !guards && !bossGuards;
+}
+
+// Boss summons hold the arena: pin runaways to the leash (60px past
+// the boss bounds, matching the aggro drop) and kill outward drift.
+// Dropping aggro alone leaks — momentum and home-walks carried L15
+// summons 180px past the leash into the lift zone, where they met the
+// re-approach head-on below the bolt lane (L15 trace).
+export function clampSummonToArena(alien) {
+    const cfg = alien?.summonedBy?.bossConfig;
+    if (!alien || !cfg) {
+        return;
+    }
+    const lo = (cfg.minX ?? alien.x) - 60;
+    const hi = (cfg.maxX ?? alien.x) + 60;
+    const vx = alien.body?.velocity?.x ?? 0;
+    if (alien.x < lo) {
+        alien.x = lo;
+        if (vx < 0) {
+            alien.setVelocityX?.(0);
+        }
+        alien.airVelocityX = 0;
+    } else if (alien.x > hi) {
+        alien.x = hi;
+        if (vx > 0) {
+            alien.setVelocityX?.(0);
+        }
+        alien.airVelocityX = 0;
+    }
+}
+
 export class BoarderDirector {
     constructor(scene) {
         this.scene = scene;
@@ -59,15 +97,7 @@ export class BoarderDirector {
         alien.setVelocity?.(0, 0);
         scene.audioManager?.playBoarderPop?.();
         scene.effectsManager?.emitJumpPuff?.(alien.x, alien.y);
-        if (
-            scene.crownShielded &&
-            scene.levelConfig?.crownShield &&
-            !(scene.boardersGroup?.getChildren?.() || []).some(
-                (boarder) => boarder.crownGuard && !boarder.defeated
-            )
-        ) {
-            scene.breakCrownShield();
-        }
+        scene.releaseCrownShieldIfCleared?.();
         scene.effectsManager?.emitJumpPuff?.(alien.x, alien.y);
         scene.tweens?.add?.({
             targets: alien,
@@ -83,6 +113,12 @@ export class BoarderDirector {
     touchBoarder(_chicken, alien) {
         const scene = this.scene;
         if (scene.isTransitioning || scene.getGameTime() < (scene.boarderGraceUntil || 0)) {
+            return;
+        }
+        if (
+            Number.isFinite(alien?.spawnGraceUntil) &&
+            scene.getGameTime() < alien.spawnGraceUntil
+        ) {
             return;
         }
         if (alien?.body && alien.body.enable === false) {
@@ -153,6 +189,7 @@ export class BoarderDirector {
             this.defeatBoarder(alien);
             return;
         }
+        clampSummonToArena(alien);
         const homeX = alien.homeX ?? alien.x;
         const homeY = alien.homeY ?? alien.y;
         let target = null;
@@ -232,7 +269,23 @@ export class BoarderDirector {
     }
 
     updateBoarderAggro(alien, target, _homeX, _homeY, options) {
-        const aggroX = alien.aggro ? 620 : (options?.aggroX ?? 280) + 100;
+        // Boss summons hold the arena: past the leash they drop the
+        // chase and walk home instead of hunting the re-approach.
+        if (alien?.summonedBy) {
+            const cfg = alien.summonedBy.bossConfig || {};
+            const lo = (cfg.minX ?? alien.x) - 60;
+            const hi = (cfg.maxX ?? alien.x) + 60;
+            if (alien.x < lo || alien.x > hi) {
+                alien.aggro = false;
+                return;
+            }
+        }
+        const summoned = Boolean(alien?.summonedBy);
+        const aggroX = alien.aggro
+            ? summoned
+                ? 260
+                : 620
+            : (options?.aggroX ?? 280) + (summoned ? 0 : 100);
         const aggroY = alien.aggro ? 320 : (options?.aggroY ?? 260);
         const inAggro = Boolean(
             target &&

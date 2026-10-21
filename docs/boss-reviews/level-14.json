@@ -1,0 +1,93 @@
+{
+    "brief": {
+        "name": "Embermaw",
+        "level": 14,
+        "levelTheme": "Ember Foundry: the smelter. Gnawers swarm the decks, ore trams cross the wide gaps, and ember beams sweep on a beat, one guarding the crown deck entry.",
+        "bossFiction": "A furnace-mouth demon on the crown deck: iron maw, molten core, flame teeth, and one burning lens. She paces, charges, and births gnawer spawn.",
+        "rule": "Jump her charge late, duel each newborn gnawer, keep bolts on the lens.",
+        "tell": "Crouch and yellow flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one gnawer.",
+        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads.",
+        "hp": 14,
+        "phases": [
+            "pace",
+            "telegraph (crouch + yellow flash)",
+            "charge",
+            "summon tell (gold)",
+            "recover"
+        ],
+        "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, EMBERMAW DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 14,
+        "boss": "Embermaw",
+        "outcome": "boss-defeated",
+        "durationSec": 9.9,
+        "deaths": 0,
+        "deathSpots": [],
+        "hpStart": 14,
+        "hpMin": 0,
+        "phasesSeen": ["pace", "telegraph", "charge", "recover", "summonTell"],
+        "enraged": true,
+        "errors": []
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 3.04,
+            "fairness": 3.12,
+            "theme": 3.21,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.87,
+                "fairness": 0.79,
+                "theme": 0.77,
+                "verdict": 0.73
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 3.19,
+            "fairness": 2.97,
+            "theme": 3.2,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.74,
+                "fairness": 0.73,
+                "theme": 0.76,
+                "verdict": 0.69
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 2.87,
+            "fairness": 2.9,
+            "theme": 3.11,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.81,
+                "fairness": 0.7,
+                "theme": 0.8,
+                "verdict": 0.51
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 3.08,
+            "fairness": 3.01,
+            "theme": 3.11,
+            "verdict": "ship",
+            "confidence": {
+                "fun": 0.82,
+                "fairness": 0.81,
+                "theme": 0.82,
+                "verdict": 0.69
+            }
+        }
+    ],
+    "passed": true
+}

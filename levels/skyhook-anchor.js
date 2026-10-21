@@ -68,7 +68,13 @@ export const level = {
             { x: 5650, y: 420, key: 'skyhookPanel', scaleX: 4.0 },
             { x: 7050, y: 360, key: 'skyhookPanel', scaleX: 3.4 },
             { x: 11950, y: 410, key: 'skyhookDeck', scaleX: 4.0 },
-            { x: 12400, y: 326, key: 'skyhookDeck', scaleX: 3.2 },
+            // Crown deck in two pieces, each under the pilot's 400px
+            // wide-deck horizon: one 499px span flipped the landing
+            // target to the lift and stalled the crossing. West piece
+            // meets deck A (east 12142), closing the void under the
+            // Highroost fight; east piece carries the leash past the slam.
+            { x: 12578, y: 326, key: 'skyhookDeck', scaleX: 1.6 },
+            { x: 12334, y: 326, key: 'skyhookDeck', scaleX: 4.0 },
         ],
         floor: null,
         moving: [
@@ -77,7 +83,7 @@ export const level = {
                 y: 480,
                 key: 'liftPlatform',
                 scaleX: 1.15,
-                tween: { y: 410, duration: 2400, delay: 0 },
+                tween: { y: 390, duration: 2400, delay: 0 },
             },
         ],
         rocks: [],
@@ -120,7 +126,6 @@ export const level = {
             { wave: 5, x: 3800 },
             { wave: 6, x: 5100 },
             { wave: 7, x: 8050 },
-            { wave: 8, x: 11900 },
         ],
         dynamic: [
             { type: 'boarder', key: 'spireWarden', x: 550, y: 588, wave: 1 },
@@ -152,7 +157,7 @@ export const level = {
             { type: 'boarder', key: 'spireWarden', x: 3650, y: 346, wave: 4 },
             {
                 type: 'laser',
-                x: 12220,
+                x: 12100,
                 y: 300,
                 length: 200,
                 width: 14,
@@ -262,7 +267,36 @@ export const level = {
                 bodyWidth: 30,
                 bodyHeight: 30,
             },
-            { type: 'boarder', key: 'spireWarden', x: 12320, y: 258, wave: 8, crownGuard: true },
+            {
+                type: 'boss',
+                key: 'highroost',
+                bossName: 'Highroost',
+                x: 12390,
+                y: 270,
+                hp: 16,
+                crownGuard: true,
+                triggerX: 12260,
+                minX: 12320,
+                maxX: 12560,
+                paceSpeed: 60,
+                initialAttackMs: 4000,
+                telegraphMs: 800,
+                chargeSpeed: 420,
+                chargeMs: 900,
+                recoverMs: 800,
+                cooldownMs: 2600,
+                enrageCooldownMs: 2000,
+                enrageChargeMult: 1.05,
+                summon: {
+                    intervalMs: 12000,
+                    initialDelayMs: 5000,
+                    count: 1,
+                    key: 'spireWarden',
+                    maxAlive: 1,
+                    tellMs: 600,
+                    spread: 120,
+                },
+            },
         ],
     },
 };
