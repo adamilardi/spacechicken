@@ -35,5 +35,5 @@ module.exports = {
         // Prettier handles formatting
         'prettier/prettier': 'error',
     },
-    ignorePatterns: ['node_modules/', 'archive/', 'dist/'],
+    ignorePatterns: ['node_modules/', '.venv/', 'archive/', 'dist/'],
 };

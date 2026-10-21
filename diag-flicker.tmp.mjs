@@ -5,13 +5,36 @@ const platforms = [
     { left: 6510, right: 6990, top: 568, x: 6750, w: 480 },
 ];
 const snap = (o) => ({
-    ready: true, awaitingStart: false, gameOver: false, pendingLevel: null, dying: false,
-    jumpCount: 0, maxJumps: 2, phaser: true, elapsedMs: 800, killZoneY: 760,
+    ready: true,
+    awaitingStart: false,
+    gameOver: false,
+    pendingLevel: null,
+    dying: false,
+    jumpCount: 0,
+    maxJumps: 2,
+    phaser: true,
+    elapsedMs: 800,
+    killZoneY: 760,
     physics: { gravityY: 300 },
     player: { x: 6106, y: 582, vx: 160, vy: 0, grounded: true },
-    crown: { x: 11660, y: 400 }, platforms, hazards: [
-        { id: 'boarder-6200', type: 'boarder', x: 6200, y: 525, w: 40, h: 60, active: false, enable: true, chasing: false },
-    ], bombs: [], columns: [], ...o,
+    crown: { x: 11660, y: 400 },
+    platforms,
+    hazards: [
+        {
+            id: 'boarder-6200',
+            type: 'boarder',
+            x: 6200,
+            y: 525,
+            w: 40,
+            h: 60,
+            active: false,
+            enable: true,
+            chasing: false,
+        },
+    ],
+    bombs: [],
+    columns: [],
+    ...o,
 });
 // Two-tick: grounded stride (sets takeoffY), then the flicker tick.
 const state = createPilotState();

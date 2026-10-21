@@ -5,10 +5,21 @@ const decks = () => [
     { left: 6510, right: 6990, top: 574, x: 6750, w: 480 },
 ];
 const snapAt = (x, platforms) => ({
-    ready: true, awaitingStart: false, gameOver: false, pendingLevel: null, dying: false,
-    jumpCount: 0, maxJumps: 2, phaser: false, elapsedMs: 5000,
+    ready: true,
+    awaitingStart: false,
+    gameOver: false,
+    pendingLevel: null,
+    dying: false,
+    jumpCount: 0,
+    maxJumps: 2,
+    phaser: false,
+    elapsedMs: 5000,
     player: { x, y: 582, vx: 160, vy: 0, grounded: true },
-    crown: { x: 11800, y: 690 }, platforms, hazards: [], bombs: [], columns: [],
+    crown: { x: 11800, y: 690 },
+    platforms,
+    hazards: [],
+    bombs: [],
+    columns: [],
 });
 for (const x of [5900, 6000, 6050, 6110, 6200, 6250, 6300]) {
     const out = decidePilotInput(snapAt(x, decks()), createPilotState());
