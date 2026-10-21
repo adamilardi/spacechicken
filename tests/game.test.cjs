@@ -795,6 +795,281 @@ test('boss summons drop the chase past the arena leash', async () => {
     assert.equal(wave.aggro, true);
 });
 
+test('idle boarders patrol around home instead of standing still', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const director = new BoarderDirector({ killZoneFallY: 9999, getGameTime: () => 0 });
+    const seen = [];
+    const alien = {
+        active: true,
+        defeated: false,
+        aggro: false,
+        arrived: true,
+        x: 700,
+        y: 580,
+        homeX: 700,
+        homeY: 580,
+        body: { blocked: {}, touching: { down: true } },
+        setVelocityX: (vx) => seen.push(vx),
+        setVelocityY: () => {},
+        setFlipX: () => {},
+    };
+    const farChicken = { x: 0, y: 580, body: { blocked: {}, touching: { down: true } } };
+    director.stepBoarder(alien, [farChicken], [alien], {
+        speed: 190,
+        hopVelocity: -320,
+        hopRange: 230,
+        hopClearance: 48,
+        aggroX: 280,
+        aggroY: 260,
+    });
+    assert.equal(alien.aggro, false);
+    assert.equal(seen.length, 1);
+    assert.notEqual(seen[0], 0);
+});
+
+test('the patrol anchor sweeps both sides of home', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    let now = 0;
+    const director = new BoarderDirector({ getGameTime: () => now });
+    const first = director.patrolHomeX(700);
+    assert.ok(Math.abs(first - 700) <= GAME_CONSTANTS.BOARDER_PATROL_RANGE_X);
+    now = GAME_CONSTANTS.BOARDER_PATROL_PERIOD_MS / 2;
+    const second = director.patrolHomeX(700);
+    assert.ok(Math.abs(first - 700 + (second - 700)) < 1e-9);
+    assert.ok(Math.abs(first - second) > 1);
+});
+
+test('boarders join a nearby pack-mate fight and drop it when the latch fades', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    let now = 1000;
+    const director = new BoarderDirector({ getGameTime: () => now });
+    const fighter = { active: true, defeated: false, aggro: true, arrived: true, x: 100, y: 100 };
+    const idle = { active: true, defeated: false, aggro: false, arrived: true, x: 150, y: 100 };
+    const distant = { active: true, defeated: false, aggro: false, arrived: true, x: 900, y: 100 };
+    director.spreadPackAlert([fighter, idle, distant]);
+    assert.equal(idle.aggro, true);
+    assert.equal(idle.alertUntil, 1000 + GAME_CONSTANTS.BOARDER_PACK_ALERT_LATCH_MS);
+    assert.equal(distant.aggro, false);
+    // The latch holds the chase past normal leash range, then releases it.
+    director.updateBoarderAggro(idle, { x: 2000, y: 100 });
+    assert.equal(idle.aggro, true);
+    now = 10000;
+    director.updateBoarderAggro(idle, { x: 2000, y: 100 });
+    assert.equal(idle.aggro, false);
+});
+
+test('trailing boarders slow instead of freezing mid-chase', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const director = new BoarderDirector({ killZoneFallY: 9999, getGameTime: () => 1000 });
+    const seen = [];
+    const seenY = [];
+    const chicken = { x: 100, y: 380, body: { blocked: {}, touching: { down: true } } };
+    const leader = { x: 170, y: 500 };
+    const trailer = {
+        active: true,
+        defeated: false,
+        aggro: true,
+        arrived: true,
+        x: 200,
+        y: 500,
+        homeX: 200,
+        homeY: 500,
+        body: { blocked: {}, touching: { down: true } },
+        setVelocityX: (vx) => seen.push(vx),
+        setVelocityY: (vy) => seenY.push(vy),
+        setFlipX: () => {},
+    };
+    director.stepBoarder(trailer, [chicken], [trailer, leader], {
+        speed: 190,
+        hopVelocity: -320,
+        hopRange: 230,
+        hopClearance: 48,
+        aggroX: 280,
+        aggroY: 260,
+    });
+    assert.equal(seen.length, 1);
+    assert.ok(seen[0] < 0 && seen[0] > -190);
+    assert.deepEqual(seenY, [-320]);
+});
+
+test('hard mode widens boarder aggro as well as speed', async () => {
+    const { BoarderDirector } = await importModule('BoarderDirector.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const run = (difficulty) => {
+        const director = new BoarderDirector({
+            difficulty,
+            boardersDisarmed: false,
+            boarderWave: 4,
+            player: { x: 0 },
+            boardersGroup: null,
+        });
+        director.updateBoarders();
+        return { ...director.boarderOptions };
+    };
+    const hard = run('hard');
+    assert.equal(
+        hard.aggroX,
+        GAME_CONSTANTS.BOARDER_AGGRO_X * GAME_CONSTANTS.HARD_MODE.BOARDER_AGGRO_MULT
+    );
+    assert.equal(
+        hard.aggroY,
+        GAME_CONSTANTS.BOARDER_AGGRO_Y * GAME_CONSTANTS.HARD_MODE.BOARDER_AGGRO_MULT
+    );
+    const normal = run('normal');
+    assert.equal(normal.aggroX, GAME_CONSTANTS.BOARDER_AGGRO_X);
+    assert.equal(normal.aggroY, GAME_CONSTANTS.BOARDER_AGGRO_Y);
+});
+
+test('hard mode mults stay hard: short safe windows, faster hunters', async () => {
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const mults = GAME_CONSTANTS.HARD_MODE;
+    assert.ok(mults.LASER_OFF_MULT <= 0.5);
+    assert.ok(mults.INTERVAL_MULT <= 0.65);
+    assert.ok(mults.WARNING_MULT <= 0.75);
+    assert.ok(mults.PATROL_MULT <= 0.7);
+    assert.ok(mults.CRUSHER_MULT <= 0.7);
+    assert.ok(mults.BOMB_DELAY_MULT <= 0.65);
+    assert.ok(mults.BOSS_COOLDOWN_MULT <= 0.7);
+    assert.ok(mults.BOARDER_SPEED_MULT >= 1.4);
+    assert.ok(mults.BOARDER_AGGRO_MULT >= 1.3);
+    assert.ok(mults.BOMB_SPEED_MULT >= 1.4);
+    assert.ok(mults.BOSS_SPEED_MULT >= 1.3);
+    assert.ok(mults.BOARDER_GRACE_MULT <= 0.6);
+    // Hard boarders outrun the chicken: standing still is not an option.
+    assert.ok(
+        GAME_CONSTANTS.BOARDER_SPEED * mults.BOARDER_SPEED_MULT > GAME_CONSTANTS.PLAYER_VELOCITY_X
+    );
+});
+
+test('hard mode halves the post-death boarder grace', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
+    const scene = new SpaceChicken();
+    assert.equal(scene.boarderGraceMs(), GAME_CONSTANTS.BOARDER_GRACE_MS);
+    scene.difficulty = 'hard';
+    assert.equal(
+        scene.boarderGraceMs(),
+        Math.round(GAME_CONSTANTS.BOARDER_GRACE_MS * GAME_CONSTANTS.HARD_MODE.BOARDER_GRACE_MULT)
+    );
+});
+
+test('rescue cages carry a floating rescue-me callout', async () => {
+    const { WorldBuilder } = await importModule('WorldBuilder.js');
+    const texts = [];
+    const tweens = [];
+    const cages = [];
+    const scene = {
+        physics: {
+            add: {
+                staticGroup: () => ({
+                    create: (x, y, key) => {
+                        const cage = { x, y, key, setDepth() {} };
+                        cages.push(cage);
+                        return cage;
+                    },
+                }),
+            },
+        },
+        add: {
+            text: (x, y, words, style) => {
+                const bubble = {
+                    x,
+                    y,
+                    words,
+                    style,
+                    setOrigin() {},
+                    setDepth() {},
+                    setPadding() {},
+                    setBackgroundColor() {},
+                };
+                texts.push(bubble);
+                return bubble;
+            },
+        },
+        tweens: {
+            add: (config) => {
+                tweens.push(config);
+                return config;
+            },
+        },
+    };
+    new WorldBuilder(scene).buildRescues([{ x: 100, y: 200 }]);
+    assert.equal(cages.length, 1);
+    assert.equal(texts.length, 1);
+    assert.equal(texts[0].words, 'RESCUE ME!');
+    assert.equal(texts[0].x, 100);
+    assert.ok(texts[0].y < 200);
+    assert.equal(cages[0].rescueBubble, texts[0]);
+    assert.equal(tweens.length, 1);
+});
+
+test('collecting a rescue dismisses its callout', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.isTransitioning = false;
+    scene.gameOver = false;
+    const killed = [];
+    scene.tweens = { killTweensOf: (target) => killed.push(target) };
+    scene.uiManager = { showLevelBanner() {} };
+    let visible = true;
+    const cage = {
+        collected: false,
+        setTexture() {},
+        disableBody() {},
+        rescueBubble: {
+            setVisible: (value) => {
+                visible = value;
+            },
+        },
+    };
+    scene.collectRescue({}, cage);
+    assert.equal(cage.collected, true);
+    assert.equal(visible, false);
+    assert.deepEqual(killed, [cage.rescueBubble]);
+});
+
+test('K jumps the P1 chicken like Space', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    assert.equal(scene.isJumpInput({ kJustPressed: true }), true);
+    assert.equal(scene.isJumpInput({}), false);
+});
+
+test('the K key polls as a jump press and release', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const scene = {
+        space: {},
+        cursors: { up: {} },
+        wasd: { W: {} },
+        jumpKeyK: {},
+        jumpPointerId: null,
+        touchJumpReleased: false,
+        leftPressed: false,
+        rightPressed: false,
+        pointerTapTimes: new Map(),
+        getViewportWidth() {
+            return 390;
+        },
+        uiManager: null,
+        input: { pointers: [] },
+    };
+    const controller = new InputController(scene);
+    const justDown = global.Phaser.Input.Keyboard.JustDown;
+    const justUp = global.Phaser.Input.Keyboard.JustUp;
+    try {
+        global.Phaser.Input.Keyboard.JustDown = (key) => key === scene.jumpKeyK;
+        assert.equal(controller.poll().kJustPressed, true);
+        global.Phaser.Input.Keyboard.JustDown = justDown;
+        global.Phaser.Input.Keyboard.JustUp = (key) => key === scene.jumpKeyK;
+        assert.equal(controller.poll().jumpReleased, true);
+    } finally {
+        global.Phaser.Input.Keyboard.JustDown = justDown;
+        global.Phaser.Input.Keyboard.JustUp = justUp;
+    }
+});
+
 test('hard mode marks the hud level text and level banner', async () => {
     const { UIManager } = await importModule('UIManager.js');
     const texts = [];
@@ -1429,7 +1704,7 @@ test('coach lines show once for the phaser and a gold cap', async () => {
     scene.maybeShowCoach();
     scene.uiManager.bannerTitle = null;
     scene.maybeShowCoach();
-    assert.deepEqual(banners, ['PHASER:F, J, or the bolt button', 'BONK:Drop on the gold cap']);
+    assert.deepEqual(banners, ['PHASER:J to fire · K to jump', 'BONK:Drop on the gold cap']);
 });
 
 test('vertical laser visuals and hitboxes have the same orientation', async () => {

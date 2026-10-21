@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press F or J to fire. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press J to fire. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
             'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. WARDEN PRIME holds the deck: jump her charge, burn the lens. The bolt button fires. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
         background: {

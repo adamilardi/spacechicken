@@ -104,8 +104,40 @@ export class WorldBuilder {
             cage.setDepth(3);
             cage.collected = false;
             this.tagTestEntity(cage, { kind: 'pickup', type: 'rescue' });
+            this.attachRescueBubble(cage);
         });
         return group;
+    }
+
+    // A floating "RESCUE ME!" callout over each caged crew member, so the
+    // first rescue reads as a person to save instead of background art.
+    attachRescueBubble(cage) {
+        if (!cage || typeof this.add?.text !== 'function') {
+            return;
+        }
+        const bubble = this.add.text(cage.x, cage.y - 56, 'RESCUE ME!', {
+            fontFamily: 'Trebuchet MS, Arial, sans-serif',
+            fontSize: '15px',
+            fontStyle: 'bold',
+            color: '#ffe27a',
+            align: 'center',
+        });
+        if (!bubble) {
+            return;
+        }
+        bubble.setOrigin?.(0.5, 1);
+        bubble.setDepth?.(6);
+        bubble.setPadding?.(8, 5, 8, 5);
+        bubble.setBackgroundColor?.('rgba(8, 18, 36, 0.72)');
+        cage.rescueBubble = bubble;
+        this.tweens?.add?.({
+            targets: bubble,
+            y: bubble.y - 6,
+            duration: 700,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut',
+        });
     }
 
     buildPods(pods) {

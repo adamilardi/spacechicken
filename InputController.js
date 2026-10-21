@@ -12,6 +12,7 @@ export class InputController {
             spaceJustPressed: false,
             upJustPressed: false,
             wJustPressed: false,
+            kJustPressed: false,
             jumpReleased: false,
             doubleTapJumpTriggered: false,
             pointerJumpTriggered: false,
@@ -43,16 +44,24 @@ export class InputController {
         return this.gamepad.gamepadJumpEdges;
     }
 
-    poll() {
-        const scene = this.scene;
-        const state = this.state;
+    pollJumpKeys(scene, state) {
         state.spaceJustPressed = Phaser.Input.Keyboard.JustDown(scene.space);
         state.upJustPressed = Phaser.Input.Keyboard.JustDown(scene.cursors.up);
         state.wJustPressed = Phaser.Input.Keyboard.JustDown(scene.wasd.W);
+        state.kJustPressed = Boolean(
+            scene.jumpKeyK && Phaser.Input.Keyboard.JustDown(scene.jumpKeyK)
+        );
         state.jumpReleased =
             Phaser.Input.Keyboard.JustUp(scene.space) ||
             Phaser.Input.Keyboard.JustUp(scene.cursors.up) ||
-            Phaser.Input.Keyboard.JustUp(scene.wasd.W);
+            Phaser.Input.Keyboard.JustUp(scene.wasd.W) ||
+            Boolean(scene.jumpKeyK && Phaser.Input.Keyboard.JustUp(scene.jumpKeyK));
+    }
+
+    poll() {
+        const scene = this.scene;
+        const state = this.state;
+        this.pollJumpKeys(scene, state);
         state.doubleTapJumpTriggered = false;
         state.pointerJumpTriggered = false;
         state.pointerStartTriggered = false;

@@ -20,6 +20,20 @@ export const GAME_CONSTANTS = {
     BOARDER_AGGRO_Y: 260,
     BOARDER_SEPARATION: 42,
     BOARDER_GRACE_MS: 700,
+    // Idle boarders pace around home instead of standing still. The patrol
+    // sweeps this far each way on a per-boarder phase, through the same
+    // terrain-safe ground move as a chase, so milling never walks off decks.
+    BOARDER_PATROL_RANGE_X: 70,
+    BOARDER_PATROL_PERIOD_MS: 1800,
+    // A boarder that sees a pack-mate fighting joins in: non-aggro boarders
+    // inside this box of an aggro ally aggro too, latched long enough to
+    // close into real aggro range instead of flickering back to idle.
+    BOARDER_PACK_ALERT_X: 220,
+    BOARDER_PACK_ALERT_Y: 160,
+    BOARDER_PACK_ALERT_LATCH_MS: 1200,
+    // A boarder with an ally closer to the goal slows instead of freezing,
+    // so a pack presses the attack in a column instead of standing around.
+    BOARDER_YIELD_SLOW: 0.35,
     BOARDER_WAVES: Object.freeze([
         Object.freeze({ wave: 1, x: 0 }),
         Object.freeze({ wave: 2, x: 1300 }),
@@ -52,18 +66,22 @@ export const GAME_CONSTANTS = {
     PERSONAL_BEST_PREFIX: 'spaceChickenBest',
     PERSONAL_HARD_BEST_PREFIX: 'spaceChickenHardBest',
     // Hard-mode remix multipliers. Timers and patrols shrink (faster,
-    // less safe time); speeds grow. Physics, HP, and jump tuning never change.
+    // less safe time); speeds and aggro grow. Physics, HP, and jump tuning
+    // never change. Human playtest (Oct 2026): the old mults were unfelt, so
+    // hard now outruns the player and halves the safe windows.
     HARD_MODE: {
-        LASER_OFF_MULT: 0.65,
-        INTERVAL_MULT: 0.8,
-        WARNING_MULT: 0.85,
-        PATROL_MULT: 0.85,
-        CRUSHER_MULT: 0.85,
-        BOARDER_SPEED_MULT: 1.15,
-        BOMB_SPEED_MULT: 1.2,
-        BOMB_DELAY_MULT: 0.8,
-        BOSS_SPEED_MULT: 1.15,
-        BOSS_COOLDOWN_MULT: 0.8,
+        LASER_OFF_MULT: 0.45,
+        INTERVAL_MULT: 0.6,
+        WARNING_MULT: 0.7,
+        PATROL_MULT: 0.65,
+        CRUSHER_MULT: 0.65,
+        BOARDER_SPEED_MULT: 1.45,
+        BOARDER_AGGRO_MULT: 1.4,
+        BOARDER_GRACE_MULT: 0.5,
+        BOMB_SPEED_MULT: 1.5,
+        BOMB_DELAY_MULT: 0.6,
+        BOSS_SPEED_MULT: 1.35,
+        BOSS_COOLDOWN_MULT: 0.62,
     },
 
     DOUBLE_TAP_THRESHOLD: 350,

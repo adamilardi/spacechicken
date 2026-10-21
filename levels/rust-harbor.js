@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
             'RUST HARBOR - The breaker yard. The bolt button fires. New gun: RIPPER. SCRAPJAW holds the deck: jump her charge between the slams. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s.',
         background: {

@@ -23,4 +23,9 @@ None yet.
 
 ## Triaged
 
-None yet — moved here once a maintainer links them to the backlog.
+## 2026-10-21 — qa-reviewer — reviews missed feel issues a human caught
+
+- Tried: shipping enemy AI, rescue telegraphing, hard-mode tuning, and keyboard controls past review.
+- Friction: the skill's Review section checked mechanics (pause, retry, crown) but never enemy legibility, first-time telegraphing, Normal/Hard separation, or control ergonomics — so four human playtest complaints ([HUMAN_FEEDBACK.md](../docs/HUMAN_FEEDBACK.md), 2026-10-21) reached the player uncaught.
+- Suggestion: add the four feel checks to Review and require them in every test plan.
+- Triaged: fixed directly — qa-reviewer Review section, 2026-10-21 (backlog SCB-7, done).

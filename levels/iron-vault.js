@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'IRON VAULT - The sealed branch. You chose the vault path: it rejoins the foundry. Skitterlings swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Cross the beam on the dark and slip the pad slam. The crown is shielded: defeat the guard on the crown platform to open it. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. Press G to swap guns. (M toggles music)',
+            'IRON VAULT - The sealed branch. You chose the vault path: it rejoins the foundry. Skitterlings swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Cross the beam on the dark and slip the pad slam. The crown is shielded: defeat the guard on the crown platform to open it. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. Press G to swap guns. (M toggles music)',
         touchInstructions:
             'IRON VAULT - The sealed branch. The bolt button fires. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Cross the beam on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
         background: {

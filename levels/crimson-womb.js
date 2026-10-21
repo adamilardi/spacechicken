@@ -19,7 +19,7 @@ export const level = {
     },
     content: {
         instructions:
-            'CRIMSON WOMB - The heart of the enemy. Gnawers swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Drips fall in the low run, devils patrol the flesh. Cross the marrow bridge to the crown deck. A spore-beam guards the last gap: cross on the dark. The CRIMSON HEART holds the crown deck: jump her slam-charge, burn the lens. New gun: HAIL, a fan that punches through. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'CRIMSON WOMB - The heart of the enemy. Gnawers swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Drips fall in the low run, devils patrol the flesh. Cross the marrow bridge to the crown deck. A spore-beam guards the last gap: cross on the dark. The CRIMSON HEART holds the crown deck: jump her slam-charge, burn the lens. New gun: HAIL, a fan that punches through. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         branchInstructions:
             'Shoot the wounded core. Finish this level to choose: RUST HARBOR or the IRON VAULT branch. The vault rejoins the foundry.',
         touchInstructions:

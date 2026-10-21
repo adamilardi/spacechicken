@@ -171,9 +171,10 @@ test('a charge ends early past the arena bounds', async () => {
 
 test('hard mode quickens the boss and enrage presses harder', async () => {
     const { bossUpdate } = await importModule('BossDirector.js');
+    const { GAME_CONSTANTS } = await importModule('Constants.js');
     const pacing = state({ phase: 'pace', phaseAt: 0, nextAttackAt: 99999, dir: -1 });
     const hard = bossUpdate(pacing, 1000, 11680, 11600, 11200, CONFIG, true);
-    assert.equal(hard.velocityX, -60 * 1.15);
+    assert.equal(hard.velocityX, -60 * GAME_CONSTANTS.HARD_MODE.BOSS_SPEED_MULT);
     const calm = bossUpdate(
         state({ phase: 'telegraph', phaseAt: 1000, dir: -1 }),
         1700,

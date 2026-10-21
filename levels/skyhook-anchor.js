@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'SKYHOOK ANCHOR - The tether station. Wardens swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Take the panel stair, ride the anchor lift, cross the beam on the dark, and slip the slam on the crown pad. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HALO, a piercing orb that never stops. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SKYHOOK ANCHOR - The tether station. Wardens swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Take the panel stair, ride the anchor lift, cross the beam on the dark, and slip the slam on the crown pad. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HALO, a piercing orb that never stops. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
             'SKYHOOK ANCHOR - The tether station. The bolt button fires. New gun: HALO. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Ride the lift, cross on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
         background: {

@@ -17,7 +17,7 @@ export const level = {
     },
     content: {
         instructions:
-            'EARTHWATCH - On the station hull, with Earth below. Aliens arrive in waves and run at you. Face them and press F or J to fire the space phaser. Gamepad uses the left face button. (M toggles music)',
+            'EARTHWATCH - On the station hull, with Earth below. Aliens arrive in waves and run at you. Face them and press J to fire the space phaser. Gamepad uses the left face button. (M toggles music)',
         touchInstructions:
             'EARTHWATCH - On the station. Aliens arrive in waves. The bolt button fires the space phaser. Arrows move, jump leaps.',
         background: {

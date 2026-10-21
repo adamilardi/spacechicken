@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'BASTION RELAY - Inside the enemy base. Wardens hold the line: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Red gates sweep the hall on a beat: cross on the dark. Drop through the grate trench mid-run. The GATEKEEPER holds the crown deck: jump her charge, duel her wardens, burn the lens. New gun: TEMPEST, a 5-way fan. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'BASTION RELAY - Inside the enemy base. Wardens hold the line: face them and press J to fire the space phaser. Gamepad uses the left face button. Red gates sweep the hall on a beat: cross on the dark. Drop through the grate trench mid-run. The GATEKEEPER holds the crown deck: jump her charge, duel her wardens, burn the lens. New gun: TEMPEST, a 5-way fan. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
             'BASTION RELAY - Inside the base. The bolt button fires. New gun: TEMPEST. The GATEKEEPER holds the deck: jump her charge, duel her wardens. Cross the gates on the dark. Pods grant 30s guns. Free cages for −2s.',
         background: {

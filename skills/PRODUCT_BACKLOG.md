@@ -20,4 +20,4 @@ Seeded from the cross-repo skills review, 2026-10-08.
 
 ## Done
 
-None yet — move finished items here with the completion date.
+- **SCB-7 Reviewer feel checks.** Completed 2026-10-21 (fixed directly, never queued): qa-reviewer Review now requires enemy legibility, first-time telegraphing, Normal/Hard separation, and control-ergonomics checks, after four 2026-10-21 human playtest complaints arrived uncaught.

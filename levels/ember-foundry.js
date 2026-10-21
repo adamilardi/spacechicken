@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'EMBER FOUNDRY - The smelter. Gnawers swarm in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Ride the ore trams across the wide gaps, scale the chain vent tower, and cross the ember beams on the dark: warning means leave, active means do not cross. EMBERMAW holds the crown deck: jump her charge, duel her spawn, burn the maw. New gun: COMET, a tight five-way fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'EMBER FOUNDRY - The smelter. Gnawers swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Ride the ore trams across the wide gaps, scale the chain vent tower, and cross the ember beams on the dark: warning means leave, active means do not cross. EMBERMAW holds the crown deck: jump her charge, duel her spawn, burn the maw. New gun: COMET, a tight five-way fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
             'EMBER FOUNDRY - The smelter. The bolt button fires. New gun: COMET. EMBERMAW holds the deck: jump her charge, duel her spawn. Ride the trams. Cross the beams on the dark. Pods grant 30s guns. Free cages for −2s.',
         background: {

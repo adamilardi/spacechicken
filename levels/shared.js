@@ -1,5 +1,5 @@
 export const DEFAULT_INSTRUCTIONS =
-    'Space Chicken - WASD to move, Space to jump (press again mid-air to double jump), M toggles music\nCollect the golden crown!';
+    'Space Chicken - WASD to move, Space or K to jump (press again mid-air to double jump), M toggles music\nCollect the golden crown!';
 export const DEFAULT_TOUCH_INSTRUCTIONS =
     'Hold the arrows to move, tap jump to leap (tap again mid-air to double jump), tap the speaker for music.\nCollect the golden crown!';
 

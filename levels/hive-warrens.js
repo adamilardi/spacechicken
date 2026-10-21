@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: F or J. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: J. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         touchInstructions:
             'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires. New gun: PIERCER. The gun button swaps guns. The HIVE MOTHER guards the crown: burn her, duel her young. Pods grant 30s guns.',
         background: {

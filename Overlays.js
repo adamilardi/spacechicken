@@ -989,7 +989,7 @@ export class Overlays {
         this.ui.markUi(this.titlePrompt);
         const controls = this.ui.touchControlsEnabled
             ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nMODES  Gold button for a 2-player race\nJUMPS  Tap the jump button for fine control\nDIFFICULTY  Tap the button for hard mode\nGOAL  Reach the golden crown'
-            : 'MOVE  ← / → or A / D\nJUMP  Space / ↑ / W; press again in air\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓\nJUMPS  J, D-pad ↑, or the jump button\nDIFFICULTY  H, gamepad B, or the button';
+            : 'MOVE  ← / → or A / D\nJUMP  Space / K / ↑ / W; press again in air\nFIRE  J or F, hold on gun levels\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓\nJUMPS  T, D-pad ↑, or the jump button\nDIFFICULTY  H, gamepad B, or the button';
         this.titleControls = this.scene.add
             .text(0, 0, controls, {
                 fontSize: `${metrics.fonts.instructions}px`,
@@ -1344,7 +1344,7 @@ export class Overlays {
             <button data-mode="keyboard">Two players · keyboard</button>
             <button data-mode="keyboard-controller">Keyboard + controller</button>
             <button data-mode="controllers">Two controllers</button>
-            <p id="race-controls">P1: A/D + Space. P2: arrows + ↑.</p>
+            <p id="race-controls">P1: A/D + Space/K, J fires. P2: arrows + ↑, numpad 1 fires.</p>
             <p>Controller: D-pad selects · A confirms · B closes</p>
             <button class="game-button" data-close>Back</button>`;
         const options = [...dialog.querySelectorAll('[data-mode]')];

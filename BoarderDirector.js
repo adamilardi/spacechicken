@@ -90,6 +90,7 @@ export class BoarderDirector {
         alien.aggro = false;
         alien.airVelocityX = 0;
         alien.noticeUntil = 0;
+        alien.alertUntil = 0;
         alien.clearTint?.();
         if (alien.body) {
             alien.body.enable = false;
@@ -142,10 +143,17 @@ export class BoarderDirector {
 
     updateBoarders() {
         const scene = this.scene;
-        this.boarderOptions.speed =
-            scene?.difficulty === 'hard'
-                ? GAME_CONSTANTS.BOARDER_SPEED * GAME_CONSTANTS.HARD_MODE.BOARDER_SPEED_MULT
-                : GAME_CONSTANTS.BOARDER_SPEED;
+        const hard = scene?.difficulty === 'hard';
+        const mults = GAME_CONSTANTS.HARD_MODE || {};
+        this.boarderOptions.speed = hard
+            ? GAME_CONSTANTS.BOARDER_SPEED * mults.BOARDER_SPEED_MULT
+            : GAME_CONSTANTS.BOARDER_SPEED;
+        this.boarderOptions.aggroX = hard
+            ? GAME_CONSTANTS.BOARDER_AGGRO_X * (mults.BOARDER_AGGRO_MULT || 1)
+            : GAME_CONSTANTS.BOARDER_AGGRO_X;
+        this.boarderOptions.aggroY = hard
+            ? GAME_CONSTANTS.BOARDER_AGGRO_Y * (mults.BOARDER_AGGRO_MULT || 1)
+            : GAME_CONSTANTS.BOARDER_AGGRO_Y;
         if (this.holdDisarmedBoarders()) {
             return;
         }
@@ -176,8 +184,38 @@ export class BoarderDirector {
                 allies.push(alien);
             }
         }
+        this.spreadPackAlert(allies);
         for (let i = 0; i < aliens.length; i++) {
             this.stepBoarder(aliens[i], targets, allies, options);
+        }
+    }
+
+    // A boarder that sees a pack-mate fighting joins the rush instead of
+    // standing idle next to a fight. The latch survives the frames between
+    // the alert and real aggro range so the joiner does not flicker.
+    spreadPackAlert(allies) {
+        const now = this.scene.getGameTime?.() || 0;
+        for (let i = 0; i < allies.length; i++) {
+            const alien = allies[i];
+            if (!alien || alien.aggro || !alien.arrived) {
+                continue;
+            }
+            for (let j = 0; j < allies.length; j++) {
+                const ally = allies[j];
+                if (ally === alien || !ally?.aggro) {
+                    continue;
+                }
+                if (
+                    Math.abs(ally.x - alien.x) <= GAME_CONSTANTS.BOARDER_PACK_ALERT_X &&
+                    Math.abs(ally.y - alien.y) <= GAME_CONSTANTS.BOARDER_PACK_ALERT_Y
+                ) {
+                    alien.aggro = true;
+                    alien.alertUntil = now + GAME_CONSTANTS.BOARDER_PACK_ALERT_LATCH_MS;
+                    alien.noticeUntil = now + 180;
+                    this.showBoarderAggro(alien);
+                    break;
+                }
+            }
         }
     }
 
@@ -207,6 +245,9 @@ export class BoarderDirector {
             target && (target.body?.blocked?.down || target.body?.touching?.down)
         );
         this.updateBoarderAggro(alien, target, homeX, homeY, options);
+        // Idle boarders mill around home instead of standing still. The
+        // patrol goal flows through the same terrain-safe move as a chase.
+        const idleGoalX = alien.aggro ? homeX : this.patrolHomeX(homeX);
         const steer = boarderSteering(
             alien.x,
             alien.y,
@@ -215,7 +256,7 @@ export class BoarderDirector {
             grounded,
             {
                 ...options,
-                homeX,
+                homeX: idleGoalX,
                 homeY,
                 targetGrounded,
                 engaged: alien.aggro,
@@ -236,13 +277,37 @@ export class BoarderDirector {
             others,
             GAME_CONSTANTS.BOARDER_SEPARATION
         );
-        alien.setVelocityX?.((grounded && yields) || reacting ? 0 : move.velocityX);
-        if (!yields && !reacting && move.velocityY != null) {
+        // Trailers slow to hold spacing but keep pressing: only the notice
+        // flinch ever fully stops a boarder, so packs never stand around.
+        alien.setVelocityX?.(this.chaseVelocityX(move, yields, grounded, reacting));
+        if (!reacting && move.velocityY != null) {
             alien.setVelocityY?.(move.velocityY);
         }
         if (steer.flipX != null) {
             alien.setFlipX?.(steer.flipX);
         }
+    }
+
+    chaseVelocityX(move, yields, grounded, reacting) {
+        if (reacting) {
+            return 0;
+        }
+        if (grounded && yields) {
+            return move.velocityX * GAME_CONSTANTS.BOARDER_YIELD_SLOW;
+        }
+        return move.velocityX;
+    }
+
+    // Idle patrol anchor: sweeps around home on a phase derived from
+    // home, so pack-mates mill out of step without any per-boarder state.
+    patrolHomeX(homeX) {
+        const range = GAME_CONSTANTS.BOARDER_PATROL_RANGE_X;
+        const period = GAME_CONSTANTS.BOARDER_PATROL_PERIOD_MS;
+        if (!range || !period) {
+            return homeX;
+        }
+        const now = this.scene.getGameTime?.() || 0;
+        return homeX + Math.sin((now / period) * Math.PI * 2 + homeX * 0.05) * range;
     }
 
     terrainMove(alien, steer, grounded, options) {
@@ -287,11 +352,15 @@ export class BoarderDirector {
                 : 620
             : (options?.aggroX ?? 280) + (summoned ? 0 : 100);
         const aggroY = alien.aggro ? 320 : (options?.aggroY ?? 260);
-        const inAggro = Boolean(
-            target &&
-            Math.abs(target.x - alien.x) <= aggroX &&
-            Math.abs(target.y - alien.y) <= aggroY
-        );
+        const now = this.scene.getGameTime?.() || 0;
+        const alertActive = (alien.alertUntil || 0) > now;
+        const inAggro =
+            alertActive ||
+            Boolean(
+                target &&
+                Math.abs(target.x - alien.x) <= aggroX &&
+                Math.abs(target.y - alien.y) <= aggroY
+            );
         if (inAggro && !alien.aggro) {
             alien.aggro = true;
             alien.noticeUntil = (this.scene.getGameTime?.() || 0) + 180;
@@ -440,6 +509,7 @@ export class BoarderDirector {
             alien.aggro = false;
             alien.airVelocityX = 0;
             alien.noticeUntil = 0;
+            alien.alertUntil = 0;
             alien.clearTint?.();
             alien.setActive?.(true);
             alien.setVisible?.(true);
@@ -465,6 +535,7 @@ export class BoarderDirector {
         alien.aggro = false;
         alien.airVelocityX = 0;
         alien.noticeUntil = 0;
+        alien.alertUntil = 0;
         alien.clearTint?.();
         alien.setActive?.(false);
         alien.setVisible?.(false);
@@ -520,6 +591,7 @@ export class BoarderDirector {
             alien.aggro = false;
             alien.airVelocityX = 0;
             alien.noticeUntil = 0;
+            alien.alertUntil = 0;
             alien.clearTint?.();
             alien.setActive?.(true);
             alien.setVisible?.(true);

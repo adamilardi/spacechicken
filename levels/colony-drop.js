@@ -18,7 +18,7 @@ export const level = {
     },
     content: {
         instructions:
-            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press F or J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: defeat the BROODMOTHER on the crown platform to open it. She telegraphs each charge — jump it and hold fire. New gun: SCATTER, a 3-bolt fan. Press G to swap guns. (M toggles music)',
+            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: defeat the BROODMOTHER on the crown platform to open it. She telegraphs each charge — jump it and hold fire. New gun: SCATTER, a 3-bolt fan. Press G to swap guns. (M toggles music)',
         touchInstructions:
             'COLONY DROP - Aliens rush the line. The bolt button fires the space phaser. New gun: SCATTER. The gun button swaps guns. Defeat the BROODMOTHER to open the crown; jump her charge. Pods grant 30s guns. Free cages for −2s. Arrows move, jump leaps.',
         background: {

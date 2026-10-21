@@ -22,6 +22,30 @@ None yet.
 
 ## Resolved
 
+## 2026-10-21 — Enemy AI — terrible, makes no sense
+
+- Feedback: “The enemy AI is terrible. makes no sense.”
+- Context: relayed in chat alongside rescue, hard-mode, and controls notes; no level named.
+- Disposition: implemented — idle boarders now pace around home instead of standing still, nearby pack-mates join a fight via a latched pack alert, and trailing boarders slow instead of freezing mid-chase, so packs press the attack in a column. Verified live on level 8 (patrol, alert join, zero frozen-chase samples) plus unit tests. Skill: [SCB-7](../skills/PRODUCT_BACKLOG.md).
+
+## 2026-10-21 — Rescues — need a “rescue me” bubble
+
+- Feedback: “The people you rescue need a text bubble saying rescue me or at least the first person.”
+- Context: relayed in chat; caged crew previously had no callout.
+- Disposition: implemented — every rescue cage carries a floating “RESCUE ME!” callout that hides on collect. Verified live on level 8 (screenshot) plus unit tests. Skill: [SCB-7](../skills/PRODUCT_BACKLOG.md).
+
+## 2026-10-21 — Hard mode — not hard at all
+
+- Feedback: “hard mode is NOT hard at all”
+- Context: relayed in chat; the old mults were mild (boarders 1.15x, patrols 0.85x).
+- Disposition: implemented — hard mults retuned (boarders 1.45x and outrun the chicken, aggro 1.4x new, patrols/crushers 0.65x, laser off-windows 0.45x, bombs 1.5x/0.6x, bosses 1.35x/0.62x, post-death grace halved). Physics, HP, jumps, and checkpoints untouched per the mode ladder. Verified live (276px/s chases, 380px+ aggro, HARD HUD) plus a guardrail unit test. Skill: [SCB-7](../skills/PRODUCT_BACKLOG.md).
+
+## 2026-10-21 — Keyboard controls — WASD plus right-hand shoot and jump
+
+- Feedback: “the keyboard controls to fire are weird i need wasd to move and my other hand should shoot and jump”
+- Context: relayed in chat; fire was F (left hand) or J (which also toggled jump style on the title screen).
+- Disposition: implemented — right-hand pair is now J to fire, K to jump (Space/↑/W still jump; F still fires as an alt), and the title-screen jump-style toggle moved from J to T. Title controls, coach banner, race dialog, and level instructions updated. Verified live (K jump, J fire, T/H toggles) plus unit tests. Skill: [SCB-7](../skills/PRODUCT_BACKLOG.md).
+
 ## 2026-10-18 — Contra arc — more fun, impress the critic
 
 - Feedback: “make the contra levels more fun and really impress the contra critic in my skills”

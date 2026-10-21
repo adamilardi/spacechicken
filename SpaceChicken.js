@@ -498,6 +498,9 @@ export class SpaceChicken extends Phaser.Scene {
         this.space = this.input.keyboard.addKey(KEY_CODES.SPACE);
         this.phaserKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         this.phaserKeyAlt = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J);
+        // Right-hand pair for WASD players: J fires, K jumps.
+        this.jumpKeyK = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
+        this.jumpToggleKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
         this.player2PhaserKey = this.input.keyboard.addKey(
             Phaser.Input.Keyboard.KeyCodes.NUMPAD_ONE
         );
@@ -1187,6 +1190,10 @@ export class SpaceChicken extends Phaser.Scene {
         }
         cage.collected = true;
         cage.setTexture?.('rescueCageOpen');
+        if (cage.rescueBubble) {
+            cage.rescueBubble.setVisible?.(false);
+            this.tweens?.killTweensOf?.(cage.rescueBubble);
+        }
         cage.disableBody?.(true, false);
         this.rescueCount = (this.rescueCount || 0) + 1;
         const seconds = Math.round(GAME_CONSTANTS.RESCUE_BONUS_MS / 1000);
@@ -1770,7 +1777,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.deathResetWall = null;
         }
         this.resetBoarders();
-        this.boarderGraceUntil = this.getGameTime() + GAME_CONSTANTS.BOARDER_GRACE_MS;
+        this.boarderGraceUntil = this.getGameTime() + this.boarderGraceMs();
         const start = this.currentRespawnStart(1);
         const player = this.player;
         if (player) {
@@ -2191,6 +2198,17 @@ export class SpaceChicken extends Phaser.Scene {
         return this.setDifficulty(this.difficulty === 'hard' ? 'normal' : 'hard');
     }
 
+    // Spawn protection after death or teleport. Hard halves the breather.
+    boarderGraceMs() {
+        if (this.difficulty === 'hard') {
+            return Math.round(
+                GAME_CONSTANTS.BOARDER_GRACE_MS *
+                    (GAME_CONSTANTS.HARD_MODE?.BOARDER_GRACE_MULT ?? 1)
+            );
+        }
+        return GAME_CONSTANTS.BOARDER_GRACE_MS;
+    }
+
     coachSeen(key) {
         if (this.coachMemory?.has(key)) {
             return true;
@@ -2231,7 +2249,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         if (this.levelConfig?.phaser && !this.coachSeen(GAME_CONSTANTS.COACH_PHASER_KEY)) {
             this.markCoach(GAME_CONSTANTS.COACH_PHASER_KEY);
-            this.uiManager?.showLevelBanner?.('PHASER', 'F, J, or the bolt button', 2200);
+            this.uiManager?.showLevelBanner?.('PHASER', 'J to fire · K to jump', 2200);
             return;
         }
         if (this.coachSeen(GAME_CONSTANTS.COACH_BONK_KEY) || !this.bonkCapInView()) {
@@ -2278,7 +2296,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.titleSelectRight(inputState)) {
             this.cycleTitleSelection(1);
         }
-        if (this.phaserKeyAlt && Phaser.Input.Keyboard.JustDown(this.phaserKeyAlt)) {
+        if (this.jumpToggleKey && Phaser.Input.Keyboard.JustDown(this.jumpToggleKey)) {
             this.toggleJumpMode();
         }
         if (this.difficultyKey && Phaser.Input.Keyboard.JustDown(this.difficultyKey)) {
@@ -2349,6 +2367,7 @@ export class SpaceChicken extends Phaser.Scene {
         return Boolean(
             (this.coopMode !== 'keyboard' && inputState.upJustPressed) ||
             inputState.spaceJustPressed ||
+            inputState.kJustPressed ||
             inputState.wJustPressed ||
             inputState.gamepadJumpJustPressed ||
             inputState.pointerJumpTriggered ||
@@ -3007,7 +3026,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.jumpCount = 0;
         this.jumpRequested = false;
         this.bufferedJumpAt = 0;
-        this.boarderGraceUntil = this.getGameTime() + GAME_CONSTANTS.BOARDER_GRACE_MS;
+        this.boarderGraceUntil = this.getGameTime() + this.boarderGraceMs();
         this.startTime = performance.now();
         if (this.uiManager) {
             this.uiManager.lastTimerDisplay = '';
