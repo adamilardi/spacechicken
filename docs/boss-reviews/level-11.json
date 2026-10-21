@@ -1,93 +1,121 @@
 {
-    "brief": {
-        "name": "Gatekeeper",
-        "level": 11,
-        "levelTheme": "Bastion Relay: inside the enemy base. Wardens hold the line, red gates sweep on a beat, crushers slam the halls. The crown deck sits past the gatehouse.",
-        "bossFiction": "The base gatekeeper on the crown deck: a treaded relay-dome with antennae, conduit seams, and one alert-red lens. She paces, charges, and calls wardens to the guard.",
-        "rule": "Jump her charge late, duel each summoned warden, keep bolts on the lens.",
-        "tell": "Crouch and red flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one warden.",
-        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads.",
-        "hp": 12,
-        "phases": [
-            "pace",
-            "telegraph (crouch + red flash)",
-            "charge",
-            "summon tell (gold)",
-            "recover"
-        ],
-        "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, GATEKEEPER DOWN banner, crown shield opens. Wounds persist through player death."
-    },
-    "telemetry": {
-        "level": 11,
-        "boss": "Gatekeeper",
-        "outcome": "boss-defeated",
-        "durationSec": 5.5,
-        "deaths": 0,
-        "deathSpots": [],
-        "hpStart": 10,
-        "hpMin": 0,
-        "phasesSeen": ["pace", "telegraph", "charge", "recover", "summonTell"],
-        "enraged": true,
-        "errors": []
-    },
-    "reports": [
-        {
-            "persona": "reviewer",
-            "name": "Marlowe (expert reviewer)",
-            "fun": 2.98,
-            "fairness": 3.06,
-            "theme": 2.8,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.83,
-                "fairness": 0.76,
-                "theme": 0.78,
-                "verdict": 0.67
-            }
-        },
-        {
-            "persona": "veteran",
-            "name": "Vic (contra veteran)",
-            "fun": 3.17,
-            "fairness": 2.84,
-            "theme": 2.92,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.73,
-                "fairness": 0.69,
-                "theme": 0.81,
-                "verdict": 0.64
-            }
-        },
-        {
-            "persona": "casual",
-            "name": "Sam (casual newcomer)",
-            "fun": 2.75,
-            "fairness": 2.77,
-            "theme": 2.8,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.72,
-                "fairness": 0.66,
-                "theme": 0.77,
-                "verdict": 0.41
-            }
-        },
-        {
-            "persona": "speedrunner",
-            "name": "Lex (speedrunner)",
-            "fun": 3.05,
-            "fairness": 2.95,
-            "theme": 2.95,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.81,
-                "fairness": 0.79,
-                "theme": 0.85,
-                "verdict": 0.64
-            }
-        }
+  "brief": {
+    "name": "Gatekeeper",
+    "level": 11,
+    "levelTheme": "Bastion Relay: inside the enemy base. Wardens hold the line, red gates sweep on a beat, crushers slam the halls. The crown deck sits past the gatehouse.",
+    "bossFiction": "The base gatekeeper on the crown deck: a treaded relay-dome with antennae, conduit seams, and one alert-red lens. She paces, charges, and calls wardens to the guard.",
+    "rule": "Jump her charge late, duel each summoned warden, keep bolts on the lens.",
+    "tell": "Crouch and red flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one warden.",
+    "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads.",
+    "hp": 12,
+    "phases": [
+      "pace",
+      "telegraph (crouch + red flash)",
+      "charge",
+      "summon tell (gold)",
+      "recover"
     ],
-    "passed": true
+    "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
+    "defeat": "Explosion, GATEKEEPER DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death."
+  },
+  "telemetry": {
+    "level": 11,
+    "boss": "Gatekeeper",
+    "outcome": "boss-defeated",
+    "durationSec": 16.4,
+    "deaths": 1,
+    "deathSpots": [
+      {
+        "x": 11529,
+        "y": 427,
+        "bossX": 11495,
+        "bossHp": 3,
+        "bossPhase": "pace",
+        "addDist": 433,
+        "bombDist": 5776,
+        "deathKind": "boarder",
+        "likelyCause": "fall"
+      }
+    ],
+    "hpStart": 12,
+    "hpMin": 0,
+    "phasesSeen": [
+      "pace",
+      "telegraph",
+      "charge",
+      "recover",
+      "summonTell",
+      "dormant"
+    ],
+    "enraged": true,
+    "errors": [],
+    "flags": []
+  },
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.35,
+      "fairness": 1.03,
+      "theme": 2.31,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.64,
+        "fairness": 0.57,
+        "theme": 0.4,
+        "flaw": 0.96,
+        "verdict": 0.52
+      }
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.61,
+      "fairness": 1.01,
+      "theme": 2.53,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.39,
+        "fairness": 0.56,
+        "theme": 0.55,
+        "flaw": 0.92,
+        "verdict": 0.53
+      }
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.58,
+      "fairness": 1.18,
+      "theme": 2.46,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.45,
+        "fairness": 0.49,
+        "theme": 0.52,
+        "flaw": 0.86,
+        "verdict": 0.76
+      }
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.5,
+      "fairness": 1.22,
+      "theme": 2.51,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.49,
+        "fairness": 0.41,
+        "theme": 0.57,
+        "flaw": 0.92,
+        "verdict": 0.56
+      }
+    }
+  ],
+  "passed": false
 }

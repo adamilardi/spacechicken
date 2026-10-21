@@ -1,93 +1,132 @@
 {
-    "brief": {
-        "name": "Highroost",
-        "level": 15,
-        "levelTheme": "Skyhook Anchor: the tether station, the final climb. Wardens swarm the decks, a timed beam sweeps the pad approach, and a crusher slams the crown pad itself on a beat.",
-        "bossFiction": "The roost-mother of the skyhook nesting on the crown pad: a colossal cyber-hen with tether-cable plumage, anchor spurs, a red comb, and one big cyan lens. The last guardian of the tether crown.",
-        "rule": "Jump her charge late between slam beats, duel each summoned warden, keep bolts on the lens.",
-        "tell": "Crouch and red flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one warden.",
-        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads, never stand under a rising slam.",
-        "hp": 16,
-        "phases": [
-            "pace",
-            "telegraph (crouch + red flash)",
-            "charge",
-            "summon tell (gold)",
-            "recover"
-        ],
-        "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, HIGHROOST DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death."
-    },
-    "telemetry": {
-        "level": 15,
-        "boss": "Highroost",
-        "outcome": "boss-defeated",
-        "durationSec": 23,
-        "deaths": 0,
-        "deathSpots": [],
-        "hpStart": 16,
-        "hpMin": 0,
-        "phasesSeen": ["dormant", "pace", "telegraph", "charge", "recover", "summonTell"],
-        "enraged": true,
-        "errors": []
-    },
-    "reports": [
-        {
-            "persona": "reviewer",
-            "name": "Marlowe (expert reviewer)",
-            "fun": 3.1,
-            "fairness": 2.95,
-            "theme": 3.57,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.85,
-                "fairness": 0.79,
-                "theme": 0.66,
-                "verdict": 0.64
-            }
-        },
-        {
-            "persona": "veteran",
-            "name": "Vic (contra veteran)",
-            "fun": 3.27,
-            "fairness": 2.75,
-            "theme": 3.53,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.69,
-                "fairness": 0.67,
-                "theme": 0.61,
-                "verdict": 0.61
-            }
-        },
-        {
-            "persona": "casual",
-            "name": "Sam (casual newcomer)",
-            "fun": 2.89,
-            "fairness": 2.73,
-            "theme": 3.52,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.82,
-                "fairness": 0.67,
-                "theme": 0.62,
-                "verdict": 0.33
-            }
-        },
-        {
-            "persona": "speedrunner",
-            "name": "Lex (speedrunner)",
-            "fun": 3.12,
-            "fairness": 2.85,
-            "theme": 3.57,
-            "verdict": "ship",
-            "confidence": {
-                "fun": 0.8,
-                "fairness": 0.76,
-                "theme": 0.67,
-                "verdict": 0.61
-            }
-        }
+  "brief": {
+    "name": "Highroost",
+    "level": 15,
+    "levelTheme": "Skyhook Anchor: the tether station, the final climb. Wardens swarm the decks, a timed beam sweeps the pad approach, and a crusher slams the crown pad itself on a beat.",
+    "bossFiction": "The roost-mother of the skyhook nesting on the crown pad: a colossal cyber-hen with tether-cable plumage, anchor spurs, a red comb, and one big cyan lens. The last guardian of the tether crown.",
+    "rule": "Jump her charge late between slam beats, duel each summoned warden, keep bolts on the lens.",
+    "tell": "Crouch and red flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one warden.",
+    "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads, never stand under a rising slam.",
+    "hp": 16,
+    "phases": [
+      "pace",
+      "telegraph (crouch + red flash)",
+      "charge",
+      "summon tell (gold)",
+      "recover"
     ],
-    "passed": true
+    "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
+    "defeat": "Explosion, HIGHROOST DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death."
+  },
+  "telemetry": {
+    "level": 15,
+    "boss": "Highroost",
+    "outcome": "boss-defeated",
+    "durationSec": 44.3,
+    "deaths": 2,
+    "deathSpots": [
+      {
+        "x": 12407,
+        "y": 298,
+        "bossX": 12273,
+        "bossHp": 11,
+        "bossPhase": "recover",
+        "addDist": 45,
+        "bombDist": 2615,
+        "deathKind": "boarder",
+        "likelyCause": "add"
+      },
+      {
+        "x": 12282,
+        "y": 298,
+        "bossX": 12362,
+        "bossHp": 9,
+        "bossPhase": "pace",
+        "addDist": 182,
+        "bombDist": null,
+        "deathKind": "boarder",
+        "likelyCause": "other"
+      }
+    ],
+    "hpStart": 16,
+    "hpMin": 0,
+    "phasesSeen": [
+      "dormant",
+      "pace",
+      "telegraph",
+      "charge",
+      "recover",
+      "summonTell"
+    ],
+    "enraged": true,
+    "errors": [],
+    "flags": []
+  },
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.56,
+      "fairness": 1.81,
+      "theme": 3.18,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.5,
+        "fairness": 0.3,
+        "theme": 0.66,
+        "flaw": 0.96,
+        "verdict": 0.73
+      }
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.87,
+      "fairness": 1.8,
+      "theme": 3.14,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.46,
+        "fairness": 0.32,
+        "theme": 0.63,
+        "flaw": 0.87,
+        "verdict": 0.64
+      }
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.79,
+      "fairness": 1.47,
+      "theme": 3.21,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.54,
+        "fairness": 0.55,
+        "theme": 0.64,
+        "flaw": 0.84,
+        "verdict": 0.73
+      }
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.7,
+      "fairness": 1.68,
+      "theme": 3.23,
+      "flaw": "stale",
+      "verdict": "iterate",
+      "confidence": {
+        "fun": 0.35,
+        "fairness": 0.39,
+        "theme": 0.68,
+        "flaw": 0.89,
+        "verdict": 0.66
+      }
+    }
+  ],
+  "passed": false
 }

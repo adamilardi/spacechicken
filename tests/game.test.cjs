@@ -4699,6 +4699,11 @@ test('the game page opts into a mobile visual viewport', () => {
     assert.match(html, /createGameConfig/);
 });
 
+test('the pause dialog names the current jump keys', () => {
+    const html = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+    assert.match(html, /Jump: Space, K, ↑, or W/);
+});
+
 test('the Jev pilot fallback runs the shared brain and maps its input', async () => {
     const { pilotFallbackAction, pilotInputToAction } = await importModule(
         'scripts/jev-playtest.mjs'

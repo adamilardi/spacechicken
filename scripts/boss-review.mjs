@@ -15,7 +15,7 @@ const PERSONAS = [
         id: 'reviewer',
         name: 'Marlowe (expert reviewer)',
         profile:
-            '15 years reviewing action-platformers for a major outlet. Scores hard: a 2 means average, a 3 is good. Rewards readable tells, fair difficulty, and bosses that teach one idea well. Punishes cheap hits, stall tactics, and clutter.',
+            '18 years reviewing action games for a major outlet, known for the scores that start arguments. Uses the whole scale: 0-1 is broken or insulting, 2 is average, 3 is good, 4 is excellent, 5 is a once-a-year fight. Compares every boss against the contra/run-and-gun canon: a boss must earn its slot with readable tells, real pressure, and at least one idea the previous bosses did not already do. Punishes pushovers that die before phase two, damage sponges with no new decisions, cheap hits, stall tactics, downtime, and staleness across the arc. Never scores on vibes: every number traces to a telemetry line.',
     },
     {
         id: 'veteran',
@@ -244,13 +244,36 @@ const SCORE_LEVELS = {
 };
 
 function questionSet(persona) {
-    const head = `You are ${persona.name}. ${persona.profile} Judge ONLY the boss fight described in state.fight from the telemetry in state.telemetry. The telemetry comes from a mid-skill bot pilot, not a human: 0-2 deaths in a sub-60s kill is its normal learning curve. Judge cheapness by the death PATTERN (same spot and cause every time suggests a trap; varied spots in a fast kill suggest fair exchanges), not by the raw death count. Answer as this persona, not as a designer.`;
+    const head = `You are ${persona.name}. ${persona.profile} Judge ONLY the boss fight described in state.fight from the telemetry in state.telemetry. The telemetry comes from a mid-skill bot pilot, not a human: 0-2 deaths in a sub-60s kill is its normal learning curve. Judge cheapness by the death PATTERN (same spot and cause every time suggests a trap; varied spots in a fast kill suggest fair exchanges), not by the raw death count. Judge pressure by the clock: a clean kill under 10 seconds means the boss never got to act — cap fun at 2 no matter how clean it looked. A kill over 120 seconds with no new phases is a sponge, not a duel — cap fun at 2. If state.fight.variety shows 3 or more bosses sharing this rule, the idea is stale — cap fun at 2 and say so. Score fairness ONLY from tells and deaths: a clean kill with readable tells is fair (3+) even when the fight is stale, short, or off-theme — pacing and variety hit fun, never fairness. state.telemetry.flags names mechanical suspicions; confirm or rebut each from the numbers. Answer as this persona, not as a designer.`;
     return {
         fun: score(`${head} How FUN is this boss fight?`, SCORE_LEVELS.fun),
         fairness: score(`${head} How FAIR is this boss fight?`, SCORE_LEVELS.fairness),
         theme: score(
             `${head} How well does this boss fit the Space Chicken theme?`,
             SCORE_LEVELS.theme
+        ),
+        flaw: choice(
+            {
+                task: `${head} Name this fight's single biggest flaw, or none if it genuinely has no real flaw.`,
+                guidance: [
+                    'none: no real flaw; the fight earns its slot.',
+                    'pushover: dies before phase two with no pressure (fast clean kill).',
+                    'sponge: drags on with no new decisions (slow kill, flat phases).',
+                    'unreadable: tells too tight, ambiguous, or unfair-feeling deaths.',
+                    'downtime: long waits, invulnerable stretches, or stall tactics.',
+                    'stale: same rule as earlier bosses; nothing new.',
+                    'offtheme: does not read as this game.',
+                ],
+            },
+            {
+                none: 'No real flaw.',
+                pushover: 'Dies before it pressures.',
+                sponge: 'Drags with no new decisions.',
+                unreadable: 'Tells too tight or unfair.',
+                downtime: 'Too much waiting.',
+                stale: 'Same rule as earlier bosses.',
+                offtheme: 'Wrong game feel.',
+            }
         ),
         verdict: choice(
             {
@@ -433,24 +456,72 @@ export async function captureFight(level, brief) {
     return telemetry;
 }
 
+// Mechanical suspicions, computed in code so the panel cannot miss them.
+// The personas confirm or rebut each from the numbers.
+export function telemetryFlags(telemetry) {
+    const flags = [];
+    const killed = telemetry.outcome === 'boss-defeated' || telemetry.outcome === 'crown-collected';
+    if ((telemetry.durationSec ?? 999) < 10 && (telemetry.deaths ?? 0) === 0 && killed) {
+        flags.push('pushover-suspect: sub-10s clean kill; the boss may never have acted');
+    }
+    const phases = telemetry.phasesSeen || [];
+    if (killed && !phases.includes('charge') && !phases.includes('summonTell')) {
+        flags.push('one-phase: kill saw no charge or summon phase');
+    }
+    if ((telemetry.durationSec ?? 0) > 120 && !killed) {
+        flags.push('sponge-suspect: over 120s without a kill');
+    }
+    return flags;
+}
+
+// Arc-wide variety: how many bosses share this one's core rule. Per-boss
+// reviews cannot see staleness on their own, so the state carries it in.
+export function varietyNote(brief) {
+    const briefs = Object.values(BRIEFS);
+    const sharing = briefs.filter((other) =>
+        (other.phases || []).some((phase) => String(phase).includes('charge'))
+    );
+    return {
+        bossesTotal: briefs.length,
+        sharingChargeRule: sharing.length,
+        sharingNames: sharing.map((other) => other.name),
+        thisBoss: brief.name,
+    };
+}
+
 export function panelPassed(reports) {
     const reviewer = reports.find((report) => report.persona === 'reviewer');
     const ships = reports.filter((report) => report.verdict === 'ship').length;
     const minFairness = Math.min(...reports.map((report) => report.fairness));
     const meanFun = reports.reduce((sum, report) => sum + report.fun, 0) / reports.length;
-    return reviewer?.verdict === 'ship' && ships >= 3 && minFairness >= 2 && meanFun >= 2.5;
+    // A ship with a named flaw is a contradiction: the critic must be clean.
+    // Reports predating the flaw taxonomy count as clean.
+    const reviewerClean = (reviewer?.flaw || 'none') === 'none';
+    return (
+        reviewer?.verdict === 'ship' &&
+        ships >= 3 &&
+        minFairness >= 2 &&
+        meanFun >= 2.5 &&
+        reviewerClean
+    );
 }
 
 export async function reviewBoss(client, brief, telemetry) {
+    const flagged = { ...telemetry, flags: telemetryFlags(telemetry) };
     const fight = {
         game: 'Space Chicken: a chicken run-and-gun platformer. Levels 8-16 are contra-style shooting stages with the space phaser (horizontal bolts). Touching an enemy kills; checkpoints respawn.',
         boss: brief,
+        variety: varietyNote(brief),
     };
     const reports = [];
     for (const persona of PERSONAS) {
         const response = await client.systemOne(
             {
-                state: { fight, telemetry, persona: { id: persona.id, profile: persona.profile } },
+                state: {
+                    fight,
+                    telemetry: flagged,
+                    persona: { id: persona.id, profile: persona.profile },
+                },
                 questions: questionSet(persona),
             },
             { timeout: 30000, retry: { maxRetries: 1 } }
@@ -462,21 +533,23 @@ export async function reviewBoss(client, brief, telemetry) {
             fun: answers.fun.score,
             fairness: answers.fairness.score,
             theme: answers.theme.score,
+            flaw: answers.flaw.choice,
             verdict: answers.verdict.choice,
             confidence: {
                 fun: answers.fun.confidence,
                 fairness: answers.fairness.confidence,
                 theme: answers.theme.confidence,
+                flaw: answers.flaw.confidence,
                 verdict: answers.verdict.confidence,
             },
         });
         console.log(
-            `${persona.name}: fun=${answers.fun.score.toFixed(1)} fair=${answers.fairness.score.toFixed(1)} theme=${answers.theme.score.toFixed(1)} -> ${answers.verdict.choice}`
+            `${persona.name}: fun=${answers.fun.score.toFixed(1)} fair=${answers.fairness.score.toFixed(1)} theme=${answers.theme.score.toFixed(1)} flaw=${answers.flaw.choice} -> ${answers.verdict.choice}`
         );
     }
     const passed = panelPassed(reports);
     console.log(passed ? 'PANEL: PASS' : 'PANEL: ITERATE');
-    return { brief, telemetry, reports, passed };
+    return { brief, telemetry: flagged, reports, passed };
 }
 
 async function main() {
