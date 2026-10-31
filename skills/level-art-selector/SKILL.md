@@ -22,6 +22,7 @@ Open `paint.js` and the preview HTML. A spec-only entry can be discussed. It can
 - Coverage: background layout, walkable surfaces, ordinary hazards, and a crown approach. A strong sky does not fill the platform slot.
 - Bonk pads on bonk actors, a lens on shootable actors, and no marker on lethal hazards.
 - Animation handoffs that name a pose-of-the-same-paint or a tween, with a stable pivot.
+- Route legibility: with the game's own sprites composited at gameplay size, the Crown, gate beams, pads, and objective props stay foreground-legible on every beat of the route; scenery mass never sits on the critical path. Judge the composited route, not the empty plate.
 
 Say what is still concept work. A chosen direction can stay `needs-work`.
 

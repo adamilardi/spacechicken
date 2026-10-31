@@ -9,6 +9,8 @@ Animate a chosen paint without changing its identity. Read [the authoring refere
 
 ## Start from the paint
 
+**Group behavior is the brief, not a bonus.** When the story says synchronized, unison, formation, rhythm, or mirrored, the deliverable is the ensemble: name the actor count, the shared beat/phase clock (offset, period, who leads), the formation relationship, and the moment it visibly changes. Two independent patrol tweens that happen to overlap in one still are not synchronization. A single-actor design for a group story is an incomplete candidate, however polished.
+
 Read `animation-handoff.md`, `paint.js`, and the manifest. Resolve paths from the manifest. If nobody has chosen a design, ask which candidate, and draft the action list without inventing a new silhouette.
 
 The view is side-on. Facing is usually right, and patrol code flips the sprite. Record the gameplay display size, the root pivot, body bounds, and the actions that match real behavior: idle, a telegraph, the attack, recovery, a bonk squash, or a defeat. Skip states the actor does not need.
@@ -25,7 +27,7 @@ Attacks need a tell, an active moment, and a recovery. Looping poses must meet. 
 
 ## Preview and handoff
 
-Preview at gameplay size on black and on white. Check alpha, clipped feet, a drifting pivot, a changed palette, and a loop that pops. A contact sheet of stills is not playback. The preview HTML should cycle the poses on the timing you chose.
+Preview at gameplay size on black and on white. Check alpha, clipped feet, a drifting pivot, a changed palette, and a loop that pops. A contact sheet of stills is not playback. The preview HTML should cycle the poses on the timing you chose. For group stories the preview shows the full ensemble across at least one whole beat: count the actors, read the phase relationship, and confirm the formation moment lands — behavior is judged in motion at gameplay scale, never from a frozen frame that merely contains the actors.
 
 Write `animation-manifest.json` next to the paints:
 

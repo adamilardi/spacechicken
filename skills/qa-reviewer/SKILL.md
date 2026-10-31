@@ -17,6 +17,8 @@ Cover both modes (Normal/Hard), keyboard plus one of gamepad or touch, and co-op
 
 ## Review
 
+**Fresh runs, plural.** Timing, patrol phase, and player skill vary per attempt, so one clear proves almost nothing: play several fresh starts (vary start delay so patrol and tween phases differ), keep failed attempts beside passes, and report the worst case and any repeated death hotspot next to the best run. A hotspot is unfair only after it repeats across phases; a single timeout is a reproducibility flag, not a verdict. When a mechanic claims an observable (bonk count, lift contact, cargo state, synchronized crossing), record it from the run — a crown with zero bonks is the finding, whatever the brief or screenshots claim. Confirmations QA accepts as "human" name a human reviewer (`reviewerType: "human"`); agent visual review is supporting evidence, never the human check itself.
+
 Play the plan and report each failure as observed behavior, expected behavior, level id, mode, input, and reproduction steps. Confirm pause (Escape, P, button) freezes play, death retry restores a clean scene, the crown ends the run, and the next level or final clear follows. Flag debug-only proofs, untested branch paths (level 12 offers 13 or 16), and regressions against `PerformanceBudgets.js`.
 
 Judge feel, not just function — the four 2026-10-21 human playtest complaints reached a player first, and review should have caught them:

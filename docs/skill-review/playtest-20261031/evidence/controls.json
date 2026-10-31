@@ -1,0 +1,274 @@
+[
+    {
+        "id": 1,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 116.00000000000003,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 17,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 163.3333333333333,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 18,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 163.3333333333333,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 19,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 163.3333333333333,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 20,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 163.3333333333333,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 21,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 163.3333333333333,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 22,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 160.66666666666663,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    },
+    {
+        "id": 23,
+        "errors": [],
+        "pause": [
+            {
+                "key": "Escape",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "p",
+                "open": true,
+                "frozen": true
+            },
+            {
+                "key": "button",
+                "open": true,
+                "frozen": true
+            }
+        ],
+        "keyboard": {
+            "x": 163.3333333333333,
+            "started": true
+        },
+        "touch": {
+            "right": true,
+            "jumping": true,
+            "vx": 160
+        },
+        "layout": {
+            "overflow": false,
+            "touch": true
+        }
+    }
+]

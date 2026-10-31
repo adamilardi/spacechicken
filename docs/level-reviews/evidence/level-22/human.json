@@ -7,5 +7,6 @@
     ],
     "reviewer": "agent human-review (screenshots opened)",
     "date": "2026-10-31",
-    "reasoning": "Opened 01-opener.jpg and 06-finale.jpg: night launch-coast plate with tower gantry and booster prop on the start deck (rows 3, 1); Starlink satellite drone visible patrolling in the opener (row 2); rescue cage with RESCUE ME callout on the shelf (row 4); finale shows the crown on the gold droneship deck beside the booster prop after the descent (row 1). Descent topology, drones, and rescues verified in levels/booster-homecoming.js data."
+    "reasoning": "Opened 01-opener.jpg and 06-finale.jpg: night launch-coast plate with tower gantry and booster prop on the start deck (rows 3, 1); Starlink satellite drone visible patrolling in the opener (row 2); rescue cage with RESCUE ME callout on the shelf (row 4); finale shows the crown on the gold droneship deck beside the booster prop after the descent (row 1). Descent topology, drones, and rescues verified in levels/booster-homecoming.js data.",
+    "reviewerType": "agent"
 }

@@ -1,0 +1,2046 @@
+{
+    "17": {
+        "level": 17,
+        "run": "full",
+        "analysis": {
+            "title": "Ticker Plunge",
+            "gravity": 300,
+            "worldWidth": 6000,
+            "backgroundType": "bastion",
+            "platformCount": 14,
+            "platformKeys": ["bastionDeck", "bastionGrate", "vaultDeck"],
+            "dominantKeyShare": 0.5714285714285714,
+            "hazardTypes": ["laser", "drone", "roller"],
+            "hazardCount": 6,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 0,
+            "checkpoints": [
+                {
+                    "x": 1750,
+                    "y": 520
+                },
+                {
+                    "x": 2600,
+                    "y": 500
+                },
+                {
+                    "x": 3350,
+                    "y": 530
+                },
+                {
+                    "x": 4650,
+                    "y": 500
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 1,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.367, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783,
+                0.858, 0.942
+            ],
+            "platformBands": [11, 10, 10, 9, 8, 6, 9, 10, 10, 9, 9, 7, 7, 7]
+        },
+        "flags": [
+            {
+                "id": "skeleton-rhyme",
+                "detail": "deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints"
+            },
+            {
+                "id": "background-recycled",
+                "detail": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device"
+            }
+        ],
+        "telemetry": {
+            "level": 17,
+            "outcome": "crown-collected",
+            "durationSec": 67.8,
+            "deaths": 2,
+            "deathSpots": [1523, 1510],
+            "maxX": 5611,
+            "hazardTypesSeen": ["laser", "drone", "boulder", "rock"],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-drone",
+                "file": "02-hazard-drone.jpg",
+                "proves": "hazard beat: drone at x=1400"
+            },
+            {
+                "id": "03-hazard-laser",
+                "file": "03-hazard-laser.jpg",
+                "proves": "hazard beat: laser at x=1960"
+            },
+            {
+                "id": "04-hazard-roller",
+                "file": "04-hazard-roller.jpg",
+                "proves": "hazard beat: roller at x=2900"
+            },
+            {
+                "id": "05-finale",
+                "file": "05-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 1.81,
+                "fairness": 1.52,
+                "readability": 2.27,
+                "novelty": 0.76,
+                "pacing": 2.08,
+                "theme": 2.04,
+                "flaw": "clone",
+                "verdict": "rework"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 2,
+                "fairness": 1.55,
+                "readability": 2.34,
+                "novelty": 0.56,
+                "pacing": 2.02,
+                "theme": 2.18,
+                "flaw": "clone",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 1.98,
+                "fairness": 1.61,
+                "readability": 2.12,
+                "novelty": 0.57,
+                "pacing": 2.19,
+                "theme": 2.27,
+                "flaw": "clone",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 1.98,
+                "fairness": 1.45,
+                "readability": 2.25,
+                "novelty": 0.52,
+                "pacing": 2.09,
+                "theme": 2.33,
+                "flaw": "clone",
+                "verdict": "iterate"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 17 — Ticker Plunge (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/17.md",
+            "codeChecks": {
+                "elements": [],
+                "sceneryOnlyFacts": ["AI data-center spending boom"]
+            },
+            "sent": true,
+            "elements": [],
+            "rows": [
+                {
+                    "fact": "Value plunges, index falls",
+                    "mechanic": "Descending server-deck route toward crown at the floor's end; rolling margin-call rollers",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.33
+                },
+                {
+                    "fact": "AI data-center spending boom",
+                    "mechanic": "Bastion data-center biome + generated Muse Image backdrop (cyan conduits, plunging red ticker)",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.8
+                },
+                {
+                    "fact": "Panic spreads through names",
+                    "mechanic": "Generated Ticker Bot panic drones patrolling decks + laser audits timing gates",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.97
+                },
+                {
+                    "fact": "Investors must decide: hold or exit",
+                    "mechanic": "Reach the crown to \"close the position\"; checkpoints as circuit breakers",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.44
+                }
+            ],
+            "mechanicFidelity": 2.89,
+            "visualFidelity": 2.82,
+            "fidelityFlaw": "none",
+            "universeFit": 0.96,
+            "usage": {
+                "input_tokens": 11669,
+                "output_tokens": 280
+            },
+            "gate": {
+                "passed": false,
+                "shown": 0,
+                "contradicted": 0,
+                "unsupported": 0,
+                "needsHuman": [
+                    "row:Value plunges, index falls",
+                    "row:Investors must decide: hold or exit"
+                ],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": []
+        },
+        "concept": {
+            "passed": false,
+            "missing": [
+                "novelty-ledger",
+                "signature-mechanic-canvas",
+                "topology-fingerprint",
+                "element-inventory>=3",
+                "themed-enemy",
+                "signature-marking"
+            ],
+            "sceneryOnlyFacts": ["AI data-center spending boom"],
+            "elementCount": 0,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": ["novelty mean 0.60 < news floor 1.5"],
+        "fixes": [
+            {
+                "rank": 1,
+                "priority": 1,
+                "flaw": "clone",
+                "source": "quality",
+                "evidence": "4/4 personas named \"clone\"; 02-hazard-drone.jpg (hazard beat: drone at x=1400)",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 2,
+                "priority": 1,
+                "flaw": "skeleton-rhyme",
+                "source": "mechanical",
+                "evidence": "deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 3,
+                "priority": 2,
+                "flaw": "concept:incomplete-brief",
+                "source": "concept",
+                "evidence": "build brief fails the concept gate: missing novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Complete the missing concept artefacts in the build brief (novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom), then re-run npm run critic:concept.",
+                "recheck": "Concept gate passes (npm run critic:concept) before any art or build spend."
+            },
+            {
+                "rank": 4,
+                "priority": 3,
+                "flaw": "background-recycled",
+                "source": "mechanical",
+                "evidence": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device",
+                "owner": "skills/level-art-creator/SKILL.md",
+                "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 5,
+                "priority": 4,
+                "flaw": "needs-human",
+                "source": "fidelity",
+                "evidence": "row:Value plunges, index falls is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+                "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+                "smallestFix": "Confirm or override \"row:Value plunges, index falls\" against the screenshot and record it in human.json.",
+                "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+            }
+        ],
+        "loop": 2,
+        "priorFlaw": "concept:incomplete-brief",
+        "loopExceeded": false,
+        "pilotRuns": 2,
+        "repeatedFlaws": ["clone"],
+        "passed": false
+    },
+    "18": {
+        "level": 18,
+        "run": "full",
+        "analysis": {
+            "title": "Fear Spike",
+            "gravity": 300,
+            "worldWidth": 6000,
+            "backgroundType": "skyhook",
+            "platformCount": 16,
+            "platformKeys": ["skyhookDeck", "skyhookPanel", "vaultDeck"],
+            "dominantKeyShare": 0.5,
+            "hazardTypes": ["laser", "bearRaider", "crusher"],
+            "hazardCount": 13,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 4,
+            "checkpoints": [
+                {
+                    "x": 1800,
+                    "y": 490
+                },
+                {
+                    "x": 3300,
+                    "y": 290
+                },
+                {
+                    "x": 4700,
+                    "y": 120
+                }
+            ],
+            "crownX": 5700,
+            "finaleHazardCount": 4,
+            "platformBands": [11, 10, 9, 8, 8, 7, 6, 6, 6, 4, 5, 3, 3, 3, 2, 1]
+        },
+        "flags": [],
+        "telemetry": {
+            "level": 18,
+            "outcome": "crown-collected",
+            "durationSec": 67.7,
+            "deaths": 1,
+            "deathSpots": [821],
+            "maxX": 5680,
+            "hazardTypesSeen": ["laser", "bearRaider", "crusher", "rock"],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-crusher",
+                "file": "02-hazard-crusher.jpg",
+                "proves": "hazard beat: crusher at x=800"
+            },
+            {
+                "id": "03-hazard-laser",
+                "file": "03-hazard-laser.jpg",
+                "proves": "hazard beat: laser at x=1650"
+            },
+            {
+                "id": "04-setpiece-closingBell",
+                "file": "04-setpiece-closingBell.jpg",
+                "proves": "set piece: closingBell at x=5850"
+            },
+            {
+                "id": "05-finale",
+                "file": "05-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 2.33,
+                "fairness": 1.88,
+                "readability": 2.39,
+                "novelty": 1.92,
+                "pacing": 2.27,
+                "theme": 2.29,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 2.4,
+                "fairness": 1.8,
+                "readability": 2.39,
+                "novelty": 1.76,
+                "pacing": 2.23,
+                "theme": 2.38,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 2.29,
+                "fairness": 1.76,
+                "readability": 2.12,
+                "novelty": 1.78,
+                "pacing": 2.21,
+                "theme": 2.31,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 2.46,
+                "fairness": 1.81,
+                "readability": 2.35,
+                "novelty": 1.84,
+                "pacing": 2.37,
+                "theme": 2.46,
+                "flaw": "none",
+                "verdict": "iterate"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 18 — Fear Spike (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/18.md",
+            "codeChecks": {
+                "elements": [
+                    {
+                        "element": "VIX fear gauge + needle tower",
+                        "claimed": true
+                    },
+                    {
+                        "element": "falling red candlesticks",
+                        "claimed": true
+                    },
+                    {
+                        "element": "\"-29%\" Intel/Reddit crater plates",
+                        "claimed": true
+                    },
+                    {
+                        "element": "dead-cat bounce shafts",
+                        "claimed": true
+                    },
+                    {
+                        "element": "closing bell",
+                        "claimed": true
+                    }
+                ],
+                "sceneryOnlyFacts": []
+            },
+            "sent": true,
+            "elements": [
+                {
+                    "element": "VIX fear gauge + needle tower",
+                    "signature": true,
+                    "noul": 0.94,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "falling red candlesticks",
+                    "signature": false,
+                    "noul": 0.44,
+                    "verdict": "faint"
+                },
+                {
+                    "element": "\"-29%\" Intel/Reddit crater plates",
+                    "signature": false,
+                    "noul": 0.78,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "dead-cat bounce shafts",
+                    "signature": false,
+                    "noul": 0.35,
+                    "verdict": "missing"
+                },
+                {
+                    "element": "closing bell",
+                    "signature": true,
+                    "noul": 0.46,
+                    "verdict": "faint"
+                }
+            ],
+            "rows": [
+                {
+                    "fact": "VIX rose 22.7% to 21.08",
+                    "mechanic": "Ascending 3-act zigzag up the needle; laser off-phases shrink act-to-act (1180->1000->900)",
+                    "signature": true,
+                    "choice": "unsupported",
+                    "confidence": 0.44
+                },
+                {
+                    "fact": "Intel -29%, Reddit -29%",
+                    "mechanic": "Red-candlestick crushers + \"-29%\" crater plates as set dressing",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.5
+                },
+                {
+                    "fact": "Third correction of 2026",
+                    "mechanic": "Three zigzag acts linked by stair shafts; finale is triple circuit-breaker beam gates (off 850 each), crown is the closing bell",
+                    "signature": false,
+                    "choice": "unsupported",
+                    "confidence": 0.49
+                },
+                {
+                    "fact": "Doubts over AI spending returns",
+                    "mechanic": "Bear Raiders: panic bots that dive at the climber; bonk them to bounce higher",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.79
+                }
+            ],
+            "mechanicFidelity": 2.73,
+            "visualFidelity": 3.01,
+            "fidelityFlaw": "none",
+            "universeFit": 0.96,
+            "usage": {
+                "input_tokens": 12120,
+                "output_tokens": 370
+            },
+            "gate": {
+                "passed": true,
+                "shown": 4,
+                "contradicted": 0,
+                "unsupported": 0,
+                "needsHuman": [],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": [
+                "row:VIX rose 22.7% to 21.08",
+                "row:Intel -29%, Reddit -29%",
+                "row:Third correction of 2026",
+                "element:closing bell",
+                "element:falling red candlesticks",
+                "row:Doubts over AI spending returns"
+            ]
+        },
+        "concept": {
+            "passed": true,
+            "missing": [],
+            "sceneryOnlyFacts": [],
+            "elementCount": 5,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": [],
+        "fixes": [],
+        "loop": 2,
+        "priorFlaw": "cheap",
+        "loopExceeded": false,
+        "pilotRuns": 2,
+        "repeatedFlaws": [],
+        "passed": true
+    },
+    "19": {
+        "level": 19,
+        "run": "full",
+        "analysis": {
+            "title": "Hubble Rescue",
+            "gravity": 200,
+            "worldWidth": 6000,
+            "backgroundType": "iss",
+            "platformCount": 14,
+            "platformKeys": ["issHull", "stationPanel", "vaultDeck"],
+            "dominantKeyShare": 0.5714285714285714,
+            "hazardTypes": ["laser", "drip", "drone", "roller"],
+            "hazardCount": 8,
+            "hasBoss": false,
+            "movingCount": 2,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1750,
+                    "y": 600
+                },
+                {
+                    "x": 2600,
+                    "y": 460
+                },
+                {
+                    "x": 3500,
+                    "y": 410
+                },
+                {
+                    "x": 4650,
+                    "y": 290
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 2,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.367, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783,
+                0.858, 0.942
+            ],
+            "platformBands": [11, 11, 11, 10, 8, 8, 9, 8, 7, 6, 5, 5, 6, 5]
+        },
+        "flags": [
+            {
+                "id": "skeleton-rhyme",
+                "detail": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints"
+            }
+        ],
+        "telemetry": {
+            "level": 19,
+            "outcome": "crown-collected",
+            "durationSec": 50.7,
+            "deaths": 0,
+            "deathSpots": [],
+            "maxX": 5654,
+            "hazardTypesSeen": ["laser", "drone", "boulder", "acid_drip", "rock"],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-drip",
+                "file": "02-hazard-drip.jpg",
+                "proves": "hazard beat: drip at x=1400"
+            },
+            {
+                "id": "03-hazard-laser",
+                "file": "03-hazard-laser.jpg",
+                "proves": "hazard beat: laser at x=1960"
+            },
+            {
+                "id": "04-hazard-roller",
+                "file": "04-hazard-roller.jpg",
+                "proves": "hazard beat: roller at x=2900"
+            },
+            {
+                "id": "05-setpiece-rfiEnvelope",
+                "file": "05-setpiece-rfiEnvelope.jpg",
+                "proves": "set piece: rfiEnvelope at x=950"
+            },
+            {
+                "id": "06-finale",
+                "file": "06-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 1.74,
+                "fairness": 1.86,
+                "readability": 2.28,
+                "novelty": 0.55,
+                "pacing": 1.9,
+                "theme": 2.16,
+                "flaw": "clone",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 1.92,
+                "fairness": 1.83,
+                "readability": 2.29,
+                "novelty": 0.5,
+                "pacing": 2.13,
+                "theme": 2.38,
+                "flaw": "clone",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 1.98,
+                "fairness": 1.82,
+                "readability": 2.16,
+                "novelty": 0.47,
+                "pacing": 2.18,
+                "theme": 2.37,
+                "flaw": "clone",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 1.89,
+                "fairness": 1.8,
+                "readability": 2.32,
+                "novelty": 0.51,
+                "pacing": 2.24,
+                "theme": 2.42,
+                "flaw": "clone",
+                "verdict": "iterate"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 19 — Hubble Rescue (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/19.md",
+            "codeChecks": {
+                "elements": [
+                    {
+                        "element": "Hubble tube",
+                        "claimed": true
+                    },
+                    {
+                        "element": "solar arrays",
+                        "claimed": true
+                    },
+                    {
+                        "element": "servicing arms",
+                        "claimed": true
+                    },
+                    {
+                        "element": "RFI proposal envelopes",
+                        "claimed": true
+                    },
+                    {
+                        "element": "capture net",
+                        "claimed": true
+                    },
+                    {
+                        "element": "reboost flame",
+                        "claimed": true
+                    },
+                    {
+                        "element": "altitude gate 600km",
+                        "claimed": true
+                    }
+                ],
+                "sceneryOnlyFacts": []
+            },
+            "sent": true,
+            "elements": [
+                {
+                    "element": "Hubble tube",
+                    "signature": true,
+                    "noul": 0.85,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "solar arrays",
+                    "signature": false,
+                    "noul": 0.96,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "servicing arms",
+                    "signature": true,
+                    "noul": 0.87,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "RFI proposal envelopes",
+                    "signature": false,
+                    "noul": 0.93,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "capture net",
+                    "signature": false,
+                    "noul": 0.23,
+                    "verdict": "missing"
+                },
+                {
+                    "element": "reboost flame",
+                    "signature": false,
+                    "noul": 0.48,
+                    "verdict": "faint"
+                }
+            ],
+            "rows": [
+                {
+                    "fact": "Hubble decayed 583km to 470km, will plunge 2033/34",
+                    "mechanic": "Sink-and-rise topology: open high, dip low through decay decks, then lift tower climb to crown; gravity 200",
+                    "signature": false,
+                    "choice": "unsupported",
+                    "confidence": 0.28
+                },
+                {
+                    "fact": "NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
+                    "mechanic": "Reboost lift tower + crown gate at top as the 600km dock; rescue cages as servicing tasks; lift timing gates",
+                    "signature": true,
+                    "choice": "supports",
+                    "confidence": 0.31
+                },
+                {
+                    "fact": "No onboard propulsion, solar activity shifts reentry",
+                    "mechanic": "Cosmic-ray laser timing hazards + drip solar particles with varied on/off timing; patrol drone lanes",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.97
+                },
+                {
+                    "fact": "Contractor provides servicing spacecraft, mission by 2032",
+                    "mechanic": "Themed enemy Servicer Tug drones patrolling the climb; checkpoints as proposal milestones to crown objective",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.6
+                }
+            ],
+            "mechanicFidelity": 2.7,
+            "visualFidelity": 3.45,
+            "fidelityFlaw": "none",
+            "universeFit": 0.97,
+            "usage": {
+                "input_tokens": 12218,
+                "output_tokens": 388
+            },
+            "gate": {
+                "passed": false,
+                "shown": 4,
+                "contradicted": 0,
+                "unsupported": 0,
+                "needsHuman": ["element:reboost flame"],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": [
+                "row:Hubble decayed 583km to 470km, will plunge 2033/34",
+                "row:NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
+                "row:Contractor provides servicing spacecraft, mission by 2032"
+            ]
+        },
+        "concept": {
+            "passed": true,
+            "missing": [],
+            "sceneryOnlyFacts": [],
+            "elementCount": 7,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": ["novelty mean 0.51 < news floor 1.5"],
+        "fixes": [
+            {
+                "rank": 1,
+                "priority": 1,
+                "flaw": "clone",
+                "source": "quality",
+                "evidence": "4/4 personas named \"clone\"; 02-hazard-drip.jpg (hazard beat: drip at x=1400)",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 2,
+                "priority": 1,
+                "flaw": "skeleton-rhyme",
+                "source": "mechanical",
+                "evidence": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 3,
+                "priority": 2,
+                "flaw": "missing-elements",
+                "source": "fidelity",
+                "evidence": "element \"capture net\" missing in shots (noul=0.23)",
+                "owner": "skills/level-art-creator/SKILL.md",
+                "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+                "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+            },
+            {
+                "rank": 4,
+                "priority": 4,
+                "flaw": "needs-human",
+                "source": "fidelity",
+                "evidence": "element:reboost flame is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+                "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+                "smallestFix": "Confirm or override \"element:reboost flame\" against the screenshot and record it in human.json.",
+                "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+            }
+        ],
+        "loop": 1,
+        "priorFlaw": null,
+        "loopExceeded": false,
+        "pilotRuns": 2,
+        "repeatedFlaws": ["clone"],
+        "passed": false
+    },
+    "20": {
+        "level": 20,
+        "run": "full",
+        "analysis": {
+            "title": "Robot Dance Sync",
+            "gravity": 240,
+            "worldWidth": 6000,
+            "backgroundType": "facility",
+            "platformCount": 14,
+            "platformKeys": ["labDeck", "bastionGrate", "vaultDeck"],
+            "dominantKeyShare": 0.5714285714285714,
+            "hazardTypes": ["laser", "drone", "roller", "bonk"],
+            "hazardCount": 8,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1750,
+                    "y": 520
+                },
+                {
+                    "x": 2600,
+                    "y": 500
+                },
+                {
+                    "x": 3350,
+                    "y": 500
+                },
+                {
+                    "x": 4650,
+                    "y": 440
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 2,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.367, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783,
+                0.858, 0.942
+            ],
+            "platformBands": [11, 10, 10, 9, 8, 7, 9, 9, 9, 8, 8, 7, 7, 7]
+        },
+        "flags": [
+            {
+                "id": "skeleton-rhyme",
+                "detail": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints"
+            }
+        ],
+        "telemetry": {
+            "level": 20,
+            "outcome": "crown-collected",
+            "durationSec": 85.9,
+            "deaths": 4,
+            "deathSpots": [1423, 1663, 1441, 5178],
+            "maxX": 5615,
+            "hazardTypesSeen": ["laser", "drone", "boulder", "calibrationTech", "rock"],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-drone",
+                "file": "02-hazard-drone.jpg",
+                "proves": "hazard beat: drone at x=1400"
+            },
+            {
+                "id": "03-hazard-laser",
+                "file": "03-hazard-laser.jpg",
+                "proves": "hazard beat: laser at x=1960"
+            },
+            {
+                "id": "04-hazard-roller",
+                "file": "04-hazard-roller.jpg",
+                "proves": "hazard beat: roller at x=2900"
+            },
+            {
+                "id": "05-setpiece-countdownBoard",
+                "file": "05-setpiece-countdownBoard.jpg",
+                "proves": "set piece: countdownBoard at x=2400"
+            },
+            {
+                "id": "06-finale",
+                "file": "06-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 1.43,
+                "fairness": 1.31,
+                "readability": 2.16,
+                "novelty": 0.65,
+                "pacing": 1.81,
+                "theme": 1.73,
+                "flaw": "clone",
+                "verdict": "rework"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 1.66,
+                "fairness": 1.34,
+                "readability": 2.13,
+                "novelty": 0.43,
+                "pacing": 1.83,
+                "theme": 1.84,
+                "flaw": "clone",
+                "verdict": "rework"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 1.71,
+                "fairness": 1.37,
+                "readability": 1.99,
+                "novelty": 0.36,
+                "pacing": 1.96,
+                "theme": 1.91,
+                "flaw": "clone",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 1.54,
+                "fairness": 1.3,
+                "readability": 2.2,
+                "novelty": 0.51,
+                "pacing": 2.01,
+                "theme": 2,
+                "flaw": "clone",
+                "verdict": "rework"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 20 — Robot Dance Sync (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/20.md",
+            "codeChecks": {
+                "elements": [
+                    {
+                        "element": "humanoid dancer bots",
+                        "claimed": true
+                    },
+                    {
+                        "element": "stage formation grid",
+                        "claimed": true
+                    },
+                    {
+                        "element": "transport cases",
+                        "claimed": false
+                    },
+                    {
+                        "element": "LinkBots antenna mast",
+                        "claimed": true
+                    },
+                    {
+                        "element": "countdown numerals",
+                        "claimed": true
+                    },
+                    {
+                        "element": "Guinness certificate gate",
+                        "claimed": true
+                    },
+                    {
+                        "element": "wave light beams",
+                        "claimed": true
+                    }
+                ],
+                "sceneryOnlyFacts": []
+            },
+            "sent": true,
+            "elements": [
+                {
+                    "element": "humanoid dancer bots",
+                    "signature": true,
+                    "noul": 0.78,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "stage formation grid",
+                    "signature": true,
+                    "noul": 0.68,
+                    "verdict": "faint"
+                },
+                {
+                    "element": "transport cases",
+                    "signature": false,
+                    "noul": 0.51,
+                    "verdict": "faint"
+                },
+                {
+                    "element": "LinkBots antenna mast",
+                    "signature": false,
+                    "noul": 0.86,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "countdown numerals",
+                    "signature": false,
+                    "noul": 0.97,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "Guinness certificate gate",
+                    "signature": false,
+                    "noul": 0.28,
+                    "verdict": "missing"
+                }
+            ],
+            "rows": [
+                {
+                    "fact": "110 robots dance in unison 5m43s, wave patterns and formation switches",
+                    "mechanic": "Patrol drone waves timed to a beat: synchronized drone patrols + roller beat hazards crossing decks; topology as stage formation grid",
+                    "signature": true,
+                    "choice": "supports",
+                    "confidence": 0.82
+                },
+                {
+                    "fact": "LinkBots directs fleets over 5G+WiFi, UWB +-10cm, auto gap-fill",
+                    "mechanic": "Laser timing gates on a fixed beat (on/off 800ms+) + checkpoint rescue as re-sync points; crown objective as finale pose",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.22
+                },
+                {
+                    "fact": "Robots walk from cases, self-calibrate, no per-unit remote",
+                    "mechanic": "Bonk pads as calibration stages: bonk to bounce between formation decks; gravity 240 for floaty choreography",
+                    "signature": false,
+                    "choice": "unsupported",
+                    "confidence": 0.44
+                },
+                {
+                    "fact": "Guinness adjudicator counts and certifies on site",
+                    "mechanic": "Certification gauntlet: finale beat-laser gate + tempo roller crossing to the crown pose; finale checkpoint as the adjudicator mark",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.31
+                }
+            ],
+            "mechanicFidelity": 2.48,
+            "visualFidelity": 3.39,
+            "fidelityFlaw": "missing-elements",
+            "universeFit": 0.97,
+            "usage": {
+                "input_tokens": 12289,
+                "output_tokens": 389
+            },
+            "gate": {
+                "passed": false,
+                "shown": 3,
+                "contradicted": 0,
+                "unsupported": 1,
+                "needsHuman": [
+                    "element:stage formation grid",
+                    "element:transport cases",
+                    "row:LinkBots directs fleets over 5G+WiFi, UWB +-10cm, auto gap-fill",
+                    "row:Robots walk from cases, self-calibrate, no per-unit remote",
+                    "row:Guinness adjudicator counts and certifies on site"
+                ],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": ["element:humanoid dancer bots"]
+        },
+        "concept": {
+            "passed": true,
+            "missing": [],
+            "sceneryOnlyFacts": [],
+            "elementCount": 7,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": [
+            "novelty mean 0.49 < news floor 1.5",
+            "theme mean 1.87 < news floor 2"
+        ],
+        "fixes": [
+            {
+                "rank": 1,
+                "priority": 1,
+                "flaw": "clone",
+                "source": "quality",
+                "evidence": "4/4 personas named \"clone\"; 02-hazard-drone.jpg (hazard beat: drone at x=1400)",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 2,
+                "priority": 1,
+                "flaw": "skeleton-rhyme",
+                "source": "mechanical",
+                "evidence": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints",
+                "owner": "skills/level-creator/SKILL.md",
+                "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
+                "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+            },
+            {
+                "rank": 3,
+                "priority": 2,
+                "flaw": "missing-elements",
+                "source": "fidelity",
+                "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.48 visual=3.39",
+                "owner": "skills/level-art-creator/SKILL.md",
+                "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+                "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
+            },
+            {
+                "rank": 4,
+                "priority": 2,
+                "flaw": "missing-elements",
+                "source": "fidelity",
+                "evidence": "element \"Guinness certificate gate\" missing in shots (noul=0.28)",
+                "owner": "skills/level-art-creator/SKILL.md",
+                "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+                "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+            },
+            {
+                "rank": 5,
+                "priority": 4,
+                "flaw": "needs-human",
+                "source": "fidelity",
+                "evidence": "element:stage formation grid is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+                "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+                "smallestFix": "Confirm or override \"element:stage formation grid\" against the screenshot and record it in human.json.",
+                "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+            }
+        ],
+        "loop": 1,
+        "priorFlaw": null,
+        "loopExceeded": false,
+        "pilotRuns": 2,
+        "repeatedFlaws": ["clone"],
+        "passed": false
+    },
+    "21": {
+        "level": 21,
+        "run": "full",
+        "analysis": {
+            "title": "Phobos Sample Run",
+            "gravity": 150,
+            "worldWidth": 6000,
+            "backgroundType": "mars",
+            "platformCount": 13,
+            "platformKeys": ["cliff", "mesa", "vaultDeck"],
+            "dominantKeyShare": 0.46153846153846156,
+            "hazardTypes": ["laser", "drone", "roller", "bonk"],
+            "hazardCount": 8,
+            "hasBoss": false,
+            "movingCount": 1,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1300,
+                    "y": 380
+                },
+                {
+                    "x": 2800,
+                    "y": 480
+                },
+                {
+                    "x": 3350,
+                    "y": 480
+                },
+                {
+                    "x": 4650,
+                    "y": 390
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 2,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.133, 0.2, 0.275, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783, 0.858,
+                0.942
+            ],
+            "platformBands": [11, 9, 7, 7, 8, 9, 9, 8, 8, 7, 6, 7, 6]
+        },
+        "flags": [],
+        "telemetry": {
+            "level": 21,
+            "outcome": "crown-collected",
+            "durationSec": 57.5,
+            "deaths": 0,
+            "deathSpots": [],
+            "maxX": 5615,
+            "hazardTypesSeen": ["laser", "drone", "boulder", "signalTech", "rock"],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-bonk",
+                "file": "02-hazard-bonk.jpg",
+                "proves": "hazard beat: bonk at x=1550"
+            },
+            {
+                "id": "03-hazard-laser",
+                "file": "03-hazard-laser.jpg",
+                "proves": "hazard beat: laser at x=2000"
+            },
+            {
+                "id": "04-hazard-drone",
+                "file": "04-hazard-drone.jpg",
+                "proves": "hazard beat: drone at x=2500"
+            },
+            {
+                "id": "05-hazard-roller",
+                "file": "05-hazard-roller.jpg",
+                "proves": "hazard beat: roller at x=3000"
+            },
+            {
+                "id": "06-finale",
+                "file": "06-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 2.16,
+                "fairness": 2.19,
+                "readability": 2.46,
+                "novelty": 1.34,
+                "pacing": 2.2,
+                "theme": 2.11,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 2.25,
+                "fairness": 2.06,
+                "readability": 2.48,
+                "novelty": 1.46,
+                "pacing": 2.19,
+                "theme": 2.19,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 2.22,
+                "fairness": 2.09,
+                "readability": 2.37,
+                "novelty": 1.38,
+                "pacing": 2.3,
+                "theme": 2.2,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 2.37,
+                "fairness": 2.12,
+                "readability": 2.48,
+                "novelty": 1.43,
+                "pacing": 2.43,
+                "theme": 2.33,
+                "flaw": "none",
+                "verdict": "ship"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 21 — Phobos Sample Run (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/21.md",
+            "codeChecks": {
+                "elements": [
+                    {
+                        "element": "H3 rocket",
+                        "claimed": true
+                    },
+                    {
+                        "element": "Phobos crater field",
+                        "claimed": true
+                    },
+                    {
+                        "element": "sample tubes",
+                        "claimed": true
+                    },
+                    {
+                        "element": "return capsule",
+                        "claimed": true
+                    },
+                    {
+                        "element": "Estrack dish array",
+                        "claimed": false
+                    },
+                    {
+                        "element": "Mars in sky",
+                        "claimed": true
+                    },
+                    {
+                        "element": "Tanegashima beach gantry",
+                        "claimed": false
+                    }
+                ],
+                "sceneryOnlyFacts": []
+            },
+            "sent": true,
+            "elements": [
+                {
+                    "element": "H3 rocket",
+                    "signature": false,
+                    "noul": 0.92,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "Phobos crater field",
+                    "signature": true,
+                    "noul": 0.41,
+                    "verdict": "faint"
+                },
+                {
+                    "element": "sample tubes",
+                    "signature": true,
+                    "noul": 0.71,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "return capsule",
+                    "signature": false,
+                    "noul": 0.58,
+                    "verdict": "faint"
+                },
+                {
+                    "element": "Estrack dish array",
+                    "signature": false,
+                    "noul": 0.11,
+                    "verdict": "missing"
+                },
+                {
+                    "element": "Mars in sky",
+                    "signature": false,
+                    "noul": 0.98,
+                    "verdict": "shown"
+                }
+            ],
+            "rows": [
+                {
+                    "fact": "First to orbit Phobos, sample surface, return from Mars system",
+                    "mechanic": "Low-gravity carry run: gravity 150, rescue cages as sample tubes to collect, crown objective as Earth-return capsule",
+                    "signature": true,
+                    "choice": "supports",
+                    "confidence": 0.76
+                },
+                {
+                    "fact": "H3 launch from Tanegashima, night liftoff over beach",
+                    "mechanic": "Vertical launch shaft opening topology with lift tram ride up; checkpoint gates as staging separations",
+                    "signature": false,
+                    "choice": "unsupported",
+                    "confidence": 0.52
+                },
+                {
+                    "fact": "Arrives Mars next summer, investigates Phobos and Deimos up close",
+                    "mechanic": "Drone patrols as survey orbiters + cosmic-ray hazards; topology as crater loop-back",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.48
+                },
+                {
+                    "fact": "ESA deep-space comms + Estrack ground stations send commands",
+                    "mechanic": "Laser timing gates as comm windows + bonk springs as signal bounces; boarder wave as interference",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.26
+                }
+            ],
+            "mechanicFidelity": 2.69,
+            "visualFidelity": 3.51,
+            "fidelityFlaw": "missing-elements",
+            "universeFit": 0.97,
+            "usage": {
+                "input_tokens": 12167,
+                "output_tokens": 389
+            },
+            "gate": {
+                "passed": false,
+                "shown": 3,
+                "contradicted": 0,
+                "unsupported": 0,
+                "needsHuman": ["element:Phobos crater field", "element:return capsule"],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": [
+                "row:First to orbit Phobos, sample surface, return from Mars system",
+                "row:H3 launch from Tanegashima, night liftoff over beach",
+                "row:Arrives Mars next summer, investigates Phobos and Deimos up close",
+                "row:ESA deep-space comms + Estrack ground stations send commands"
+            ]
+        },
+        "concept": {
+            "passed": true,
+            "missing": [],
+            "sceneryOnlyFacts": [],
+            "elementCount": 7,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": ["novelty mean 1.40 < news floor 1.5"],
+        "fixes": [
+            {
+                "rank": 1,
+                "priority": 2,
+                "flaw": "missing-elements",
+                "source": "fidelity",
+                "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.69 visual=3.51",
+                "owner": "skills/level-art-creator/SKILL.md",
+                "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+                "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
+            },
+            {
+                "rank": 2,
+                "priority": 2,
+                "flaw": "missing-elements",
+                "source": "fidelity",
+                "evidence": "element \"Estrack dish array\" missing in shots (noul=0.11)",
+                "owner": "skills/level-art-creator/SKILL.md",
+                "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+                "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+            },
+            {
+                "rank": 3,
+                "priority": 4,
+                "flaw": "needs-human",
+                "source": "fidelity",
+                "evidence": "element:Phobos crater field is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+                "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+                "smallestFix": "Confirm or override \"element:Phobos crater field\" against the screenshot and record it in human.json.",
+                "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+            },
+            {
+                "rank": 4,
+                "priority": 4,
+                "flaw": "needs-human",
+                "source": "fidelity",
+                "evidence": "element:return capsule is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+                "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+                "smallestFix": "Confirm or override \"element:return capsule\" against the screenshot and record it in human.json.",
+                "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+            }
+        ],
+        "loop": 1,
+        "priorFlaw": null,
+        "loopExceeded": false,
+        "pilotRuns": 2,
+        "repeatedFlaws": [],
+        "passed": false
+    },
+    "22": {
+        "level": 22,
+        "run": "full",
+        "analysis": {
+            "title": "Booster Homecoming",
+            "gravity": 250,
+            "worldWidth": 3800,
+            "backgroundType": "harbor",
+            "platformCount": 11,
+            "platformKeys": ["harborDeck", "skyhookPanel", "vaultDeck"],
+            "dominantKeyShare": 0.5454545454545454,
+            "hazardTypes": ["drone", "laser", "roller", "drip"],
+            "hazardCount": 7,
+            "hasBoss": false,
+            "movingCount": 1,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1050,
+                    "y": 440
+                },
+                {
+                    "x": 2300,
+                    "y": 160
+                },
+                {
+                    "x": 3020,
+                    "y": 395
+                }
+            ],
+            "crownX": 3520,
+            "finaleHazardCount": 5,
+            "finaleVisibleHazardCount": 5,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.089, 0.208, 0.303, 0.311, 0.411, 0.521, 0.626, 0.726, 0.803, 0.821, 0.916
+            ],
+            "platformBands": [11, 10, 8, 7, 6, 4, 6, 8, 9, 6, 5]
+        },
+        "flags": [],
+        "telemetry": {
+            "level": 22,
+            "outcome": "crown-collected",
+            "durationSec": 36.4,
+            "deaths": 0,
+            "deathSpots": [],
+            "maxX": 3535,
+            "hazardTypesSeen": ["drone", "laser", "boulder", "acid_drip", "rock"],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-drone",
+                "file": "02-hazard-drone.jpg",
+                "proves": "hazard beat: drone at x=1250"
+            },
+            {
+                "id": "03-hazard-laser",
+                "file": "03-hazard-laser.jpg",
+                "proves": "hazard beat: laser at x=2200"
+            },
+            {
+                "id": "04-hazard-roller",
+                "file": "04-hazard-roller.jpg",
+                "proves": "hazard beat: roller at x=2680"
+            },
+            {
+                "id": "05-finale",
+                "file": "05-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 2.37,
+                "fairness": 2.05,
+                "readability": 2.34,
+                "novelty": 1.43,
+                "pacing": 2.46,
+                "theme": 2.08,
+                "flaw": "none",
+                "verdict": "ship"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 2.46,
+                "fairness": 1.96,
+                "readability": 2.48,
+                "novelty": 1.48,
+                "pacing": 2.47,
+                "theme": 2.21,
+                "flaw": "none",
+                "verdict": "ship"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 2.35,
+                "fairness": 2.01,
+                "readability": 2.28,
+                "novelty": 1.49,
+                "pacing": 2.53,
+                "theme": 2.2,
+                "flaw": "none",
+                "verdict": "ship"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 2.57,
+                "fairness": 1.94,
+                "readability": 2.46,
+                "novelty": 1.6,
+                "pacing": 2.67,
+                "theme": 2.22,
+                "flaw": "none",
+                "verdict": "ship"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 22 — Booster Homecoming (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/22.md",
+            "codeChecks": {
+                "elements": [
+                    {
+                        "element": "Falcon booster",
+                        "claimed": true
+                    },
+                    {
+                        "element": "Starlink satellite",
+                        "claimed": true
+                    },
+                    {
+                        "element": "droneship deck",
+                        "claimed": true
+                    },
+                    {
+                        "element": "launch tower gantry",
+                        "claimed": true
+                    }
+                ],
+                "sceneryOnlyFacts": []
+            },
+            "sent": true,
+            "elements": [
+                {
+                    "element": "Falcon booster",
+                    "signature": true,
+                    "noul": 0.93,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "Starlink satellite",
+                    "signature": false,
+                    "noul": 0.92,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "droneship deck",
+                    "signature": true,
+                    "noul": 0.85,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "launch tower gantry",
+                    "signature": false,
+                    "noul": 0.94,
+                    "verdict": "shown"
+                }
+            ],
+            "rows": [
+                {
+                    "fact": "Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff",
+                    "mechanic": "Lambda topology: climb the launch tower to apogee, then a controlled descent down staggered decks to the droneship crown deck; a roller patrols the crown deck as the landing-burn guard",
+                    "signature": true,
+                    "choice": "supports",
+                    "confidence": 0.7
+                },
+                {
+                    "fact": "27 Starlink satellites climb to orbit",
+                    "mechanic": "Lift ride up the tower plus Starlink Sprite drone patrols crossing the ascent lanes; gravity 250 for a floaty climb",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.44
+                },
+                {
+                    "fact": "Halloween-eve night launch over the coast",
+                    "mechanic": "Harbor night biome with generated launch-coast plate; exhaust drip hazards fall down the descent shaft",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.68
+                },
+                {
+                    "fact": "700th launch milestone, recovery crew waits on the droneship",
+                    "mechanic": "Rescue cages as the recovery crew on the descent perches; checkpoints as flight milestones (liftoff, MECO, entry burn)",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.26
+                }
+            ],
+            "mechanicFidelity": 2.69,
+            "visualFidelity": 3.62,
+            "fidelityFlaw": "none",
+            "universeFit": 0.98,
+            "usage": {
+                "input_tokens": 12097,
+                "output_tokens": 352
+            },
+            "gate": {
+                "passed": true,
+                "shown": 4,
+                "contradicted": 0,
+                "unsupported": 0,
+                "needsHuman": [],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": [
+                "row:Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff",
+                "row:27 Starlink satellites climb to orbit",
+                "row:Halloween-eve night launch over the coast",
+                "row:700th launch milestone, recovery crew waits on the droneship"
+            ]
+        },
+        "concept": {
+            "passed": true,
+            "missing": [],
+            "sceneryOnlyFacts": [],
+            "elementCount": 4,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": [],
+        "fixes": [],
+        "loop": 7,
+        "priorFlaw": "cheap",
+        "loopExceeded": true,
+        "pilotRuns": 2,
+        "repeatedFlaws": [],
+        "passed": true
+    },
+    "23": {
+        "level": 23,
+        "run": "full",
+        "analysis": {
+            "title": "Reconnection",
+            "gravity": 340,
+            "worldWidth": 4600,
+            "backgroundType": "moon",
+            "platformCount": 12,
+            "platformKeys": ["labDeck", "issHull", "vaultDeck"],
+            "dominantKeyShare": 0.5,
+            "hazardTypes": ["bonk", "cosmicRay", "drone", "drip", "laser"],
+            "hazardCount": 9,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1300,
+                    "y": 400
+                },
+                {
+                    "x": 1950,
+                    "y": 325
+                },
+                {
+                    "x": 2950,
+                    "y": 345
+                }
+            ],
+            "crownX": 4250,
+            "finaleHazardCount": 3,
+            "finaleVisibleHazardCount": 2,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.074, 0.174, 0.283, 0.315, 0.402, 0.402, 0.446, 0.533, 0.565, 0.663, 0.772, 0.913
+            ],
+            "platformBands": [11, 9, 8, 6, 6, 10, 9, 8, 7, 6, 5, 4]
+        },
+        "flags": [],
+        "telemetry": {
+            "level": 23,
+            "outcome": "crown-collected",
+            "durationSec": 39.2,
+            "deaths": 0,
+            "deathSpots": [],
+            "maxX": 4256,
+            "hazardTypesSeen": [
+                "reconnectionSprite",
+                "drone",
+                "laser",
+                "acid_drip",
+                "cosmic_ray",
+                "rock"
+            ],
+            "errors": []
+        },
+        "shots": [
+            {
+                "id": "01-opener",
+                "file": "01-opener.jpg",
+                "proves": "spawn read and first move"
+            },
+            {
+                "id": "02-hazard-cosmicRay",
+                "file": "02-hazard-cosmicRay.jpg",
+                "proves": "hazard beat: cosmicRay at x=1700"
+            },
+            {
+                "id": "03-hazard-drone",
+                "file": "03-hazard-drone.jpg",
+                "proves": "hazard beat: drone at x=2350"
+            },
+            {
+                "id": "04-hazard-drip",
+                "file": "04-hazard-drip.jpg",
+                "proves": "hazard beat: drip at x=3740"
+            },
+            {
+                "id": "05-setpiece-cuspArc",
+                "file": "05-setpiece-cuspArc.jpg",
+                "proves": "set piece: cuspArc at x=520"
+            },
+            {
+                "id": "06-finale",
+                "file": "06-finale.jpg",
+                "proves": "crown approach and finale pressure"
+            }
+        ],
+        "screenshotsSent": true,
+        "reports": [
+            {
+                "persona": "reviewer",
+                "name": "Marlowe (expert reviewer)",
+                "fun": 2.28,
+                "fairness": 2.05,
+                "readability": 2.28,
+                "novelty": 1.71,
+                "pacing": 2.36,
+                "theme": 2.37,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "veteran",
+                "name": "Vic (contra veteran)",
+                "fun": 2.39,
+                "fairness": 2.01,
+                "readability": 2.41,
+                "novelty": 1.79,
+                "pacing": 2.35,
+                "theme": 2.45,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "casual",
+                "name": "Sam (casual newcomer)",
+                "fun": 2.34,
+                "fairness": 1.97,
+                "readability": 2.18,
+                "novelty": 1.68,
+                "pacing": 2.4,
+                "theme": 2.49,
+                "flaw": "none",
+                "verdict": "iterate"
+            },
+            {
+                "persona": "speedrunner",
+                "name": "Lex (speedrunner)",
+                "fun": 2.54,
+                "fairness": 2.06,
+                "readability": 2.41,
+                "novelty": 1.68,
+                "pacing": 2.6,
+                "theme": 2.61,
+                "flaw": "none",
+                "verdict": "ship"
+            }
+        ],
+        "fidelity": {
+            "briefHeadline": "Level 23 — Reconnection (news-to-level)",
+            "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/23.md",
+            "codeChecks": {
+                "elements": [
+                    {
+                        "element": "Reconnection Sprite",
+                        "claimed": true
+                    },
+                    {
+                        "element": "twin satellites",
+                        "claimed": true
+                    },
+                    {
+                        "element": "cusp funnel",
+                        "claimed": true
+                    },
+                    {
+                        "element": "magnetosphere arcs",
+                        "claimed": true
+                    }
+                ],
+                "sceneryOnlyFacts": []
+            },
+            "sent": true,
+            "elements": [
+                {
+                    "element": "Reconnection Sprite",
+                    "signature": true,
+                    "noul": 0.85,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "twin satellites",
+                    "signature": false,
+                    "noul": 0.8,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "cusp funnel",
+                    "signature": true,
+                    "noul": 0.85,
+                    "verdict": "shown"
+                },
+                {
+                    "element": "magnetosphere arcs",
+                    "signature": false,
+                    "noul": 0.87,
+                    "verdict": "shown"
+                }
+            ],
+            "rows": [
+                {
+                    "fact": "Magnetic field lines snap and explosively reconnect, releasing energy",
+                    "mechanic": "Bonk-snap verb: bonk Reconnection Sprites (bonk hazards) to bounce across broken field-line gaps too wide for a normal jump; gravity 340 so falls are fast and snaps are the way back up",
+                    "signature": true,
+                    "choice": "unsupported",
+                    "confidence": 0.42
+                },
+                {
+                    "fact": "Solar wind slams the magnetopause and accelerates particles",
+                    "mechanic": "Cosmic-ray particle streams (cosmicRay hazards) sweeping the funnel lanes plus drip particle rain on the press decks",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.85
+                },
+                {
+                    "fact": "Twin TRACERS satellites fly in formation through the cusp",
+                    "mechanic": "A twin drone pair on one shared patrol beat crossing the funnel throat",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.2
+                },
+                {
+                    "fact": "The cusp funnels field lines down to the pole",
+                    "mechanic": "Funnel topology: wide split upper/lower lines converge to a narrow crown gate past the cusp beam and finale sprite; crown is the cusp point",
+                    "signature": false,
+                    "choice": "supports",
+                    "confidence": 0.7
+                }
+            ],
+            "mechanicFidelity": 2.79,
+            "visualFidelity": 3.34,
+            "fidelityFlaw": "none",
+            "universeFit": 0.97,
+            "usage": {
+                "input_tokens": 12084,
+                "output_tokens": 352
+            },
+            "gate": {
+                "passed": true,
+                "shown": 4,
+                "contradicted": 0,
+                "unsupported": 0,
+                "needsHuman": [],
+                "signatureMissing": [],
+                "signatureUnsupported": [],
+                "universeVerdict": "shown"
+            },
+            "humanConfirmed": [
+                "row:Magnetic field lines snap and explosively reconnect, releasing energy",
+                "row:Twin TRACERS satellites fly in formation through the cusp",
+                "row:The cusp funnels field lines down to the pole"
+            ]
+        },
+        "concept": {
+            "passed": true,
+            "missing": [],
+            "sceneryOnlyFacts": [],
+            "elementCount": 4,
+            "mappingCount": 4
+        },
+        "newsFloorFailures": [],
+        "fixes": [],
+        "loop": 2,
+        "priorFlaw": "cheap",
+        "loopExceeded": false,
+        "pilotRuns": 1,
+        "repeatedFlaws": [],
+        "passed": true
+    }
+}
