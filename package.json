@@ -44,6 +44,8 @@
         "jev:playtest:headed": "HEADLESS=0 node scripts/jev-playtest.mjs",
         "critic:level": "node scripts/level-critic.mjs",
         "critic:level:static": "node scripts/level-critic.mjs --static",
+        "critic:concept": "node scripts/level-critic.mjs --concept",
+        "news:used": "node scripts/news-used-stories.mjs",
         "rl:baseline": "node scripts/rl/record-baseline.mjs",
         "rl:convert": "node scripts/rl/convert-jev.mjs",
         "rl:train": "python3 rl/train_bc.py",

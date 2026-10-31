@@ -154,6 +154,13 @@ export const level = {
                 scale: 0.05,
                 diveY: 320,
                 startDelay: 800,
+                // Critic fix (loop 2): this bear dives onto the only route
+                // deck and killed the pilot 4x within ~120px at the default
+                // 300ms blink tell. Widen the tell and slow the dive so the
+                // death traces to a missed tell, not a blink.
+                hoverMs: 1800,
+                telegraphMs: 750,
+                diveMs: 620,
             },
             {
                 type: 'laser',

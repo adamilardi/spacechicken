@@ -1,6 +1,6 @@
 {
   "level": 17,
-  "run": "full",
+  "run": "static",
   "analysis": {
     "title": "Ticker Plunge",
     "gravity": 300,
@@ -65,88 +65,10 @@
       "detail": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device"
     }
   ],
-  "telemetry": {
-    "level": 17,
-    "outcome": "crown-collected",
-    "durationSec": 46.5,
-    "deaths": 0,
-    "maxX": 5614,
-    "hazardTypesSeen": [
-      "laser",
-      "drone",
-      "boulder",
-      "rock"
-    ],
-    "errors": []
-  },
-  "shots": [
-    {
-      "id": "01-opener",
-      "file": "01-opener.jpg",
-      "proves": "spawn read and first move"
-    },
-    {
-      "id": "02-mid",
-      "file": "02-mid.jpg",
-      "proves": "mid-level set piece and hazard read"
-    },
-    {
-      "id": "03-finale",
-      "file": "03-finale.jpg",
-      "proves": "crown approach and finale pressure"
-    }
-  ],
-  "screenshotsSent": true,
-  "reports": [
-    {
-      "persona": "reviewer",
-      "name": "Marlowe (expert reviewer)",
-      "fun": 1.78,
-      "fairness": 1.97,
-      "readability": 2.12,
-      "novelty": 1.26,
-      "pacing": 1.77,
-      "theme": 2.21,
-      "flaw": "clone",
-      "verdict": "iterate"
-    },
-    {
-      "persona": "veteran",
-      "name": "Vic (contra veteran)",
-      "fun": 2.11,
-      "fairness": 1.72,
-      "readability": 2.26,
-      "novelty": 1.31,
-      "pacing": 1.86,
-      "theme": 2.52,
-      "flaw": "clone",
-      "verdict": "iterate"
-    },
-    {
-      "persona": "casual",
-      "name": "Sam (casual newcomer)",
-      "fun": 1.89,
-      "fairness": 1.75,
-      "readability": 1.8,
-      "novelty": 1.08,
-      "pacing": 1.66,
-      "theme": 2.47,
-      "flaw": "clone",
-      "verdict": "iterate"
-    },
-    {
-      "persona": "speedrunner",
-      "name": "Lex (speedrunner)",
-      "fun": 2.12,
-      "fairness": 1.87,
-      "readability": 2.26,
-      "novelty": 1.17,
-      "pacing": 2.03,
-      "theme": 2.55,
-      "flaw": "clone",
-      "verdict": "iterate"
-    }
-  ],
+  "telemetry": null,
+  "shots": [],
+  "screenshotsSent": false,
+  "reports": [],
   "fidelity": {
     "briefHeadline": "Level 17 — Ticker Plunge (news-to-level)",
     "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/17.md",
@@ -156,52 +78,87 @@
         "AI data-center spending boom"
       ]
     },
-    "sent": true,
     "elements": [],
     "rows": [
       {
         "fact": "Value plunges, index falls",
-        "mechanic": "Descending server-deck route toward crown at the floor's end; rolling margin-call rollers",
-        "choice": "supports",
-        "confidence": 0.56
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
       },
       {
         "fact": "AI data-center spending boom",
-        "mechanic": "Bastion data-center biome + generated Muse Image backdrop (cyan conduits, plunging red ticker)",
-        "choice": "supports",
-        "confidence": 0.92
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
       },
       {
         "fact": "Panic spreads through names",
-        "mechanic": "Generated Ticker Bot panic drones patrolling decks + laser audits timing gates",
-        "choice": "supports",
-        "confidence": 0.82
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
       },
       {
         "fact": "Investors must decide: hold or exit",
-        "mechanic": "Reach the crown to \"close the position\"; checkpoints as circuit breakers",
-        "choice": "supports",
-        "confidence": 0.58
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
       }
     ],
-    "mechanicFidelity": 2.95,
-    "visualFidelity": 3.23,
-    "fidelityFlaw": "none",
-    "usage": {
-      "input_tokens": 9086,
-      "output_tokens": 261
-    },
+    "sent": false,
     "gate": {
       "passed": false,
       "shown": 0,
       "contradicted": 0,
       "unsupported": 0,
       "needsHuman": [
-        "row:Value plunges, index falls",
-        "row:Investors must decide: hold or exit"
+        "panel-unavailable"
       ]
-    },
-    "humanConfirmed": []
+    }
   },
+  "concept": {
+    "passed": false,
+    "missing": [
+      "novelty-ledger",
+      "signature-mechanic-canvas",
+      "topology-fingerprint",
+      "element-inventory>=3",
+      "themed-enemy",
+      "signature-marking"
+    ],
+    "sceneryOnlyFacts": [
+      "AI data-center spending boom"
+    ],
+    "elementCount": 0,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 2,
+      "flaw": "concept:incomplete-brief",
+      "source": "concept",
+      "evidence": "build brief fails the concept gate: missing novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Complete the missing concept artefacts in the build brief (novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom), then re-run npm run critic:concept.",
+      "recheck": "Concept gate passes (npm run critic:concept) before any art or build spend."
+    },
+    {
+      "rank": 2,
+      "priority": 3,
+      "flaw": "background-recycled",
+      "source": "mechanical",
+      "evidence": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 0,
+  "repeatedFlaws": [],
   "passed": false
 }

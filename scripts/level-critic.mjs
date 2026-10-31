@@ -4,10 +4,18 @@
 // that verifies the level against its source story. Usage:
 //   node scripts/level-critic.mjs <level-id> [--static] [--brief <path>]
 //   NEWS_BRIEF=docs/level-builds/17.md node scripts/level-critic.mjs 17
+//   node scripts/level-critic.mjs --concept --brief docs/level-builds/17.md
 // Exit: 0 pass (or mechanical pass with --static), 2 iterate/rework, 1 error.
 // Skill contract: skills/game-critic/SKILL.md.
 import { createRequire } from 'node:module';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import {
+    mkdirSync,
+    readFileSync,
+    writeFileSync,
+    existsSync,
+    readdirSync,
+    unlinkSync,
+} from 'node:fs';
 import { openAsBlob } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -253,6 +261,18 @@ export function mechanicalFlags(analysis, allAnalyses, selfId) {
 
 // Accepts the build-report markdown shape: a fact→mechanic table and an
 // element inventory line/list. Fail-closed: missing pieces stay missing.
+function splitBriefList(line) {
+    return String(line || '')
+        .split(/[,;]/)
+        .map((item) =>
+            item
+                .replace(/\(.*?\)/g, '')
+                .replace(/\.*$/, '')
+                .trim()
+        )
+        .filter(Boolean);
+}
+
 export function parseNewsBrief(markdown) {
     const text = String(markdown || '');
     const headlineMatch = text.match(/^#.*$/m) || text.match(/headline[:\s]+(.+)/i);
@@ -278,7 +298,12 @@ export function parseNewsBrief(markdown) {
             .map((cell) => cell.trim())
             .filter(Boolean);
         if (cells.length >= 3 && !/story fact/i.test(cells[0]) && !/^-+$/.test(cells[0])) {
-            mappings.push({ fact: cells[0], mechanic: cells[1], why: cells[2] });
+            const signature = /\(signature\)|\[signature\]/i.test(cells[0]);
+            const fact = cells[0]
+                .replace(/\s*\(signature\)\s*/i, '')
+                .replace(/\s*\[signature\]\s*/i, '')
+                .trim();
+            mappings.push({ fact, mechanic: cells[1], why: cells[2], signature });
         }
     }
     const elements = [];
@@ -301,10 +326,37 @@ export function parseNewsBrief(markdown) {
             if (cleaned) elements.push(cleaned);
         }
     }
+    const signatureMatch = text.match(/signature elements?[^:\n]*:\s*([^\n]+)/i);
+    const signatureElements = signatureMatch ? splitBriefList(signatureMatch[1]) : [];
+    for (const mapping of mappings) {
+        if (mapping.signature) continue;
+        mapping.signature = false;
+    }
     return {
         headline: headlineMatch ? headlineMatch[0].replace(/^#+\s*/, '').trim() : null,
         elements,
         mappings,
+        signatureElements,
+        signatureFacts: mappings.filter((row) => row.signature).map((row) => row.fact),
+    };
+}
+
+export function withSignatureMarks(brief) {
+    const signatureElements = new Set(
+        (brief?.signatureElements || []).map((entry) => String(entry).toLowerCase())
+    );
+    const signatureFacts = new Set(
+        (brief?.signatureFacts || []).map((entry) => String(entry).toLowerCase())
+    );
+    return {
+        elements: (brief?.elements || []).map((element) => ({
+            element,
+            signature: signatureElements.has(String(element).toLowerCase()),
+        })),
+        rows: (brief?.mappings || []).map((row) => ({
+            fact: row.fact,
+            signature: Boolean(row.signature) || signatureFacts.has(String(row.fact).toLowerCase()),
+        })),
     };
 }
 
@@ -329,7 +381,7 @@ export function fidelityCodeChecks(brief, corpus) {
     });
     const sceneryOnly = (brief?.mappings || []).filter(
         (row) =>
-            !/gravity|hazard|objective|topology|laser|drone|roller|crusher|drip|beam|boss|checkpoint|crown|wave|patrol|timing/i.test(
+            !/gravity|hazard|objective|topology|laser|drone|roller|crusher|drip|beam|boss|checkpoint|crown|wave|patrol|timing|bonk|bounce|gate|shield|spring|dive|enemy|spawn|carry|rescue|tram|lift/i.test(
                 row.mechanic
             )
     );
@@ -348,6 +400,7 @@ export function fidelityGate({
     visualMean,
     reviewerFlaw,
     confirmed = [],
+    universeNoul = null,
 }) {
     const isConfirmed = (key) => confirmed.includes(key);
     const verdicts = elements.map((entry) =>
@@ -355,9 +408,15 @@ export function fidelityGate({
     );
     const shown = verdicts.filter((v) => v === 'shown').length;
     const contradicted = rows.filter((row) => row.choice === 'contradicts').length;
-    const unsupported = rows.filter(
+    const unsupportedRows = rows.filter(
         (row) => row.choice === 'unsupported' && !isConfirmed(`row:${row.fact}`)
-    ).length;
+    );
+    const unsupported = unsupportedRows.length;
+    const signatureMissing = elements.filter(
+        (entry, index) => entry.signature && verdicts[index] === 'missing'
+    );
+    const signatureUnsupported = unsupportedRows.filter((row) => row.signature);
+    const universeVerdict = universeNoul == null ? 'unscored' : elementVerdict(universeNoul);
     const needsHuman = [
         ...elements
             .filter(
@@ -369,15 +428,55 @@ export function fidelityGate({
         ...rows
             .filter((row) => (row.confidence ?? 0) < 0.8 && !isConfirmed(`row:${row.fact}`))
             .map((row) => `row:${row.fact}`),
+        ...(universeVerdict === 'faint' && !isConfirmed('universe:space-chicken')
+            ? ['universe:space-chicken']
+            : []),
     ];
     const passed =
         shown >= 3 &&
         contradicted === 0 &&
         unsupported <= 1 &&
+        signatureMissing.length === 0 &&
+        signatureUnsupported.length === 0 &&
+        needsHuman.length === 0 &&
+        universeVerdict !== 'missing' &&
         (mechanicMean ?? 0) >= 2.5 &&
         (visualMean ?? 0) >= 2.5 &&
         (reviewerFlaw || 'none') === 'none';
-    return { passed, shown, contradicted, unsupported, needsHuman };
+    return {
+        passed,
+        shown,
+        contradicted,
+        unsupported,
+        needsHuman,
+        signatureMissing: signatureMissing.map((entry) => entry.element),
+        signatureUnsupported: signatureUnsupported.map((row) => row.fact),
+        universeVerdict,
+    };
+}
+
+export function assessConcept(markdown) {
+    const text = String(markdown || '');
+    const brief = parseNewsBrief(text);
+    const lower = text.toLowerCase();
+    const missing = [];
+    if (!/novelty ledger/.test(lower)) missing.push('novelty-ledger');
+    if (!/signature mechanic/.test(lower)) missing.push('signature-mechanic-canvas');
+    if (!/topology fingerprint/.test(lower)) missing.push('topology-fingerprint');
+    if (brief.mappings.length < 3) missing.push('fact-mechanic-rows>=3');
+    if (brief.elements.length < 3) missing.push('element-inventory>=3');
+    if (!/themed enemy\s*:/.test(lower)) missing.push('themed-enemy');
+    if (!brief.signatureElements.length && !brief.signatureFacts.length) {
+        missing.push('signature-marking');
+    }
+    const sceneryOnlyFacts = fidelityCodeChecks(brief, '').sceneryOnlyFacts;
+    return {
+        passed: missing.length === 0 && sceneryOnlyFacts.length === 0,
+        missing,
+        sceneryOnlyFacts,
+        elementCount: brief.elements.length,
+        mappingCount: brief.mappings.length,
+    };
 }
 
 // Single source of truth for the flaw enum; qualityQuestions() and the gate
@@ -402,23 +501,342 @@ export const STRUCTURAL_FLAWS = new Set(['blind', 'cheap', 'unreadable', 'clone'
 // unreachable even for shipped levels. The gate instead asks: can any judge name
 // a concrete flaw, and does the level clear playable floors? A tutorial-simple
 // level still iterates on named flaws (flat) — human judgment applies there.
-export function panelPassed(reports, flags, screenshotsSent) {
+export function panelMeans(reports) {
+    const list = reports || [];
+    const mean = (key) =>
+        list.length ? list.reduce((sum, r) => sum + (r[key] || 0), 0) / list.length : 0;
+    return {
+        fun: mean('fun'),
+        fairness: mean('fairness'),
+        readability: mean('readability'),
+        novelty: mean('novelty'),
+        pacing: mean('pacing'),
+        theme: mean('theme'),
+    };
+}
+
+// News floors sit above the campaign floors: a daily news level is new
+// content, not a teaching level. Anchored to shipped news level 18
+// (novelty ~1.9, theme ~2.4, readability ~2.3, fairness ~1.65).
+export const NEWS_FLOORS = { novelty: 1.8, theme: 2.0, readability: 2.0, pacing: 1.5 };
+
+export function newsFloorFailures(reports) {
+    const means = panelMeans(reports);
+    return Object.entries(NEWS_FLOORS)
+        .filter(([key, floor]) => means[key] < floor)
+        .map(([key, floor]) => `${key} mean ${means[key].toFixed(2)} < news floor ${floor}`);
+}
+
+export function panelPassed(reports, flags, screenshotsSent, options = {}) {
     const list = reports || [];
     const reworks = list.filter((report) => report.verdict === 'rework').length;
     const flawless = list.filter((report) => (report.flaw || 'none') === 'none').length;
     const structural = list.filter((report) => STRUCTURAL_FLAWS.has(report.flaw)).length;
-    const mean = (key) =>
-        list.length ? list.reduce((sum, r) => sum + (r[key] || 0), 0) / list.length : 0;
+    const means = panelMeans(list);
+    const newsOk = !options.news || newsFloorFailures(list).length === 0;
     return Boolean(
         list.length === 4 &&
         reworks === 0 &&
         flawless >= 3 &&
         structural === 0 &&
-        mean('fun') >= 1.5 &&
-        mean('fairness') >= 1.5 &&
+        means.fun >= 1.5 &&
+        means.fairness >= 1.5 &&
+        newsOk &&
         !(flags || []).some((flag) => flag.id === 'clone-suspect' || flag.id === 'flat-deck') &&
         screenshotsSent !== false
     );
+}
+
+export function nextLoopInfo(priorReport) {
+    if (!priorReport || priorReport.passed) return { loop: 1, priorFlaw: null };
+    return {
+        loop: (priorReport.loop || 1) + 1,
+        priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
+    };
+}
+
+export function selectPanelShots(shots, max = 4) {
+    const list = shots || [];
+    if (list.length <= max) return list;
+    const picked = [list[0]];
+    for (const shot of list.slice(1, -1)) {
+        if (picked.length >= max - 1) break;
+        picked.push(shot);
+    }
+    picked.push(list.at(-1));
+    return picked;
+}
+
+// Beat sheet derived from level data: opener, one beat per distinct hazard
+// type at its first spawn (the themed enemy is a hazard type, so it is
+// photographed), signature set-piece props, then the finale. Beats closer
+// than 350px to an earlier beat are merged; at most 6 beats are shot.
+export function planBeats(analysis, content) {
+    const crownX = analysis?.crownX || 600;
+    const candidates = [{ slug: 'opener', x: 150, y: 480, proves: 'spawn read and first move' }];
+    const push = (candidate) => {
+        if (candidates.every((beat) => Math.abs(beat.x - candidate.x) > 350)) {
+            candidates.push(candidate);
+        }
+    };
+    const clampY = (y) => Math.min(560, Math.max(140, y ?? 400));
+    const dynamic = [...(content?.dynamic || [])].sort((a, b) => (a.x || 0) - (b.x || 0));
+    const seenTypes = new Set();
+    for (const hazard of dynamic) {
+        if (!hazard.type || seenTypes.has(hazard.type)) continue;
+        seenTypes.add(hazard.type);
+        push({
+            slug: `hazard-${hazard.type}`,
+            x: Math.round(hazard.x || 0),
+            y: clampY(hazard.y),
+            proves: `hazard beat: ${hazard.type} at x=${Math.round(hazard.x || 0)}`,
+        });
+        if (candidates.length >= 5) break;
+    }
+    const seenProps = new Set();
+    for (const prop of [...(content?.props || [])].sort((a, b) => (a.x || 0) - (b.x || 0))) {
+        if (!prop.key || seenProps.has(prop.key)) continue;
+        seenProps.add(prop.key);
+        push({
+            slug: `setpiece-${prop.key}`,
+            x: Math.round(prop.x || 0),
+            y: clampY(prop.y),
+            proves: `set piece: ${prop.key} at x=${Math.round(prop.x || 0)}`,
+        });
+        if (candidates.length >= 5) break;
+    }
+    if (candidates.length === 1) {
+        candidates.push({
+            slug: 'mid',
+            x: Math.round((analysis?.worldWidth || 2000) / 2),
+            y: 400,
+            proves: 'mid-level set piece and hazard read',
+        });
+    }
+    candidates.push({
+        slug: 'finale',
+        x: Math.max(150, crownX - 320),
+        y: 400,
+        proves: 'crown approach and finale pressure',
+    });
+    return candidates.slice(0, 6).map((beat, index, list) => ({
+        ...beat,
+        id: `${String(index + 1).padStart(2, '0')}-${index === list.length - 1 ? 'finale' : beat.slug}`,
+    }));
+}
+
+const FIX_OWNERS = {
+    flat: 'skills/level-creator/SKILL.md',
+    clone: 'skills/level-creator/SKILL.md',
+    stale: 'skills/level-creator/SKILL.md',
+    sponge: 'skills/level-creator/SKILL.md',
+    'empty-route': 'skills/level-creator/SKILL.md',
+    'sleeping-finale': 'skills/level-creator/SKILL.md',
+    blind: 'skills/level-creator/SKILL.md',
+    cheap: 'skills/level-creator/SKILL.md',
+    unreadable: 'skills/level-art-creator/SKILL.md',
+    'off-theme': 'skills/level-art-creator/SKILL.md',
+    'flat-deck': 'skills/level-creator/SKILL.md',
+    'clone-suspect': 'skills/level-creator/SKILL.md',
+    'background-recycled': 'skills/level-art-creator/SKILL.md',
+    'low-hazard-variety': 'skills/level-creator/SKILL.md',
+    'checkpoint-desert': 'skills/level-creator/SKILL.md',
+};
+
+const FIX_ACTIONS = {
+    flat: 'Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.',
+    clone: 'Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.',
+    stale: 'Replace the signature decision with a verb no sibling teaches the same way, with teach/press/twist beats.',
+    sponge: 'Cut or compress the lowest-decision stretch so length carries new decisions.',
+    'empty-route': 'Pay or threaten the empty line: a hazard, a bonk, or a bypass that matters.',
+    'sleeping-finale': 'Add finale pressure within 900px of the crown on every route to it.',
+    blind: 'Make the landing/hazard readable in time: move the hazard off the blind landing or add a tell/landmark before the drop.',
+    cheap: 'Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.',
+    unreadable:
+        'Repaint for contrast at gameplay size: solid, decorative, and lethal must read apart without the instructions.',
+    'off-theme':
+        'Re-theme the actor/look so fiction, hazards, and objective reinforce the story; a palette swap does not count.',
+    'flat-deck': 'Use at least three platform reads with no key above 80% of decks.',
+    'clone-suspect':
+        'Change deck/hazard sequence and background composition until skeleton similarity drops below the clone threshold.',
+    'background-recycled':
+        'Add a new composition device for the reused background and claim it in the build report.',
+    'low-hazard-variety':
+        'Add a second hazard behaviour; a reskin of the same behaviour does not count.',
+    'checkpoint-desert':
+        'Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.',
+    'palette-swap':
+        'Rebuild the level around the story mechanics; themed colours over a generic run fail.',
+    'missing-elements':
+        'Build the missing signature elements as art, props, or hazards visible at gameplay size.',
+    'scenery-only':
+        'Mechanise the scenery-only facts: a story force must change gravity, hazards, topology, or the objective.',
+    'wrong-story':
+        'Re-direct the concept: the screenshots must name the brief story, not another event.',
+    tasteless:
+        'Rework immediately: abstract the story into rescue/logistics; never make victims targets.',
+};
+
+function shotEvidence(shots, flaw, telemetry, analysis) {
+    const list = shots || [];
+    const finale = list.at(-1);
+    const mid = list[Math.min(1, Math.max(0, list.length - 1))];
+    if (flaw === 'sleeping-finale' && finale) {
+        return `${finale.file} (${finale.proves}); crownX=${analysis?.crownX ?? '?'}`;
+    }
+    if ((flaw === 'blind' || flaw === 'cheap') && telemetry?.deathSpots?.length) {
+        const spots = telemetry.deathSpots.slice(0, 4).join(', ');
+        const near = list.find((shot) =>
+            telemetry.deathSpots.some((x) => Math.abs((shot.x || 0) - x) <= 700)
+        );
+        return `deathSpots x=${spots}${near ? `; nearest shot ${near.file}` : ''}`;
+    }
+    if (mid) return `${mid.file} (${mid.proves})`;
+    return list[0] ? `${list[0].file} (${list[0].proves})` : 'telemetry only; no shot captured';
+}
+
+// Ranked, machine-readable fix contract: the maker skills consume fixes[0]
+// only, one fix per loop, then re-run the full critic. Rank 0 is reserved
+// for rework-grade fidelity failures (tasteless / wrong-story).
+function recheckFor(flaw) {
+    return `Re-run the full critic (npm run critic:level); "${flaw}" must be gone and no new structural flaw may appear.`;
+}
+
+function fixesFromFlags(add, flags) {
+    for (const flag of flags || []) {
+        add(
+            flag.id === 'clone-suspect' || flag.id === 'flat-deck' ? 1 : 3,
+            flag.id,
+            'mechanical',
+            flag.detail,
+            FIX_OWNERS[flag.id] || 'skills/level-creator/SKILL.md',
+            FIX_ACTIONS[flag.id] || `Resolve mechanical flag ${flag.id}.`,
+            recheckFor(flag.id)
+        );
+    }
+}
+
+function fixesFromPanel(add, reports, shots, telemetry, analysis) {
+    const flawCounts = new Map();
+    for (const report of reports || []) {
+        if (report.flaw && report.flaw !== 'none') {
+            flawCounts.set(report.flaw, (flawCounts.get(report.flaw) || 0) + 1);
+        }
+    }
+    for (const [flaw, count] of flawCounts) {
+        add(
+            STRUCTURAL_FLAWS.has(flaw) ? 1 : 2,
+            flaw,
+            'quality',
+            `${count}/4 personas named "${flaw}"; ${shotEvidence(shots, flaw, telemetry, analysis)}`,
+            FIX_OWNERS[flaw] || 'skills/level-creator/SKILL.md',
+            FIX_ACTIONS[flaw] || `Fix the named flaw: ${flaw}.`,
+            recheckFor(flaw)
+        );
+    }
+    const reworks = (reports || []).filter((report) => report.verdict === 'rework').length;
+    if (reworks > 0 && !flawCounts.has('clone')) {
+        add(
+            1,
+            'clone',
+            'quality',
+            `${reworks} rework verdict(s) without a named clone flaw`,
+            FIX_OWNERS.clone,
+            FIX_ACTIONS.clone,
+            recheckFor('clone')
+        );
+    }
+}
+
+function fixesFromConcept(add, concept) {
+    if (!concept || concept.passed) return;
+    const missing = [
+        ...(concept.missing || []),
+        ...(concept.sceneryOnlyFacts || []).map((fact) => `scenery-only:${fact}`),
+    ];
+    add(
+        2,
+        'concept:incomplete-brief',
+        'concept',
+        `build brief fails the concept gate: missing ${missing.join(', ')}`,
+        'skills/level-creator/SKILL.md',
+        `Complete the missing concept artefacts in the build brief (${missing.join(', ')}), then re-run npm run critic:concept.`,
+        'Concept gate passes (npm run critic:concept) before any art or build spend.'
+    );
+}
+
+function fixesFromFidelity(add, fidelity) {
+    if (!fidelity?.gate || fidelity.gate.passed) return;
+    const flaw = fidelity.fidelityFlaw;
+    if (flaw && flaw !== 'none' && flaw !== 'unsupported') {
+        add(
+            flaw === 'tasteless' || flaw === 'wrong-story' ? 0 : 2,
+            flaw,
+            'fidelity',
+            `fidelity flaw "${flaw}"; mechanic=${fidelity.mechanicFidelity ?? 'n/a'} visual=${fidelity.visualFidelity ?? 'n/a'}`,
+            flaw === 'palette-swap' || flaw === 'missing-elements'
+                ? 'skills/level-art-creator/SKILL.md'
+                : 'skills/level-creator/SKILL.md',
+            FIX_ACTIONS[flaw] || `Fix fidelity flaw: ${flaw}.`,
+            'Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass.'
+        );
+    }
+    for (const entry of fidelity.elements || []) {
+        if (entry.verdict !== 'missing') continue;
+        add(
+            entry.signature ? 1 : 2,
+            'missing-elements',
+            'fidelity',
+            `element "${entry.element}" missing in shots (noul=${(entry.noul ?? 0).toFixed(2)})`,
+            'skills/level-art-creator/SKILL.md',
+            FIX_ACTIONS['missing-elements'],
+            'Re-shoot the beat sheet; the element must judge shown (noul >= 0.7).'
+        );
+    }
+    for (const key of fidelity.gate.needsHuman || []) {
+        if (/^(panel-unavailable|fidelity-panel-unavailable|no-screenshots)$/.test(key)) continue;
+        add(
+            4,
+            'needs-human',
+            'fidelity',
+            `${key} is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/`,
+            'human reviewer (docs/level-reviews/evidence/human.json)',
+            `Confirm or override "${key}" against the screenshot and record it in human.json.`,
+            'Re-run the full critic; needsHuman must be empty for the fidelity gate.'
+        );
+    }
+    if (fidelity.gate.universeVerdict === 'missing') {
+        add(
+            1,
+            'off-universe',
+            'fidelity',
+            'Space Chicken universe check missing in shots (jetpack chicken, crown goal, hazard language)',
+            'skills/level-art-creator/SKILL.md',
+            'Restore the Space Chicken read: chicken, crown goal, and readable hazard language visible at gameplay size.',
+            'Re-run the full critic; the universe judgment must not be missing.'
+        );
+    }
+}
+
+export function buildFixContract({
+    reports = [],
+    flags = [],
+    fidelity = null,
+    concept = null,
+    telemetry = null,
+    analysis = null,
+    shots = [],
+} = {}) {
+    const fixes = [];
+    const add = (priority, flaw, source, evidence, owner, smallestFix, recheck) => {
+        fixes.push({ priority, flaw, source, evidence, owner, smallestFix, recheck });
+    };
+    fixesFromFlags(add, flags);
+    fixesFromPanel(add, reports, shots, telemetry, analysis);
+    fixesFromConcept(add, concept);
+    fixesFromFidelity(add, fidelity);
+    fixes.sort((a, b) => a.priority - b.priority || a.flaw.localeCompare(b.flaw));
+    return fixes.slice(0, 5).map((fix, index) => ({ rank: index + 1, ...fix }));
 }
 
 // ---------- Capture: pilot telemetry + screenshot beat sheet ----------
@@ -435,12 +853,15 @@ function sampleLevel() {
     };
 }
 
-export async function captureEvidence(levelId, analysis) {
+export async function captureEvidence(levelId, analysis, content = null) {
     const { createServer } = require(path.join(ROOT, 'server.cjs'));
     const { chromium } = await import(path.join(ROOT, 'node_modules/playwright/index.mjs'));
     const { buildPilotSource } = await import('./pilot-brain.mjs');
     const evidenceDir = path.join(ROOT, 'docs/level-reviews/evidence', `level-${levelId}`);
     mkdirSync(evidenceDir, { recursive: true });
+    for (const stale of readdirSync(evidenceDir)) {
+        if (stale.endsWith('.jpg')) unlinkSync(path.join(evidenceDir, stale));
+    }
     const server = createServer();
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const port = server.address().port;
@@ -520,19 +941,7 @@ export async function captureEvidence(levelId, analysis) {
             timeout: 20000,
         });
         await page.waitForTimeout(800);
-        const beats = [{ id: '01-opener', x: 150, y: 480, proves: 'spawn read and first move' }];
-        beats.push({
-            id: '02-mid',
-            x: Math.round((analysis?.worldWidth || 2000) / 2),
-            y: 400,
-            proves: 'mid-level set piece and hazard read',
-        });
-        beats.push({
-            id: '03-finale',
-            x: Math.max(150, (analysis?.crownX || 600) - 320),
-            y: 400,
-            proves: 'crown approach and finale pressure',
-        });
+        const beats = planBeats(analysis, content);
         for (const beat of beats) {
             await page.evaluate(
                 ([x, y]) => window.__spaceChickenDebug.teleport(x, y),
@@ -622,7 +1031,7 @@ export async function runQualityPanel(
     { levelId, analysis, telemetry, flags, roster, shots = [] }
 ) {
     const shotState = [];
-    for (const shot of (shots || []).slice(0, 4)) {
+    for (const shot of selectPanelShots(shots, 4)) {
         shotState.push({
             beat: shot.id,
             proves: shot.proves,
@@ -674,7 +1083,7 @@ export async function runQualityPanel(
 // Send screenshots to the fidelity panel over raw HTTP with base64 assets.
 // The SDK has an image() helper now, but this path is proven and stays.
 export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shots, telemetry }) {
-    const picked = (shots || []).slice(0, 4);
+    const picked = selectPanelShots(shots, 4);
     if (!picked.length) return { sent: false, reason: 'no screenshots captured' };
     const assets = {};
     const shotState = [];
@@ -744,6 +1153,11 @@ export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shot
                     tasteless: 'Tragedy or disaster turned into shooting victims.',
                 },
             },
+            universe_fit: {
+                type: 'noul',
+                instructions:
+                    "Is the Space Chicken universe recognisably present in `shots` at gameplay size: the jetpack chicken, the crown goal, and the game's readable platform/hazard language (not a photorealistic or off-style look)? Judge only what the screenshots show.",
+            },
         },
     };
     const endpoint = `${String(baseURL || 'https://api.typesafe.ai').replace(/\/$/, '')}/v1/systemone`;
@@ -764,14 +1178,19 @@ export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shot
     }
     const payload = await response.json();
     const answers = payload.answers || {};
+    const marked = withSignatureMarks(brief);
+    const markByElement = new Map(marked.elements.map((entry) => [entry.element, entry.signature]));
+    const markByFact = new Map(marked.rows.map((entry) => [entry.fact, entry.signature]));
     const elements = (brief.elements || []).slice(0, 6).map((element, index) => ({
         element,
+        signature: Boolean(markByElement.get(element)),
         noul: answers[`element_${index}`]?.noul ?? 0,
         verdict: elementVerdict(answers[`element_${index}`]?.noul ?? 0),
     }));
     const rows = (brief.mappings || []).slice(0, 6).map((row, index) => ({
         fact: row.fact,
         mechanic: row.mechanic,
+        signature: Boolean(markByFact.get(row.fact) || row.signature),
         choice: answers[`row_${index}`]?.choice || 'unsupported',
         confidence: answers[`row_${index}`]?.confidence ?? 0,
     }));
@@ -782,13 +1201,14 @@ export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shot
         mechanicFidelity: answers.mechanic_fidelity?.score ?? 0,
         visualFidelity: answers.visual_fidelity?.score ?? 0,
         fidelityFlaw: answers.fidelity_flaw?.choice || 'unsupported',
+        universeFit: answers.universe_fit?.noul ?? null,
         usage: payload.usage || null,
     };
 }
 
 // ---------- Reports + main ----------
 
-function renderReport(report) {
+export function renderReport(report) {
     const lines = [
         `# Level critic — level ${report.level} (${report.analysis?.title || 'untitled'})`,
         '',
@@ -797,13 +1217,27 @@ function renderReport(report) {
         `- Mechanical flags: ${report.flags.length ? report.flags.map((f) => `${f.id} (${f.detail})`).join('; ') : 'none'}`,
         `- Telemetry: ${report.telemetry ? JSON.stringify(report.telemetry) : 'static run, no capture'}`,
         `- Quality gate: ${report.passed ? 'PASS' : 'ITERATE/REWORK'}`,
+        `- Loop: ${report.loop ?? 1}${report.priorFlaw ? ` (prior top flaw: ${report.priorFlaw})` : ''}${report.loopExceeded ? ' — LOOP LIMIT REACHED: hand to the user, do not lower the gate' : ''}`,
+        `- Pilot runs: ${report.pilotRuns ?? (report.telemetry ? 1 : 0)}${report.repeatedFlaws?.length ? `; repeated flaws across runs: ${report.repeatedFlaws.join(', ')}` : ''}`,
     ];
+    if (report.concept) {
+        lines.push(
+            `- Concept gate: ${report.concept.passed ? 'PASS' : `FAIL (missing: ${[...(report.concept.missing || []), ...(report.concept.sceneryOnlyFacts || []).map((fact) => `scenery-only:${fact}`)].join(', ') || 'none'})`}`
+        );
+    }
     if (report.reports?.length) {
         lines.push('', '## Quality panel', '');
         for (const entry of report.reports) {
             lines.push(
                 `- ${entry.name}: fun=${entry.fun.toFixed(1)} fair=${entry.fairness.toFixed(1)} read=${entry.readability.toFixed(1)} novel=${entry.novelty.toFixed(1)} pace=${entry.pacing.toFixed(1)} theme=${entry.theme.toFixed(1)} flaw=${entry.flaw} -> ${entry.verdict}`
             );
+        }
+        const means = panelMeans(report.reports);
+        lines.push(
+            `- Means: fun=${means.fun.toFixed(2)} fair=${means.fairness.toFixed(2)} read=${means.readability.toFixed(2)} novel=${means.novelty.toFixed(2)} pace=${means.pacing.toFixed(2)} theme=${means.theme.toFixed(2)}`
+        );
+        if (report.newsFloorFailures?.length) {
+            lines.push(`- News floor failures: ${report.newsFloorFailures.join('; ')}`);
         }
     } else {
         lines.push(
@@ -813,29 +1247,67 @@ function renderReport(report) {
             '- unavailable (no API key or static run); mechanical pass only.'
         );
     }
-    if (report.fidelity) {
-        lines.push('', '## News fidelity', '');
-        lines.push(`- Brief: ${report.fidelity.briefHeadline || 'missing'}`);
-        lines.push(`- Gate: ${report.fidelity.gate?.passed ? 'PASS' : 'FAIL'}`);
-        for (const entry of report.fidelity.elements || []) {
+    lines.push(...renderFidelityLines(report));
+    lines.push(...renderFixLines(report));
+    return lines.join('\n');
+}
+
+function renderFidelityLines(report) {
+    if (!report.fidelity) return [];
+    const lines = ['', '## News fidelity', ''];
+    lines.push(`- Brief: ${report.fidelity.briefHeadline || 'missing'}`);
+    lines.push(`- Gate: ${report.fidelity.gate?.passed ? 'PASS' : 'FAIL'}`);
+    for (const entry of report.fidelity.elements || []) {
+        const verdict =
+            entry.verdict ||
+            (entry.claimed === undefined
+                ? 'unjudged'
+                : entry.claimed
+                  ? 'claimed-in-data (not judged)'
+                  : 'unclaimed-in-data');
+        const noul = entry.noul == null ? '' : ` (noul=${entry.noul.toFixed(2)})`;
+        lines.push(
+            `- Element "${entry.element}"${entry.signature ? ' [signature]' : ''}: ${verdict}${noul}`
+        );
+    }
+    for (const row of report.fidelity.rows || []) {
+        const confidence =
+            row.confidence == null ? '' : ` (confidence=${row.confidence.toFixed(2)})`;
+        lines.push(
+            `- Row "${row.fact}"${row.signature ? ' [signature]' : ''} -> ${row.choice}${confidence}`
+        );
+    }
+    if (report.fidelity.universeFit != null || report.fidelity.gate?.universeVerdict) {
+        lines.push(
+            `- Space Chicken universe: ${report.fidelity.gate?.universeVerdict || 'unscored'} (noul=${(report.fidelity.universeFit ?? 0).toFixed(2)})`
+        );
+    }
+    if (report.fidelity.humanConfirmed?.length) {
+        lines.push(`- Human confirmed: ${report.fidelity.humanConfirmed.join('; ')}`);
+    }
+    if (report.fidelity.gate?.needsHuman?.length) {
+        lines.push(`- Needs human: ${report.fidelity.gate.needsHuman.join('; ')}`);
+    }
+    return lines;
+}
+
+function renderFixLines(report) {
+    const lines = ['', '## Fix contract', ''];
+    if (report.fixes?.length) {
+        lines.push('Fix only the top fix, then re-run the full critic. One fix per loop.', '');
+        for (const fix of report.fixes) {
             lines.push(
-                `- Element "${entry.element}": ${entry.verdict || entry.claimed} (noul=${(entry.noul ?? 0).toFixed(2)})`
+                `${fix.rank}. [${fix.flaw}] (${fix.source}) owner: ${fix.owner}`,
+                `   - Evidence: ${fix.evidence}`,
+                `   - Smallest fix: ${fix.smallestFix}`,
+                `   - Recheck: ${fix.recheck}`
             );
         }
-        for (const row of report.fidelity.rows || []) {
-            lines.push(
-                `- Row "${row.fact}" -> ${row.choice} (confidence=${(row.confidence ?? 0).toFixed(2)})`
-            );
-        }
-        if (report.fidelity.humanConfirmed?.length) {
-            lines.push(`- Human confirmed: ${report.fidelity.humanConfirmed.join('; ')}`);
-        }
-        if (report.fidelity.gate?.needsHuman?.length) {
-            lines.push(`- Needs human: ${report.fidelity.gate.needsHuman.join('; ')}`);
-        }
+    } else {
+        lines.push(report.passed ? '- none: gate passed.' : '- none recorded.');
     }
     lines.push('', `Evidence: docs/level-reviews/evidence/level-${report.level}/shots.json`, '');
-    return lines.join('\n');
+    return lines;
 }
 
 function loadHumanConfirmations(evidenceDir) {
@@ -848,6 +1320,128 @@ function loadHumanConfirmations(evidenceDir) {
     return [];
 }
 
+// eslint-disable-next-line complexity -- panel stages share the capture state
+async function evaluatePanels(ctx) {
+    const state = { reports: [], fidelity: null, screenshotsSent: false };
+    if (ctx.isStatic || !ctx.apiKey) {
+        if (ctx.isNewsLevel) {
+            const codeChecks = fidelityCodeChecks(ctx.brief, ctx.corpus);
+            const marked = withSignatureMarks(ctx.brief);
+            const claimedByElement = new Map(
+                codeChecks.elements.map((entry) => [entry.element, entry.claimed])
+            );
+            state.fidelity = {
+                briefHeadline: ctx.brief.headline,
+                briefSource: ctx.briefSource,
+                codeChecks,
+                elements: marked.elements.map((entry) => ({
+                    ...entry,
+                    claimed: Boolean(claimedByElement.get(entry.element)),
+                    noul: null,
+                })),
+                rows: marked.rows.map((entry) => ({
+                    ...entry,
+                    choice: 'not-judged',
+                    confidence: null,
+                })),
+                sent: false,
+                gate: {
+                    passed: false,
+                    shown: 0,
+                    contradicted: 0,
+                    unsupported: 0,
+                    needsHuman: ['panel-unavailable'],
+                },
+            };
+        }
+        const mechanicalOnly = !ctx.flags.some(
+            (flag) => flag.id === 'clone-suspect' || flag.id === 'flat-deck'
+        );
+        return { ...state, passed: ctx.isStatic ? mechanicalOnly && ctx.conceptOk : false };
+    }
+    const client = new TypeSafeClient({ apiKey: ctx.apiKey, logLevel: 'off' });
+    // Quality panel judges telemetry plus the beat screenshots as image
+    // evidence; without shots it falls back to text state and caps
+    // readability via the screenshotsSent flag in the prompt.
+    state.reports = await runQualityPanel(client, {
+        levelId: ctx.levelId,
+        analysis: ctx.analysis,
+        telemetry: ctx.telemetry,
+        flags: ctx.flags,
+        roster: ctx.roster,
+        shots: ctx.shots,
+    });
+    state.screenshotsSent = ctx.shots.length > 0;
+    if (ctx.isNewsLevel && ctx.shots.length) {
+        const codeChecks = fidelityCodeChecks(ctx.brief, ctx.corpus);
+        try {
+            const sent = await sendScreenshots({
+                apiKey: ctx.apiKey,
+                baseURL: process.env.TYPESAFE_BASE_URL,
+                brief: ctx.brief,
+                codeChecks,
+                shots: ctx.shots,
+                telemetry: ctx.telemetry,
+            });
+            state.screenshotsSent = sent.sent;
+            const gate = fidelityGate({
+                elements: sent.elements,
+                rows: sent.rows,
+                mechanicMean: sent.mechanicFidelity,
+                visualMean: sent.visualFidelity,
+                reviewerFlaw: sent.fidelityFlaw,
+                confirmed: ctx.humanConfirmed,
+                universeNoul: sent.universeFit,
+            });
+            state.fidelity = {
+                briefHeadline: ctx.brief.headline,
+                briefSource: ctx.briefSource,
+                codeChecks,
+                ...sent,
+                gate,
+                humanConfirmed: ctx.humanConfirmed,
+            };
+        } catch (error) {
+            console.error(`fidelity panel unavailable: ${error.message}`);
+            state.fidelity = {
+                briefHeadline: ctx.brief.headline,
+                briefSource: ctx.briefSource,
+                codeChecks,
+                sent: false,
+                gate: {
+                    passed: false,
+                    shown: 0,
+                    contradicted: 0,
+                    unsupported: 0,
+                    needsHuman: ['fidelity-panel-unavailable'],
+                },
+            };
+        }
+    } else if (ctx.isNewsLevel) {
+        state.fidelity = {
+            briefHeadline: ctx.brief.headline,
+            briefSource: ctx.briefSource,
+            sent: false,
+            gate: {
+                passed: false,
+                shown: 0,
+                contradicted: 0,
+                unsupported: 0,
+                needsHuman: ['no-screenshots'],
+            },
+        };
+    }
+    const qualityPassed = panelPassed(state.reports, ctx.flags, state.screenshotsSent, {
+        news: ctx.isNewsLevel,
+    });
+    const passed =
+        ctx.conceptOk &&
+        Boolean(state.reports.length) &&
+        qualityPassed &&
+        (!ctx.isNewsLevel || state.fidelity?.gate?.passed);
+    return { ...state, passed };
+}
+
 // eslint-disable-next-line complexity -- orchestrates static/capture/panel stages in order
 async function main() {
     const args = process.argv.slice(2).filter((arg) => arg !== '--');
@@ -855,6 +1449,27 @@ async function main() {
     const briefFlagIndex = args.indexOf('--brief');
     const briefPath =
         (briefFlagIndex >= 0 ? args[briefFlagIndex + 1] : null) || process.env.NEWS_BRIEF || null;
+    if (args.includes('--concept')) {
+        const rawId = Number(args.find((arg) => /^\d+$/.test(arg)));
+        const conceptPath =
+            briefPath ||
+            (Number.isFinite(rawId) && rawId > 0 ? `docs/level-builds/${rawId}.md` : null);
+        if (!conceptPath) {
+            throw new Error(
+                'usage: node scripts/level-critic.mjs --concept --brief <build-note.md>'
+            );
+        }
+        const resolved = path.isAbsolute(conceptPath) ? conceptPath : path.join(ROOT, conceptPath);
+        const concept = assessConcept(readFileSync(resolved, 'utf8'));
+        console.log(`concept brief: ${resolved}`);
+        console.log(
+            concept.passed
+                ? 'CONCEPT: PASS'
+                : `CONCEPT: FAIL missing=[${concept.missing.join(', ')}] sceneryOnly=[${concept.sceneryOnlyFacts.join(', ')}]`
+        );
+        process.exitCode = concept.passed ? 0 : 2;
+        return;
+    }
     const levelId = Number(args.find((arg) => /^\d+$/.test(arg)));
     if (!Number.isFinite(levelId) || levelId <= 0) {
         throw new Error(
@@ -886,7 +1501,7 @@ async function main() {
 
     let humanConfirmed = [];
     if (!isStatic) {
-        const captured = await captureEvidence(levelId, analysis);
+        const captured = await captureEvidence(levelId, analysis, content);
         telemetry = captured.telemetry;
         shots = captured.shots;
         if (telemetry.errors?.length) {
@@ -898,6 +1513,7 @@ async function main() {
     // News brief resolution: explicit path, else build report, else selection.
     let brief = null;
     let briefSource = null;
+    let briefRaw = null;
     const briefCandidates = [
         briefPath,
         path.join(ROOT, 'docs/level-builds', `${levelId}.md`),
@@ -905,111 +1521,91 @@ async function main() {
     for (const candidate of briefCandidates) {
         const resolved = path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate);
         if (existsSync(resolved)) {
-            brief = parseNewsBrief(readFileSync(resolved, 'utf8'));
+            briefRaw = readFileSync(resolved, 'utf8');
+            brief = parseNewsBrief(briefRaw);
             briefSource = resolved;
             if (brief.elements.length || brief.mappings.length) break;
         }
     }
     const isNewsLevel = Boolean(brief && (brief.elements.length || brief.mappings.length));
+    const concept = isNewsLevel ? assessConcept(briefRaw || '') : null;
 
     const apiKey = readTypeSafeApiKey();
-    if (!isStatic && apiKey) {
-        const client = new TypeSafeClient({ apiKey, logLevel: 'off' });
-        // Quality panel judges telemetry plus the beat screenshots as image
-        // evidence; without shots it falls back to text state and caps
-        // readability via the screenshotsSent flag in the prompt.
-        reports = await runQualityPanel(client, {
-            levelId,
-            analysis,
-            telemetry,
-            flags,
-            roster,
-            shots,
-        });
-        screenshotsSent = shots.length > 0;
-        if (isNewsLevel && shots.length) {
-            const corpus = JSON.stringify(content).toLowerCase();
-            const codeChecks = fidelityCodeChecks(brief, corpus);
-            try {
-                const sent = await sendScreenshots({
-                    apiKey,
-                    baseURL: process.env.TYPESAFE_BASE_URL,
-                    brief,
-                    codeChecks,
-                    shots,
-                    telemetry,
-                });
-                screenshotsSent = sent.sent;
-                const reviewerFlaw = sent.fidelityFlaw;
-                const gate = fidelityGate({
-                    elements: sent.elements,
-                    rows: sent.rows,
-                    mechanicMean: sent.mechanicFidelity,
-                    visualMean: sent.visualFidelity,
-                    reviewerFlaw,
-                    confirmed: humanConfirmed,
-                });
-                fidelity = {
-                    briefHeadline: brief.headline,
-                    briefSource,
-                    codeChecks,
-                    ...sent,
-                    gate,
-                    humanConfirmed,
-                };
-            } catch (error) {
-                console.error(`fidelity panel unavailable: ${error.message}`);
-                fidelity = {
-                    briefHeadline: brief.headline,
-                    briefSource,
-                    codeChecks,
-                    sent: false,
-                    gate: {
-                        passed: false,
-                        shown: 0,
-                        contradicted: 0,
-                        unsupported: 0,
-                        needsHuman: ['fidelity-panel-unavailable'],
-                    },
-                };
-            }
-        } else if (isNewsLevel) {
-            fidelity = {
-                briefHeadline: brief.headline,
-                briefSource,
-                sent: false,
-                gate: {
-                    passed: false,
-                    shown: 0,
-                    contradicted: 0,
-                    unsupported: 0,
-                    needsHuman: ['no-screenshots'],
-                },
-            };
+    const conceptOk = !isNewsLevel || Boolean(concept?.passed);
+    let pilotRuns = telemetry ? 1 : 0;
+    let repeatedFlaws = [];
+    let passed = false;
+
+    const panelContext = () => ({
+        isStatic,
+        apiKey,
+        isNewsLevel,
+        conceptOk,
+        brief,
+        briefSource,
+        corpus: JSON.stringify(content).toLowerCase(),
+        levelId,
+        analysis,
+        flags,
+        roster,
+        humanConfirmed,
+        telemetry,
+        shots,
+    });
+    let panel = await evaluatePanels(panelContext());
+    reports = panel.reports;
+    fidelity = panel.fidelity;
+    screenshotsSent = panel.screenshotsSent;
+    passed = panel.passed;
+    if (!passed && !isStatic && apiKey && reports.length) {
+        // A lone flaw on one pilot run is instrument noise: capture and
+        // judge a second run, and surface only flaws that repeat.
+        const firstFlaws = new Set(reports.map((report) => report.flaw));
+        const captured = await captureEvidence(levelId, analysis, content);
+        telemetry = captured.telemetry;
+        shots = captured.shots;
+        if (telemetry.errors?.length) {
+            throw new Error(`page errors during capture: ${telemetry.errors.join(' | ')}`);
         }
-    } else if (isNewsLevel) {
-        const corpus = JSON.stringify(content).toLowerCase();
-        fidelity = {
-            briefHeadline: brief.headline,
-            briefSource,
-            codeChecks: fidelityCodeChecks(brief, corpus),
-            sent: false,
-            gate: {
-                passed: false,
-                shown: 0,
-                contradicted: 0,
-                unsupported: 0,
-                needsHuman: ['panel-unavailable'],
-            },
-        };
+        pilotRuns = 2;
+        panel = await evaluatePanels(panelContext());
+        reports = panel.reports;
+        fidelity = panel.fidelity;
+        screenshotsSent = panel.screenshotsSent;
+        passed = panel.passed;
+        repeatedFlaws = [
+            ...new Set(
+                reports
+                    .map((report) => report.flaw)
+                    .filter((flaw) => firstFlaws.has(flaw) && flaw !== 'none')
+            ),
+        ];
     }
 
-    const qualityPassed = reports.length
-        ? panelPassed(reports, flags, screenshotsSent)
-        : !flags.some((flag) => flag.id === 'clone-suspect' || flag.id === 'flat-deck');
-    const passed = isStatic
-        ? qualityPassed
-        : Boolean(reports.length) && qualityPassed && (!isNewsLevel || fidelity?.gate?.passed);
+    const reportPath = path.join(ROOT, 'docs/level-reviews', `level-${levelId}.json`);
+    let priorReport = null;
+    try {
+        priorReport = JSON.parse(readFileSync(reportPath, 'utf8'));
+    } catch {
+        // First critic run for this level.
+    }
+    // Static checks are free verification; only full runs advance the loop.
+    const loopInfo =
+        isStatic && priorReport && !priorReport.passed
+            ? {
+                  loop: priorReport.loop || 1,
+                  priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
+              }
+            : nextLoopInfo(priorReport);
+    const fixes = buildFixContract({
+        reports,
+        flags,
+        fidelity,
+        concept: isNewsLevel ? concept : null,
+        telemetry,
+        analysis,
+        shots,
+    });
 
     const report = {
         level: levelId,
@@ -1021,6 +1617,14 @@ async function main() {
         screenshotsSent,
         reports,
         fidelity,
+        concept: isNewsLevel ? concept : null,
+        newsFloorFailures: isNewsLevel && reports.length ? newsFloorFailures(reports) : [],
+        fixes,
+        loop: loopInfo.loop,
+        priorFlaw: loopInfo.priorFlaw,
+        loopExceeded: loopInfo.loop > 3,
+        pilotRuns,
+        repeatedFlaws,
         passed,
     };
     mkdirSync(path.join(ROOT, 'docs/level-reviews'), { recursive: true });
