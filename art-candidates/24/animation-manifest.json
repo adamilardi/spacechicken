@@ -1,0 +1,40 @@
+{
+    "body_bounds_px": {
+        "height": 105,
+        "shape": "rect-approx 0.85w x 0.7h of sprite",
+        "width": 108
+    },
+    "candidate_id": "boss-champion-king",
+    "canvas_px": [127, 150],
+    "display_px": 150,
+    "in_game": true,
+    "pivot": { "space": "sprite-center" },
+    "previewed": ["pace", "telegraph-crouch"],
+    "schema_version": 1,
+    "source": "assets/news-clutch-crown/champion-king.png",
+    "states": [
+        {
+            "loop": true,
+            "method": "tween",
+            "name": "pace",
+            "tween": {
+                "amplitude_px": 0,
+                "duration_ms": 0,
+                "ease": "linear",
+                "property": "x (BossDirector pace)"
+            }
+        },
+        {
+            "loop": false,
+            "method": "tween",
+            "name": "telegraph-crouch",
+            "tween": {
+                "amplitude_px": 0,
+                "duration_ms": 120,
+                "ease": "sine-in-out",
+                "property": "scaleY 0.85 via BossDirector.setBossCrouch"
+            }
+        }
+    ],
+    "wiring": "boss behavior via enemies/boss.js + BossDirector knight-leap (config.leap); body 0.85w x 0.7h shrink set by boss spawn; crouch/tint tells owned by BossDirector"
+}

@@ -42,6 +42,7 @@ export function spawn(builder, group, config) {
         enrageCooldownMs: config.enrageCooldownMs ?? 1600,
         enrageChargeMult: config.enrageChargeMult ?? 1.2,
         summon: config.summon ? { ...config.summon } : null,
+        leap: config.leap ? { ...config.leap } : null,
     };
     builder.scene?.bossesGroup?.add?.(boss);
 }

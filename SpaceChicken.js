@@ -37,6 +37,7 @@ const NEWS_PLATES = {
     21: 'phobosBg',
     22: 'falconBg',
     23: 'tracersBg',
+    24: 'clutchBg',
 };
 
 function readLaunchQuery() {
@@ -349,6 +350,9 @@ export class SpaceChicken extends Phaser.Scene {
         this.load.image('tracersBg', 'assets/news-reconnection/bg.jpg');
         this.load.image('spriteBot', 'assets/news-reconnection/sprite-bot.png');
         this.load.image('cuspArc', 'assets/news-reconnection/cusp-arc.png');
+        this.load.image('clutchBg', 'assets/news-clutch-crown/bg.jpg');
+        this.load.image('championKing', 'assets/news-clutch-crown/champion-king.png');
+        this.load.image('knightProp', 'assets/news-clutch-crown/knight-prop.png');
         this.spriteFactory = new SpriteFactory(this);
         this.spriteFactory.createChickenFrames();
         this.spriteFactory.createCrown();
@@ -3007,6 +3011,13 @@ export class SpaceChicken extends Phaser.Scene {
             goToLevel: (level) => this.debugGoToLevel(level),
             skipLevel: () => this.debugSkipLevel(),
             teleport: (x, y) => this.debugTeleport(x, y),
+            bossPhases: () =>
+                (this.bossesGroup?.getChildren?.() || []).map((boss) => ({
+                    phase: boss.bossState?.phase || null,
+                    hp: boss.bossHp,
+                    x: boss.x,
+                    y: boss.y,
+                })),
             bossBodies: () =>
                 (this.bossesGroup?.getChildren?.() || []).map((boss) => ({
                     x: boss.x,

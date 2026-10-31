@@ -43,6 +43,7 @@ export const MUSIC_DEFINITIONS = Object.freeze({
     21: buildLunarHorizon(),
     22: buildSkyhook(),
     23: buildEarthwatch(),
+    24: buildBastion(),
 });
 
 export function getMusicDefinition(level) {

@@ -46,6 +46,28 @@ test('the boss sleeps until the lead chicken crosses the trigger', async () => {
     assert.ok(awake.nextAttackAt <= 5000 + 1200);
 });
 
+test('a leaping boss telegraphs, leaps in an L, and recovers', async () => {
+    const { bossUpdate } = await importModule('BossDirector.js');
+    const config = { ...CONFIG, leap: { dx: 220, ms: 520, velocityY: 560 } };
+    const tele = state({ phase: 'telegraph', phaseAt: 1000, dir: -1 });
+    const early = bossUpdate(tele, 1200, 11640, 11400, 11200, config, false);
+    assert.equal(early.phase, 'telegraph');
+    const leap = bossUpdate(tele, 1700, 11640, 11400, 11200, config, false);
+    assert.equal(leap.phase, 'leap');
+    assert.deepEqual(leap.events, ['leap']);
+    assert.equal(leap.leapTargetX, 11560, 'leap target clamps to the arena');
+    assert.equal(leap.velocityY, -560);
+    assert.ok(leap.velocityX < 0, 'leaps toward the target side');
+    const mid = bossUpdate({ ...leap, enraged: false }, 1900, 11600, 11400, 11200, config, false);
+    assert.equal(mid.phase, 'leap');
+    const done = bossUpdate({ ...leap, enraged: false }, 2300, 11560, 11400, 11200, config, false);
+    assert.equal(done.phase, 'recover');
+    // Without leap config the same telegraph still ends in a ground charge.
+    const charge = bossUpdate(tele, 1700, 11640, 11400, 11200, CONFIG, false);
+    assert.equal(charge.phase, 'charge');
+    assert.equal(charge.velocityY, undefined);
+});
+
 test('a summoner defers its first attack past the fight', async () => {
     const { bossUpdate } = await importModule('BossDirector.js');
     const config = { ...CONFIG, initialAttackMs: 999999, cooldownMs: 999999 };

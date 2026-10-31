@@ -205,6 +205,22 @@ const BRIEFS = {
         enrage: 'Below half HP he rests much shorter and charges 20% faster, tinted purple with an ENRAGED banner.',
         defeat: 'Explosion, TUMBLER DOWN banner, crown shield opens. Wounds persist through player death.',
     },
+    24: {
+        name: 'Champion King',
+        level: 24,
+        levelTheme:
+            'Clutch Crown: the chess showdown bracket. Pawn boarder waves and file lasers on the lower ranks, rook drones on the middle rank, and the championship rank holds the crown.',
+        bossFiction:
+            'The reigning champion embodied as a crowned chess king: dark slate body, gold crown and trim, one big cyan lens. He guards the showdown crown on the top rank.',
+        rule: 'Read the telegraphed landing square; hold fire between leaps, burn the lens in the landing window.',
+        tell: 'Crouch and red flash for 750ms, landing square chosen as he leaves the ground; he arcs in a knight L and lands 240px over.',
+        safeResponse:
+            'Stand off the landing line, strafe as he leaves the ground, keep bolts on him while he recovers on the new square.',
+        hp: 14,
+        phases: ['pace', 'telegraph (crouch + red flash)', 'knight leap (airborne L)', 'recover'],
+        enrage: 'Below half HP the final-day swing: leaps come 25% faster with shorter rests, tinted purple with an ENRAGED banner.',
+        defeat: 'Explosion, CHAMPION KING DOWN banner, crown shield opens. Wounds persist through player death.',
+    },
 };
 
 const APPROACH = {
@@ -217,6 +233,7 @@ const APPROACH = {
     14: [12050, 380],
     15: [11850, 380],
     16: [9430, 380],
+    24: [5700, 250],
 };
 
 const SCORE_LEVELS = {
@@ -444,8 +461,18 @@ export async function captureFight(level, brief) {
                 break;
             }
             // Poll faster than the shortest phase: a bound-clamped
-            // charge can end in ~400ms and must still be seen.
-            await page.waitForTimeout(100);
+            // charge can end in ~400ms and must still be seen. The heavy
+            // snapshot evaluate is too slow to catch 520-750ms phases on
+            // its own, so merge cheap boss-phase polls between samples.
+            for (let light = 0; light < 3; light += 1) {
+                await page.waitForTimeout(50);
+                const lightPhases = await page.evaluate(() =>
+                    (window.__spaceChickenDebug.bossPhases?.() || []).map((b) => b.phase)
+                );
+                for (const phase of lightPhases) {
+                    if (phase) phases.add(phase);
+                }
+            }
         }
         telemetry.hpMin = hpMin === Infinity ? null : hpMin;
         telemetry.phasesSeen = [...phases];
@@ -465,8 +492,13 @@ export function telemetryFlags(telemetry) {
         flags.push('pushover-suspect: sub-10s clean kill; the boss may never have acted');
     }
     const phases = telemetry.phasesSeen || [];
-    if (killed && !phases.includes('charge') && !phases.includes('summonTell')) {
-        flags.push('one-phase: kill saw no charge or summon phase');
+    if (
+        killed &&
+        !phases.includes('charge') &&
+        !phases.includes('summonTell') &&
+        !phases.includes('leap')
+    ) {
+        flags.push('one-phase: kill saw no charge, summon, or leap phase');
     }
     if ((telemetry.durationSec ?? 0) > 120 && !killed) {
         flags.push('sponge-suspect: over 120s without a kill');
@@ -476,15 +508,25 @@ export function telemetryFlags(telemetry) {
 
 // Arc-wide variety: how many bosses share this one's core rule. Per-boss
 // reviews cannot see staleness on their own, so the state carries it in.
+// Count the family THIS boss belongs to: a leap boss judged against the
+// charge family's headcount reads as stale no matter how new it is.
 export function varietyNote(brief) {
     const briefs = Object.values(BRIEFS);
-    const sharing = briefs.filter((other) =>
-        (other.phases || []).some((phase) => String(phase).includes('charge'))
-    );
+    const phaseText = (entry) => (entry.phases || []).join(' ').toLowerCase();
+    const familyOf = (entry) => {
+        const text = phaseText(entry);
+        if (text.includes('leap')) return 'leap';
+        if (text.includes('summon') || text.includes('birth')) return 'summon';
+        return 'charge';
+    };
+    const family = familyOf(brief);
+    const sharing = briefs.filter((other) => familyOf(other) === family);
     return {
         bossesTotal: briefs.length,
-        sharingChargeRule: sharing.length,
+        ruleFamily: family,
+        sharingRuleCount: sharing.length,
         sharingNames: sharing.map((other) => other.name),
+        sharingChargeRule: briefs.filter((other) => phaseText(other).includes('charge')).length,
         thisBoss: brief.name,
     };
 }
