@@ -30,9 +30,9 @@
     },
     {
       "slug": "hazard-drip",
-      "x": 3650,
+      "x": 3740,
       "y": 260,
-      "proves": "hazard beat: drip at x=3650",
+      "proves": "hazard beat: drip at x=3740",
       "id": "04-hazard-drip",
       "file": "04-hazard-drip.jpg",
       "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/04-hazard-drip.jpg"

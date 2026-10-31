@@ -1259,6 +1259,16 @@ export class SpaceChicken extends Phaser.Scene {
         );
     }
 
+    recordLevelCompletion(levelTime, playerName) {
+        const levelDeaths = Math.max(0, (this.deathCount || 0) - (this.levelStartDeaths || 0));
+        this.leaderboardManager.saveTime(this.level, levelTime, playerName, levelDeaths);
+        // News levels are always available and sit outside the campaign
+        // chain; finishing one must not advance campaign unlocks.
+        if (!NEWS_LEVEL_IDS.includes(this.level)) {
+            this.leaderboardManager.unlockLevel(this.level + 1);
+        }
+    }
+
     collectGem(chicken) {
         if (this.awaitingStart || this.isTransitioning || this.gameOver || this.raceFinale) {
             return;
@@ -1299,9 +1309,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.uiManager.updatePlayerName(playerName);
         }
         if (!this.debugMode) {
-            const levelDeaths = Math.max(0, (this.deathCount || 0) - (this.levelStartDeaths || 0));
-            this.leaderboardManager.saveTime(this.level, levelTime, playerName, levelDeaths);
-            this.leaderboardManager.unlockLevel(this.level + 1);
+            this.recordLevelCompletion(levelTime, playerName);
         }
         const resultTitle =
             !this.debugMode && (previousBest === null || levelTime < previousBest)

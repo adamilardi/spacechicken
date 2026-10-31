@@ -586,6 +586,18 @@ export function fidelityGate({
     };
 }
 
+// A level is a news level when its own content carries the news marker,
+// regardless of whether a parseable brief was found. Deriving this from
+// the brief alone lets a news level with a missing build report skip the
+// mandatory fidelity gate and pass on quality only — the opposite of
+// fail-closed. The brief only supplies the claims to judge.
+export function isNewsLevelFor(content, brief) {
+    return (
+        Boolean(content?.news) ||
+        Boolean(brief && ((brief.elements || []).length || (brief.mappings || []).length))
+    );
+}
+
 export function assessConcept(markdown) {
     const text = String(markdown || '');
     const brief = parseNewsBrief(text);
@@ -1682,7 +1694,10 @@ async function main() {
             if (brief.elements.length || brief.mappings.length) break;
         }
     }
-    const isNewsLevel = Boolean(brief && (brief.elements.length || brief.mappings.length));
+    const isNewsLevel = isNewsLevelFor(content, brief);
+    if (isNewsLevel && !brief) {
+        brief = parseNewsBrief('');
+    }
     const concept = isNewsLevel ? assessConcept(briefRaw || '') : null;
     if (isNewsLevel && humanConfirmed.length) {
         const unmatched = unmatchedConfirmations(humanConfirmed, brief);

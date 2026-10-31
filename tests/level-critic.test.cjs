@@ -623,6 +623,16 @@ test('finale pressure must be visible in a frozen still', async () => {
     assert.equal(staggeredBeams.finaleVisible, true);
 });
 
+test('news status comes from the content marker, not brief availability', async () => {
+    const { isNewsLevelFor } = await loadCritic();
+    assert.equal(isNewsLevelFor({ news: { outlet: 'X' } }, null), true);
+    assert.equal(isNewsLevelFor({ news: { outlet: 'X' } }, { elements: [], mappings: [] }), true);
+    assert.equal(isNewsLevelFor({}, { elements: ['a'], mappings: [] }), true);
+    assert.equal(isNewsLevelFor({}, null), false);
+    assert.equal(isNewsLevelFor({}, { elements: [], mappings: [] }), false);
+    assert.equal(isNewsLevelFor(null, null), false);
+});
+
 test('news novelty floor separates clones from genuine departures', async () => {
     const { panelPassed, NEWS_FLOORS } = await loadCritic();
     assert.equal(NEWS_FLOORS.novelty, 1.5);

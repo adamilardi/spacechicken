@@ -72,12 +72,10 @@
   "telemetry": {
     "level": 22,
     "outcome": "crown-collected",
-    "durationSec": 41.8,
-    "deaths": 1,
-    "deathSpots": [
-      1003
-    ],
-    "maxX": 3538,
+    "durationSec": 36.4,
+    "deaths": 0,
+    "deathSpots": [],
+    "maxX": 3535,
     "hazardTypesSeen": [
       "drone",
       "laser",
@@ -119,48 +117,48 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 2.34,
-      "fairness": 1.89,
-      "readability": 2.36,
-      "novelty": 1.44,
-      "pacing": 2.49,
-      "theme": 2.18,
+      "fun": 2.37,
+      "fairness": 2.05,
+      "readability": 2.34,
+      "novelty": 1.43,
+      "pacing": 2.46,
+      "theme": 2.08,
       "flaw": "none",
-      "verdict": "iterate"
+      "verdict": "ship"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 2.41,
-      "fairness": 1.76,
-      "readability": 2.46,
-      "novelty": 1.44,
-      "pacing": 2.51,
-      "theme": 2.27,
+      "fun": 2.46,
+      "fairness": 1.96,
+      "readability": 2.48,
+      "novelty": 1.48,
+      "pacing": 2.47,
+      "theme": 2.21,
       "flaw": "none",
-      "verdict": "iterate"
+      "verdict": "ship"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 2.3,
-      "fairness": 1.67,
-      "readability": 2.19,
-      "novelty": 1.44,
-      "pacing": 2.5,
-      "theme": 2.22,
+      "fun": 2.35,
+      "fairness": 2.01,
+      "readability": 2.28,
+      "novelty": 1.49,
+      "pacing": 2.53,
+      "theme": 2.2,
       "flaw": "none",
-      "verdict": "iterate"
+      "verdict": "ship"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 2.5,
-      "fairness": 1.74,
-      "readability": 2.39,
-      "novelty": 1.55,
-      "pacing": 2.58,
-      "theme": 2.28,
+      "fun": 2.57,
+      "fairness": 1.94,
+      "readability": 2.46,
+      "novelty": 1.6,
+      "pacing": 2.67,
+      "theme": 2.22,
       "flaw": "none",
       "verdict": "ship"
     }
@@ -194,25 +192,25 @@
       {
         "element": "Falcon booster",
         "signature": true,
-        "noul": 0.94,
+        "noul": 0.93,
         "verdict": "shown"
       },
       {
         "element": "Starlink satellite",
         "signature": false,
-        "noul": 0.93,
+        "noul": 0.92,
         "verdict": "shown"
       },
       {
         "element": "droneship deck",
         "signature": true,
-        "noul": 0.82,
+        "noul": 0.85,
         "verdict": "shown"
       },
       {
         "element": "launch tower gantry",
         "signature": false,
-        "noul": 0.93,
+        "noul": 0.94,
         "verdict": "shown"
       }
     ],
@@ -222,36 +220,36 @@
         "mechanic": "Lambda topology: climb the launch tower to apogee, then a controlled descent down staggered decks to the droneship crown deck; a roller patrols the crown deck as the landing-burn guard",
         "signature": true,
         "choice": "supports",
-        "confidence": 0.79
+        "confidence": 0.7
       },
       {
         "fact": "27 Starlink satellites climb to orbit",
         "mechanic": "Lift ride up the tower plus Starlink Sprite drone patrols crossing the ascent lanes; gravity 250 for a floaty climb",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.49
+        "confidence": 0.44
       },
       {
         "fact": "Halloween-eve night launch over the coast",
         "mechanic": "Harbor night biome with generated launch-coast plate; exhaust drip hazards fall down the descent shaft",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.79
+        "confidence": 0.68
       },
       {
         "fact": "700th launch milestone, recovery crew waits on the droneship",
         "mechanic": "Rescue cages as the recovery crew on the descent perches; checkpoints as flight milestones (liftoff, MECO, entry burn)",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.33
+        "confidence": 0.26
       }
     ],
-    "mechanicFidelity": 2.72,
-    "visualFidelity": 3.64,
+    "mechanicFidelity": 2.69,
+    "visualFidelity": 3.62,
     "fidelityFlaw": "none",
     "universeFit": 0.98,
     "usage": {
-      "input_tokens": 12104,
+      "input_tokens": 12097,
       "output_tokens": 352
     },
     "gate": {
@@ -278,14 +276,12 @@
     "elementCount": 4,
     "mappingCount": 4
   },
-  "newsFloorFailures": [
-    "novelty mean 1.47 < news floor 1.5"
-  ],
+  "newsFloorFailures": [],
   "fixes": [],
-  "loop": 6,
+  "loop": 7,
   "priorFlaw": "cheap",
   "loopExceeded": true,
   "pilotRuns": 2,
   "repeatedFlaws": [],
-  "passed": false
+  "passed": true
 }

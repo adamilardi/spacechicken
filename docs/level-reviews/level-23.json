@@ -75,14 +75,10 @@
   "telemetry": {
     "level": 23,
     "outcome": "crown-collected",
-    "durationSec": 62.5,
-    "deaths": 3,
-    "deathSpots": [
-      1709,
-      3347,
-      3649
-    ],
-    "maxX": 4257,
+    "durationSec": 39.2,
+    "deaths": 0,
+    "deathSpots": [],
+    "maxX": 4256,
     "hazardTypesSeen": [
       "reconnectionSprite",
       "drone",
@@ -112,7 +108,7 @@
     {
       "id": "04-hazard-drip",
       "file": "04-hazard-drip.jpg",
-      "proves": "hazard beat: drip at x=3650"
+      "proves": "hazard beat: drip at x=3740"
     },
     {
       "id": "05-setpiece-cuspArc",
@@ -130,50 +126,50 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 2.22,
-      "fairness": 1.63,
-      "readability": 2.24,
-      "novelty": 1.57,
-      "pacing": 2.27,
-      "theme": 2.33,
+      "fun": 2.28,
+      "fairness": 2.05,
+      "readability": 2.28,
+      "novelty": 1.71,
+      "pacing": 2.36,
+      "theme": 2.37,
       "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 2.41,
-      "fairness": 1.6,
-      "readability": 2.37,
-      "novelty": 1.65,
+      "fun": 2.39,
+      "fairness": 2.01,
+      "readability": 2.41,
+      "novelty": 1.79,
       "pacing": 2.35,
-      "theme": 2.47,
+      "theme": 2.45,
       "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 2.2,
-      "fairness": 1.6,
-      "readability": 2.13,
-      "novelty": 1.65,
-      "pacing": 2.35,
-      "theme": 2.42,
+      "fun": 2.34,
+      "fairness": 1.97,
+      "readability": 2.18,
+      "novelty": 1.68,
+      "pacing": 2.4,
+      "theme": 2.49,
       "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 2.44,
-      "fairness": 1.53,
-      "readability": 2.37,
-      "novelty": 1.67,
-      "pacing": 2.52,
-      "theme": 2.53,
+      "fun": 2.54,
+      "fairness": 2.06,
+      "readability": 2.41,
+      "novelty": 1.68,
+      "pacing": 2.6,
+      "theme": 2.61,
       "flaw": "none",
-      "verdict": "iterate"
+      "verdict": "ship"
     }
   ],
   "fidelity": {
@@ -205,25 +201,25 @@
       {
         "element": "Reconnection Sprite",
         "signature": true,
-        "noul": 0.74,
+        "noul": 0.85,
         "verdict": "shown"
       },
       {
         "element": "twin satellites",
         "signature": false,
-        "noul": 0.81,
+        "noul": 0.8,
         "verdict": "shown"
       },
       {
         "element": "cusp funnel",
         "signature": true,
-        "noul": 0.86,
+        "noul": 0.85,
         "verdict": "shown"
       },
       {
         "element": "magnetosphere arcs",
         "signature": false,
-        "noul": 0.82,
+        "noul": 0.87,
         "verdict": "shown"
       }
     ],
@@ -233,7 +229,7 @@
         "mechanic": "Bonk-snap verb: bonk Reconnection Sprites (bonk hazards) to bounce across broken field-line gaps too wide for a normal jump; gravity 340 so falls are fast and snaps are the way back up",
         "signature": true,
         "choice": "unsupported",
-        "confidence": 0.38
+        "confidence": 0.42
       },
       {
         "fact": "Solar wind slams the magnetopause and accelerates particles",
@@ -247,22 +243,22 @@
         "mechanic": "A twin drone pair on one shared patrol beat crossing the funnel throat",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.19
+        "confidence": 0.2
       },
       {
         "fact": "The cusp funnels field lines down to the pole",
         "mechanic": "Funnel topology: wide split upper/lower lines converge to a narrow crown gate past the cusp beam and finale sprite; crown is the cusp point",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.83
+        "confidence": 0.7
       }
     ],
-    "mechanicFidelity": 2.84,
-    "visualFidelity": 3.13,
+    "mechanicFidelity": 2.79,
+    "visualFidelity": 3.34,
     "fidelityFlaw": "none",
-    "universeFit": 0.96,
+    "universeFit": 0.97,
     "usage": {
-      "input_tokens": 12097,
+      "input_tokens": 12084,
       "output_tokens": 352
     },
     "gate": {
@@ -290,9 +286,9 @@
   },
   "newsFloorFailures": [],
   "fixes": [],
-  "loop": 5,
-  "priorFlaw": "clone",
-  "loopExceeded": true,
+  "loop": 2,
+  "priorFlaw": "cheap",
+  "loopExceeded": false,
   "pilotRuns": 1,
   "repeatedFlaws": [],
   "passed": true

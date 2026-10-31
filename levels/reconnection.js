@@ -113,7 +113,7 @@ export const level = {
                 bobAmplitude: 5,
                 bobDuration: 1500,
             },
-            { type: 'drip', x: 3650, y: 260, interval: 1600, delay: 300 },
+            { type: 'drip', x: 3740, y: 260, interval: 2300, delay: 300 },
             {
                 type: 'laser',
                 x: 3980,

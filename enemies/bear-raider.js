@@ -16,7 +16,11 @@ export function spawn(builder, group, config) {
     if (scale !== 1) {
         bear.setScale(scale);
     }
-    const size = Math.max(24, Math.round(bear.displayWidth * 0.62));
+    // body.setSize takes unscaled texture coordinates; displayWidth already
+    // carries the sprite scale, so divide it back out or the body ends up
+    // at 62% of 5% of the visible bear.
+    const frameWidth = bear.scaleX ? bear.displayWidth / bear.scaleX : bear.displayWidth;
+    const size = Math.max(24, Math.round(frameWidth * 0.62));
     bear.body.setSize(size, size, true);
     bear.bonkScaleX = bear.scaleX || 1;
     bear.bonkScaleY = bear.scaleY || 1;

@@ -1,6 +1,6 @@
 {
   "level": 17,
-  "run": "static",
+  "run": "full",
   "analysis": {
     "title": "Ticker Plunge",
     "gravity": 300,
@@ -42,6 +42,24 @@
     ],
     "crownX": 5650,
     "finaleHazardCount": 1,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.063,
+      0.175,
+      0.183,
+      0.275,
+      0.367,
+      0.375,
+      0.458,
+      0.558,
+      0.567,
+      0.658,
+      0.758,
+      0.783,
+      0.858,
+      0.942
+    ],
     "platformBands": [
       11,
       10,
@@ -61,14 +79,110 @@
   },
   "flags": [
     {
+      "id": "skeleton-rhyme",
+      "detail": "deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints"
+    },
+    {
       "id": "background-recycled",
       "detail": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device"
     }
   ],
-  "telemetry": null,
-  "shots": [],
-  "screenshotsSent": false,
-  "reports": [],
+  "telemetry": {
+    "level": 17,
+    "outcome": "crown-collected",
+    "durationSec": 67.8,
+    "deaths": 2,
+    "deathSpots": [
+      1523,
+      1510
+    ],
+    "maxX": 5611,
+    "hazardTypesSeen": [
+      "laser",
+      "drone",
+      "boulder",
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-drone",
+      "file": "02-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=1400"
+    },
+    {
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=1960"
+    },
+    {
+      "id": "04-hazard-roller",
+      "file": "04-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=2900"
+    },
+    {
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.81,
+      "fairness": 1.52,
+      "readability": 2.27,
+      "novelty": 0.76,
+      "pacing": 2.08,
+      "theme": 2.04,
+      "flaw": "clone",
+      "verdict": "rework"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 2,
+      "fairness": 1.55,
+      "readability": 2.34,
+      "novelty": 0.56,
+      "pacing": 2.02,
+      "theme": 2.18,
+      "flaw": "clone",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.98,
+      "fairness": 1.61,
+      "readability": 2.12,
+      "novelty": 0.57,
+      "pacing": 2.19,
+      "theme": 2.27,
+      "flaw": "clone",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.98,
+      "fairness": 1.45,
+      "readability": 2.25,
+      "novelty": 0.52,
+      "pacing": 2.09,
+      "theme": 2.33,
+      "flaw": "clone",
+      "verdict": "iterate"
+    }
+  ],
   "fidelity": {
     "briefHeadline": "Level 17 — Ticker Plunge (news-to-level)",
     "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/17.md",
@@ -78,43 +192,60 @@
         "AI data-center spending boom"
       ]
     },
+    "sent": true,
     "elements": [],
     "rows": [
       {
         "fact": "Value plunges, index falls",
+        "mechanic": "Descending server-deck route toward crown at the floor's end; rolling margin-call rollers",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.33
       },
       {
         "fact": "AI data-center spending boom",
+        "mechanic": "Bastion data-center biome + generated Muse Image backdrop (cyan conduits, plunging red ticker)",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.8
       },
       {
         "fact": "Panic spreads through names",
+        "mechanic": "Generated Ticker Bot panic drones patrolling decks + laser audits timing gates",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.97
       },
       {
         "fact": "Investors must decide: hold or exit",
+        "mechanic": "Reach the crown to \"close the position\"; checkpoints as circuit breakers",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.44
       }
     ],
-    "sent": false,
+    "mechanicFidelity": 2.89,
+    "visualFidelity": 2.82,
+    "fidelityFlaw": "none",
+    "universeFit": 0.96,
+    "usage": {
+      "input_tokens": 11669,
+      "output_tokens": 280
+    },
     "gate": {
       "passed": false,
       "shown": 0,
       "contradicted": 0,
       "unsupported": 0,
       "needsHuman": [
-        "panel-unavailable"
-      ]
-    }
+        "row:Value plunges, index falls",
+        "row:Investors must decide: hold or exit"
+      ],
+      "signatureMissing": [],
+      "signatureUnsupported": [],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": []
   },
   "concept": {
     "passed": false,
@@ -132,10 +263,32 @@
     "elementCount": 0,
     "mappingCount": 4
   },
-  "newsFloorFailures": [],
+  "newsFloorFailures": [
+    "novelty mean 0.60 < news floor 1.5"
+  ],
   "fixes": [
     {
       "rank": 1,
+      "priority": 1,
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "4/4 personas named \"clone\"; 02-hazard-drone.jpg (hazard beat: drone at x=1400)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "skeleton-rhyme",
+      "source": "mechanical",
+      "evidence": "deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
       "priority": 2,
       "flaw": "concept:incomplete-brief",
       "source": "concept",
@@ -145,7 +298,7 @@
       "recheck": "Concept gate passes (npm run critic:concept) before any art or build spend."
     },
     {
-      "rank": 2,
+      "rank": 4,
       "priority": 3,
       "flaw": "background-recycled",
       "source": "mechanical",
@@ -153,12 +306,24 @@
       "owner": "skills/level-art-creator/SKILL.md",
       "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
       "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Value plunges, index falls is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:Value plunges, index falls\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     }
   ],
-  "loop": 1,
-  "priorFlaw": null,
+  "loop": 2,
+  "priorFlaw": "concept:incomplete-brief",
   "loopExceeded": false,
-  "pilotRuns": 0,
-  "repeatedFlaws": [],
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "clone"
+  ],
   "passed": false
 }

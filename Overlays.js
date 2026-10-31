@@ -46,6 +46,10 @@ export function canRaceWithKeyboard({ matchMedia, keyboardApi = false } = {}) {
     }
 }
 
+export function newsColumnsFor(count, stackedHeight, availableHeight) {
+    return count > 1 && stackedHeight > availableHeight ? 2 : 1;
+}
+
 export function formatNewsRow(id, title, outlet) {
     const outletSuffix = outlet ? ` (${outlet})` : '';
     return `${id} · ${title}${outletSuffix}`;
@@ -1392,11 +1396,35 @@ export class Overlays {
                   : 0;
         this.titleNewsHeader.setPosition(centerX, statusBottom + gap);
         this.titleNewsHeader.setVisible(!shortLandscape);
-        let rowY = this.titleNewsHeader.y + this.titleNewsHeader.displayHeight + 6;
+        const headerBottom = this.titleNewsHeader.y + this.titleNewsHeader.displayHeight + 6;
+        const floor = insets.top + metrics.innerHeight - 8;
+        const stackedHeight = rows.reduce((sum, row) => sum + (row.displayHeight || 0) + 6, 0);
+        const columns = newsColumnsFor(rows.length, stackedHeight, floor - headerBottom);
+        if (columns === 1) {
+            let rowY = headerBottom;
+            for (const row of rows) {
+                row.setPosition(centerX, rowY);
+                row.setVisible(!shortLandscape);
+                rowY += row.displayHeight + 6;
+            }
+            return;
+        }
+        // Portrait overflow: two columns so every news level stays on
+        // screen and tappable instead of stacking past the viewport floor.
+        const columnGap = 12;
+        const columnWidth = (metrics.innerWidth - columnGap) / 2;
         for (const row of rows) {
-            row.setPosition(centerX, rowY);
-            row.setVisible(!shortLandscape);
-            rowY += row.displayHeight + 6;
+            row.setWordWrapWidth?.(columnWidth, true);
+        }
+        const perColumn = Math.ceil(rows.length / columns);
+        for (let column = 0; column < columns; column += 1) {
+            const columnX = insets.left + columnWidth * (column + 0.5) + column * columnGap;
+            let rowY = headerBottom;
+            for (const row of rows.slice(column * perColumn, (column + 1) * perColumn)) {
+                row.setPosition(columnX, rowY);
+                row.setVisible(!shortLandscape);
+                rowY += row.displayHeight + 6;
+            }
         }
     }
 

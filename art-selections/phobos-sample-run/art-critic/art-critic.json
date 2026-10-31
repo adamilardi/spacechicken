@@ -1,102 +1,102 @@
 {
-  "selection": "art-selections/phobos-sample-run/selection.json",
-  "verdict": "PASS",
-  "checks": [
-    {
-      "asset": "assets/news-phobos-sample-run/bg.png",
-      "check": "file-exists",
-      "result": "pass",
-      "detail": "present"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/bg.png",
-      "check": "gameplay-preview",
-      "result": "pass",
-      "detail": "art-selections/phobos-sample-run/art-critic/00-background-gameplay-1280x720.jpg"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/bg.png",
-      "check": "plate-covers",
-      "result": "pass",
-      "detail": "1920x1280"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
-      "check": "file-exists",
-      "result": "pass",
-      "detail": "present"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
-      "check": "gameplay-preview",
-      "result": "pass",
-      "detail": "art-selections/phobos-sample-run/art-critic/01-actor-gameplay-52px.png"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
-      "check": "has-alpha",
-      "result": "pass",
-      "detail": "1920x1280 RGBA"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
-      "check": "cutout-fill",
-      "result": "pass",
-      "detail": "24.2% opaque"
-    },
-    {
-      "asset": "canvas:craterDeck/mesa",
-      "check": "existing-art",
-      "result": "pass",
-      "detail": "shipped SpriteFactory paint, no file check"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/h3-rocket.png",
-      "check": "file-exists",
-      "result": "pass",
-      "detail": "present"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/h3-rocket.png",
-      "check": "gameplay-preview",
-      "result": "pass",
-      "detail": "art-selections/phobos-sample-run/art-critic/03-actor-gameplay-52px.png"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/h3-rocket.png",
-      "check": "has-alpha",
-      "result": "pass",
-      "detail": "1920x1280 RGBA"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/h3-rocket.png",
-      "check": "cutout-fill",
-      "result": "pass",
-      "detail": "13.3% opaque"
-    }
-  ],
-  "previews": [
-    {
-      "asset": "assets/news-phobos-sample-run/bg.png",
-      "kind": "background",
-      "preview": "art-selections/phobos-sample-run/art-critic/00-background-gameplay-1280x720.jpg"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
-      "kind": "actor",
-      "preview": "art-selections/phobos-sample-run/art-critic/01-actor-gameplay-52px.png"
-    },
-    {
-      "asset": "assets/news-phobos-sample-run/h3-rocket.png",
-      "kind": "actor",
-      "preview": "art-selections/phobos-sample-run/art-critic/03-actor-gameplay-52px.png"
-    }
-  ],
-  "checklist": [
-    "Two-device difference: name the two composition devices that differ from every shipped background type (see the authoring reference catalog).",
-    "Landmark read at 1x: open the gameplay preview — the signature landmark names the place without the instructions paragraph.",
-    "Silhouette distinctness: the actor cutout at 52px is not mistakable for a shipped hazard or the chicken.",
-    "Palette anchor: the set matches the style-anchor palette; background stays quieter than chicken, hazards, and platform edges.",
-    "No doubles: the plate paints no characters, crowns, or text that duplicate live sprites."
-  ]
+    "selection": "art-selections/phobos-sample-run/selection.json",
+    "verdict": "PASS",
+    "checks": [
+        {
+            "asset": "assets/news-phobos-sample-run/bg.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/bg.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/phobos-sample-run/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/bg.png",
+            "check": "plate-covers",
+            "result": "pass",
+            "detail": "1920x1280"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/phobos-sample-run/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "1920x1280 RGBA"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "24.2% opaque"
+        },
+        {
+            "asset": "canvas:craterDeck/mesa",
+            "check": "existing-art",
+            "result": "pass",
+            "detail": "shipped SpriteFactory paint, no file check"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/h3-rocket.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/h3-rocket.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/phobos-sample-run/art-critic/03-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/h3-rocket.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "1920x1280 RGBA"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/h3-rocket.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "13.3% opaque"
+        }
+    ],
+    "previews": [
+        {
+            "asset": "assets/news-phobos-sample-run/bg.png",
+            "kind": "background",
+            "preview": "art-selections/phobos-sample-run/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/survey-orbiter.png",
+            "kind": "actor",
+            "preview": "art-selections/phobos-sample-run/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-phobos-sample-run/h3-rocket.png",
+            "kind": "actor",
+            "preview": "art-selections/phobos-sample-run/art-critic/03-actor-gameplay-52px.png"
+        }
+    ],
+    "checklist": [
+        "Two-device difference: name the two composition devices that differ from every shipped background type (see the authoring reference catalog).",
+        "Landmark read at 1x: open the gameplay preview — the signature landmark names the place without the instructions paragraph.",
+        "Silhouette distinctness: the actor cutout at 52px is not mistakable for a shipped hazard or the chicken.",
+        "Palette anchor: the set matches the style-anchor palette; background stays quieter than chicken, hazards, and platform edges.",
+        "No doubles: the plate paints no characters, crowns, or text that duplicate live sprites."
+    ]
 }

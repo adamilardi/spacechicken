@@ -1,6 +1,6 @@
 {
   "level": 20,
-  "run": "static",
+  "run": "full",
   "analysis": {
     "title": "Robot Dance Sync",
     "gravity": 240,
@@ -43,6 +43,24 @@
     ],
     "crownX": 5650,
     "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.063,
+      0.175,
+      0.183,
+      0.275,
+      0.367,
+      0.375,
+      0.458,
+      0.558,
+      0.567,
+      0.658,
+      0.758,
+      0.783,
+      0.858,
+      0.942
+    ],
     "platformBands": [
       11,
       10,
@@ -60,11 +78,116 @@
       7
     ]
   },
-  "flags": [],
-  "telemetry": null,
-  "shots": [],
-  "screenshotsSent": false,
-  "reports": [],
+  "flags": [
+    {
+      "id": "skeleton-rhyme",
+      "detail": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints"
+    }
+  ],
+  "telemetry": {
+    "level": 20,
+    "outcome": "crown-collected",
+    "durationSec": 85.9,
+    "deaths": 4,
+    "deathSpots": [
+      1423,
+      1663,
+      1441,
+      5178
+    ],
+    "maxX": 5615,
+    "hazardTypesSeen": [
+      "laser",
+      "drone",
+      "boulder",
+      "calibrationTech",
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-drone",
+      "file": "02-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=1400"
+    },
+    {
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=1960"
+    },
+    {
+      "id": "04-hazard-roller",
+      "file": "04-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=2900"
+    },
+    {
+      "id": "05-setpiece-countdownBoard",
+      "file": "05-setpiece-countdownBoard.jpg",
+      "proves": "set piece: countdownBoard at x=2400"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.43,
+      "fairness": 1.31,
+      "readability": 2.16,
+      "novelty": 0.65,
+      "pacing": 1.81,
+      "theme": 1.73,
+      "flaw": "clone",
+      "verdict": "rework"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.66,
+      "fairness": 1.34,
+      "readability": 2.13,
+      "novelty": 0.43,
+      "pacing": 1.83,
+      "theme": 1.84,
+      "flaw": "clone",
+      "verdict": "rework"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.71,
+      "fairness": 1.37,
+      "readability": 1.99,
+      "novelty": 0.36,
+      "pacing": 1.96,
+      "theme": 1.91,
+      "flaw": "clone",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.54,
+      "fairness": 1.3,
+      "readability": 2.2,
+      "novelty": 0.51,
+      "pacing": 2.01,
+      "theme": 2,
+      "flaw": "clone",
+      "verdict": "rework"
+    }
+  ],
   "fidelity": {
     "briefHeadline": "Level 20 — Robot Dance Sync (news-to-level)",
     "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/20.md",
@@ -101,86 +224,102 @@
       ],
       "sceneryOnlyFacts": []
     },
+    "sent": true,
     "elements": [
       {
         "element": "humanoid dancer bots",
         "signature": true,
-        "claimed": true,
-        "noul": null
+        "noul": 0.78,
+        "verdict": "shown"
       },
       {
         "element": "stage formation grid",
         "signature": true,
-        "claimed": true,
-        "noul": null
+        "noul": 0.68,
+        "verdict": "faint"
       },
       {
         "element": "transport cases",
         "signature": false,
-        "claimed": false,
-        "noul": null
+        "noul": 0.51,
+        "verdict": "faint"
       },
       {
         "element": "LinkBots antenna mast",
         "signature": false,
-        "claimed": true,
-        "noul": null
+        "noul": 0.86,
+        "verdict": "shown"
       },
       {
         "element": "countdown numerals",
         "signature": false,
-        "claimed": true,
-        "noul": null
+        "noul": 0.97,
+        "verdict": "shown"
       },
       {
         "element": "Guinness certificate gate",
         "signature": false,
-        "claimed": true,
-        "noul": null
-      },
-      {
-        "element": "wave light beams",
-        "signature": false,
-        "claimed": true,
-        "noul": null
+        "noul": 0.28,
+        "verdict": "missing"
       }
     ],
     "rows": [
       {
         "fact": "110 robots dance in unison 5m43s, wave patterns and formation switches",
+        "mechanic": "Patrol drone waves timed to a beat: synchronized drone patrols + roller beat hazards crossing decks; topology as stage formation grid",
         "signature": true,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.82
       },
       {
         "fact": "LinkBots directs fleets over 5G+WiFi, UWB +-10cm, auto gap-fill",
+        "mechanic": "Laser timing gates on a fixed beat (on/off 800ms+) + checkpoint rescue as re-sync points; crown objective as finale pose",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.22
       },
       {
         "fact": "Robots walk from cases, self-calibrate, no per-unit remote",
+        "mechanic": "Bonk pads as calibration stages: bonk to bounce between formation decks; gravity 240 for floaty choreography",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "unsupported",
+        "confidence": 0.44
       },
       {
         "fact": "Guinness adjudicator counts and certifies on site",
+        "mechanic": "Certification gauntlet: finale beat-laser gate + tempo roller crossing to the crown pose; finale checkpoint as the adjudicator mark",
         "signature": false,
-        "choice": "not-judged",
-        "confidence": null
+        "choice": "supports",
+        "confidence": 0.31
       }
     ],
-    "sent": false,
+    "mechanicFidelity": 2.48,
+    "visualFidelity": 3.39,
+    "fidelityFlaw": "missing-elements",
+    "universeFit": 0.97,
+    "usage": {
+      "input_tokens": 12289,
+      "output_tokens": 389
+    },
     "gate": {
       "passed": false,
-      "shown": 0,
+      "shown": 3,
       "contradicted": 0,
-      "unsupported": 0,
+      "unsupported": 1,
       "needsHuman": [
-        "panel-unavailable"
-      ]
-    }
+        "element:stage formation grid",
+        "element:transport cases",
+        "row:LinkBots directs fleets over 5G+WiFi, UWB +-10cm, auto gap-fill",
+        "row:Robots walk from cases, self-calibrate, no per-unit remote",
+        "row:Guinness adjudicator counts and certifies on site"
+      ],
+      "signatureMissing": [],
+      "signatureUnsupported": [],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": [
+      "element:humanoid dancer bots"
+    ]
   },
   "concept": {
     "passed": true,
@@ -189,12 +328,68 @@
     "elementCount": 7,
     "mappingCount": 4
   },
-  "newsFloorFailures": [],
-  "fixes": [],
-  "loop": 4,
-  "priorFlaw": "missing-elements",
-  "loopExceeded": true,
-  "pilotRuns": 0,
-  "repeatedFlaws": [],
-  "passed": true
+  "newsFloorFailures": [
+    "novelty mean 0.49 < news floor 1.5",
+    "theme mean 1.87 < news floor 2"
+  ],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "4/4 personas named \"clone\"; 02-hazard-drone.jpg (hazard beat: drone at x=1400)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "skeleton-rhyme",
+      "source": "mechanical",
+      "evidence": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 2,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.48 visual=3.39",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
+    },
+    {
+      "rank": 4,
+      "priority": 2,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "element \"Guinness certificate gate\" missing in shots (noul=0.28)",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "element:stage formation grid is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"element:stage formation grid\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "clone"
+  ],
+  "passed": false
 }

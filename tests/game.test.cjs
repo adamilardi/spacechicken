@@ -229,6 +229,14 @@ test('news levels are marked and listed for the title screen', async () => {
     }
 });
 
+test('news menu switches to two columns when rows overflow portrait', async () => {
+    const { newsColumnsFor } = await importModule('Overlays.js');
+    assert.equal(newsColumnsFor(7, 7 * 36, 200), 2);
+    assert.equal(newsColumnsFor(7, 7 * 36, 400), 1);
+    assert.equal(newsColumnsFor(1, 36, 10), 1);
+    assert.equal(newsColumnsFor(0, 0, 0), 1);
+});
+
 test('news rows label the level and outlet', async () => {
     const { formatNewsRow } = await importModule('Overlays.js');
 
@@ -253,6 +261,47 @@ test('title news rows start their level without unlocks', async () => {
     scene.startNewsLevel(3);
     assert.equal(scene.selectedLevel, 17);
     assert.equal(restarts.length, 1);
+});
+
+test('news level completion does not unlock campaign levels', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const unlocks = [];
+    let queued = null;
+    scene.player = { x: 100, y: 100 };
+    scene.player2 = null;
+    scene.level = 17;
+    scene.levelConfig = { nextLevel: 1 };
+    scene.debugMode = false;
+    scene.startTime = performance.now();
+    scene.audioManager = { playCollectSound() {}, duckMusic() {} };
+    scene.pulsePads = () => {};
+    scene.queueSceneStart = (payload) => {
+        queued = payload;
+    };
+    scene.leaderboardManager = {
+        getPersonalBest() {
+            return null;
+        },
+        shouldPromptForName() {
+            return false;
+        },
+        ensurePlayerName() {
+            return 'Ada';
+        },
+        saveTime() {},
+        unlockLevel(n) {
+            unlocks.push(n);
+        },
+        lastSubmission: null,
+    };
+    scene.uiManager = {
+        updatePlayerName() {},
+        showLevelResult() {},
+    };
+    scene.collectGem(scene.player);
+    assert.deepEqual(unlocks, [], 'news completion must not advance campaign unlocks');
+    assert.ok(queued, 'news completion still hands off to its next level');
 });
 
 const ALL_LEVEL_IDS = Array.from({ length: 23 }, (_, i) => i + 1);

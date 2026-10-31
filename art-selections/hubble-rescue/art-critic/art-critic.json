@@ -1,102 +1,102 @@
 {
-  "selection": "art-selections/hubble-rescue/selection.json",
-  "verdict": "PASS",
-  "checks": [
-    {
-      "asset": "assets/news-hubble-rescue/bg.jpg",
-      "check": "file-exists",
-      "result": "pass",
-      "detail": "present"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/bg.jpg",
-      "check": "gameplay-preview",
-      "result": "pass",
-      "detail": "art-selections/hubble-rescue/art-critic/00-background-gameplay-1280x720.jpg"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/bg.jpg",
-      "check": "plate-covers",
-      "result": "pass",
-      "detail": "1920x1280"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/servicer-tug.png",
-      "check": "file-exists",
-      "result": "pass",
-      "detail": "present"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/servicer-tug.png",
-      "check": "gameplay-preview",
-      "result": "pass",
-      "detail": "art-selections/hubble-rescue/art-critic/01-actor-gameplay-52px.png"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/servicer-tug.png",
-      "check": "has-alpha",
-      "result": "pass",
-      "detail": "1920x1280 RGBA"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/servicer-tug.png",
-      "check": "cutout-fill",
-      "result": "pass",
-      "detail": "24.8% opaque"
-    },
-    {
-      "asset": "canvas:issHull/stationPanel",
-      "check": "existing-art",
-      "result": "pass",
-      "detail": "shipped SpriteFactory paint, no file check"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/rfi-envelope.png",
-      "check": "file-exists",
-      "result": "pass",
-      "detail": "present"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/rfi-envelope.png",
-      "check": "gameplay-preview",
-      "result": "pass",
-      "detail": "art-selections/hubble-rescue/art-critic/03-actor-gameplay-52px.png"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/rfi-envelope.png",
-      "check": "has-alpha",
-      "result": "pass",
-      "detail": "1920x1280 RGBA"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/rfi-envelope.png",
-      "check": "cutout-fill",
-      "result": "pass",
-      "detail": "54.1% opaque"
-    }
-  ],
-  "previews": [
-    {
-      "asset": "assets/news-hubble-rescue/bg.jpg",
-      "kind": "background",
-      "preview": "art-selections/hubble-rescue/art-critic/00-background-gameplay-1280x720.jpg"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/servicer-tug.png",
-      "kind": "actor",
-      "preview": "art-selections/hubble-rescue/art-critic/01-actor-gameplay-52px.png"
-    },
-    {
-      "asset": "assets/news-hubble-rescue/rfi-envelope.png",
-      "kind": "actor",
-      "preview": "art-selections/hubble-rescue/art-critic/03-actor-gameplay-52px.png"
-    }
-  ],
-  "checklist": [
-    "Two-device difference: name the two composition devices that differ from every shipped background type (see the authoring reference catalog).",
-    "Landmark read at 1x: open the gameplay preview — the signature landmark names the place without the instructions paragraph.",
-    "Silhouette distinctness: the actor cutout at 52px is not mistakable for a shipped hazard or the chicken.",
-    "Palette anchor: the set matches the style-anchor palette; background stays quieter than chicken, hazards, and platform edges.",
-    "No doubles: the plate paints no characters, crowns, or text that duplicate live sprites."
-  ]
+    "selection": "art-selections/hubble-rescue/selection.json",
+    "verdict": "PASS",
+    "checks": [
+        {
+            "asset": "assets/news-hubble-rescue/bg.jpg",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/bg.jpg",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/hubble-rescue/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/bg.jpg",
+            "check": "plate-covers",
+            "result": "pass",
+            "detail": "1920x1280"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/servicer-tug.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/servicer-tug.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/hubble-rescue/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/servicer-tug.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "1920x1280 RGBA"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/servicer-tug.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "24.8% opaque"
+        },
+        {
+            "asset": "canvas:issHull/stationPanel",
+            "check": "existing-art",
+            "result": "pass",
+            "detail": "shipped SpriteFactory paint, no file check"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/rfi-envelope.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/rfi-envelope.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/hubble-rescue/art-critic/03-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/rfi-envelope.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "1920x1280 RGBA"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/rfi-envelope.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "54.1% opaque"
+        }
+    ],
+    "previews": [
+        {
+            "asset": "assets/news-hubble-rescue/bg.jpg",
+            "kind": "background",
+            "preview": "art-selections/hubble-rescue/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/servicer-tug.png",
+            "kind": "actor",
+            "preview": "art-selections/hubble-rescue/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-hubble-rescue/rfi-envelope.png",
+            "kind": "actor",
+            "preview": "art-selections/hubble-rescue/art-critic/03-actor-gameplay-52px.png"
+        }
+    ],
+    "checklist": [
+        "Two-device difference: name the two composition devices that differ from every shipped background type (see the authoring reference catalog).",
+        "Landmark read at 1x: open the gameplay preview — the signature landmark names the place without the instructions paragraph.",
+        "Silhouette distinctness: the actor cutout at 52px is not mistakable for a shipped hazard or the chicken.",
+        "Palette anchor: the set matches the style-anchor palette; background stays quieter than chicken, hazards, and platform edges.",
+        "No doubles: the plate paints no characters, crowns, or text that duplicate live sprites."
+    ]
 }
