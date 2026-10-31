@@ -36,7 +36,7 @@ node scripts/boss-review.mjs <id>       # crown encounters 8-16 also need the bo
 
 The script writes `docs/level-reviews/level-<id>.json` (machine verdict) and `docs/level-reviews/level-<id>.md` (human report) and exits `0` pass, `2` iterate/rework, `1` error. Without a TypeSafe key it still runs every mechanical check and the capture, marks `panel: unavailable`, and can return at most **mechanical pass** — never a ship verdict. Say which happened; never claim a panel ran when it did not.
 
-`critic:concept` checks the brief alone — Novelty Ledger, Signature Mechanic Canvas, Topology Fingerprint, ≥3 fact→mechanic rows that are not scenery-only, element inventory ≥3, and a named themed enemy — and fails if any is missing or scenery-only. News `critic:level` runs also assess the concept gate automatically; a concept failure fails the whole run.
+`critic:concept` checks the brief alone — Novelty Ledger, Signature Mechanic Canvas, Topology Fingerprint, ≥3 fact→mechanic rows that are not scenery-only, element inventory ≥3, a named themed enemy, and an explicit boss-theme decision (`Boss theme: …` or `Boss theme: none — …`) — and fails if any is missing or scenery-only. News `critic:level` runs also assess the concept gate automatically; a concept failure fails the whole run. A brief declaring a boss theme must also pass `node scripts/boss-review.mjs <id>` at play time; the boss panel, not this gate, judges whether the encounter fights.
 
 ## Screenshots go to the critic (not just to disk)
 

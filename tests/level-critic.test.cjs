@@ -377,6 +377,7 @@ test('concept gate requires the three artefacts, rows, inventory, and themed ene
             '',
             'Element inventory: rising water, sandbag stacks, rescue boats',
             'Signature elements: rising water',
+            'Boss theme: none — a flood rescue has no dominant adversary.',
             'Themed enemy: Digger Drone (enemies/digger.js).',
             '',
             '| Story fact | Gameplay it becomes | Why |',
@@ -405,6 +406,7 @@ test('concept gate requires the three artefacts, rows, inventory, and themed ene
     assert.equal(thin.passed, false);
     assert.ok(thin.missing.includes('novelty-ledger'));
     assert.ok(thin.missing.includes('themed-enemy'));
+    assert.ok(thin.missing.includes('boss-theme-decision'));
 });
 
 test('fix contract ranks structural flaws first with owner and recheck', async () => {

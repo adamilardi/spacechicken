@@ -11,6 +11,8 @@ A recolored lab tech, a bigger health pool, or a copied boarder wave is not a ne
 
 **Novelty against the roster.** Most shipped bosses share pace → telegraph → charge. That rule is owned. Before painting, name in the build brief which roster rule yours does _not_ use as its core, or how its core decision differs (positioning, timing window, adds, arena state). An encounter whose only novelty is HP, speed, or tint is `stale` by definition and the boss panel caps its fun at 2. Give the encounter one arena interaction no sibling has (a gate the fight opens/closes, a deck that moves, a hazard the boss arms) so the _space_ fights differently, not only the actor.
 
+**News boss themes.** When a news brief declares a boss theme (see the boss theme test in the news-to-level skill), this encounter is mandatory, and the actor is the story's dominant adversary — its silhouette, tell, and rule come from the article, not from the contra roster. News bosses usually ship with `Combat profile: contra` (phaser on) so the player fights the encounter; a phaser-off news boss must state its fight rule (bonk, armed arena hazard) in the brief, and the boss panel judges whether that answer plays. Disaster stories keep the boss abstract (the storm, the fire front) — never a victim.
+
 ## Look at the level
 
 Read that level's `LEVEL_DEFINITIONS` entry, `LEVEL_CONTENT`, background type, gravity, and hazards. Read how the crown is placed and how `resolveHazardContact` and, on Earthwatch, the phaser treat actors. Compare the last stretch of the other levels so this one adds a new idea.

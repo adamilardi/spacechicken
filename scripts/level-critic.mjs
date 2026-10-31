@@ -609,6 +609,7 @@ export function assessConcept(markdown) {
     if (brief.mappings.length < 3) missing.push('fact-mechanic-rows>=3');
     if (brief.elements.length < 3) missing.push('element-inventory>=3');
     if (!/themed enemy\s*:/.test(lower)) missing.push('themed-enemy');
+    if (!/boss theme\s*:/.test(lower)) missing.push('boss-theme-decision');
     if (!brief.signatureElements.length && !brief.signatureFacts.length) {
         missing.push('signature-marking');
     }
