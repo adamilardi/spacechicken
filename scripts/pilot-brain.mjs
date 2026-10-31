@@ -55,6 +55,10 @@ export function createPilotState() {
         // Set per tick when the pilot deliberately holds still (lift
         // waits, backing up, riding): suppresses stuck recovery.
         holdStill: false,
+        // Wall-time when threat suppression started; a threat that never
+        // leaves is a hold, so threat suppression expires (holds still
+        // never expire: breaking a lift ride would suicide the run).
+        threatSuppressFromT: null,
         // Double-back maneuver expiry (snap.elapsedMs): while armed, the
         // spent double steers for the deck behind instead of the gap.
         // Cleared on touchdown; expiry falls back to the normal escape.
@@ -4111,7 +4115,7 @@ export function decidePilotInput(snap, state) {
 // Distilled from fresh JEV traces (.jev-runs/level-2, ~21 move_left
 // backtracks when stalled): if the pilot makes no horizontal progress
 // for a while, hop away from the goal briefly instead of stalling.
-export function applyStuckRecovery(snap, input, state, suppressed, now) {
+export function applyStuckRecovery(snap, input, state, suppressed, now, threatSuppressed) {
     const at = now == null ? Date.now() : now;
     const px = snap.player ? snap.player.x : null;
     if (
@@ -4123,6 +4127,17 @@ export function applyStuckRecovery(snap, input, state, suppressed, now) {
     ) {
         return;
     }
+    let threatBlock = Boolean(threatSuppressed);
+    if (threatBlock) {
+        if (state.threatSuppressFromT == null) {
+            state.threatSuppressFromT = at;
+        } else if (at - state.threatSuppressFromT > 10000) {
+            threatBlock = false;
+            state.threatSuppressFromT = at;
+        }
+    } else {
+        state.threatSuppressFromT = null;
+    }
     if (state.stuckFromX == null || Math.abs(px - state.stuckFromX) > 24) {
         state.stuckFromX = px;
         state.stuckFromT = at;
@@ -4131,7 +4146,7 @@ export function applyStuckRecovery(snap, input, state, suppressed, now) {
         state.stuckFromX = px;
         state.stuckFromT = at;
     }
-    if (at < state.recoverUntil && !suppressed) {
+    if (at < state.recoverUntil && !suppressed && !threatBlock) {
         const away = snap.crown && snap.player && snap.crown.x < snap.player.x ? 1 : -1;
         // Never hop off an edge: with no footing in the escape direction,
         // hold and let patrols pass instead of suiciding into the pit.
@@ -4186,11 +4201,11 @@ function pilotMain() {
             // Recovery suppression is per-tick: threats only veto the
             // stuck-hop while they are actually near. (This used to latch
             // on first contact and disable recovery for the whole run.)
-            const suppressed =
-                state.holdStill === true ||
-                (snap.player != null &&
-                    nearestThreat(snap.player.x, snap.player.y, snap, 150) != null);
-            applyStuckRecovery(snap, input, state, suppressed);
+            const suppressed = state.holdStill === true;
+            const threatNear =
+                snap.player != null &&
+                nearestThreat(snap.player.x, snap.player.y, snap, 150) != null;
+            applyStuckRecovery(snap, input, state, suppressed, undefined, threatNear);
             // Pulse latch: airborne branches fire only on release, so
             // consecutive air jumps edge-fire instead of holding one edge.
             state.lastJump = Boolean(input.jump);

@@ -1,13 +1,15 @@
 ---
 name: space-chicken-boss-creator
-description: Build a distinct Space Chicken crown encounter with a painted actor, a new way to approach the crown, and a playtest. Use for an end-of-level set piece. Do not generate images. Ordinary enemy paints stay in the enemy art skill.
+description: Build a distinct Space Chicken crown encounter with a painted actor, a new way to approach the crown, and a playtest. Use for an end-of-level set piece. Ordinary enemy art stays in the enemy art skill.
 ---
 
 # Crown encounter creator
 
 Build a distinct end-of-level encounter for one Space Chicken level. The game has no boss object. The chicken still finishes by touching the crown. The encounter is the space, the actor, and the rule that make that last stretch play differently from the rest of the level.
 
-A recolored lab tech, a bigger health pool, or a copied boarder wave is not a new encounter. Shared helpers for platforms, tweens, bonk, and the phaser can be reused. Read [the authoring reference](../level-creator/references/spacechicken.md). Do not deploy. Leave other levels' layouts alone unless the user asked to change them.
+A recolored lab tech, a bigger health pool, or a copied boarder wave is not a new encounter. Shared helpers for platforms, tweens, bonk, and the phaser can be reused. Read [the authoring reference](../level-creator/references/spacechicken.md) and the boss roster in `scripts/boss-review.mjs` (`BRIEFS`). Do not deploy. Leave other levels' layouts alone unless the user asked to change them.
+
+**Novelty against the roster.** Most shipped bosses share pace → telegraph → charge. That rule is owned. Before painting, name in the build brief which roster rule yours does _not_ use as its core, or how its core decision differs (positioning, timing window, adds, arena state). An encounter whose only novelty is HP, speed, or tint is `stale` by definition and the boss panel caps its fun at 2. Give the encounter one arena interaction no sibling has (a gate the fight opens/closes, a deck that moves, a hazard the boss arms) so the _space_ fights differently, not only the actor.
 
 ## Look at the level
 
@@ -19,14 +21,16 @@ Write a short brief and keep going on routine choices. Name the level, the paint
 
 Put encounter behavior in that level's `levels/<name>.js` module and `LEVEL_CONTENT` entry. Add an `enemies/<name>.js` spawn function registered in `enemies/index.js` only when the encounter needs a hazard the registry cannot express. Register any new file in `config/runtime-assets.cjs` `rootFiles`.
 
-Paint the actor or machine with a `paint` function and register it through `SpriteFactory`, following the painted-art rules. Do not generate images. If a selected `paint.js` already exists, use that file. Do not redraw a new identity over it.
+Paint the actor or machine with a `paint` function and register it through `SpriteFactory`, following the painted-art rules. If a selected paint or generated image already exists, use that file. Do not redraw a new identity over it.
 
 Bonk actors get `paintBonkPad`. Shootable actors get a lens and go through the phaser overlap only when this level sets `PHASER`. Unmarked hazards get neither. Animate with extra poses of the same paint or with tweens. Tie the tell to the same state that turns the hitbox on. Pause freezes that state.
 
 Match the body to the solid pixels. Keep glows outside the hitbox. Clean up tweens, delayed calls, and spawned pieces on a fall, a retry, a skip, and shutdown. The crown must stay reachable, including in co-op if this level is raced. Award the clear once. A stunned or defeated part is not the clear.
 
-## Verify
+## Verify — boss panel plus level critic
 
 Add a focused test when the new rule has a state change, a timer, or a cleanup path that could strand the crown. Run `npm test`. Play `/?level=N` through the last stretch: the tell, the answer, a failure, a retry, pause, and the crown. A debug skip does not prove the stretch. Note the URL and what you did not play. Co-op and the touch controls matter when the encounter changes where the chicken stands or when it needs the phaser.
+
+Then both critic gates, in this order: `node scripts/boss-review.mjs <id>` (the persona panel must PASS; add a `BRIEFS` entry for a new boss first, with its rule/tell/safe response) and `npm run critic:level -- <id>` for the whole level. An encounter that passes its boss panel but leaves the level `clone`/`stale` still iterates. Record both verdicts in the boss build report; maximum three loops, then hand the reports to the user.
 
 Write `docs/boss-builds/<id>.md` (create the folder if it is missing) with the level, the rule, the texture keys, the files, how to start the level, and the check results. Say whether the encounter is playable. A paint with no placement is not a finished encounter.

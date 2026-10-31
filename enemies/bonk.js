@@ -1,7 +1,7 @@
 import { GAME_CONSTANTS } from '../Constants.js';
 import { addLoopingTween } from '../GameUtils.js';
 
-function attachBonkMarker(builder, enemy) {
+export function attachBonkMarker(builder, enemy) {
     if (!enemy || !builder.add?.image) {
         return;
     }

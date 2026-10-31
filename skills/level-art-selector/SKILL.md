@@ -5,7 +5,9 @@ description: Compare Space Chicken paint candidates and record the set for a lev
 
 # Level art selector
 
-Help choose a coherent set of painted scenery and actors. Read [the authoring reference](../level-creator/references/spacechicken.md). This skill records a choice. It does not paint new art, edit the running game, or deploy.
+Help choose a coherent — and genuinely new — set of painted scenery and actors. Read [the authoring reference](../level-creator/references/spacechicken.md), the level's Novelty Ledger, and [the game critic](../game-critic/SKILL.md). This skill records a choice. It does not paint new art, edit the running game, or deploy.
+
+**Creativity scoring comes before coherence.** Score every candidate set 0–2 on each of: silhouette novelty (new shapes, not new fills), landmark strength (the place names itself at 1x), deck-read variety (at least three reads), and story/brief embodiment (the brief's signature objects present as art). A set scoring 0 on silhouette novelty or landmark strength is rejected however coherent it is: recommend a repaint through the art creator instead of selecting the least-bad clone. Coherence (palette, scale, facing) only ranks the sets that pass creativity. Record the scores in `selection.md`; the Art critic checks them against the previews.
 
 ## Compare
 

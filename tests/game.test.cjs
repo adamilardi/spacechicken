@@ -217,11 +217,49 @@ function assertArcTwoLevels(LevelConfig) {
     assert.equal(new LevelConfig(15).crownShield, true);
 }
 
+test('news levels are marked and listed for the title screen', async () => {
+    const { NEWS_LEVEL_IDS, LEVEL_DEFINITIONS, LEVEL_CONTENT } =
+        await importModule('levels/index.js');
+
+    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18]);
+    for (const id of NEWS_LEVEL_IDS) {
+        assert.ok(LEVEL_DEFINITIONS[id].TITLE, `level ${id} has a title`);
+        assert.ok(LEVEL_CONTENT[id].news.outlet, `level ${id} names its outlet`);
+        assert.ok(LEVEL_CONTENT[id].news.headline, `level ${id} names its headline`);
+    }
+});
+
+test('news rows label the level and outlet', async () => {
+    const { formatNewsRow } = await importModule('Overlays.js');
+
+    assert.equal(formatNewsRow(17, 'Ticker Plunge', 'Reuters'), '17 · Ticker Plunge (Reuters)');
+    assert.equal(formatNewsRow(18, 'Fear Spike', ''), '18 · Fear Spike');
+});
+
+test('title news rows start their level without unlocks', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.awaitingStart = true;
+    scene.selectedLevel = 1;
+    const restarts = [];
+    scene.input = { off: () => {} };
+    scene.scene = { restart: (data) => restarts.push(data) };
+
+    scene.startNewsLevel(17);
+    assert.equal(scene.selectedLevel, 17);
+    assert.equal(restarts.length, 1);
+    assert.equal(restarts[0].level, 17);
+
+    scene.startNewsLevel(3);
+    assert.equal(scene.selectedLevel, 17);
+    assert.equal(restarts.length, 1);
+});
+
 test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('levels/index.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
 
-    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
     LEVEL_IDS.forEach((level) => {
         const config = new LevelConfig(level);
         assert.ok(config.world.width > 0);
@@ -1303,16 +1341,16 @@ test('level unlocks persist, clamp, and survive corrupt storage', async () => {
     assert.equal(fresh.unlockLevel(4), 4);
     assert.equal(fresh.getMaxUnlocked(), 4);
     assert.equal(fresh.unlockLevel(2), 4);
-    assert.equal(fresh.unlockLevel(99), 16);
-    assert.equal(fresh.getMaxUnlocked(), 16);
+    assert.equal(fresh.unlockLevel(99), 18);
+    assert.equal(fresh.getMaxUnlocked(), 18);
 
     global.window = { localStorage: createStorage({ spaceChickenUnlocked: 'junk' }) };
     const corrupt = new LeaderboardManager({ storageAvailable: true });
     assert.equal(corrupt.getMaxUnlocked(), 1);
 
     const noStorage = new LeaderboardManager({ storageAvailable: false });
-    assert.equal(noStorage.getMaxUnlocked(), 16);
-    assert.equal(noStorage.unlockLevel(5), 16);
+    assert.equal(noStorage.getMaxUnlocked(), 18);
+    assert.equal(noStorage.unlockLevel(5), 18);
 });
 
 test('title selection cycles within unlocked levels and starts them', async () => {
@@ -1453,7 +1491,7 @@ test('all levels have distinct, layered music arrangements', async () => {
     const identities = new Set();
 
     assert.equal(midiToFrequency(69), 440);
-    for (let level = 1; level <= 16; level++) {
+    for (const level of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18]) {
         const definition = MUSIC_DEFINITIONS[level];
         identities.add(definition.id);
         assert.ok(definition.pattern.length >= 40, `level ${level} should have a full arrangement`);
@@ -1467,7 +1505,7 @@ test('all levels have distinct, layered music arrangements', async () => {
             `${definition.id} should keep playing through the loop`
         );
     }
-    assert.equal(identities.size, 16);
+    assert.equal(identities.size, 17);
 });
 
 test('audio scheduling routes melodic and percussion events', async () => {
@@ -1557,6 +1595,15 @@ test('sound effects use distinct layered voices', async () => {
         calls.map((call) => call.voice),
         ['noise', 'tone']
     );
+
+    calls.length = 0;
+    manager.playBearTelegraph();
+    assert.deepEqual(
+        calls.map((call) => call.voice),
+        ['tone', 'tone']
+    );
+    assert.ok(calls.every((call) => call.options.type === 'square'));
+    assert.ok(calls[1].options.startTime > calls[0].options.startTime);
 
     calls.length = 0;
     manager.playStartSound();

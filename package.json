@@ -42,6 +42,8 @@
         "playtest:headed": "HEADLESS=0 node scripts/playtest-bot.mjs",
         "jev:playtest": "node scripts/jev-playtest.mjs",
         "jev:playtest:headed": "HEADLESS=0 node scripts/jev-playtest.mjs",
+        "critic:level": "node scripts/level-critic.mjs",
+        "critic:level:static": "node scripts/level-critic.mjs --static",
         "rl:baseline": "node scripts/rl/record-baseline.mjs",
         "rl:convert": "node scripts/rl/convert-jev.mjs",
         "rl:train": "python3 rl/train_bc.py",
@@ -56,7 +58,7 @@
         "phaser": "3.70.0"
     },
     "devDependencies": {
-        "@typesafe-ai/sdk": "^0.6.0",
+        "@typesafe-ai/sdk": "^0.7.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.1",

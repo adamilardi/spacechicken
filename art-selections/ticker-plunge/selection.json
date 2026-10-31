@@ -1,0 +1,24 @@
+{
+    "level_id": 17,
+    "decision_status": "selected",
+    "story": "Nasdaq 100 Faces $2T October Wipeout on AI Fears — Reuters via Tech Insider, Oct 31 2026, https://tech-insider.org/nasdaq-100-2-trillion-october-wipeout-ai-spending-fears-2026/",
+    "choices": [
+        {
+            "role": "background",
+            "asset_path": "assets/news-ticker-plunge/bg.jpg",
+            "source": "Muse Image generated"
+        },
+        {
+            "role": "actor: panic drone (drone hazard, key tickerBot)",
+            "asset_path": "assets/news-ticker-plunge/ticker-bot.png",
+            "source": "Muse Image generated"
+        },
+        {
+            "role": "decks",
+            "asset_path": "canvas:bastionDeck/bastionGrate",
+            "source": "existing SpriteFactory paints"
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": []
+}

@@ -1,0 +1,29 @@
+{
+  "level": 1,
+  "shots": [
+    {
+      "id": "01-opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-1/01-opener.jpg"
+    },
+    {
+      "id": "02-mid",
+      "x": 1000,
+      "y": 400,
+      "proves": "mid-level set piece and hazard read",
+      "file": "02-mid.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-1/02-mid.jpg"
+    },
+    {
+      "id": "03-finale",
+      "x": 1480,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "file": "03-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-1/03-finale.jpg"
+    }
+  ]
+}

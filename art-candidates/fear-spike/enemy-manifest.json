@@ -1,0 +1,94 @@
+{
+    "schema_version": 1,
+    "brief_id": "fear-spike",
+    "kind": "enemy",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "enemy-bear-raider-a",
+            "title": "Dive-bot",
+            "status": "painted",
+            "summary": "Bear-headed dive-bot with down-arrow sail. Killed: no bonk affordance.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy/enemy-bear-raider-a.png",
+                    "width_px": 1920,
+                    "height_px": 1280,
+                    "alpha": false,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": [],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#1d2c4d", "#ff4a3c", "#7df9ff"],
+                "target_display": "52px",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 960, "y": 1200 }
+            },
+            "animation_handoff_path": null,
+            "checks": { "dimensions": "pass", "alpha": "fail", "silhouette": "pass" },
+            "limitations": ["Killed in brief.md."]
+        },
+        {
+            "id": "enemy-bear-raider-b",
+            "title": "Bonk orb",
+            "status": "painted",
+            "summary": "Bear orb with spring bonk pad, candlestick spike ring, cyan eye.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy/enemy-bear-raider-b.png",
+                    "width_px": 1920,
+                    "height_px": 1280,
+                    "alpha": false,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["enemy/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#1d2c4d", "#ff4a3c", "#ffd54a", "#7df9ff"],
+                "target_display": "52px",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 510, "y": 990 }
+            },
+            "animation_handoff_path": "enemy/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "pass" },
+            "limitations": [
+                "Production cutout keyed to RGBA in assets/news-fear-spike/bear-raider.png (1020x1032)."
+            ]
+        },
+        {
+            "id": "enemy-bear-raider-c",
+            "title": "Hammerhead bell",
+            "status": "painted",
+            "summary": "Hammerhead diving bell. Killed: weak bear-market read, no pad.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy/enemy-bear-raider-c.png",
+                    "width_px": 1920,
+                    "height_px": 1280,
+                    "alpha": false,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": [],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#1d2c4d", "#ff4a3c", "#7df9ff"],
+                "target_display": "52px",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 960, "y": 1200 }
+            },
+            "animation_handoff_path": null,
+            "checks": { "dimensions": "pass", "alpha": "fail", "silhouette": "fail" },
+            "limitations": ["Killed in brief.md."]
+        }
+    ]
+}

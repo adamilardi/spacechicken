@@ -11,6 +11,7 @@ Creation and review helpers for each game-dev role. Like the art skills, these a
 | [producer](../skills/producer/SKILL.md)               | Scoping, backlog, sequencing, ship checklists     | Plan, backlog items, ship verdict             |
 | [qa-reviewer](../skills/qa-reviewer/SKILL.md)         | Test plans, playtests, bug reports, ship gates    | Test plan, bug reports, gate verdict          |
 | [ui-ux-creator](../skills/ui-ux-creator/SKILL.md)     | HUD, overlays, touch and gamepad input            | HUD/overlay patch, layout review              |
+| [game-critic](../skills/game-critic/SKILL.md)         | Level quality + news-fidelity scoring, ship gate  | `docs/level-reviews/level-<id>.md` report     |
 
 ## Role coverage
 
@@ -25,6 +26,7 @@ Every game-dev role maps to at least one skill. New role skills carry the role; 
 - Writer: `story-writer`
 - Producer: `producer`
 - QA tester: `qa-reviewer`
+- Critic: `game-critic` (every level creation ends in its Play critic run; news levels also pass its fidelity gate)
 - UI/UX: `ui-ux-creator`
 
 None of these skills deploy. Deployment stays the command in `AGENTS.md`.

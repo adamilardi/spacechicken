@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS, KEY_CODES } from './Constants.js';
-import { LEVEL_DEFINITIONS, LEVEL_IDS } from './levels/index.js';
+import { LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS } from './levels/index.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
@@ -320,6 +320,10 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image('tickerBg', 'assets/news-ticker-plunge/bg.jpg');
+        this.load.image('tickerBot', 'assets/news-ticker-plunge/ticker-bot.png');
+        this.load.image('fearBg', 'assets/news-fear-spike/bg.jpg');
+        this.load.image('bearRaider', 'assets/news-fear-spike/bear-raider.png');
         this.spriteFactory = new SpriteFactory(this);
         this.spriteFactory.createChickenFrames();
         this.spriteFactory.createCrown();
@@ -384,6 +388,13 @@ export class SpaceChicken extends Phaser.Scene {
         this.worldHeight = this.levelConfig.world.height;
         this.killZoneFallY = this.levelConfig.killZoneY + this.levelConfig.killZoneHeight;
         this.backgroundRenderer.renderProgressive(this.worldWidth, this.worldHeight);
+        const newsPlate = { 17: 'tickerBg', 18: 'fearBg' }[this.level];
+        if (newsPlate && this.textures.exists(newsPlate)) {
+            const plate = this.add.tileSprite(0, 0, this.worldWidth, this.worldHeight, newsPlate);
+            plate.setOrigin(0, 0);
+            plate.setDepth(-20);
+            plate.setAlpha(0.55);
+        }
 
         this.player = this.physics.add.sprite(
             this.levelConfig.playerStart.x,
@@ -875,7 +886,8 @@ export class SpaceChicken extends Phaser.Scene {
                 targets.leaderboard ||
                 targets.name ||
                 targets.selectPrev ||
-                targets.selectNext
+                targets.selectNext ||
+                targets.news
             ) {
                 return;
             }
@@ -2348,6 +2360,19 @@ export class SpaceChicken extends Phaser.Scene {
                 ? 'Best none yet'
                 : `Best ${formatElapsedTime(best)}`;
         return `LEVEL ${this.selectedLevel} · ${title}\n${bestLine}`;
+    }
+
+    startNewsLevel(level) {
+        if (!this.awaitingStart) {
+            return;
+        }
+        const id = Math.floor(Number(level) || 0);
+        if (!NEWS_LEVEL_IDS.includes(id)) {
+            return;
+        }
+        // News levels are standalone specials: always playable, no unlock needed.
+        this.selectedLevel = id;
+        this.startSelectedLevel();
     }
 
     startSelectedLevel() {

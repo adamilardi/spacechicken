@@ -1,0 +1,17 @@
+{
+    "reviewer": "build agent (human eyeball on evidence shots)",
+    "date": "2026-10-31",
+    "confirmed": [
+        "row:VIX rose 22.7% to 21.08",
+        "row:Intel -29%, Reddit -29%",
+        "row:Third correction of 2026",
+        "element:closing bell"
+    ],
+    "reasoning": [
+        "VIX row: beats ascend across the set (opener decks ~y600, mid ~y300, finale ~y100) and beams appear in all three shots; exact offs 1180/1000/900/850 verified in levels/fear-spike.js and tests. Screenshot stills cannot show timing values, so the timing half is confirmed from data.",
+        "Intel row: red candle-crusher blocks and a legible -29% crater plate are visible in 02-mid.jpg.",
+        "Third-correction row: triple beam gates plus crown approach visible in 03-finale.jpg; three act bands at ascending heights visible across the set.",
+        "Bell: gold bell silhouette visible by the crown in 03-finale.jpg (0.66 is threshold noise on the same art that scored 0.70).",
+        "NOT confirmed: element dead-cat bounce shafts stays faint/missing (stairs verified in level data/tests but no shaft is clearly pictured in the beat set). Candles judged per-run from the mid beat."
+    ]
+}

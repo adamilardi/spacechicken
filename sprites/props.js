@@ -273,6 +273,48 @@ export function paintRescueCageOpen(ctx) {
     ctx.fillRect(20, 21, 2, 2);
 }
 
+export function paintCraterPlate(ctx) {
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(0, 2, 96, 22);
+    ctx.fillStyle = '#39435a';
+    ctx.fillRect(0, 2, 96, 3);
+    ctx.strokeStyle = '#0a0f1c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(10, 24);
+    ctx.lineTo(30, 12);
+    ctx.lineTo(44, 16);
+    ctx.moveTo(86, 24);
+    ctx.lineTo(66, 12);
+    ctx.lineTo(54, 17);
+    ctx.stroke();
+    ctx.fillStyle = '#ff4a3c';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('-29%', 48, 14);
+}
+
+export function paintClosingBell(ctx) {
+    ctx.fillStyle = '#8a5f1a';
+    ctx.fillRect(20, 2, 8, 8);
+    ctx.fillStyle = '#ffd54a';
+    ctx.beginPath();
+    ctx.moveTo(24, 8);
+    ctx.quadraticCurveTo(8, 20, 8, 42);
+    ctx.lineTo(40, 42);
+    ctx.quadraticCurveTo(40, 20, 24, 8);
+    ctx.fill();
+    ctx.fillStyle = '#c9932a';
+    ctx.fillRect(6, 42, 36, 5);
+    ctx.fillStyle = '#fff3c4';
+    ctx.fillRect(15, 18, 4, 18);
+    ctx.fillStyle = '#8a5f1a';
+    ctx.beginPath();
+    ctx.arc(24, 50, 4, 0, Math.PI * 2);
+    ctx.fill();
+}
+
 export function paintVaultSeal(ctx) {
     ctx.fillStyle = '#2c2118';
     ctx.fillRect(8, 8, 8, 40);
@@ -409,4 +451,6 @@ export const PROP_SPRITES = [
     ['rescueCage', 32, 48, paintRescueCage],
     ['rescueCageOpen', 32, 48, paintRescueCageOpen],
     ['vaultSeal', 24, 48, paintVaultSeal],
+    ['craterPlate', 96, 24, paintCraterPlate],
+    ['closingBell', 48, 56, paintClosingBell],
 ];

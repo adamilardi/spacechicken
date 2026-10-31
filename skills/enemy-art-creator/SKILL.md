@@ -1,6 +1,6 @@
 ---
 name: space-chicken-enemy-art-creator
-description: Paint a Space Chicken enemy in the existing canvas style and write an animation handoff. Use for a new hazard or actor silhouette. Do not generate images. Animation and level placement are separate skills.
+description: Paint a Space Chicken enemy in the existing canvas style and write an animation handoff. Use for a new hazard or actor silhouette; generate it as an image (Muse Image) or canvas paint, style-matched to the shipped game. Animation and level placement are separate skills.
 ---
 
 # Enemy art creator
@@ -13,9 +13,15 @@ Read `SpriteFactory.js` paints for the nearest role: bonk actors (`paintLabTech`
 
 Decide the role before painting. A bonk actor is stomped from above. A shootable actor is a phaser target. An unmarked hazard is only lethal. State the camera as side view, facing right, at the size it will appear on a platform.
 
+## Theme is the silhouette
+
+When the brief is a story or a place, the actor must read as that story at gameplay size before any detail: its silhouette, one signature prop or marking, and its palette come from the brief, not from a generic enemy with new colors. Name in the handoff which story element the actor embodies and how its behavior should express it (chases like panic, drifts like debris, digs, broadcasts). A recolor of an existing actor does not satisfy a themed-enemy brief.
+
+Paint **three divergent silhouettes** for a themed enemy (different body plan and signature prop, not three tints), kill two with reasons in `brief.md`, and hand off the survivor. The survivor's behaviour verb must be visible in the pose (a digger crouches over its tool, a broadcaster rears toward the player); a neutral standing blob with a themed hat will fail the fidelity critic's screenshot check, because the critic judges the actor from in-game shots, not from this handoff. Keep the killed silhouettes on disk — the selector and critic may resurrect one.
+
 ## Paint, do not generate
 
-Write `paint.js` that exports `paint(ctx, width, height)`. Follow the painted-art rules in the authoring reference. Do not call image generation or add a raster file.
+Write `paint.js` that exports `paint(ctx, width, height)`. Follow the art rules in the authoring reference. A generated raster is allowed: generate the actor isolated on a flat solid background for cutout, save it, and record it in the manifest.
 
 Give each design a stable id such as `enemy-vat-lurker-a`. Make a small batch when the user does not ask for a count. Vary the silhouette, not only the fill colors. Keep part count, markings, and asymmetry stable across revisions. Keep earlier revisions on disk.
 

@@ -48,6 +48,10 @@ export class UIManager {
         return this.overlays.selectNextButton;
     }
 
+    get newsButtons() {
+        return this.overlays.titleNewsRows || [];
+    }
+
     get raceSetupDialog() {
         return this.overlays.raceSetupDialog;
     }
@@ -192,6 +196,8 @@ export class UIManager {
             this.overlays.titlePrompt,
             this.overlays.titleControls,
             this.overlays.titleGamepadStatus,
+            this.overlays.titleNewsHeader,
+            ...(this.overlays.titleNewsRows || []),
             this.overlays.selectPrevButton,
             this.overlays.selectNextButton,
             this.bannerTitle,

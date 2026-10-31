@@ -186,6 +186,27 @@ export function paintCrusher(ctx) {
     ctx.fill();
 }
 
+export function paintCandleSlam(ctx) {
+    ctx.fillStyle = '#c2271c';
+    ctx.fillRect(4, 8, 64, 18);
+    ctx.fillStyle = '#ff6a5a';
+    ctx.fillRect(4, 8, 64, 4);
+    ctx.fillStyle = '#7d140d';
+    ctx.fillRect(4, 22, 64, 4);
+    ctx.fillStyle = '#ff8a7a';
+    ctx.fillRect(34, 0, 4, 8);
+    ctx.fillRect(34, 26, 4, 4);
+    for (let x = 8; x < 68; x += 12) {
+        ctx.fillStyle = '#7d140d';
+        ctx.fillRect(x, 14, 3, 8);
+    }
+    ctx.fillStyle = '#ffd9d2';
+    ctx.beginPath();
+    ctx.arc(12, 12, 2, 0, Math.PI * 2);
+    ctx.arc(60, 12, 2, 0, Math.PI * 2);
+    ctx.fill();
+}
+
 export function paintBoarder(ctx) {
     ctx.fillStyle = '#1d8a45';
     ctx.fillRect(12, 22, 16, 16);
@@ -1222,6 +1243,7 @@ export const ENEMY_SPRITES = [
     ['beetle', 56, 42, paintBeetle],
     ['hopper', 40, 62, paintHopper],
     ['crusher', 72, 30, paintCrusher],
+    ['candleSlam', 72, 30, paintCandleSlam],
     ['boarder', 40, 48, paintBoarder],
     ['skitterling', 40, 48, paintSkitterling],
     ['broodmother', 120, 84, paintBroodmother],

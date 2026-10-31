@@ -1,0 +1,110 @@
+{
+    "schema_version": 1,
+    "brief_id": "fear-spike",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-fear-spike-a",
+            "title": "Gauge dome",
+            "status": "painted",
+            "summary": "Giant VIX fear dial with needle pinned red over navy exchange towers.",
+            "assets": [
+                {
+                    "role": "background-plate",
+                    "path": "place/level-fear-spike-a.jpg",
+                    "width_px": 1600,
+                    "height_px": 896,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static-plate", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["place/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "skyhook+fear-plate",
+                "palette": ["#060b18", "#101a33", "#1d2c4d", "#7df9ff", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": ["gauge-dial-sky", "exchange-tower-far", "dial-landmark-mid"]
+            },
+            "checks": {
+                "dimensions": "pass",
+                "alpha": "pass",
+                "seams": "not-applicable",
+                "novelty": "pass"
+            },
+            "limitations": [
+                "Plate is a static full-bleed tileSprite like level 17, not a 4-layer parallax layout."
+            ]
+        },
+        {
+            "id": "level-fear-spike-b",
+            "title": "Needle tower",
+            "status": "painted",
+            "summary": "Central volatility needle with red fear rings and falling candlesticks. Killed: too close to skyhook tether rhythm.",
+            "assets": [
+                {
+                    "role": "background-plate",
+                    "path": "place/level-fear-spike-b.jpg",
+                    "width_px": 1600,
+                    "height_px": 896,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static-plate", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["place/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "skyhook+fear-plate",
+                "palette": ["#060b18", "#101a33", "#1d2c4d", "#7df9ff", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": {
+                "dimensions": "pass",
+                "alpha": "pass",
+                "seams": "not-applicable",
+                "novelty": "fail"
+            },
+            "limitations": ["Killed in brief.md."]
+        },
+        {
+            "id": "level-fear-spike-c",
+            "title": "Candle storm",
+            "status": "painted",
+            "summary": "Diagonal candlestick rain over tilted decks. Killed: tilted slabs risk unreadable solids, no landmark.",
+            "assets": [
+                {
+                    "role": "background-plate",
+                    "path": "place/level-fear-spike-c.jpg",
+                    "width_px": 1600,
+                    "height_px": 896,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "static-plate", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["place/preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "skyhook+fear-plate",
+                "palette": ["#060b18", "#101a33", "#1d2c4d", "#7df9ff", "#ff4a3c"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": {
+                "dimensions": "pass",
+                "alpha": "pass",
+                "seams": "not-applicable",
+                "novelty": "fail"
+            },
+            "limitations": ["Killed in brief.md."]
+        }
+    ]
+}

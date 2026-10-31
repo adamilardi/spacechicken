@@ -1,0 +1,255 @@
+{
+  "level": 18,
+  "run": "full",
+  "analysis": {
+    "title": "Fear Spike",
+    "gravity": 300,
+    "worldWidth": 6000,
+    "backgroundType": "skyhook",
+    "platformCount": 16,
+    "platformKeys": [
+      "skyhookDeck",
+      "skyhookPanel",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.5,
+    "hazardTypes": [
+      "laser",
+      "bearRaider",
+      "crusher"
+    ],
+    "hazardCount": 13,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 4,
+    "checkpoints": [
+      {
+        "x": 1800,
+        "y": 490
+      },
+      {
+        "x": 3300,
+        "y": 290
+      },
+      {
+        "x": 4700,
+        "y": 120
+      }
+    ],
+    "crownX": 5700,
+    "finaleHazardCount": 4,
+    "platformBands": [
+      11,
+      10,
+      9,
+      8,
+      8,
+      7,
+      6,
+      6,
+      6,
+      4,
+      5,
+      3,
+      3,
+      3,
+      2,
+      1
+    ]
+  },
+  "flags": [],
+  "telemetry": {
+    "level": 18,
+    "outcome": "crown-collected",
+    "durationSec": 71.6,
+    "deaths": 2,
+    "deathSpots": [
+      2667,
+      5345
+    ],
+    "maxX": 5705,
+    "hazardTypesSeen": [
+      "laser",
+      "bearRaider",
+      "crusher",
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-mid",
+      "file": "02-mid.jpg",
+      "proves": "mid-level set piece and hazard read"
+    },
+    {
+      "id": "03-finale",
+      "file": "03-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 2.35,
+      "fairness": 1.68,
+      "readability": 2.36,
+      "novelty": 1.89,
+      "pacing": 2.24,
+      "theme": 2.42,
+      "flaw": "none",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 2.42,
+      "fairness": 1.59,
+      "readability": 2.37,
+      "novelty": 1.86,
+      "pacing": 2.21,
+      "theme": 2.48,
+      "flaw": "none",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 2.3,
+      "fairness": 1.61,
+      "readability": 2.12,
+      "novelty": 1.76,
+      "pacing": 2.21,
+      "theme": 2.42,
+      "flaw": "none",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 2.48,
+      "fairness": 1.7,
+      "readability": 2.39,
+      "novelty": 1.86,
+      "pacing": 2.33,
+      "theme": 2.45,
+      "flaw": "none",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": {
+    "briefHeadline": "Level 18 — Fear Spike (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/18.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "VIX fear gauge + needle tower",
+          "claimed": true
+        },
+        {
+          "element": "falling red candlesticks",
+          "claimed": true
+        },
+        {
+          "element": "\"-29%\" Intel/Reddit crater plates",
+          "claimed": true
+        },
+        {
+          "element": "dead-cat bounce shafts",
+          "claimed": true
+        },
+        {
+          "element": "closing bell",
+          "claimed": true
+        }
+      ],
+      "sceneryOnlyFacts": [
+        "Doubts over AI spending returns"
+      ]
+    },
+    "sent": true,
+    "elements": [
+      {
+        "element": "VIX fear gauge + needle tower",
+        "noul": 0.92,
+        "verdict": "shown"
+      },
+      {
+        "element": "falling red candlesticks",
+        "noul": 0.58,
+        "verdict": "faint"
+      },
+      {
+        "element": "\"-29%\" Intel/Reddit crater plates",
+        "noul": 0.79,
+        "verdict": "shown"
+      },
+      {
+        "element": "dead-cat bounce shafts",
+        "noul": 0.39,
+        "verdict": "missing"
+      },
+      {
+        "element": "closing bell",
+        "noul": 0.46,
+        "verdict": "faint"
+      }
+    ],
+    "rows": [
+      {
+        "fact": "VIX rose 22.7% to 21.08",
+        "mechanic": "Ascending 3-act zigzag up the needle; laser off-phases shrink act-to-act (1180->1000->900)",
+        "choice": "unsupported",
+        "confidence": 0.37
+      },
+      {
+        "fact": "Intel -29%, Reddit -29%",
+        "mechanic": "Red-candlestick crushers + \"-29%\" crater plates as set dressing",
+        "choice": "supports",
+        "confidence": 0.34
+      },
+      {
+        "fact": "Third correction of 2026",
+        "mechanic": "Three zigzag acts linked by stair shafts; finale is triple circuit-breaker beam gates (off 850 each), crown is the closing bell",
+        "choice": "unsupported",
+        "confidence": 0.62
+      },
+      {
+        "fact": "Doubts over AI spending returns",
+        "mechanic": "Bear Raiders: panic bots that dive at the climber; bonk them to bounce higher",
+        "choice": "supports",
+        "confidence": 0.89
+      }
+    ],
+    "mechanicFidelity": 2.73,
+    "visualFidelity": 2.95,
+    "fidelityFlaw": "none",
+    "usage": {
+      "input_tokens": 9572,
+      "output_tokens": 351
+    },
+    "gate": {
+      "passed": true,
+      "shown": 3,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [
+        "element:falling red candlesticks"
+      ]
+    },
+    "humanConfirmed": [
+      "row:VIX rose 22.7% to 21.08",
+      "row:Intel -29%, Reddit -29%",
+      "row:Third correction of 2026",
+      "element:closing bell"
+    ]
+  },
+  "passed": true
+}

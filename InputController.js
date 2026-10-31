@@ -31,6 +31,7 @@ export class InputController {
             playerNameText: null,
             selectPrevButton: null,
             selectNextButton: null,
+            newsButtons: [],
         };
         this.gamepad = new GamepadController(scene);
         this.touch = new TouchController(scene);
@@ -109,6 +110,7 @@ export class InputController {
         controls.phaserButton = ui ? ui.phaserButton : null;
         controls.selectPrevButton = ui ? ui.selectPrevButton : null;
         controls.selectNextButton = ui ? ui.selectNextButton : null;
+        controls.newsButtons = ui ? ui.newsButtons : [];
 
         const movementMidpoint =
             ui && ui.touchMovementMidpoint

@@ -1,0 +1,58 @@
+{
+    "schema_version": 1,
+    "candidate_id": "enemy-bear-raider-b",
+    "source": "enemy/enemy-bear-raider-b.png",
+    "canvas_px": [1020, 1032],
+    "display_px": 52,
+    "pivot": { "space": "sprite-center" },
+    "body_bounds_px": { "shape": "circle-approx", "diameter": 46 },
+    "states": [
+        {
+            "name": "hover",
+            "method": "tween",
+            "loop": true,
+            "tween": {
+                "property": "y",
+                "amplitude_px": 6,
+                "duration_ms": 1200,
+                "ease": "sine-in-out"
+            }
+        },
+        {
+            "name": "telegraph",
+            "method": "tween",
+            "loop": false,
+            "tween": { "property": "tint-flash", "color": "#ff4a3c", "duration_ms": 300 },
+            "next": "dive"
+        },
+        {
+            "name": "dive",
+            "method": "tween",
+            "loop": false,
+            "tween": {
+                "property": "y",
+                "to": "trigger-depth",
+                "duration_ms": 420,
+                "ease": "ease-in"
+            },
+            "next": "recover",
+            "event": "dive window is the dangerous active moment; top contact still bonks"
+        },
+        {
+            "name": "recover",
+            "method": "tween",
+            "loop": false,
+            "tween": { "property": "y", "to": "hover-y", "duration_ms": 900, "ease": "ease-out" },
+            "next": "hover"
+        },
+        {
+            "name": "bonk-squash",
+            "method": "tween",
+            "loop": false,
+            "tween": { "property": "squashBonkTarget", "note": "stun pause, tweens resume after" },
+            "next": "hover"
+        }
+    ],
+    "previewed": ["hover", "telegraph", "dive", "recover"],
+    "in_game": false
+}

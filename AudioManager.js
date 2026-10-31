@@ -230,4 +230,8 @@ export class AudioManager {
     playHazardHitSound(...args) {
         return this.sfx.playHazardHitSound(...args);
     }
+
+    playBearTelegraph(...args) {
+        return this.sfx.playBearTelegraph(...args);
+    }
 }
