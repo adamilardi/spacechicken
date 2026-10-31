@@ -1,0 +1,25 @@
+{
+    "body_bounds_px": { "height": 52, "shape": "rect", "width": 44 },
+    "candidate_id": "enemy-reconnection-sprite",
+    "canvas_px": [108, 72],
+    "display_px": 72,
+    "in_game": true,
+    "pivot": { "space": "sprite-center" },
+    "previewed": ["idle-bob"],
+    "schema_version": 1,
+    "source": "assets/news-reconnection/sprite-bot.png",
+    "states": [
+        {
+            "loop": true,
+            "method": "tween",
+            "name": "idle-bob",
+            "tween": {
+                "amplitude_px": 5,
+                "duration_ms": 1200,
+                "ease": "sine-in-out",
+                "property": "y"
+            }
+        }
+    ],
+    "wiring": "bonk behavior, key spriteBot (pre-resized to 72px height; bonk spawn has no scale), bodyWidth 44 bodyHeight 52 via level config"
+}

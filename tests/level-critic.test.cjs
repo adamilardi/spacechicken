@@ -350,6 +350,25 @@ test('planBeats shoots hazards and set pieces from level data, finale last', asy
     );
 });
 
+test('planBeats never slices the finale off a full sheet', async () => {
+    const { planBeats, analyseLevel } = await loadCritic();
+    const { content, definition } = fakeLevel({
+        keys: ['aDeck', 'bDeck', 'cDeck'],
+        hazards: ['laser', 'drone', 'roller', 'bonk'],
+    });
+    content.dynamic = [
+        { type: 'bonk', x: 1500, y: 400 },
+        { type: 'laser', x: 2000, y: 400 },
+        { type: 'drone', x: 2500, y: 400 },
+        { type: 'roller', x: 3100, y: 400 },
+    ];
+    content.props = [{ x: 620, y: 400, key: 'rocketProp' }];
+    const beats = planBeats(analyseLevel(content, definition), content);
+    assert.ok(beats.length <= 6);
+    assert.match(beats.at(-1).proves, /crown approach/);
+    assert.match(beats.at(-1).id, /finale$/);
+});
+
 test('concept gate requires the three artefacts, rows, inventory, and themed enemy', async () => {
     const { assessConcept } = await loadCritic();
     const good = assessConcept(
@@ -474,9 +493,167 @@ test('panel shot selection keeps opener and finale within the request cap', asyn
     assert.equal(picked.at(-1).id, '06-beat');
 });
 
+test('unmatched human confirmations are reported for warning', async () => {
+    const { unmatchedConfirmations } = await loadCritic();
+    const brief = {
+        elements: ['rising water', 'sandbag stacks'],
+        mappings: [{ fact: 'River rises hourly' }, { fact: 'Boats rescue crews' }],
+    };
+    assert.deepEqual(unmatchedConfirmations([], brief), []);
+    assert.deepEqual(
+        unmatchedConfirmations(
+            ['element:rising water', 'row:River rises hourly', 'universe:space-chicken'],
+            brief
+        ),
+        []
+    );
+    assert.deepEqual(
+        unmatchedConfirmations(
+            ['element:rising water ', 'row:river rises hourly', 'row:Boats rescue crews'],
+            brief
+        ),
+        ['element:rising water ', 'row:river rises hourly']
+    );
+    assert.deepEqual(unmatchedConfirmations(['row:anything'], null), ['row:anything']);
+});
+
 test('structural flaws are all real flaw enum options', async () => {
     const { FLAW_OPTIONS, STRUCTURAL_FLAWS } = await loadCritic();
     for (const flaw of STRUCTURAL_FLAWS) {
         assert.ok(flaw in FLAW_OPTIONS, `${flaw} is not a judge option`);
     }
+});
+
+test('copied deck x-lists rhyme even under new paints', async () => {
+    const { analyseLevel, layoutSimilarity, mechanicalFlags } = await loadCritic();
+    const xs = [300, 900, 1500, 2100, 2700, 3300, 3900, 4500, 5100, 5600];
+    const make = (keys, width = 6000) => ({
+        content: {
+            background: { type: 'space' },
+            staticPlatforms: xs.map((x, i) => ({ x, y: 400 + (i % 3) * 40, key: keys[i % 3] })),
+            dynamic: [
+                { type: 'laser', x: 2000, y: 400 },
+                { type: 'drone', x: 3000, y: 400 },
+            ],
+            checkpoints: [{ x: 2500, y: 400 }],
+            moving: [],
+            props: [],
+        },
+        definition: { TITLE: 'Fake', GRAVITY: 300, WORLD_WIDTH: width, CROWN_X: 5650 },
+    });
+    const a = analyseLevel(...Object.values(make(['aDeck', 'bDeck', 'cDeck'])));
+    const copy = analyseLevel(...Object.values(make(['xDeck', 'yDeck', 'zDeck'])));
+    const shifted = analyseLevel(...Object.values(make(['aDeck', 'bDeck', 'cDeck'], 4400)));
+    assert.equal(layoutSimilarity(a, copy), 1);
+    assert.equal(layoutSimilarity(a, shifted), 0);
+    const flags = mechanicalFlags(copy, { 1: a, 2: copy }, 2);
+    assert.equal(flags.filter((flag) => flag.id === 'skeleton-rhyme').length, 1);
+});
+
+test('finale pressure must be visible in a frozen still', async () => {
+    const { analyseLevel, mechanicalFlags } = await loadCritic();
+    const make = (dynamic) => ({
+        content: {
+            background: { type: 'space' },
+            staticPlatforms: [
+                { x: 300, y: 500, key: 'aDeck' },
+                { x: 2000, y: 500, key: 'bDeck' },
+                { x: 4000, y: 500, key: 'cDeck' },
+                { x: 5600, y: 500, key: 'aDeck' },
+            ],
+            dynamic,
+            checkpoints: [],
+            moving: [],
+            props: [],
+        },
+        definition: { TITLE: 'Fake', GRAVITY: 300, WORLD_WIDTH: 6000, CROWN_X: 5650 },
+    });
+    const loneBeam = analyseLevel(
+        ...Object.values(
+            make([
+                {
+                    type: 'laser',
+                    x: 5400,
+                    y: 400,
+                    orientation: 'vertical',
+                    onDuration: 800,
+                    offDuration: 1200,
+                },
+            ])
+        )
+    );
+    assert.equal(loneBeam.finaleHazardCount, 1);
+    assert.equal(loneBeam.finaleVisible, false);
+    assert.ok(
+        mechanicalFlags(loneBeam, { 9: loneBeam }, 9).some((flag) => flag.id === 'finale-invisible')
+    );
+    const crownRoller = analyseLevel(
+        ...Object.values(
+            make([{ type: 'roller', x: 5200, y: 460, patrol: { x: 5450, duration: 1200 } }])
+        )
+    );
+    assert.equal(crownRoller.finaleVisible, true);
+    assert.ok(
+        !mechanicalFlags(crownRoller, { 9: crownRoller }, 9).some(
+            (flag) => flag.id === 'finale-invisible'
+        )
+    );
+    const staggeredBeams = analyseLevel(
+        ...Object.values(
+            make([
+                {
+                    type: 'laser',
+                    x: 5100,
+                    y: 400,
+                    orientation: 'vertical',
+                    onDuration: 900,
+                    offDuration: 900,
+                },
+                {
+                    type: 'laser',
+                    x: 5450,
+                    y: 400,
+                    orientation: 'vertical',
+                    onDuration: 900,
+                    offDuration: 900,
+                },
+            ])
+        )
+    );
+    assert.equal(staggeredBeams.finaleVisible, true);
+});
+
+test('news novelty floor separates clones from genuine departures', async () => {
+    const { panelPassed, NEWS_FLOORS } = await loadCritic();
+    assert.equal(NEWS_FLOORS.novelty, 1.5);
+    const report = (persona, novelty) => ({
+        persona,
+        fun: 2.2,
+        fairness: 1.9,
+        readability: 2.3,
+        novelty,
+        pacing: 2.1,
+        theme: 2.3,
+        flaw: 'none',
+        verdict: 'iterate',
+    });
+    const personas = ['reviewer', 'veteran', 'casual', 'speedrunner'];
+    assert.equal(
+        panelPassed(
+            personas.map((p) => report(p, 1.6)),
+            [],
+            true,
+            { news: true }
+        ),
+        true
+    );
+    assert.equal(
+        panelPassed(
+            personas.map((p) => report(p, 1.3)),
+            [],
+            true,
+            { news: true }
+        ),
+        false
+    );
 });

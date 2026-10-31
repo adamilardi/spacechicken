@@ -23,6 +23,13 @@ None yet.
 
 ## Triaged
 
+## 2026-10-31 — news-to-level batch — F1-F10 skill frictions
+
+- Tried: three unattended news levels (19 Hubble Rescue, 20 Robot Dance Sync, 21 Phobos Sample Run) end to end.
+- Friction: ten items logged in `docs/skill-review/batch-20261031/friction-log.md` — cut brief mechanics, oversized inventories with no prop pipeline, invisible finale pressure, an unpassable novelty floor, a missing art-critic entry point, drone scale↔hitbox coupling, brittle human-confirm keys, registry max-lines, and unstated news combat profile.
+- Suggestion: per-item fixes in the friction log.
+- Triaged: fixed — SCB-8 in [PRODUCT_BACKLOG.md](PRODUCT_BACKLOG.md), completed 2026-10-31 including `skeleton-rhyme`/`finale-invisible` critic flags and proof levels 22-23.
+
 ## 2026-10-21 — qa-reviewer — reviews missed feel issues a human caught
 
 - Tried: shipping enemy AI, rescue telegraphing, hard-mode tuning, and keyboard controls past review.

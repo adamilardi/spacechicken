@@ -1,0 +1,59 @@
+{
+  "level": 20,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-drone",
+      "x": 1400,
+      "y": 380,
+      "proves": "hazard beat: drone at x=1400",
+      "id": "02-hazard-drone",
+      "file": "02-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/02-hazard-drone.jpg"
+    },
+    {
+      "slug": "hazard-laser",
+      "x": 1960,
+      "y": 540,
+      "proves": "hazard beat: laser at x=1960",
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/03-hazard-laser.jpg"
+    },
+    {
+      "slug": "hazard-roller",
+      "x": 2900,
+      "y": 500,
+      "proves": "hazard beat: roller at x=2900",
+      "id": "04-hazard-roller",
+      "file": "04-hazard-roller.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/04-hazard-roller.jpg"
+    },
+    {
+      "slug": "setpiece-countdownBoard",
+      "x": 2400,
+      "y": 400,
+      "proves": "set piece: countdownBoard at x=2400",
+      "id": "05-setpiece-countdownBoard",
+      "file": "05-setpiece-countdownBoard.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/05-setpiece-countdownBoard.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 5330,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/06-finale.jpg"
+    }
+  ]
+}

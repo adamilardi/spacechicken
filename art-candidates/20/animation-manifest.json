@@ -1,0 +1,25 @@
+{
+    "body_bounds_px": { "diameter": 46, "shape": "circle-approx" },
+    "candidate_id": "enemy-dancer-bot",
+    "canvas_px": [1920, 1280],
+    "display_px": 80,
+    "in_game": true,
+    "pivot": { "space": "sprite-center" },
+    "previewed": ["hover"],
+    "schema_version": 1,
+    "source": "assets/news-robot-dance-sync/dancer-bot.png",
+    "states": [
+        {
+            "loop": true,
+            "method": "tween",
+            "name": "hover",
+            "tween": {
+                "amplitude_px": 8,
+                "duration_ms": 1000,
+                "ease": "sine-in-out",
+                "property": "y"
+            }
+        }
+    ],
+    "wiring": "drone patrol behavior, key dancerBot, scale 0.08 (loop-2 visibility bump from 0.05), bobAmplitude 8 on the beat via level config"
+}

@@ -1,0 +1,14 @@
+
+> space-chicken@1.0.0 critic:level
+> node scripts/level-critic.mjs 20
+
+Marlowe (expert reviewer): fun=2.1 fair=1.9 novel=1.0 flaw=sleeping-finale -> iterate
+Vic (contra veteran): fun=2.1 fair=1.7 novel=1.1 flaw=sleeping-finale -> iterate
+Sam (casual newcomer): fun=2.0 fair=1.8 novel=1.0 flaw=sleeping-finale -> iterate
+Lex (speedrunner): fun=2.2 fair=1.9 novel=1.1 flaw=stale -> iterate
+Marlowe (expert reviewer): fun=2.1 fair=1.9 novel=1.1 flaw=stale -> iterate
+Vic (contra veteran): fun=2.0 fair=1.7 novel=1.1 flaw=sleeping-finale -> iterate
+Sam (casual newcomer): fun=2.0 fair=1.7 novel=1.0 flaw=sleeping-finale -> iterate
+Lex (speedrunner): fun=2.2 fair=1.8 novel=1.2 flaw=stale -> iterate
+critic report: docs/level-reviews/level-20.md
+CRITIC: ITERATE

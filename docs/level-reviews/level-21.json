@@ -1,0 +1,199 @@
+{
+  "level": 21,
+  "run": "static",
+  "analysis": {
+    "title": "Phobos Sample Run",
+    "gravity": 150,
+    "worldWidth": 6000,
+    "backgroundType": "mars",
+    "platformCount": 13,
+    "platformKeys": [
+      "cliff",
+      "mesa",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.46153846153846156,
+    "hazardTypes": [
+      "laser",
+      "drone",
+      "roller",
+      "bonk"
+    ],
+    "hazardCount": 8,
+    "hasBoss": false,
+    "movingCount": 1,
+    "propCount": 2,
+    "checkpoints": [
+      {
+        "x": 1300,
+        "y": 380
+      },
+      {
+        "x": 2800,
+        "y": 480
+      },
+      {
+        "x": 3350,
+        "y": 480
+      },
+      {
+        "x": 4650,
+        "y": 390
+      }
+    ],
+    "crownX": 5650,
+    "finaleHazardCount": 2,
+    "platformBands": [
+      11,
+      9,
+      7,
+      7,
+      8,
+      9,
+      9,
+      8,
+      8,
+      7,
+      6,
+      7,
+      6
+    ]
+  },
+  "flags": [],
+  "telemetry": null,
+  "shots": [],
+  "screenshotsSent": false,
+  "reports": [],
+  "fidelity": {
+    "briefHeadline": "Level 21 — Phobos Sample Run (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/21.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "H3 rocket",
+          "claimed": true
+        },
+        {
+          "element": "Phobos crater field",
+          "claimed": true
+        },
+        {
+          "element": "sample tubes",
+          "claimed": true
+        },
+        {
+          "element": "return capsule",
+          "claimed": true
+        },
+        {
+          "element": "Estrack dish array",
+          "claimed": false
+        },
+        {
+          "element": "Mars in sky",
+          "claimed": true
+        },
+        {
+          "element": "Tanegashima beach gantry",
+          "claimed": false
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "elements": [
+      {
+        "element": "H3 rocket",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "Phobos crater field",
+        "signature": true,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "sample tubes",
+        "signature": true,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "return capsule",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "Estrack dish array",
+        "signature": false,
+        "claimed": false,
+        "noul": null
+      },
+      {
+        "element": "Mars in sky",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "Tanegashima beach gantry",
+        "signature": false,
+        "claimed": false,
+        "noul": null
+      }
+    ],
+    "rows": [
+      {
+        "fact": "First to orbit Phobos, sample surface, return from Mars system",
+        "signature": true,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "H3 launch from Tanegashima, night liftoff over beach",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "Arrives Mars next summer, investigates Phobos and Deimos up close",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "ESA deep-space comms + Estrack ground stations send commands",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      }
+    ],
+    "sent": false,
+    "gate": {
+      "passed": false,
+      "shown": 0,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [
+        "panel-unavailable"
+      ]
+    }
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 7,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [],
+  "loop": 2,
+  "priorFlaw": "missing-elements",
+  "loopExceeded": false,
+  "pilotRuns": 0,
+  "repeatedFlaws": [],
+  "passed": true
+}

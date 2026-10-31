@@ -29,6 +29,16 @@ import {
 } from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
 
+const NEWS_PLATES = {
+    17: 'tickerBg',
+    18: 'fearBg',
+    19: 'hubbleBg',
+    20: 'danceBg',
+    21: 'phobosBg',
+    22: 'falconBg',
+    23: 'tracersBg',
+};
+
 function readLaunchQuery() {
     if (typeof location === 'undefined' || !location.search) {
         return { level: null, bot: false, debug: false, seed: null, timeScale: 1 };
@@ -324,6 +334,21 @@ export class SpaceChicken extends Phaser.Scene {
         this.load.image('tickerBot', 'assets/news-ticker-plunge/ticker-bot.png');
         this.load.image('fearBg', 'assets/news-fear-spike/bg.jpg');
         this.load.image('bearRaider', 'assets/news-fear-spike/bear-raider.png');
+        this.load.image('hubbleBg', 'assets/news-hubble-rescue/bg.jpg');
+        this.load.image('servicerTug', 'assets/news-hubble-rescue/servicer-tug.png');
+        this.load.image('rfiEnvelope', 'assets/news-hubble-rescue/rfi-envelope.png');
+        this.load.image('danceBg', 'assets/news-robot-dance-sync/bg.jpg');
+        this.load.image('dancerBot', 'assets/news-robot-dance-sync/dancer-bot.png');
+        this.load.image('countdownBoard', 'assets/news-robot-dance-sync/countdown-board.png');
+        this.load.image('phobosBg', 'assets/news-phobos-sample-run/bg.png');
+        this.load.image('surveyOrbiter', 'assets/news-phobos-sample-run/survey-orbiter.png');
+        this.load.image('h3Rocket', 'assets/news-phobos-sample-run/h3-rocket.png');
+        this.load.image('falconBg', 'assets/news-booster-homecoming/bg.jpg');
+        this.load.image('starlinkSprite', 'assets/news-booster-homecoming/starlink-sprite.png');
+        this.load.image('boosterProp', 'assets/news-booster-homecoming/booster-prop.png');
+        this.load.image('tracersBg', 'assets/news-reconnection/bg.jpg');
+        this.load.image('spriteBot', 'assets/news-reconnection/sprite-bot.png');
+        this.load.image('cuspArc', 'assets/news-reconnection/cusp-arc.png');
         this.spriteFactory = new SpriteFactory(this);
         this.spriteFactory.createChickenFrames();
         this.spriteFactory.createCrown();
@@ -388,7 +413,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.worldHeight = this.levelConfig.world.height;
         this.killZoneFallY = this.levelConfig.killZoneY + this.levelConfig.killZoneHeight;
         this.backgroundRenderer.renderProgressive(this.worldWidth, this.worldHeight);
-        const newsPlate = { 17: 'tickerBg', 18: 'fearBg' }[this.level];
+        const newsPlate = NEWS_PLATES[this.level];
         if (newsPlate && this.textures.exists(newsPlate)) {
             const plate = this.add.tileSprite(0, 0, this.worldWidth, this.worldHeight, newsPlate);
             plate.setOrigin(0, 0);

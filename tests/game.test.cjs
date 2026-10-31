@@ -221,7 +221,7 @@ test('news levels are marked and listed for the title screen', async () => {
     const { NEWS_LEVEL_IDS, LEVEL_DEFINITIONS, LEVEL_CONTENT } =
         await importModule('levels/index.js');
 
-    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18]);
+    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18, 19, 20, 21, 22, 23]);
     for (const id of NEWS_LEVEL_IDS) {
         assert.ok(LEVEL_DEFINITIONS[id].TITLE, `level ${id} has a title`);
         assert.ok(LEVEL_CONTENT[id].news.outlet, `level ${id} names its outlet`);
@@ -255,11 +255,13 @@ test('title news rows start their level without unlocks', async () => {
     assert.equal(restarts.length, 1);
 });
 
+const ALL_LEVEL_IDS = Array.from({ length: 23 }, (_, i) => i + 1);
+
 test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('levels/index.js');
     const { LevelConfig } = await importModule('LevelConfig.js');
 
-    assert.deepEqual(LEVEL_IDS, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+    assert.deepEqual(LEVEL_IDS, ALL_LEVEL_IDS);
     LEVEL_IDS.forEach((level) => {
         const config = new LevelConfig(level);
         assert.ok(config.world.width > 0);
@@ -1341,16 +1343,16 @@ test('level unlocks persist, clamp, and survive corrupt storage', async () => {
     assert.equal(fresh.unlockLevel(4), 4);
     assert.equal(fresh.getMaxUnlocked(), 4);
     assert.equal(fresh.unlockLevel(2), 4);
-    assert.equal(fresh.unlockLevel(99), 18);
-    assert.equal(fresh.getMaxUnlocked(), 18);
+    assert.equal(fresh.unlockLevel(99), 23);
+    assert.equal(fresh.getMaxUnlocked(), 23);
 
     global.window = { localStorage: createStorage({ spaceChickenUnlocked: 'junk' }) };
     const corrupt = new LeaderboardManager({ storageAvailable: true });
     assert.equal(corrupt.getMaxUnlocked(), 1);
 
     const noStorage = new LeaderboardManager({ storageAvailable: false });
-    assert.equal(noStorage.getMaxUnlocked(), 18);
-    assert.equal(noStorage.unlockLevel(5), 18);
+    assert.equal(noStorage.getMaxUnlocked(), 23);
+    assert.equal(noStorage.unlockLevel(5), 23);
 });
 
 test('title selection cycles within unlocked levels and starts them', async () => {

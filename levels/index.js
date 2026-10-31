@@ -16,6 +16,11 @@ import { level as skyhookAnchor } from './skyhook-anchor.js';
 import { level as ironVault } from './iron-vault.js';
 import { level as tickerPlunge } from './ticker-plunge.js';
 import { level as fearSpike } from './fear-spike.js';
+import { level as hubbleRescue } from './hubble-rescue.js';
+import { level as robotDanceSync } from './robot-dance-sync.js';
+import { level as phobosSampleRun } from './phobos-sample-run.js';
+import { level as boosterHomecoming } from './booster-homecoming.js';
+import { level as reconnection } from './reconnection.js';
 
 const LEVELS = [
     dawnRun,
@@ -36,6 +41,11 @@ const LEVELS = [
     ironVault,
     tickerPlunge,
     fearSpike,
+    hubbleRescue,
+    robotDanceSync,
+    phobosSampleRun,
+    boosterHomecoming,
+    reconnection,
 ].sort((left, right) => left.id - right.id);
 
 export const LEVEL_DEFINITIONS = Object.fromEntries(

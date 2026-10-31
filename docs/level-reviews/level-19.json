@@ -1,0 +1,200 @@
+{
+  "level": 19,
+  "run": "static",
+  "analysis": {
+    "title": "Hubble Rescue",
+    "gravity": 200,
+    "worldWidth": 6000,
+    "backgroundType": "iss",
+    "platformCount": 14,
+    "platformKeys": [
+      "issHull",
+      "stationPanel",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.5714285714285714,
+    "hazardTypes": [
+      "laser",
+      "drip",
+      "drone",
+      "roller"
+    ],
+    "hazardCount": 8,
+    "hasBoss": false,
+    "movingCount": 2,
+    "propCount": 2,
+    "checkpoints": [
+      {
+        "x": 1750,
+        "y": 600
+      },
+      {
+        "x": 2600,
+        "y": 460
+      },
+      {
+        "x": 3500,
+        "y": 410
+      },
+      {
+        "x": 4650,
+        "y": 290
+      }
+    ],
+    "crownX": 5650,
+    "finaleHazardCount": 2,
+    "platformBands": [
+      11,
+      11,
+      11,
+      10,
+      8,
+      8,
+      9,
+      8,
+      7,
+      6,
+      5,
+      5,
+      6,
+      5
+    ]
+  },
+  "flags": [],
+  "telemetry": null,
+  "shots": [],
+  "screenshotsSent": false,
+  "reports": [],
+  "fidelity": {
+    "briefHeadline": "Level 19 — Hubble Rescue (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/19.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "Hubble tube",
+          "claimed": true
+        },
+        {
+          "element": "solar arrays",
+          "claimed": true
+        },
+        {
+          "element": "servicing arms",
+          "claimed": true
+        },
+        {
+          "element": "RFI proposal envelopes",
+          "claimed": true
+        },
+        {
+          "element": "capture net",
+          "claimed": true
+        },
+        {
+          "element": "reboost flame",
+          "claimed": true
+        },
+        {
+          "element": "altitude gate 600km",
+          "claimed": true
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "elements": [
+      {
+        "element": "Hubble tube",
+        "signature": true,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "solar arrays",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "servicing arms",
+        "signature": true,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "RFI proposal envelopes",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "capture net",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "reboost flame",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "altitude gate 600km",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      }
+    ],
+    "rows": [
+      {
+        "fact": "Hubble decayed 583km to 470km, will plunge 2033/34",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
+        "signature": true,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "No onboard propulsion, solar activity shifts reentry",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "Contractor provides servicing spacecraft, mission by 2032",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      }
+    ],
+    "sent": false,
+    "gate": {
+      "passed": false,
+      "shown": 0,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [
+        "panel-unavailable"
+      ]
+    }
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 7,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [],
+  "loop": 4,
+  "priorFlaw": "missing-elements",
+  "loopExceeded": true,
+  "pilotRuns": 0,
+  "repeatedFlaws": [],
+  "passed": true
+}

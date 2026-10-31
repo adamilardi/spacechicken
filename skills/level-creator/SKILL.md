@@ -33,6 +33,10 @@ Give it a title, gravity, world size, kill zone, start, and crown. Open with a r
 
 Banned shortcuts (each is an automatic critic flaw, not a style choice): palette swap over a copied route; one deck texture end to end; an upper route with nothing on it; a finale with no pressure; a beam that guards only one of two routes to the crown; a themed enemy that is a renamed generic hazard with generic behaviour.
 
+**Skeleton diversity is measured, not vibes.** The critic compares your sorted deck x sequence and world width against every shipped level (`skeleton-rhyme`, similarity ≥0.85 at the same width and deck count). Levels 17/19/20 shipped the same 6000px, 14-deck x-list under three paints and scored novelty 1.1–1.6 for it. Never start from a shipped level's deck list — not even as a "structure reference." Pick the world width from the Topology Fingerprint (towers are short and tall, gauntlets are short and dense, traverses earn their length), then lay decks from the height-profile sketch. In a batch, no two levels share a width, a deck count, and a gravity band.
+
+**Finale pressure must photograph.** The beat sheet freezes the world, so a lone timed vertical laser caught off-phase reads as an empty crown deck and draws `sleeping-finale` no data argument can rebut (the critic flags this as `finale-invisible`). The finale contract: within the crown frame, place at least one pressure a frozen still can show — a body hazard patrolling the crown deck itself (roller, drone, crusher), a horizontal beam, a mostly-on beam (duty ≥0.6), or two staggered beams that cover each other's off-phases — on every route to the crown. A timed laser 250px away plus a distant roller does not meet it.
+
 Copy chosen platform and prop paints into `SpriteFactory.js` and register them. Point platforms at those keys. Decorations go in `props` and must not collide. Hitboxes stay on the opaque deck, not on a transparent margin. Place every boarder home over a deck: a boarder spawned over a gap falls out of the world, and on a `CROWN_SHIELD` level that free kill opens the gate early. Checkpoints respawn onto solid decks, never over gaps. Timed-laser `offDuration` stays at 800ms or more: the pilot's walk-through gate needs `span/160*1000+350`ms of off-window (~762ms for a 66px beam span), and shorter windows hold it forever instead of failing loudly.
 
 The route has to be finishable with normal jumps. Gaps, moving platforms, and hazards still need a landing. The crown sits on a reachable deck. A new end-of-level idea uses [the crown encounter skill](../boss-creator/SKILL.md). Updating an old level does not replace its last stretch unless the user asked.
@@ -58,6 +62,8 @@ Contra levels (8+) run on at least two stacked lines, not one flat deck. Upper l
 ## Verify — the critic run is part of done
 
 Update tests that assert the level list, music ids, or background type when those lists grow. Keep the old levels covered. Run `npm test`.
+
+If registry growth trips the repo's max-lines gate (a longer `LEVEL_IDS` table or `create()` pushing a function over the lint cap), extract module-scope consts (id tables, plate maps) rather than splitting behavior — the table growth is the cause, not the logic around it.
 
 Play `http://127.0.0.1:3000/?level=N` from the start to the crown. Confirm the selected paints are on screen, platforms match their art, a bonk works if you placed one, pause and a death retry, and the next level or the final clear. Check an earlier level if you touched shared builder or background code. A debug skip only proves the handoff.
 

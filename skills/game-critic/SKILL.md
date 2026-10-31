@@ -16,7 +16,7 @@ Run the cheapest run that can fail the work. Later runs include the earlier evid
 | Run                          | When                                                                              | Evidence                                                                                                                                                                                                     | Can pass a level?                                   |
 | ---------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
 | Concept critic               | After the director table / design brief, before art or code (level may not exist) | Novelty Ledger + Signature Mechanic Canvas + Topology Fingerprint scored against the three nearest shipped levels; ≥3 fact→mechanic rows that are not scenery-only; element inventory ≥3; themed enemy named | No — it can only kill or redirect a concept cheaply |
-| Art critic                   | After selection, before level build                                               | Candidate previews + selection at gameplay size, background devices vs the shipped catalog                                                                                                                   | No — it can only send art back                      |
+| Art critic                   | After selection, before level build                                               | `npm run critic:art -- <selection.json>`: gameplay-size previews + file/alpha/plate checks + manual checklist (devices, landmark, silhouette)                                                                | No — it can only send art back                      |
 | Play critic (the critic run) | After the level plays start to crown                                              | `scripts/level-critic.mjs` capture: telemetry, death spots, screenshots, mechanical flags, persona panel                                                                                                     | Yes — this is the ship gate                         |
 
 News levels run all three. A tuning pass on a shipped level runs the Play critic only. Skipping a run because "it looks fine" is a failed run: record `critic: skipped (<reason>)` in the build report and treat the level as unverified.
@@ -25,6 +25,7 @@ News levels run all three. A tuning pass on a shipped level runs the Play critic
 
 ```bash
 npm run critic:concept -- --brief docs/level-builds/<id>.md  # concept gate; works before the level exists
+npm run critic:art -- art-selections/<id>/selection.json  # art gate: gameplay-size previews + checks + manual checklist
 npm run critic:level -- <id>            # full run: capture + screenshots + panels (needs TYPESAFE_API_KEY)
 npm run critic:level:static -- <id>     # mechanical checks only, no browser, no key
 # News levels: the brief is mandatory — headline, facts, element inventory, fact→mechanic table
@@ -67,10 +68,12 @@ The script computes these before any persona sees the level, and personas must c
 
 - `flat-deck` — one platform key carries >80% of decks, or fewer than three platform reads.
 - `clone-suspect` — skeleton similarity to any shipped level above the threshold (platform band sequence + hazard sequence + background type).
+- `skeleton-rhyme` — the sorted deck x sequence and world width match a shipped level (≥0.85 at the same width and deck count) even under different paints. This is the copied-template case the kit-based clone check misses: levels 17/19/20 share one x-list and score 1.00 against each other.
 - `background-recycled` — a shipped background `type` reused with no new composition device claimed in the build report.
 - `low-hazard-variety` — fewer than two hazard types outside the tutorial levels, or every hazard is a reskin of one behaviour.
 - `empty-route` — a shelf, bridge, or upper line with nothing that pays or threatens.
 - `sleeping-finale` — no hazard, gate, or boss pressure in the last stretch before the crown.
+- `finale-invisible` — hazards exist within 900px of the crown but none can appear in a frozen finale still (a lone timed beam caught off-phase, or pressure outside the crown frame). Personas judge finale pressure from the still plus `finaleHazardCount`/`finaleVisible` in the level state; this flag is the level-side fix, not a panel error.
 - `checkpoint-desert` — a gap over 2500px without a checkpoint on long levels, or a checkpoint inside beam timing / under a patrol lane.
 - `blind-landing` — a required drop or jump whose landing deck is off-screen with a hazard on it.
 
@@ -101,7 +104,7 @@ Non-news levels record `fidelity: not-applicable` and skip this section; the res
 
 Why these floors: AI judges score conservatively — shipped level 1, a finished tutorial, scores fun ~1.5, fairness ~2.6, novelty ~0.9. Absolute 2.5 floors fail shipped levels, so the gate asks instead whether any judge can name a concrete flaw, with playable floors anchored to that baseline. A level every judge calls flawless at fun ≥ 1.5 ships; a level with a named flaw iterates no matter how high its means.
 
-News levels use stricter floors than campaign, anchored to shipped news level 18: the novelty, theme, and readability means must clear higher bars, and no dimension mean may fall below the playable floor. The report's `News floor failures:` line names each failed floor rather than reporting a bare iterate.
+News levels use stricter floors than campaign, anchored to shipped news level 18: the novelty, theme, and readability means must clear higher bars, and no dimension mean may fall below the playable floor. The report's `News floor failures:` line names each failed floor rather than reporting a bare iterate. Novelty floors at 1.5 (recalibrated 2026-10-31): the old 1.8 sat inside level 18's own run-to-run variance (1.73–1.82) and failed every traverse level ever built, while copied skeletons score 1.1–1.4 and genuine topology departures score 1.6+. Clone protection now lives in the `skeleton-rhyme` mechanical flag; the floor only separates "rhymes with the roster" from "departs from it." Do not raise it back without a shipped anchor that clears it twice.
 
 **Iterate** — one named flaw, fixable by tuning, placement, or one new set piece. Before fixing, re-run the full Play critic once: the bot pilot's skill varies run to run (level 18: 71s/2-deaths crown one run, 120s/11-deaths timeout the next), and a lone `cheap`/`blind` verdict on a bad pilot run is instrument noise, not a level flaw. Fix only a flaw that repeats across runs or that `deathSpots` clustering (deaths within ~200px) corroborates. Every failing Play/fidelity run emits a ranked `fixes` array (see Report) and the maker skill consumes only the top fix — one fix per loop — then re-runs the full critic. Fix the smallest thing that answers that corroborated top fix, then re-run the full Play critic. Do not re-run only the happy path, and do not batch lower-ranked fixes into the same loop.
 

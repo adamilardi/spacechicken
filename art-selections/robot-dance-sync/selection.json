@@ -1,0 +1,29 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-robot-dance-sync/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-robot-dance-sync/dancer-bot.png",
+            "role": "actor: Dancer Bot (drone hazard, key dancerBot)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha"
+        },
+        {
+            "asset_path": "canvas:labDeck/labGrate",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        },
+        {
+            "asset_path": "assets/news-robot-dance-sync/countdown-board.png",
+            "role": "prop: countdown numerals board (key countdownBoard)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs + sharp SVG 5:43 numerals"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 20,
+    "requested_revisions": [],
+    "story": "110 AgiBot humanoid robots dance together in China to set a Guinness World Records title \u2014 Today News Brief, Oct 31 2026, https://todaynewsbrief.com/article/tech-agibot-110-humanoid-robots-dance-guinness-world-record",
+    "unfilled_roles": []
+}

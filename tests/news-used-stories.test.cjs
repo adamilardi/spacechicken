@@ -77,6 +77,26 @@ test('collectUsedStories reads a directory sorted by file', async () => {
     }
 });
 
+test('filters localhost and level URLs out of used-story output', async () => {
+    const { parseUsedStory, isUsed } = await loadHelper();
+    const parsed = parseUsedStory(
+        [
+            '# Level 19 — Hubble Rescue (news-to-level)',
+            '',
+            'Story: "NASA asks for Hubble rescue ideas" — EuropeSays, Oct 31 2026. https://www.europesays.com/ie/759401/',
+            '',
+            'Play URL: http://127.0.0.1:3000/?level=19',
+            'Also: http://localhost:3000/?level=19 and https://example.com/real-story.',
+        ].join('\n'),
+        '19.md'
+    );
+    assert.ok(parsed.urls.includes('https://www.europesays.com/ie/759401/'));
+    assert.ok(parsed.urls.includes('https://example.com/real-story'));
+    assert.ok(!parsed.urls.some((url) => url.includes('127.0.0.1')));
+    assert.ok(!parsed.urls.some((url) => url.includes('localhost')));
+    assert.equal(isUsed([parsed], 'http://127.0.0.1:3000/?level=19'), false);
+});
+
 test('CLI --check prints USED with exit 0 and NEW with exit 3', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'news-used-cli-'));
     try {

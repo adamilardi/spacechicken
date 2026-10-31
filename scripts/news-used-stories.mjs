@@ -21,6 +21,17 @@ function urlKey(url) {
     return cleanUrl(url).replace(/\/+$/, '').toLowerCase();
 }
 
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1']);
+
+export function isLocalUrl(url) {
+    try {
+        const host = new URL(String(url)).hostname.replace(/^\[|\]$/g, '').toLowerCase();
+        return LOCAL_HOSTS.has(host) || host.startsWith('127.') || host.endsWith('.localhost');
+    } catch {
+        return false;
+    }
+}
+
 export function parseUsedStory(markdown, file) {
     const text = String(markdown || '');
     const seen = new Set();
@@ -28,7 +39,8 @@ export function parseUsedStory(markdown, file) {
     for (const match of text.matchAll(URL_RE)) {
         const url = cleanUrl(match[0]);
         const key = urlKey(url);
-        if (url && !seen.has(key)) {
+        // Play URLs (http://127.0.0.1:3000/?level=N) are not stories.
+        if (url && !seen.has(key) && !isLocalUrl(url)) {
             seen.add(key);
             urls.push(url);
         }

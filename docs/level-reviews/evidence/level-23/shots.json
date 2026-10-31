@@ -1,0 +1,59 @@
+{
+  "level": 23,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-cosmicRay",
+      "x": 1700,
+      "y": 140,
+      "proves": "hazard beat: cosmicRay at x=1700",
+      "id": "02-hazard-cosmicRay",
+      "file": "02-hazard-cosmicRay.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/02-hazard-cosmicRay.jpg"
+    },
+    {
+      "slug": "hazard-drone",
+      "x": 2350,
+      "y": 240,
+      "proves": "hazard beat: drone at x=2350",
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/03-hazard-drone.jpg"
+    },
+    {
+      "slug": "hazard-drip",
+      "x": 3650,
+      "y": 260,
+      "proves": "hazard beat: drip at x=3650",
+      "id": "04-hazard-drip",
+      "file": "04-hazard-drip.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/04-hazard-drip.jpg"
+    },
+    {
+      "slug": "setpiece-cuspArc",
+      "x": 520,
+      "y": 430,
+      "proves": "set piece: cuspArc at x=520",
+      "id": "05-setpiece-cuspArc",
+      "file": "05-setpiece-cuspArc.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/05-setpiece-cuspArc.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 4050,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/06-finale.jpg"
+    }
+  ]
+}

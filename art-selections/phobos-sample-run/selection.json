@@ -1,0 +1,29 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-phobos-sample-run/bg.png",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-phobos-sample-run/survey-orbiter.png",
+            "role": "actor: Survey Orbiter (drone hazard, key surveyOrbiter)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha"
+        },
+        {
+            "asset_path": "canvas:craterDeck/mesa",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        },
+        {
+            "asset_path": "assets/news-phobos-sample-run/h3-rocket.png",
+            "role": "prop: H3 rocket on gantry (key h3Rocket)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 21,
+    "requested_revisions": [],
+    "story": "MMX lifts off to Mars's moon Phobos \u2014 ESA/JAXA, Oct 20 2026, https://www.esa.int/ESA_Multimedia/Images/2026/10/MMX_lifts_off_to_Mars_s_moon_Phobos",
+    "unfilled_roles": []
+}

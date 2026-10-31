@@ -36,7 +36,7 @@ A background layout alone is not a place. Also paint the solid surfaces the chic
 - A surface needs a top edge that reads as walkable at gameplay size, in the same flat style as `labDeck`, `mesa`, and `issHull`.
 - A decoration has no collision. Do not paint a platform-shaped slab and call it scenery. That is how the removed Specimen Wing crusher was confused with a lab deck.
 - Paint more than one platform read: at least a wide deck, a narrow perch, and one shaped piece (stair run, angled/sloped silhouette, bridge, or shaft lip) so levels are not rows of identical flat slabs. Shapes are silhouettes and trims on honest rectangular hitboxes — say where the player actually stands on each.
-- When the brief is a real-world story, paint its recognizable props too (the brief's element inventory: currency signs, tools, vehicles, machines), as decorations or set dressing at gameplay size. A themed palette without the story's objects is not finished art.
+- When the brief is a real-world story, paint its recognizable props too (the brief's element inventory: currency signs, tools, vehicles, machines), as decorations or set dressing at gameplay size. A themed palette without the story's objects is not finished art. Props are judged from in-game screenshots at gameplay size: a prop must read at roughly 48px or larger on screen, and a region of the background plate does not count as a shown prop (tile framing crops plates — generate a dedicated prop texture through the generated-prop path in the news-to-level skill instead).
 - Name the background `type` token you would add later (`facility`, `mars`, `iss` are taken). The layout function should fill four layers across the level's world width and height.
 - Motion is runtime: parallax on the baked layers, and a tween only when a prop actually moves. A still paint is not an animation. State scroll behavior and that pause must freeze it.
 - Plan seams by drawing a repeated strip in the preview. Do not claim a layer tiles until that strip has been looked at.
@@ -44,6 +44,14 @@ A background layout alone is not a place. Also paint the solid surfaces the chic
 Write each picture as `paint.js` exporting `paint(ctx, width, height)`, or as a layout module exporting a function that records draw operations the way `BackgroundRenderer` does. Follow the art rules in the reference. A generated raster is allowed: save it under the level's asset folder, record it in the manifest, and note how it will be loaded as a texture.
 
 Offer distinct silhouettes when the user wants alternatives. Use ids such as `level-acid-bay-a`. Start with a small batch when they do not give a count. Put no labels in the paint. Labels belong on the preview page.
+
+## Generated plate prompt template
+
+When the place is a generated raster (news-to-level step 3), prompt from this template so plates frame the live sprites instead of doubling them:
+
+> Flat side-view platformer background, `<palette>`, `<composition devices>`, chunky readable silhouettes, quiet distant detail. Space Chicken universe. **No characters, no chicken, no crowns, no text, no labels** — the live sprites supply those; painted ones double and read as clutter at gameplay size.
+
+Enemy cutouts use the same style anchor with `isolated on a flat solid magenta background` appended, then `node scripts/key-enemy.mjs <in> <out>` for the alpha. If a plate comes back with characters or crowns despite the clause, regenerate — do not ship it and crop around them.
 
 ## Deliver
 

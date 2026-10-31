@@ -38,6 +38,11 @@ export const MUSIC_DEFINITIONS = Object.freeze({
     16: buildVault(),
     17: buildBastion(),
     18: buildFearSpike(),
+    19: buildEarthwatch(),
+    20: buildSpecimenWing(),
+    21: buildLunarHorizon(),
+    22: buildSkyhook(),
+    23: buildEarthwatch(),
 });
 
 export function getMusicDefinition(level) {

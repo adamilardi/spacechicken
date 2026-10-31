@@ -132,6 +132,84 @@ const FLAW_GUIDANCE = [
 
 // ---------- Pure analysis (unit-tested, no browser, no network) ----------
 
+// Fraction of its cycle a timed laser spends on. Non-laser hazards are
+// bodies: they occupy space in every still, so their duty is 1.
+export function hazardDuty(hazard) {
+    if (!hazard || hazard.type !== 'laser') return 1;
+    const on = hazard.onDuration ?? 800;
+    const off = hazard.offDuration ?? 800;
+    return on + off > 0 ? on / (on + off) : 1;
+}
+
+// Horizontal span a hazard can occupy, including its patrol endpoints.
+export function hazardSpan(hazard) {
+    const x = hazard?.x || 0;
+    const patrolX = hazard?.patrol?.x;
+    return patrolX == null ? [x, x] : [Math.min(x, patrolX), Math.max(x, patrolX)];
+}
+
+// Finale pressure as data vs as a frozen still. The beat sheet freezes the
+// world, so a timed vertical laser caught off-phase photographs as empty
+// deck even when it guards the crown (batch 19-21: pressure within 250px
+// of the crown still drew sleeping-finale in 9/12 persona votes). Count
+// pressure twice: hazards within 900px (the contract), and hazards a
+// frozen finale frame can actually show (frame = finale beat at
+// crownX-200, 1280px viewport; body hazards always show, beams show when
+// horizontal or mostly-on).
+export function finalePressure(content, definition) {
+    const crownX = definition?.CROWN_X ?? 0;
+    const dynamic = content?.dynamic || [];
+    const near = dynamic.filter((hazard) => {
+        const [lo, hi] = hazardSpan(hazard);
+        return hi >= crownX - 900 && lo <= crownX;
+    });
+    const frameLo = crownX - 840;
+    const frameHi = crownX + 440;
+    const inFrame = (hazard) => {
+        const [lo, hi] = hazardSpan(hazard);
+        return hi >= frameLo && lo <= frameHi;
+    };
+    const frameBeams = near.filter(
+        (hazard) =>
+            hazard.type === 'laser' && hazard.orientation !== 'horizontal' && inFrame(hazard)
+    );
+    const visible = near.filter((hazard) => {
+        if (!inFrame(hazard)) return false;
+        if (hazard.type !== 'laser') return true;
+        if (hazard.orientation === 'horizontal' || hazardDuty(hazard) >= 0.6) return true;
+        // A lone timed beam is a coin flip in a frozen still; two or more
+        // staggered beams (the level-18 finale halts) cover each other's
+        // off-phases, so the gate reads as pressure.
+        return frameBeams.length >= 2;
+    });
+    return {
+        hazardCount: near.length,
+        visibleCount: visible.length,
+        visible: visible.length > 0,
+        hazards: near.map((hazard) => hazard.type),
+    };
+}
+
+// Deck-layout similarity independent of paint keys: same world width and
+// deck count, comparing the sorted normalized deck x sequence. Catches a
+// copied deck x-list wearing new textures (levels 17/19/20 score 1.00;
+// the closest legitimate shipped pair, 8 vs 11, scores 0.72).
+export function layoutSimilarity(left, right) {
+    const a = left?.deckLayout || [];
+    const b = right?.deckLayout || [];
+    if (!a.length || a.length !== b.length) return 0;
+    const widthA = left?.worldWidth || 0;
+    const widthB = right?.worldWidth || 0;
+    if (!widthA || !widthB || Math.abs(widthA - widthB) / Math.max(widthA, widthB) > 0.05) {
+        return 0;
+    }
+    let matched = 0;
+    for (let i = 0; i < a.length; i += 1) {
+        if (Math.abs(a[i] - b[i]) <= 0.015) matched += 1;
+    }
+    return Math.round((matched / a.length) * 1000) / 1000;
+}
+
 export function analyseLevel(content, definition) {
     const platforms = content?.staticPlatforms || [];
     const keys = platforms.map((p) => p.key || 'default');
@@ -142,6 +220,11 @@ export function analyseLevel(content, definition) {
     const checkpoints = [...(content?.checkpoints || [])].sort((a, b) => a.x - b.x);
     const crownX = definition?.CROWN_X ?? 0;
     const finaleHazards = dynamic.filter((d) => crownX - (d.x || 0) <= 900 && (d.x || 0) <= crownX);
+    const finale = finalePressure(content, definition);
+    const worldWidth = definition?.WORLD_WIDTH ?? 0;
+    const deckLayout = [...platforms]
+        .sort((a, b) => (a.x || 0) - (b.x || 0))
+        .map((p) => (worldWidth ? Math.round(((p.x || 0) / worldWidth) * 1000) / 1000 : 0));
     return {
         title: definition?.TITLE || null,
         gravity: definition?.GRAVITY ?? null,
@@ -158,6 +241,9 @@ export function analyseLevel(content, definition) {
         checkpoints,
         crownX,
         finaleHazardCount: finaleHazards.length,
+        finaleVisibleHazardCount: finale.visibleCount,
+        finaleVisible: finale.visible,
+        deckLayout,
         platformBands: platforms.map((p) => Math.round((p.y || 0) / 60)),
     };
 }
@@ -197,6 +283,53 @@ export function pilotBudgetSec(worldWidth) {
     return Math.max(90, Math.round((worldWidth || 0) / 40));
 }
 
+function cloneFlags(analysis, allAnalyses, selfId) {
+    const flags = [];
+    let bestRhyme = null;
+    for (const [id, other] of Object.entries(allAnalyses || {})) {
+        if (String(id) === String(selfId)) continue;
+        const similarity = skeletonSimilarity(analysis, other);
+        if (similarity >= 0.75) {
+            flags.push({
+                id: 'clone-suspect',
+                detail: `skeleton similarity ${similarity} to level ${id} (${other.title || 'untitled'})`,
+            });
+        }
+        const layout = layoutSimilarity(analysis, other);
+        if (layout >= 0.85 && (!bestRhyme || layout > bestRhyme.layout)) {
+            bestRhyme = { id, layout, title: other.title };
+        }
+    }
+    if (bestRhyme && analysis.platformCount >= 8) {
+        flags.push({
+            id: 'skeleton-rhyme',
+            detail: `deck layout similarity ${bestRhyme.layout} to level ${bestRhyme.id} (${bestRhyme.title || 'untitled'}): same width and deck x sequence under new paints`,
+        });
+    }
+    return flags;
+}
+
+function finaleFlags(analysis) {
+    if (analysis.crownX <= 2000 || analysis.hasBoss) return [];
+    if (analysis.finaleHazardCount === 0) {
+        return [
+            {
+                id: 'sleeping-finale',
+                detail: 'no hazard within 900px before the crown and no crown gate',
+            },
+        ];
+    }
+    if (analysis.finaleVisible === false) {
+        return [
+            {
+                id: 'finale-invisible',
+                detail: 'finale hazards exist within 900px of the crown but none can appear in a frozen finale still (timed beam off-phase or outside the crown frame); the panel will read a sleeping finale',
+            },
+        ];
+    }
+    return [];
+}
+
 export function mechanicalFlags(analysis, allAnalyses, selfId) {
     const flags = [];
     if (
@@ -208,16 +341,7 @@ export function mechanicalFlags(analysis, allAnalyses, selfId) {
             detail: `${analysis.platformKeys.length} deck key(s), dominant share ${analysis.dominantKeyShare.toFixed(2)} across ${analysis.platformCount} decks`,
         });
     }
-    for (const [id, other] of Object.entries(allAnalyses || {})) {
-        if (String(id) === String(selfId)) continue;
-        const similarity = skeletonSimilarity(analysis, other);
-        if (similarity >= 0.75) {
-            flags.push({
-                id: 'clone-suspect',
-                detail: `skeleton similarity ${similarity} to level ${id} (${other.title || 'untitled'})`,
-            });
-        }
-    }
+    flags.push(...cloneFlags(analysis, allAnalyses, selfId));
     const sameBackground = Object.entries(allAnalyses || {}).filter(
         ([id, other]) =>
             String(id) !== String(selfId) && other.backgroundType === analysis.backgroundType
@@ -248,12 +372,7 @@ export function mechanicalFlags(analysis, allAnalyses, selfId) {
             }
         }
     }
-    if (analysis.crownX > 2000 && !analysis.hasBoss && analysis.finaleHazardCount === 0) {
-        flags.push({
-            id: 'sleeping-finale',
-            detail: 'no hazard within 900px before the crown and no crown gate',
-        });
-    }
+    flags.push(...finaleFlags(analysis));
     return flags;
 }
 
@@ -388,6 +507,18 @@ export function fidelityCodeChecks(brief, corpus) {
     return { elements, sceneryOnlyFacts: sceneryOnly.map((row) => row.fact) };
 }
 
+// Keys in human.json `confirmed` must exactly match `element:`/`row:`
+// + parsed brief text (post-signature-strip), or `universe:space-chicken`.
+// Anything else silently no-ops in the gate, so callers warn on these.
+export function unmatchedConfirmations(confirmed, brief) {
+    const valid = new Set([
+        ...(brief?.elements || []).map((element) => `element:${element}`),
+        ...(brief?.mappings || []).map((row) => `row:${row.fact}`),
+        'universe:space-chicken',
+    ]);
+    return (confirmed || []).filter((key) => !valid.has(key));
+}
+
 // Fidelity gate from panel answers. `elements` entries carry `noul`
 // probabilities; `rows` entries carry choice + confidence. `confirmed`
 // holds exact needsHuman keys a human verified against the screenshots
@@ -517,8 +648,14 @@ export function panelMeans(reports) {
 
 // News floors sit above the campaign floors: a daily news level is new
 // content, not a teaching level. Anchored to shipped news level 18
-// (novelty ~1.9, theme ~2.4, readability ~2.3, fairness ~1.65).
-export const NEWS_FLOORS = { novelty: 1.8, theme: 2.0, readability: 2.0, pacing: 1.5 };
+// (theme ~2.4, readability ~2.3, fairness ~1.65). Novelty was anchored at
+// 1.8 to level 18's best run, but 18 itself scores 1.73-1.82 across runs,
+// so the floor sat inside the anchor's own variance band and failed every
+// traverse level (batch 19-21: 1.10-1.60) while the mechanical clone
+// checks passed. Novelty now floors at 1.5: copied-skeleton traverses
+// score 1.1-1.4, genuine topology departures score 1.6+. The
+// skeleton-rhyme mechanical flag carries the clone case in code.
+export const NEWS_FLOORS = { novelty: 1.5, theme: 2.0, readability: 2.0, pacing: 1.5 };
 
 export function newsFloorFailures(reports) {
     const means = panelMeans(reports);
@@ -542,7 +679,12 @@ export function panelPassed(reports, flags, screenshotsSent, options = {}) {
         means.fun >= 1.5 &&
         means.fairness >= 1.5 &&
         newsOk &&
-        !(flags || []).some((flag) => flag.id === 'clone-suspect' || flag.id === 'flat-deck') &&
+        !(flags || []).some(
+            (flag) =>
+                flag.id === 'clone-suspect' ||
+                flag.id === 'flat-deck' ||
+                flag.id === 'skeleton-rhyme'
+        ) &&
         screenshotsSent !== false
     );
 }
@@ -595,6 +737,10 @@ export function planBeats(analysis, content) {
     }
     const seenProps = new Set();
     for (const prop of [...(content?.props || [])].sort((a, b) => (a.x || 0) - (b.x || 0))) {
+        // Pre-guard: the finale beat is appended next and the sheet caps at
+        // 6, so a prop pushed as 6th would slice the finale off. Props near
+        // an existing beat still appear in that shot (coverage by proximity).
+        if (candidates.length >= 5) break;
         if (!prop.key || seenProps.has(prop.key)) continue;
         seenProps.add(prop.key);
         push({
@@ -603,7 +749,6 @@ export function planBeats(analysis, content) {
             y: clampY(prop.y),
             proves: `set piece: ${prop.key} at x=${Math.round(prop.x || 0)}`,
         });
-        if (candidates.length >= 5) break;
     }
     if (candidates.length === 1) {
         candidates.push({
@@ -615,7 +760,7 @@ export function planBeats(analysis, content) {
     }
     candidates.push({
         slug: 'finale',
-        x: Math.max(150, crownX - 320),
+        x: Math.max(150, crownX - 200),
         y: 400,
         proves: 'crown approach and finale pressure',
     });
@@ -626,6 +771,8 @@ export function planBeats(analysis, content) {
 }
 
 const FIX_OWNERS = {
+    'finale-invisible': 'skills/level-creator/SKILL.md',
+    'skeleton-rhyme': 'skills/level-creator/SKILL.md',
     flat: 'skills/level-creator/SKILL.md',
     clone: 'skills/level-creator/SKILL.md',
     stale: 'skills/level-creator/SKILL.md',
@@ -650,6 +797,10 @@ const FIX_ACTIONS = {
     sponge: 'Cut or compress the lowest-decision stretch so length carries new decisions.',
     'empty-route': 'Pay or threaten the empty line: a hazard, a bonk, or a bypass that matters.',
     'sleeping-finale': 'Add finale pressure within 900px of the crown on every route to it.',
+    'finale-invisible':
+        'Make finale pressure visible in a frozen still: put a body hazard (roller, drone, crusher) on the crown deck or a mostly-on beam across the crown approach. A timed vertical laser alone photographs as empty deck.',
+    'skeleton-rhyme':
+        'Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.',
     blind: 'Make the landing/hazard readable in time: move the hazard off the blind landing or add a tell/landmark before the drop.',
     cheap: 'Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.',
     unreadable:
@@ -705,7 +856,11 @@ function recheckFor(flaw) {
 function fixesFromFlags(add, flags) {
     for (const flag of flags || []) {
         add(
-            flag.id === 'clone-suspect' || flag.id === 'flat-deck' ? 1 : 3,
+            flag.id === 'clone-suspect' || flag.id === 'flat-deck' || flag.id === 'skeleton-rhyme'
+                ? 1
+                : flag.id === 'finale-invisible'
+                  ? 2
+                  : 3,
             flag.id,
             'mechanical',
             flag.detail,
@@ -981,7 +1136,7 @@ export async function captureEvidence(levelId, analysis, content = null) {
 // ---------- Jev panels ----------
 
 function qualityQuestions(persona) {
-    const head = `You are ${persona.name}. ${persona.profile} Judge ONLY the level described in state.level from state.telemetry, state.mechanicalFlags, and the screenshots referenced in state.shots. The telemetry comes from a mid-skill bot pilot. telemetry.deathSpots lists the x-position of each death: deaths clustered within ~200px suggest a cheap spot, spread-out deaths suggest pilot skill, so judge cheapness by that pattern and flags, not raw counts. Judge the level in its campaign role: levels 1-3 are teaching levels and levels 8-16 are contra stages; a short teaching level is not a failed contra stage, but no role excuses clones, blind deaths, or a sleeping finale for its size. If telemetry.maxX never neared state.level.crownX, the finale is untested: name what blocked progress instead of 'sleeping-finale'. If state.screenshotsSent is false, cap readability at 2 and say the visual evidence was missing. Score as this persona, not as the designer.`;
+    const head = `You are ${persona.name}. ${persona.profile} Judge ONLY the level described in state.level from state.telemetry, state.mechanicalFlags, and the screenshots referenced in state.shots. The telemetry comes from a mid-skill bot pilot. telemetry.deathSpots lists the x-position of each death: deaths clustered within ~200px suggest a cheap spot, spread-out deaths suggest pilot skill, so judge cheapness by that pattern and flags, not raw counts. Judge the level in its campaign role: levels 1-3 are teaching levels and levels 8-16 are contra stages; a short teaching level is not a failed contra stage, but no role excuses clones, blind deaths, or a sleeping finale for its size. If telemetry.maxX never neared state.level.crownX, the finale is untested: name what blocked progress instead of 'sleeping-finale'. Finale pressure is judged from BOTH the finale still and the data: state.level.finaleHazardCount counts hazards within 900px of the crown and state.level.finaleVisible says whether a frozen still can show one; a timed beam caught off-phase in one still is not a sleeping finale when the data shows pressure on the crown deck, and an empty still with finaleVisible=false is a visibility flaw in the level, not proof the crown is unguarded in play. If state.screenshotsSent is false, cap readability at 2 and say the visual evidence was missing. Score as this persona, not as the designer.`;
     return {
         fun: score(`${head} How FUN is this level?`, SCORE_LEVELS.fun),
         fairness: score(`${head} How FAIR is this level?`, SCORE_LEVELS.fairness),
@@ -1529,6 +1684,14 @@ async function main() {
     }
     const isNewsLevel = Boolean(brief && (brief.elements.length || brief.mappings.length));
     const concept = isNewsLevel ? assessConcept(briefRaw || '') : null;
+    if (isNewsLevel && humanConfirmed.length) {
+        const unmatched = unmatchedConfirmations(humanConfirmed, brief);
+        for (const key of unmatched) {
+            console.warn(
+                `warning: human.json confirmed key matches nothing in the brief parse: "${key}"`
+            );
+        }
+    }
 
     const apiKey = readTypeSafeApiKey();
     const conceptOk = !isNewsLevel || Boolean(concept?.passed);

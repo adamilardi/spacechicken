@@ -1,0 +1,14 @@
+
+> space-chicken@1.0.0 critic:level
+> node scripts/level-critic.mjs 20
+
+Marlowe (expert reviewer): fun=0.6 fair=0.8 novel=1.1 flaw=cheap -> iterate
+Vic (contra veteran): fun=0.7 fair=0.8 novel=1.1 flaw=cheap -> iterate
+Sam (casual newcomer): fun=0.4 fair=0.7 novel=1.0 flaw=cheap -> iterate
+Lex (speedrunner): fun=0.5 fair=0.7 novel=1.2 flaw=cheap -> iterate
+Marlowe (expert reviewer): fun=0.9 fair=0.9 novel=1.0 flaw=cheap -> iterate
+Vic (contra veteran): fun=0.8 fair=0.8 novel=0.9 flaw=cheap -> iterate
+Sam (casual newcomer): fun=0.7 fair=0.8 novel=1.0 flaw=cheap -> iterate
+Lex (speedrunner): fun=0.8 fair=0.8 novel=1.1 flaw=cheap -> iterate
+critic report: docs/level-reviews/level-20.md
+CRITIC: ITERATE

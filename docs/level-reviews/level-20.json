@@ -1,0 +1,200 @@
+{
+  "level": 20,
+  "run": "static",
+  "analysis": {
+    "title": "Robot Dance Sync",
+    "gravity": 240,
+    "worldWidth": 6000,
+    "backgroundType": "facility",
+    "platformCount": 14,
+    "platformKeys": [
+      "labDeck",
+      "bastionGrate",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.5714285714285714,
+    "hazardTypes": [
+      "laser",
+      "drone",
+      "roller",
+      "bonk"
+    ],
+    "hazardCount": 8,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 2,
+    "checkpoints": [
+      {
+        "x": 1750,
+        "y": 520
+      },
+      {
+        "x": 2600,
+        "y": 500
+      },
+      {
+        "x": 3350,
+        "y": 500
+      },
+      {
+        "x": 4650,
+        "y": 440
+      }
+    ],
+    "crownX": 5650,
+    "finaleHazardCount": 2,
+    "platformBands": [
+      11,
+      10,
+      10,
+      9,
+      8,
+      7,
+      9,
+      9,
+      9,
+      8,
+      8,
+      7,
+      7,
+      7
+    ]
+  },
+  "flags": [],
+  "telemetry": null,
+  "shots": [],
+  "screenshotsSent": false,
+  "reports": [],
+  "fidelity": {
+    "briefHeadline": "Level 20 — Robot Dance Sync (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/20.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "humanoid dancer bots",
+          "claimed": true
+        },
+        {
+          "element": "stage formation grid",
+          "claimed": true
+        },
+        {
+          "element": "transport cases",
+          "claimed": false
+        },
+        {
+          "element": "LinkBots antenna mast",
+          "claimed": true
+        },
+        {
+          "element": "countdown numerals",
+          "claimed": true
+        },
+        {
+          "element": "Guinness certificate gate",
+          "claimed": true
+        },
+        {
+          "element": "wave light beams",
+          "claimed": true
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "elements": [
+      {
+        "element": "humanoid dancer bots",
+        "signature": true,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "stage formation grid",
+        "signature": true,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "transport cases",
+        "signature": false,
+        "claimed": false,
+        "noul": null
+      },
+      {
+        "element": "LinkBots antenna mast",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "countdown numerals",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "Guinness certificate gate",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      },
+      {
+        "element": "wave light beams",
+        "signature": false,
+        "claimed": true,
+        "noul": null
+      }
+    ],
+    "rows": [
+      {
+        "fact": "110 robots dance in unison 5m43s, wave patterns and formation switches",
+        "signature": true,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "LinkBots directs fleets over 5G+WiFi, UWB +-10cm, auto gap-fill",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "Robots walk from cases, self-calibrate, no per-unit remote",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      },
+      {
+        "fact": "Guinness adjudicator counts and certifies on site",
+        "signature": false,
+        "choice": "not-judged",
+        "confidence": null
+      }
+    ],
+    "sent": false,
+    "gate": {
+      "passed": false,
+      "shown": 0,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [
+        "panel-unavailable"
+      ]
+    }
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 7,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [],
+  "loop": 4,
+  "priorFlaw": "missing-elements",
+  "loopExceeded": true,
+  "pilotRuns": 0,
+  "repeatedFlaws": [],
+  "passed": true
+}

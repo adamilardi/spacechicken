@@ -1,0 +1,29 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-reconnection/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-reconnection/sprite-bot.png",
+            "role": "actor: Reconnection Sprite (bonk hazard, key spriteBot)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha, resized to 72px gameplay height"
+        },
+        {
+            "asset_path": "assets/news-reconnection/cusp-arc.png",
+            "role": "prop: magnetosphere cusp arc (key cuspArc)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "canvas:labDeck/issHull/vaultDeck",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 23,
+    "requested_revisions": [],
+    "story": "NASA's TRACERS first results offer peek into violent magnetic process — Phys.org (NASA), Oct 30 2026, https://phys.org/news/2026-10-nasa-tracers-results-peek-violent.html",
+    "unfilled_roles": []
+}
