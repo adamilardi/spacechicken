@@ -1,0 +1,40 @@
+{
+    "level_id": 18,
+    "decision_status": "selected",
+    "decision_by": "agent-delegated",
+    "story": "Nasdaq 100 Falls Into Correction as Intel, Nvidia and Reddit Lead Tech Rout — Le Private Banker/Bloomberg, Oct 30 2026, https://leprivatebanker.com/2026/10/30/nasdaq-100-falls-into-correction-as-intel-nvidia-and-reddit-lead-tech-rout/",
+    "brief_path": "../../art-candidates/fear-spike/brief.md",
+    "choices": [
+        {
+            "role": "background",
+            "candidate_id": "level-fear-spike-a",
+            "asset_path": "assets/news-fear-spike/bg.jpg",
+            "source": "Muse Image generated",
+            "reason": "Gauge dial landmark names the VIX story at 1x; two-device difference vs skyhook catalog (dial sky, exchange-tower far).",
+            "production_status": "ready",
+            "remaining_work": []
+        },
+        {
+            "role": "actor: bear raider (bearRaider hazard, key bearRaider)",
+            "candidate_id": "enemy-bear-raider-b",
+            "asset_path": "assets/news-fear-spike/bear-raider.png",
+            "source": "Muse Image generated, black-keyed to RGBA 1020x1032",
+            "reason": "Bear orb + spring bonk pad + candlestick ring; pad carries the bonk affordance, dive verb in behavior.",
+            "production_status": "ready",
+            "remaining_work": [
+                "Wire enemies/bear-raider.js per animation-manifest.json tween states."
+            ],
+            "animation_handoff_path": "../../art-candidates/fear-spike/enemy/animation-handoff.md"
+        },
+        {
+            "role": "decks",
+            "asset_path": "canvas:skyhookDeck/skyhookPanel/vaultDeck",
+            "source": "existing canvas paints",
+            "reason": "Main line, shelves, and gold bell perch: three reads, no shared main/shelf paint.",
+            "production_status": "ready",
+            "remaining_work": []
+        }
+    ],
+    "unfilled_roles": [],
+    "requested_revisions": []
+}

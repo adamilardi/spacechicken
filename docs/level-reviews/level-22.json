@@ -1,0 +1,287 @@
+{
+  "level": 22,
+  "run": "full",
+  "analysis": {
+    "title": "Booster Homecoming",
+    "gravity": 250,
+    "worldWidth": 3800,
+    "backgroundType": "harbor",
+    "platformCount": 11,
+    "platformKeys": [
+      "harborDeck",
+      "skyhookPanel",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.5454545454545454,
+    "hazardTypes": [
+      "drone",
+      "laser",
+      "roller",
+      "drip"
+    ],
+    "hazardCount": 7,
+    "hasBoss": false,
+    "movingCount": 1,
+    "propCount": 2,
+    "checkpoints": [
+      {
+        "x": 1050,
+        "y": 440
+      },
+      {
+        "x": 2300,
+        "y": 160
+      },
+      {
+        "x": 3020,
+        "y": 395
+      }
+    ],
+    "crownX": 3520,
+    "finaleHazardCount": 5,
+    "finaleVisibleHazardCount": 5,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.089,
+      0.208,
+      0.303,
+      0.311,
+      0.411,
+      0.521,
+      0.626,
+      0.726,
+      0.803,
+      0.821,
+      0.916
+    ],
+    "platformBands": [
+      11,
+      10,
+      8,
+      7,
+      6,
+      4,
+      6,
+      8,
+      9,
+      6,
+      5
+    ]
+  },
+  "flags": [],
+  "telemetry": {
+    "level": 22,
+    "outcome": "crown-collected",
+    "durationSec": 36.4,
+    "deaths": 0,
+    "deathSpots": [],
+    "maxX": 3535,
+    "hazardTypesSeen": [
+      "drone",
+      "laser",
+      "boulder",
+      "acid_drip",
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-drone",
+      "file": "02-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=1250"
+    },
+    {
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=2200"
+    },
+    {
+      "id": "04-hazard-roller",
+      "file": "04-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=2680"
+    },
+    {
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 2.37,
+      "fairness": 2.05,
+      "readability": 2.34,
+      "novelty": 1.43,
+      "pacing": 2.46,
+      "theme": 2.08,
+      "flaw": "none",
+      "verdict": "ship"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 2.46,
+      "fairness": 1.96,
+      "readability": 2.48,
+      "novelty": 1.48,
+      "pacing": 2.47,
+      "theme": 2.21,
+      "flaw": "none",
+      "verdict": "ship"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 2.35,
+      "fairness": 2.01,
+      "readability": 2.28,
+      "novelty": 1.49,
+      "pacing": 2.53,
+      "theme": 2.2,
+      "flaw": "none",
+      "verdict": "ship"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 2.57,
+      "fairness": 1.94,
+      "readability": 2.46,
+      "novelty": 1.6,
+      "pacing": 2.67,
+      "theme": 2.22,
+      "flaw": "none",
+      "verdict": "ship"
+    }
+  ],
+  "fidelity": {
+    "briefHeadline": "Level 22 — Booster Homecoming (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/22.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "Falcon booster",
+          "claimed": true
+        },
+        {
+          "element": "Starlink satellite",
+          "claimed": true
+        },
+        {
+          "element": "droneship deck",
+          "claimed": true
+        },
+        {
+          "element": "launch tower gantry",
+          "claimed": true
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "sent": true,
+    "elements": [
+      {
+        "element": "Falcon booster",
+        "signature": true,
+        "noul": 0.93,
+        "verdict": "shown"
+      },
+      {
+        "element": "Starlink satellite",
+        "signature": false,
+        "noul": 0.92,
+        "verdict": "shown"
+      },
+      {
+        "element": "droneship deck",
+        "signature": true,
+        "noul": 0.85,
+        "verdict": "shown"
+      },
+      {
+        "element": "launch tower gantry",
+        "signature": false,
+        "noul": 0.94,
+        "verdict": "shown"
+      }
+    ],
+    "rows": [
+      {
+        "fact": "Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff",
+        "mechanic": "Lambda topology: climb the launch tower to apogee, then a controlled descent down staggered decks to the droneship crown deck; a roller patrols the crown deck as the landing-burn guard",
+        "signature": true,
+        "choice": "supports",
+        "confidence": 0.7
+      },
+      {
+        "fact": "27 Starlink satellites climb to orbit",
+        "mechanic": "Lift ride up the tower plus Starlink Sprite drone patrols crossing the ascent lanes; gravity 250 for a floaty climb",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.44
+      },
+      {
+        "fact": "Halloween-eve night launch over the coast",
+        "mechanic": "Harbor night biome with generated launch-coast plate; exhaust drip hazards fall down the descent shaft",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.68
+      },
+      {
+        "fact": "700th launch milestone, recovery crew waits on the droneship",
+        "mechanic": "Rescue cages as the recovery crew on the descent perches; checkpoints as flight milestones (liftoff, MECO, entry burn)",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.26
+      }
+    ],
+    "mechanicFidelity": 2.69,
+    "visualFidelity": 3.62,
+    "fidelityFlaw": "none",
+    "universeFit": 0.98,
+    "usage": {
+      "input_tokens": 12097,
+      "output_tokens": 352
+    },
+    "gate": {
+      "passed": true,
+      "shown": 4,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [],
+      "signatureMissing": [],
+      "signatureUnsupported": [],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": [
+      "row:Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff",
+      "row:27 Starlink satellites climb to orbit",
+      "row:Halloween-eve night launch over the coast",
+      "row:700th launch milestone, recovery crew waits on the droneship"
+    ]
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 4,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [],
+  "loop": 7,
+  "priorFlaw": "cheap",
+  "loopExceeded": true,
+  "pilotRuns": 2,
+  "repeatedFlaws": [],
+  "passed": true
+}

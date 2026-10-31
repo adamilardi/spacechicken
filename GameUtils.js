@@ -77,6 +77,12 @@ export function applyHardModeConfig(config, mults) {
             };
         case 'crusher':
             return { ...config, duration: harden(config.duration, mults.CRUSHER_MULT) };
+        case 'bearRaider':
+            return {
+                ...config,
+                hoverMs: harden(config.hoverMs, mults.PATROL_MULT),
+                telegraphMs: harden(config.telegraphMs, mults.WARNING_MULT),
+            };
         case 'drone':
         case 'rover':
         case 'roller':

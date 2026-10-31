@@ -71,7 +71,8 @@ export class TouchController {
                 !this.targets.name &&
                 !this.targets.phaser &&
                 !this.targets.selectPrev &&
-                !this.targets.selectNext
+                !this.targets.selectNext &&
+                !this.targets.news
             ) {
                 return true;
             }
@@ -172,6 +173,11 @@ export class TouchController {
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectPrevButton);
         targets.selectNext =
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectNextButton);
+        targets.news =
+            hasCoordinates &&
+            (controls.newsButtons || []).some(
+                (button) => button.visible !== false && this.isPointerOverGameObject(x, y, button)
+            );
         return targets;
     }
 
@@ -185,7 +191,8 @@ export class TouchController {
             targets.name ||
             targets.phaser ||
             targets.selectPrev ||
-            targets.selectNext
+            targets.selectNext ||
+            targets.news
         );
     }
 

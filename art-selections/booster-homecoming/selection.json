@@ -1,0 +1,29 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-booster-homecoming/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-booster-homecoming/starlink-sprite.png",
+            "role": "actor: Starlink Sprite (drone hazard, key starlinkSprite)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha"
+        },
+        {
+            "asset_path": "assets/news-booster-homecoming/booster-prop.png",
+            "role": "prop: Falcon booster (key boosterProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "canvas:harborDeck/skyhookPanel/vaultDeck",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 22,
+    "requested_revisions": [],
+    "story": "SpaceX closes out October with 700th Falcon 9 launch to date — Spaceflight Now, Oct 30 2026, https://spaceflightnow.com/2026/10/30/live-coverage-spacex-to-close-out-october-with-halloween-eve-falcon-9-launch/",
+    "unfilled_roles": []
+}

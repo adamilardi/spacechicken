@@ -1,0 +1,50 @@
+{
+  "level": 18,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-18/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-crusher",
+      "x": 800,
+      "y": 420,
+      "proves": "hazard beat: crusher at x=800",
+      "id": "02-hazard-crusher",
+      "file": "02-hazard-crusher.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-18/02-hazard-crusher.jpg"
+    },
+    {
+      "slug": "hazard-laser",
+      "x": 1650,
+      "y": 520,
+      "proves": "hazard beat: laser at x=1650",
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-18/03-hazard-laser.jpg"
+    },
+    {
+      "slug": "setpiece-closingBell",
+      "x": 5850,
+      "y": 140,
+      "proves": "set piece: closingBell at x=5850",
+      "id": "04-setpiece-closingBell",
+      "file": "04-setpiece-closingBell.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-18/04-setpiece-closingBell.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 5380,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-18/05-finale.jpg"
+    }
+  ]
+}

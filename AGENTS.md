@@ -29,4 +29,4 @@ Use `npx wrangler whoami` before Cloudflare operations. NovaWing is deployed sep
 
 This file is for Codex, Grok, and other coding assistants. The game itself should not gain navigation/setup links unless explicitly requested. Cross-project context belongs here and in the Ailardi Arcade hub. Preserve unrelated existing working-tree changes when editing this repository.
 
-Level, enemy, animation, and weapon work goes through `skills/`. Read `docs/ART_SKILLS.md` and the matching `SKILL.md`. Paint new art in canvas code. Do not generate images.
+Level, enemy, animation, and weapon work goes through `skills/`. Read `docs/ART_SKILLS.md` and the matching `SKILL.md`. Art may be generated images (Muse Image) or canvas paint code; generated images must be saved into the repo, registered for serving, loaded as real game textures, and style-matched to the shipped game. Canvas paint stays the fallback when image generation is unavailable.

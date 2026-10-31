@@ -451,6 +451,26 @@ export class SfxSynth {
         });
     }
 
+    playBearTelegraph() {
+        if (!this.voice.canUseWebAudio()) {
+            return;
+        }
+        const now = this.voice.scene.sound.context.currentTime;
+        [0, 0.09].forEach((offset, index) => {
+            this.voice.playTone({
+                freqStart: index === 0 ? 660 : 880,
+                freqEnd: index === 0 ? 660 : 880,
+                duration: 0.06,
+                type: 'square',
+                volume: 0.07,
+                attackTime: 0.001,
+                releaseTime: 0.04,
+                filter: { type: 'bandpass', frequency: 1200, Q: 1.5 },
+                startTime: now + offset,
+            });
+        });
+    }
+
     playHazardHitSound() {
         if (!this.voice.canUseWebAudio()) {
             return;

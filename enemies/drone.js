@@ -1,6 +1,24 @@
 import { GAME_CONSTANTS } from '../Constants.js';
 import { addLoopingTween } from '../GameUtils.js';
 
+function setDroneBody(drone, config) {
+    // body.setCircle takes unscaled texture coordinates; displayWidth
+    // already carries the sprite scale, so divide it back out or a scaled
+    // generated texture gets a near-zero body displaced from its center.
+    // config.radius, when given, is already in source units.
+    const scaleX = drone.scaleX || 1;
+    const scaleY = drone.scaleY || 1;
+    const radius =
+        config.radius !== undefined
+            ? config.radius
+            : Math.max(8, Math.round((drone.displayWidth * 0.25) / scaleX));
+    drone.body.setCircle(
+        radius,
+        (drone.width || drone.displayWidth / scaleX) * 0.5 - radius,
+        (drone.height || drone.displayHeight / scaleY) * 0.5 - radius
+    );
+}
+
 export function spawn(builder, group, config) {
     const drone = group.create(config.x, config.y, config.key || 'drone');
     builder.tagTestEntity(drone, {
@@ -21,15 +39,7 @@ export function spawn(builder, group, config) {
     if (scale !== 1) {
         drone.setScale(scale);
     }
-    const radius =
-        config.radius !== undefined
-            ? config.radius
-            : Math.max(8, Math.round(drone.displayWidth * 0.25));
-    drone.body.setCircle(
-        radius,
-        drone.displayWidth * 0.5 - radius,
-        drone.displayHeight * 0.5 - radius
-    );
+    setDroneBody(drone, config);
     drone.setDepth(config.depth ?? 7);
 
     if (config.patrol) {

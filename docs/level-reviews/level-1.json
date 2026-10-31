@@ -1,0 +1,110 @@
+{
+  "level": 1,
+  "run": "full",
+  "analysis": {
+    "title": "Dawn Run",
+    "gravity": 300,
+    "worldWidth": 2000,
+    "backgroundType": "space",
+    "platformCount": 3,
+    "platformKeys": [
+      "default"
+    ],
+    "dominantKeyShare": 1,
+    "hazardTypes": [],
+    "hazardCount": 0,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 0,
+    "checkpoints": [],
+    "crownX": 1800,
+    "finaleHazardCount": 0,
+    "platformBands": [
+      9,
+      8,
+      7
+    ]
+  },
+  "flags": [],
+  "telemetry": {
+    "level": 1,
+    "outcome": "crown-collected",
+    "durationSec": 23.4,
+    "deaths": 0,
+    "maxX": 1809,
+    "hazardTypesSeen": [
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-mid",
+      "file": "02-mid.jpg",
+      "proves": "mid-level set piece and hazard read"
+    },
+    {
+      "id": "03-finale",
+      "file": "03-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.46,
+      "fairness": 2.42,
+      "readability": 2.48,
+      "novelty": 0.9,
+      "pacing": 1.1,
+      "theme": 1.66,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.13,
+      "fairness": 2.35,
+      "readability": 2.47,
+      "novelty": 0.96,
+      "pacing": 0.63,
+      "theme": 1.51,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.71,
+      "fairness": 2.65,
+      "readability": 2.36,
+      "novelty": 0.97,
+      "pacing": 1.2,
+      "theme": 1.81,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.57,
+      "fairness": 2.82,
+      "readability": 2.75,
+      "novelty": 0.85,
+      "pacing": 1.61,
+      "theme": 1.78,
+      "flaw": "flat",
+      "verdict": "ship"
+    }
+  ],
+  "fidelity": null,
+  "passed": false
+}

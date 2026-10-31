@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS } from './Constants.js';
-import { LEVEL_IDS } from './levels/index.js';
+import { LEVEL_CONTENT, LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS } from './levels/index.js';
 import {
     DIFFICULTY_LABEL,
     formatElapsedTime,
@@ -46,6 +46,15 @@ export function canRaceWithKeyboard({ matchMedia, keyboardApi = false } = {}) {
     }
 }
 
+export function newsColumnsFor(count, stackedHeight, availableHeight) {
+    return count > 1 && stackedHeight > availableHeight ? 2 : 1;
+}
+
+export function formatNewsRow(id, title, outlet) {
+    const outletSuffix = outlet ? ` (${outlet})` : '';
+    return `${id} · ${title}${outletSuffix}`;
+}
+
 export class Overlays {
     constructor(scene, ui) {
         this.scene = scene;
@@ -56,6 +65,8 @@ export class Overlays {
         this.titlePrompt = null;
         this.titleControls = null;
         this.titleGamepadStatus = null;
+        this.titleNewsHeader = null;
+        this.titleNewsRows = [];
         this.titlePromptTween = null;
         this.selectPrevButton = null;
         this.selectNextButton = null;
@@ -1020,6 +1031,7 @@ export class Overlays {
             this.selectPrevButton = this.ui.markUi(this.createSelectChevron('◀', -1, metrics));
             this.selectNextButton = this.ui.markUi(this.createSelectChevron('▶', 1, metrics));
         }
+        this.createTitleNewsSection(metrics);
         this.updateGamepadStatus();
 
         this.ui.playerNameText.setOrigin(0.5);
@@ -1043,6 +1055,50 @@ export class Overlays {
         this.createJumpToggle();
         this.createDifficulty();
         this.layoutTitleScreen();
+    }
+
+    createTitleNewsSection(metrics) {
+        this.titleNewsHeader = null;
+        this.titleNewsRows = [];
+        if (!Array.isArray(NEWS_LEVEL_IDS) || NEWS_LEVEL_IDS.length === 0) {
+            return;
+        }
+        this.titleNewsHeader = this.scene.add
+            .text(0, 0, 'NEWS LEVELS', {
+                fontSize: `${metrics.fonts.instructions}px`,
+                fontFamily: HUD_FONT,
+                fill: '#ffe566',
+                fontStyle: 'bold',
+                align: 'center',
+            })
+            .setOrigin(0.5, 0);
+        this.titleNewsHeader.setScrollFactor(0);
+        this.titleNewsHeader.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.ui.styleHudText(this.titleNewsHeader, 3);
+        this.ui.markUi(this.titleNewsHeader);
+        for (const id of NEWS_LEVEL_IDS) {
+            const title = LEVEL_DEFINITIONS[id]?.TITLE || `Level ${id}`;
+            const outlet = LEVEL_CONTENT[id]?.news?.outlet || '';
+            const row = this.scene.add
+                .text(0, 0, formatNewsRow(id, title, outlet), {
+                    fontSize: `${metrics.fonts.instructions}px`,
+                    fontFamily: HUD_FONT,
+                    fill: '#ffffff',
+                    align: 'center',
+                })
+                .setOrigin(0.5, 0);
+            row.setScrollFactor(0);
+            row.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+            row.setPadding(14, 6, 14, 6);
+            row.setBackgroundColor('#17334b');
+            this.ui.styleHudText(row, 3);
+            if (typeof row.setInteractive === 'function') {
+                row.setInteractive({ useHandCursor: true });
+                row.on('pointerup', () => this.scene.startNewsLevel(id));
+            }
+            this.ui.markUi(row);
+            this.titleNewsRows.push(row);
+        }
     }
 
     showBranchChoice(options, onPick, subtitle = null) {
@@ -1220,6 +1276,29 @@ export class Overlays {
             }
         }
         this.placeTitleCluster(centerX, centerY, metrics);
+        this.fitTitleClusterToScreen(centerX, centerY, metrics, insets);
+    }
+
+    fitTitleClusterToScreen(centerX, centerY, metrics, insets) {
+        const rows = this.titleNewsRows || [];
+        const last = rows[rows.length - 1];
+        if (!this.titleNewsHeader || !last || !last.visible) {
+            return;
+        }
+        if (!metrics.isPortrait && metrics.innerWidth >= 1000) {
+            return;
+        }
+        const floor = insets.top + metrics.innerHeight - 8;
+        const overflow = last.y + (last.displayHeight || 0) - floor;
+        if (overflow <= 0) {
+            return;
+        }
+        const titleTop = this.titleText.y - (this.titleText.displayHeight || 0) / 2;
+        const lift = Math.min(overflow, Math.max(0, titleTop - insets.top - 40));
+        if (lift <= 0) {
+            return;
+        }
+        this.placeTitleCluster(centerX, centerY - lift, metrics);
     }
 
     placeTitleCluster(centerX, centerY, metrics) {
@@ -1266,6 +1345,86 @@ export class Overlays {
                 this.titleControls.y + this.titleControls.displayHeight + gap
             );
             this.titleGamepadStatus.setVisible(!shortLandscape);
+        }
+        this.positionTitleNewsSection(centerX, centerY, metrics, shortLandscape);
+    }
+
+    positionTitleNewsSection(centerX, centerY, metrics, shortLandscape) {
+        if (!this.titleNewsHeader) {
+            return;
+        }
+        const insets = this.ui.getSafeAreaInsets();
+        const rows = this.titleNewsRows || [];
+        this.ui.applyFontSize(this.titleNewsHeader, metrics.fonts.instructions);
+        for (const row of rows) {
+            this.ui.applyFontSize(row, metrics.fonts.instructions);
+        }
+        if (!metrics.isPortrait && metrics.innerWidth >= 1000 && !shortLandscape) {
+            // Side column in the dead space right of the centered cluster:
+            // the 720p cluster already fills the screen height.
+            const columnWidth = metrics.innerWidth * 0.34;
+            for (const row of rows) {
+                row.setWordWrapWidth?.(columnWidth, true);
+            }
+            const widest = rows.reduce(
+                (max, row) => Math.max(max, row.displayWidth || row.width || 0),
+                0
+            );
+            const columnX = insets.left + metrics.innerWidth - 16 - widest / 2;
+            const rowGap = 6;
+            const blockHeight =
+                this.titleNewsHeader.displayHeight +
+                rowGap +
+                rows.reduce((sum, row) => sum + (row.displayHeight || 0) + rowGap, 0);
+            let rowY = centerY - blockHeight / 2;
+            this.titleNewsHeader.setPosition(columnX, rowY);
+            this.titleNewsHeader.setVisible(true);
+            rowY += this.titleNewsHeader.displayHeight + rowGap;
+            for (const row of rows) {
+                row.setPosition(columnX, rowY);
+                row.setVisible(true);
+                rowY += row.displayHeight + rowGap;
+            }
+            return;
+        }
+        const gap = metrics.isTiny ? 8 : 14;
+        const statusBottom =
+            this.titleGamepadStatus && this.titleControls
+                ? this.titleGamepadStatus.y + this.titleGamepadStatus.displayHeight
+                : this.titlePrompt
+                  ? this.titlePrompt.y + this.titlePrompt.displayHeight / 2
+                  : 0;
+        this.titleNewsHeader.setPosition(centerX, statusBottom + gap);
+        this.titleNewsHeader.setVisible(!shortLandscape);
+        const headerBottom = this.titleNewsHeader.y + this.titleNewsHeader.displayHeight + 6;
+        const floor = insets.top + metrics.innerHeight - 8;
+        const stackedHeight = rows.reduce((sum, row) => sum + (row.displayHeight || 0) + 6, 0);
+        const columns = newsColumnsFor(rows.length, stackedHeight, floor - headerBottom);
+        if (columns === 1) {
+            let rowY = headerBottom;
+            for (const row of rows) {
+                row.setPosition(centerX, rowY);
+                row.setVisible(!shortLandscape);
+                rowY += row.displayHeight + 6;
+            }
+            return;
+        }
+        // Portrait overflow: two columns so every news level stays on
+        // screen and tappable instead of stacking past the viewport floor.
+        const columnGap = 12;
+        const columnWidth = (metrics.innerWidth - columnGap) / 2;
+        for (const row of rows) {
+            row.setWordWrapWidth?.(columnWidth, true);
+        }
+        const perColumn = Math.ceil(rows.length / columns);
+        for (let column = 0; column < columns; column += 1) {
+            const columnX = insets.left + columnWidth * (column + 0.5) + column * columnGap;
+            let rowY = headerBottom;
+            for (const row of rows.slice(column * perColumn, (column + 1) * perColumn)) {
+                row.setPosition(columnX, rowY);
+                row.setVisible(!shortLandscape);
+                rowY += row.displayHeight + 6;
+            }
         }
     }
 
@@ -1621,6 +1780,8 @@ export class Overlays {
             this.titlePrompt,
             this.titleControls,
             this.titleGamepadStatus,
+            this.titleNewsHeader,
+            ...(this.titleNewsRows || []),
             this.selectPrevButton,
             this.selectNextButton,
         ].forEach((element) => {
@@ -1636,6 +1797,8 @@ export class Overlays {
         this.titlePrompt = null;
         this.titleControls = null;
         this.titleGamepadStatus = null;
+        this.titleNewsHeader = null;
+        this.titleNewsRows = [];
         if (!this.ui.destroyed && this.ui.playerNameText) {
             this.ui.playerNameText.setOrigin(1, 0.5);
             this.ui.playerNameText.setPadding(0);

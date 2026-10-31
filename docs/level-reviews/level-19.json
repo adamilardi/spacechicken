@@ -1,0 +1,377 @@
+{
+  "level": 19,
+  "run": "full",
+  "analysis": {
+    "title": "Hubble Rescue",
+    "gravity": 200,
+    "worldWidth": 6000,
+    "backgroundType": "iss",
+    "platformCount": 14,
+    "platformKeys": [
+      "issHull",
+      "stationPanel",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.5714285714285714,
+    "hazardTypes": [
+      "laser",
+      "drip",
+      "drone",
+      "roller"
+    ],
+    "hazardCount": 8,
+    "hasBoss": false,
+    "movingCount": 2,
+    "propCount": 2,
+    "checkpoints": [
+      {
+        "x": 1750,
+        "y": 600
+      },
+      {
+        "x": 2600,
+        "y": 460
+      },
+      {
+        "x": 3500,
+        "y": 410
+      },
+      {
+        "x": 4650,
+        "y": 290
+      }
+    ],
+    "crownX": 5650,
+    "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.063,
+      0.175,
+      0.183,
+      0.275,
+      0.367,
+      0.375,
+      0.458,
+      0.558,
+      0.567,
+      0.658,
+      0.758,
+      0.783,
+      0.858,
+      0.942
+    ],
+    "platformBands": [
+      11,
+      11,
+      11,
+      10,
+      8,
+      8,
+      9,
+      8,
+      7,
+      6,
+      5,
+      5,
+      6,
+      5
+    ]
+  },
+  "flags": [
+    {
+      "id": "skeleton-rhyme",
+      "detail": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints"
+    }
+  ],
+  "telemetry": {
+    "level": 19,
+    "outcome": "crown-collected",
+    "durationSec": 50.7,
+    "deaths": 0,
+    "deathSpots": [],
+    "maxX": 5654,
+    "hazardTypesSeen": [
+      "laser",
+      "drone",
+      "boulder",
+      "acid_drip",
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-drip",
+      "file": "02-hazard-drip.jpg",
+      "proves": "hazard beat: drip at x=1400"
+    },
+    {
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=1960"
+    },
+    {
+      "id": "04-hazard-roller",
+      "file": "04-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=2900"
+    },
+    {
+      "id": "05-setpiece-rfiEnvelope",
+      "file": "05-setpiece-rfiEnvelope.jpg",
+      "proves": "set piece: rfiEnvelope at x=950"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.74,
+      "fairness": 1.86,
+      "readability": 2.28,
+      "novelty": 0.55,
+      "pacing": 1.9,
+      "theme": 2.16,
+      "flaw": "clone",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.92,
+      "fairness": 1.83,
+      "readability": 2.29,
+      "novelty": 0.5,
+      "pacing": 2.13,
+      "theme": 2.38,
+      "flaw": "clone",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.98,
+      "fairness": 1.82,
+      "readability": 2.16,
+      "novelty": 0.47,
+      "pacing": 2.18,
+      "theme": 2.37,
+      "flaw": "clone",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.89,
+      "fairness": 1.8,
+      "readability": 2.32,
+      "novelty": 0.51,
+      "pacing": 2.24,
+      "theme": 2.42,
+      "flaw": "clone",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": {
+    "briefHeadline": "Level 19 — Hubble Rescue (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/19.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "Hubble tube",
+          "claimed": true
+        },
+        {
+          "element": "solar arrays",
+          "claimed": true
+        },
+        {
+          "element": "servicing arms",
+          "claimed": true
+        },
+        {
+          "element": "RFI proposal envelopes",
+          "claimed": true
+        },
+        {
+          "element": "capture net",
+          "claimed": true
+        },
+        {
+          "element": "reboost flame",
+          "claimed": true
+        },
+        {
+          "element": "altitude gate 600km",
+          "claimed": true
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "sent": true,
+    "elements": [
+      {
+        "element": "Hubble tube",
+        "signature": true,
+        "noul": 0.85,
+        "verdict": "shown"
+      },
+      {
+        "element": "solar arrays",
+        "signature": false,
+        "noul": 0.96,
+        "verdict": "shown"
+      },
+      {
+        "element": "servicing arms",
+        "signature": true,
+        "noul": 0.87,
+        "verdict": "shown"
+      },
+      {
+        "element": "RFI proposal envelopes",
+        "signature": false,
+        "noul": 0.93,
+        "verdict": "shown"
+      },
+      {
+        "element": "capture net",
+        "signature": false,
+        "noul": 0.23,
+        "verdict": "missing"
+      },
+      {
+        "element": "reboost flame",
+        "signature": false,
+        "noul": 0.48,
+        "verdict": "faint"
+      }
+    ],
+    "rows": [
+      {
+        "fact": "Hubble decayed 583km to 470km, will plunge 2033/34",
+        "mechanic": "Sink-and-rise topology: open high, dip low through decay decks, then lift tower climb to crown; gravity 200",
+        "signature": false,
+        "choice": "unsupported",
+        "confidence": 0.28
+      },
+      {
+        "fact": "NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
+        "mechanic": "Reboost lift tower + crown gate at top as the 600km dock; rescue cages as servicing tasks; lift timing gates",
+        "signature": true,
+        "choice": "supports",
+        "confidence": 0.31
+      },
+      {
+        "fact": "No onboard propulsion, solar activity shifts reentry",
+        "mechanic": "Cosmic-ray laser timing hazards + drip solar particles with varied on/off timing; patrol drone lanes",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.97
+      },
+      {
+        "fact": "Contractor provides servicing spacecraft, mission by 2032",
+        "mechanic": "Themed enemy Servicer Tug drones patrolling the climb; checkpoints as proposal milestones to crown objective",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.6
+      }
+    ],
+    "mechanicFidelity": 2.7,
+    "visualFidelity": 3.45,
+    "fidelityFlaw": "none",
+    "universeFit": 0.97,
+    "usage": {
+      "input_tokens": 12218,
+      "output_tokens": 388
+    },
+    "gate": {
+      "passed": false,
+      "shown": 4,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [
+        "element:reboost flame"
+      ],
+      "signatureMissing": [],
+      "signatureUnsupported": [],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": [
+      "row:Hubble decayed 583km to 470km, will plunge 2033/34",
+      "row:NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
+      "row:Contractor provides servicing spacecraft, mission by 2032"
+    ]
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 7,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [
+    "novelty mean 0.51 < news floor 1.5"
+  ],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "4/4 personas named \"clone\"; 02-hazard-drip.jpg (hazard beat: drip at x=1400)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "skeleton-rhyme",
+      "source": "mechanical",
+      "evidence": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 2,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "element \"capture net\" missing in shots (noul=0.23)",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+    },
+    {
+      "rank": 4,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "element:reboost flame is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"element:reboost flame\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "clone"
+  ],
+  "passed": false
+}

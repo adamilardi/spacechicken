@@ -11,6 +11,8 @@ Own the fun: what the player learns, when pressure rises, and where they rest. R
 
 Write a short brief before tuning: the one idea the level teaches, where it is taught safely, where it is pressed, and where the player rests before the crown. Name the tell, the safe response, and the failure cost for each hazard or gate on the route.
 
+Every new-level brief also carries the three creativity artefacts the critic scores (owned by [level-creator](../level-creator/SKILL.md), judged by [game-critic](../game-critic/SKILL.md)): the Novelty Ledger, the Signature Mechanic Canvas, and the Topology Fingerprint, plus two killed alternatives. A brief whose idea a shipped level already teaches the same way is sent back at brief stage — that is the cheapest critic loop there is. Design review scores briefs on the critic's six dimensions; novelty below "fresh" needs a new canvas, not stronger adjectives.
+
 Tune with authored numbers for Normal; hard mode scales them at spawn (`applyHardModeConfig` plus the `HARD_MODE` mults). Never write separate hard numbers into level data. Level numbers are leaderboard keys: tune outliers in place, never renumber. Keep the mode ladder in `docs/GAME_MODES.md`: two modes, separate hard bests.
 
 ## Review

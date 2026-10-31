@@ -624,6 +624,26 @@ test('stuck recovery hops away after a stall unless suppressed', async () => {
     applyStuckRecovery(snap, { ...idle }, createPilotState(), false);
 });
 
+test('threat suppression expires but deliberate holds never do', async () => {
+    const { applyStuckRecovery, createPilotState } = await importModule('scripts/pilot-brain.mjs');
+    const snap = makeSnap();
+    const idle = { left: false, right: false, jump: false, shoot: false, start: false };
+    const state = createPilotState();
+    applyStuckRecovery(snap, { ...idle }, state, false, 1000, true);
+    const blocked = { ...idle };
+    applyStuckRecovery(snap, blocked, state, false, 4000, true);
+    assert.deepEqual(blocked, idle);
+    const freed = { ...idle };
+    applyStuckRecovery(snap, freed, state, false, 11500, true);
+    assert.equal(freed.left, true);
+    assert.equal(freed.jump, true);
+    const holdState = createPilotState();
+    applyStuckRecovery(snap, { ...idle }, holdState, true, 1000, false);
+    const held = { ...idle };
+    applyStuckRecovery(snap, held, holdState, true, 30000, false);
+    assert.deepEqual(held, idle);
+});
+
 test('airborne jumps pulse so the second air jump edge-fires', async () => {
     const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
     const snap = () =>

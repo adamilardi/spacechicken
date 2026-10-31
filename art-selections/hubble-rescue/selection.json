@@ -1,0 +1,29 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-hubble-rescue/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-hubble-rescue/servicer-tug.png",
+            "role": "actor: Servicer Tug (drone hazard, key servicerTug)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha"
+        },
+        {
+            "asset_path": "canvas:issHull/stationPanel",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        },
+        {
+            "asset_path": "assets/news-hubble-rescue/rfi-envelope.png",
+            "role": "prop: RFI proposal envelope (key rfiEnvelope)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 19,
+    "requested_revisions": [],
+    "story": "Once again, NASA is asking for ideas to rescue Hubble from certain death \u2014 EuropeSays/NASA, Oct 31 2026, https://www.europesays.com/ie/759401/",
+    "unfilled_roles": []
+}

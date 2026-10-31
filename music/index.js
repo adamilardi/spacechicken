@@ -14,6 +14,7 @@ import { buildTrack as buildRustHarbor } from './rust-harbor.js';
 import { buildTrack as buildEmberFoundry } from './ember-foundry.js';
 import { buildTrack as buildSkyhook } from './skyhook.js';
 import { buildTrack as buildVault } from './vault.js';
+import { buildTrack as buildFearSpike } from './fear-spike.js';
 import { midiToFrequency } from './score.js';
 
 export { midiToFrequency };
@@ -35,6 +36,13 @@ export const MUSIC_DEFINITIONS = Object.freeze({
     14: buildEmberFoundry(),
     15: buildSkyhook(),
     16: buildVault(),
+    17: buildBastion(),
+    18: buildFearSpike(),
+    19: buildEarthwatch(),
+    20: buildSpecimenWing(),
+    21: buildLunarHorizon(),
+    22: buildSkyhook(),
+    23: buildEarthwatch(),
 });
 
 export function getMusicDefinition(level) {

@@ -1,0 +1,25 @@
+{
+    "body_bounds_px": { "diameter": 48, "shape": "circle-approx" },
+    "candidate_id": "enemy-starlink-sprite",
+    "canvas_px": [1920, 1280],
+    "display_px": 52,
+    "in_game": true,
+    "pivot": { "space": "sprite-center" },
+    "previewed": ["hover"],
+    "schema_version": 1,
+    "source": "assets/news-booster-homecoming/starlink-sprite.png",
+    "states": [
+        {
+            "loop": true,
+            "method": "tween",
+            "name": "hover",
+            "tween": {
+                "amplitude_px": 6,
+                "duration_ms": 1400,
+                "ease": "sine-in-out",
+                "property": "y"
+            }
+        }
+    ],
+    "wiring": "drone patrol behavior, key starlinkSprite, scale 0.05, bobAmplitude 6 via level config"
+}

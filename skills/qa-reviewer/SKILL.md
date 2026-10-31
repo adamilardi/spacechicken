@@ -11,6 +11,8 @@ Prove it plays; fixes belong to the owning skill. Read [the authoring reference]
 
 Write a test plan from the build report: the route (`?level=N`), the new or touched mechanic, and the regression set (an earlier level, pause, death retry, co-op join). Use the capture tooling for evidence: `npm run shots` for screenshots, the playtest bot for routes, and the device-matrix and performance verifiers when layout or budgets moved. Debug (`?debug=1`) may position you; only real input proves a mechanic.
 
+Every plan for a new or retuned level includes the critic run (`npm run critic:level -- <id>`, plus `NEWS_BRIEF=` and the fidelity gate for news levels, plus `scripts/boss-review.mjs` for crown encounters). QA confirms the critic report exists, its screenshots were actually sent (`screenshots_sent: true`), and any `needs-human` fidelity stamps were confirmed by a human opening the named screenshot. A missing or mechanical-only critic report is a gate finding, not a footnote.
+
 Cover both modes (Normal/Hard), keyboard plus one of gamepad or touch, and co-op keys 2/3/4 when shared code moved. Co-op is a split-screen race and is not leaderboard-eligible. Every plan includes the feel checks below, even when the build report names no mechanic.
 
 ## Review
@@ -24,7 +26,7 @@ Judge feel, not just function — the four 2026-10-21 human playtest complaints 
 - Mode separation: replay one combat segment on Hard and confirm it pressures differently (faster hunters, shorter safe windows, wider aggro); Normal is the reference, not the test.
 - Control ergonomics and hint accuracy: the default keyboard scheme plays two-handed (move hand plus shoot/jump hand) without same-hand contortions, and every on-screen hint (title, instructions, coach, race dialog) names keys that actually do the job today.
 
-Gate verdict: pass, pass with notes, or fail, with the failing checks named.
+Gate verdict: pass, pass with notes, or fail, with the failing checks named. The verdict may not be pass while the level's critic gate (quality, plus fidelity for news levels) is iterate/rework or unrun — QA does not outvote the critic; it verifies the critic ran honestly and adds the human feel checks the panel cannot do (co-op, touch, Hard mode).
 
 ## Verify
 

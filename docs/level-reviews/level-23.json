@@ -1,0 +1,295 @@
+{
+  "level": 23,
+  "run": "full",
+  "analysis": {
+    "title": "Reconnection",
+    "gravity": 340,
+    "worldWidth": 4600,
+    "backgroundType": "moon",
+    "platformCount": 12,
+    "platformKeys": [
+      "labDeck",
+      "issHull",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.5,
+    "hazardTypes": [
+      "bonk",
+      "cosmicRay",
+      "drone",
+      "drip",
+      "laser"
+    ],
+    "hazardCount": 9,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 2,
+    "checkpoints": [
+      {
+        "x": 1300,
+        "y": 400
+      },
+      {
+        "x": 1950,
+        "y": 325
+      },
+      {
+        "x": 2950,
+        "y": 345
+      }
+    ],
+    "crownX": 4250,
+    "finaleHazardCount": 3,
+    "finaleVisibleHazardCount": 2,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.074,
+      0.174,
+      0.283,
+      0.315,
+      0.402,
+      0.402,
+      0.446,
+      0.533,
+      0.565,
+      0.663,
+      0.772,
+      0.913
+    ],
+    "platformBands": [
+      11,
+      9,
+      8,
+      6,
+      6,
+      10,
+      9,
+      8,
+      7,
+      6,
+      5,
+      4
+    ]
+  },
+  "flags": [],
+  "telemetry": {
+    "level": 23,
+    "outcome": "crown-collected",
+    "durationSec": 39.2,
+    "deaths": 0,
+    "deathSpots": [],
+    "maxX": 4256,
+    "hazardTypesSeen": [
+      "reconnectionSprite",
+      "drone",
+      "laser",
+      "acid_drip",
+      "cosmic_ray",
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-cosmicRay",
+      "file": "02-hazard-cosmicRay.jpg",
+      "proves": "hazard beat: cosmicRay at x=1700"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=2350"
+    },
+    {
+      "id": "04-hazard-drip",
+      "file": "04-hazard-drip.jpg",
+      "proves": "hazard beat: drip at x=3740"
+    },
+    {
+      "id": "05-setpiece-cuspArc",
+      "file": "05-setpiece-cuspArc.jpg",
+      "proves": "set piece: cuspArc at x=520"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 2.28,
+      "fairness": 2.05,
+      "readability": 2.28,
+      "novelty": 1.71,
+      "pacing": 2.36,
+      "theme": 2.37,
+      "flaw": "none",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 2.39,
+      "fairness": 2.01,
+      "readability": 2.41,
+      "novelty": 1.79,
+      "pacing": 2.35,
+      "theme": 2.45,
+      "flaw": "none",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 2.34,
+      "fairness": 1.97,
+      "readability": 2.18,
+      "novelty": 1.68,
+      "pacing": 2.4,
+      "theme": 2.49,
+      "flaw": "none",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 2.54,
+      "fairness": 2.06,
+      "readability": 2.41,
+      "novelty": 1.68,
+      "pacing": 2.6,
+      "theme": 2.61,
+      "flaw": "none",
+      "verdict": "ship"
+    }
+  ],
+  "fidelity": {
+    "briefHeadline": "Level 23 — Reconnection (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/23.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "Reconnection Sprite",
+          "claimed": true
+        },
+        {
+          "element": "twin satellites",
+          "claimed": true
+        },
+        {
+          "element": "cusp funnel",
+          "claimed": true
+        },
+        {
+          "element": "magnetosphere arcs",
+          "claimed": true
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "sent": true,
+    "elements": [
+      {
+        "element": "Reconnection Sprite",
+        "signature": true,
+        "noul": 0.85,
+        "verdict": "shown"
+      },
+      {
+        "element": "twin satellites",
+        "signature": false,
+        "noul": 0.8,
+        "verdict": "shown"
+      },
+      {
+        "element": "cusp funnel",
+        "signature": true,
+        "noul": 0.85,
+        "verdict": "shown"
+      },
+      {
+        "element": "magnetosphere arcs",
+        "signature": false,
+        "noul": 0.87,
+        "verdict": "shown"
+      }
+    ],
+    "rows": [
+      {
+        "fact": "Magnetic field lines snap and explosively reconnect, releasing energy",
+        "mechanic": "Bonk-snap verb: bonk Reconnection Sprites (bonk hazards) to bounce across broken field-line gaps too wide for a normal jump; gravity 340 so falls are fast and snaps are the way back up",
+        "signature": true,
+        "choice": "unsupported",
+        "confidence": 0.42
+      },
+      {
+        "fact": "Solar wind slams the magnetopause and accelerates particles",
+        "mechanic": "Cosmic-ray particle streams (cosmicRay hazards) sweeping the funnel lanes plus drip particle rain on the press decks",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.85
+      },
+      {
+        "fact": "Twin TRACERS satellites fly in formation through the cusp",
+        "mechanic": "A twin drone pair on one shared patrol beat crossing the funnel throat",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.2
+      },
+      {
+        "fact": "The cusp funnels field lines down to the pole",
+        "mechanic": "Funnel topology: wide split upper/lower lines converge to a narrow crown gate past the cusp beam and finale sprite; crown is the cusp point",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.7
+      }
+    ],
+    "mechanicFidelity": 2.79,
+    "visualFidelity": 3.34,
+    "fidelityFlaw": "none",
+    "universeFit": 0.97,
+    "usage": {
+      "input_tokens": 12084,
+      "output_tokens": 352
+    },
+    "gate": {
+      "passed": true,
+      "shown": 4,
+      "contradicted": 0,
+      "unsupported": 0,
+      "needsHuman": [],
+      "signatureMissing": [],
+      "signatureUnsupported": [],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": [
+      "row:Magnetic field lines snap and explosively reconnect, releasing energy",
+      "row:Twin TRACERS satellites fly in formation through the cusp",
+      "row:The cusp funnels field lines down to the pole"
+    ]
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 4,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [],
+  "loop": 2,
+  "priorFlaw": "cheap",
+  "loopExceeded": false,
+  "pilotRuns": 1,
+  "repeatedFlaws": [],
+  "passed": true
+}

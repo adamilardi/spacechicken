@@ -21,6 +21,8 @@ Do not restart an idle clip on every update. A one-shot returns to idle. Defeat 
 
 The body size stays on the root sprite. A squash or a bobbing marker does not change the hitbox unless the manifest says the motion is gameplay. Facing for a patrol uses `setFlipX`, as bonk enemies already do. Do not author a second left-facing paint for that.
 
+**Scale↔hitbox coupling.** Drone hitbox radius is `displayWidth * 0.25` on screen (`enemies/drone.js` converts to unscaled source units for `body.setCircle`; `enemies/bear-raider.js` does the same for `setSize` — never pass display dimensions to a body setter on a scaled sprite), so a visibility scale bump is also a lethality bump: doubling the scale doubles the lethal radius and can block a jump line the smaller sprite cleared. Any visibility bump over 25% requires re-checking jump-line clearance in the level data (drone patrol span + radius vs the deck-adjacency graph edges) before re-running the pilot, and the loop's fix must be the reposition, not a second bump.
+
 One hit path only. A frame event must not add another overlap beside `resolveHazardContact` or `touchBoarder`. If the painted timing cannot fit the current telegraph, say so. Do not silently retune cooldown or damage.
 
 On death, retry, and shutdown, stop tweens and animations owned by that actor. Do not delete a global animation definition while cleaning up one sprite.

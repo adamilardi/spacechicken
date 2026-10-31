@@ -4,7 +4,7 @@ Inspection map for this repository. Read the current files before editing. Numbe
 
 ## Painted art
 
-Space Chicken pictures are canvas drawings. Do not call image generation, image edit, or image-to-video. Do not add PNG, JPG, GIF, WebP, or sprite-sheet files.
+Space Chicken pictures are generated images (Muse Image) or canvas drawings. Generated PNG/WebP/sprite-sheet files must live under the level's asset folder, be registered in `config/runtime-assets.cjs`, and be loaded as Phaser textures before use; unregistered files will 404 locally and be omitted from the Cloudflare build.
 
 A new picture is a `paint(ctx)` function. Actors and props go through `SpriteFactory.addCanvasTexture`. Places go through a `BackgroundRenderer` layout. Match the pictures already in the game:
 
@@ -83,11 +83,13 @@ A new weapon uses this fire path and a painted texture. Pilots who never switch 
 
 Chicken motion is extra canvas frames from `drawChicken`, registered in `createAnimations` as `chicken-idle`, `chicken-walk`, `chicken-jump`, `chicken-fall`, and `chicken-jetpack`. Enemy motion is mostly tweens in the enemy spawn modules (patrol, bob, laser pulse, crusher slam) plus the bonk squash in `squashBonkTarget`.
 
-New actor frames are more poses of the same paint function, with a stable canvas and pivot. Tweens and code motion cover sliding, bobbing, flipping, and recoil. Do not generate pose images.
+New actor frames are more poses of the same paint function, with a stable canvas and pivot. Tweens and code motion cover sliding, bobbing, flipping, and recoil. Pose images may be generated if every frame keeps the same canvas, scale, and pivot.
 
 ## Checks
 
 `npm test` runs `tests/*.test.cjs`. `npm run check` is tests, eslint with zero warnings, and prettier. Play a level at `http://127.0.0.1:3000/?level=N` after `npm start`. `?debug=1` enables `window.__spaceChickenDebug` (`ready`, `goToLevel`, `skipLevel`). N skips a level only in that debug mode. `window.__spaceChickenTest` is the playtest action API.
+
+**Critic run (mandatory for new/retuned levels).** `npm run critic:level -- <id>` (`npm run critic:level:static -- <id>` for mechanical checks only) runs [the game critic](../../game-critic/SKILL.md): skeleton-similarity and flat-deck checks in code, a pilot capture, a screenshot beat sheet under `docs/level-reviews/evidence/level-<id>/` that is _sent to the Jev panel as image assets_, six-dimension persona scoring, and — when a news brief is supplied via `NEWS_BRIEF=` — the fidelity gate (per-element visibility, per-row fact→mechanic support, mechanic/visual fidelity). Reports land in `docs/level-reviews/level-<id>.{json,md}`; exit 0 pass, 2 iterate. Crown encounters also need `node scripts/boss-review.mjs <id>`. Novelty artefacts (Novelty Ledger, Signature Mechanic Canvas, Topology Fingerprint) are defined in the level-creator skill; the critic's clone threshold is `skeletonSimilarity >= 0.75` in `scripts/level-critic.mjs`.
 
 Co-op is keys 2, 3, and 4. It is a split-screen race and is not leaderboard-eligible. Pause is Escape, P, and the on-screen button.
 

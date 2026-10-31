@@ -1,0 +1,47 @@
+{
+    "art": {
+        "animation_manifests": 3,
+        "chroma_key_tool": "sharp (node_modules)",
+        "chroma_keyed_px_pct": [75.2, 78.3, 75.8],
+        "enemies": 3,
+        "images_generated": 6,
+        "plates": 3,
+        "pose_frames": 0,
+        "selections": 3,
+        "tween_only": true
+    },
+    "concept": { "pass_first_try": 3, "runs": 3 },
+    "critic": {
+        "fidelity": { "19": "FAIL", "20": "FAIL", "21": "FAIL" },
+        "loops": { "19": 2, "20": 3, "21": 2 },
+        "needs_human_closed": { "19": [6, 3], "20": [5, 5], "21": [6, 2] },
+        "quality": { "19": "ITERATE", "20": "ITERATE", "21": "ITERATE" },
+        "runs": 7,
+        "screenshots_sent": true
+    },
+    "levels": [
+        {
+            "crown": [5650, 214],
+            "gravity": 200,
+            "id": 19,
+            "pilot_best": "crown 50.6s, 0 deaths",
+            "slug": "hubble-rescue"
+        },
+        {
+            "crown": [5650, 364],
+            "gravity": 240,
+            "id": 20,
+            "pilot_best": "crown 45.9s, 0 deaths",
+            "slug": "robot-dance-sync"
+        },
+        {
+            "crown": [5650, 314],
+            "gravity": 150,
+            "id": 21,
+            "pilot_best": "crown 57.2s, 0 deaths",
+            "slug": "phobos-sample-run"
+        }
+    ],
+    "news": { "candidates": 6, "picks": [2, 4, 3], "used_excluded": 2, "verify_failures": 0 },
+    "tests": { "fail": 0, "new_per_level": 3, "pass": 421, "total": 421 }
+}

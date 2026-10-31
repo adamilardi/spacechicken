@@ -1,6 +1,6 @@
 ---
 name: space-chicken-enemy-animation-creator
-description: Animate a painted Space Chicken enemy with more poses of the same paint function or with tween parameters. Use for animation production. Runtime wiring belongs to the integrator skill. Do not generate images.
+description: Animate a painted Space Chicken enemy with more poses of the same paint function or with tween parameters. Use for animation production. Runtime wiring belongs to the integrator skill.
 ---
 
 # Enemy animation creator
@@ -19,7 +19,7 @@ The view is side-on. Facing is usually right, and patrol code flips the sprite. 
 - Tweens: for a rigid slide, bob, spin, or recoil, write duration, easing, and the property that moves. Gameplay still owns the body's position when the actor is a hazard.
 - A separate paint for a drip, spark, or muzzle flash when that effect has its own timing.
 
-Do not generate images. Do not trace over a generated picture. If the paint function cannot show the pose, extend that function. Report a missing pose instead of substituting a new design.
+Poses may be generated images of the same actor (same silhouette, palette, canvas size and pivot on every frame) or more poses of the same paint function. Report a missing pose instead of substituting a new design.
 
 Attacks need a tell, an active moment, and a recovery. Looping poses must meet. One-shot poses must say what plays next. Note the frame where a projectile or a hit should start. That note does not change the game's timers by itself.
 

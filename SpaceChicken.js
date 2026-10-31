@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS, KEY_CODES } from './Constants.js';
-import { LEVEL_DEFINITIONS, LEVEL_IDS } from './levels/index.js';
+import { LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS } from './levels/index.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
@@ -28,6 +28,16 @@ import {
     WEAPON_DEFS,
 } from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
+
+const NEWS_PLATES = {
+    17: 'tickerBg',
+    18: 'fearBg',
+    19: 'hubbleBg',
+    20: 'danceBg',
+    21: 'phobosBg',
+    22: 'falconBg',
+    23: 'tracersBg',
+};
 
 function readLaunchQuery() {
     if (typeof location === 'undefined' || !location.search) {
@@ -320,6 +330,25 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image('tickerBg', 'assets/news-ticker-plunge/bg.jpg');
+        this.load.image('tickerBot', 'assets/news-ticker-plunge/ticker-bot.png');
+        this.load.image('fearBg', 'assets/news-fear-spike/bg.jpg');
+        this.load.image('bearRaider', 'assets/news-fear-spike/bear-raider.png');
+        this.load.image('hubbleBg', 'assets/news-hubble-rescue/bg.jpg');
+        this.load.image('servicerTug', 'assets/news-hubble-rescue/servicer-tug.png');
+        this.load.image('rfiEnvelope', 'assets/news-hubble-rescue/rfi-envelope.png');
+        this.load.image('danceBg', 'assets/news-robot-dance-sync/bg.jpg');
+        this.load.image('dancerBot', 'assets/news-robot-dance-sync/dancer-bot.png');
+        this.load.image('countdownBoard', 'assets/news-robot-dance-sync/countdown-board.png');
+        this.load.image('phobosBg', 'assets/news-phobos-sample-run/bg.png');
+        this.load.image('surveyOrbiter', 'assets/news-phobos-sample-run/survey-orbiter.png');
+        this.load.image('h3Rocket', 'assets/news-phobos-sample-run/h3-rocket.png');
+        this.load.image('falconBg', 'assets/news-booster-homecoming/bg.jpg');
+        this.load.image('starlinkSprite', 'assets/news-booster-homecoming/starlink-sprite.png');
+        this.load.image('boosterProp', 'assets/news-booster-homecoming/booster-prop.png');
+        this.load.image('tracersBg', 'assets/news-reconnection/bg.jpg');
+        this.load.image('spriteBot', 'assets/news-reconnection/sprite-bot.png');
+        this.load.image('cuspArc', 'assets/news-reconnection/cusp-arc.png');
         this.spriteFactory = new SpriteFactory(this);
         this.spriteFactory.createChickenFrames();
         this.spriteFactory.createCrown();
@@ -384,6 +413,13 @@ export class SpaceChicken extends Phaser.Scene {
         this.worldHeight = this.levelConfig.world.height;
         this.killZoneFallY = this.levelConfig.killZoneY + this.levelConfig.killZoneHeight;
         this.backgroundRenderer.renderProgressive(this.worldWidth, this.worldHeight);
+        const newsPlate = NEWS_PLATES[this.level];
+        if (newsPlate && this.textures.exists(newsPlate)) {
+            const plate = this.add.tileSprite(0, 0, this.worldWidth, this.worldHeight, newsPlate);
+            plate.setOrigin(0, 0);
+            plate.setDepth(-20);
+            plate.setAlpha(0.55);
+        }
 
         this.player = this.physics.add.sprite(
             this.levelConfig.playerStart.x,
@@ -875,7 +911,8 @@ export class SpaceChicken extends Phaser.Scene {
                 targets.leaderboard ||
                 targets.name ||
                 targets.selectPrev ||
-                targets.selectNext
+                targets.selectNext ||
+                targets.news
             ) {
                 return;
             }
@@ -1222,6 +1259,16 @@ export class SpaceChicken extends Phaser.Scene {
         );
     }
 
+    recordLevelCompletion(levelTime, playerName) {
+        const levelDeaths = Math.max(0, (this.deathCount || 0) - (this.levelStartDeaths || 0));
+        this.leaderboardManager.saveTime(this.level, levelTime, playerName, levelDeaths);
+        // News levels are always available and sit outside the campaign
+        // chain; finishing one must not advance campaign unlocks.
+        if (!NEWS_LEVEL_IDS.includes(this.level)) {
+            this.leaderboardManager.unlockLevel(this.level + 1);
+        }
+    }
+
     collectGem(chicken) {
         if (this.awaitingStart || this.isTransitioning || this.gameOver || this.raceFinale) {
             return;
@@ -1262,9 +1309,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.uiManager.updatePlayerName(playerName);
         }
         if (!this.debugMode) {
-            const levelDeaths = Math.max(0, (this.deathCount || 0) - (this.levelStartDeaths || 0));
-            this.leaderboardManager.saveTime(this.level, levelTime, playerName, levelDeaths);
-            this.leaderboardManager.unlockLevel(this.level + 1);
+            this.recordLevelCompletion(levelTime, playerName);
         }
         const resultTitle =
             !this.debugMode && (previousBest === null || levelTime < previousBest)
@@ -2348,6 +2393,19 @@ export class SpaceChicken extends Phaser.Scene {
                 ? 'Best none yet'
                 : `Best ${formatElapsedTime(best)}`;
         return `LEVEL ${this.selectedLevel} · ${title}\n${bestLine}`;
+    }
+
+    startNewsLevel(level) {
+        if (!this.awaitingStart) {
+            return;
+        }
+        const id = Math.floor(Number(level) || 0);
+        if (!NEWS_LEVEL_IDS.includes(id)) {
+            return;
+        }
+        // News levels are standalone specials: always playable, no unlock needed.
+        this.selectedLevel = id;
+        this.startSelectedLevel();
     }
 
     startSelectedLevel() {
