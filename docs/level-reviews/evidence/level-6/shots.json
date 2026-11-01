@@ -1,0 +1,50 @@
+{
+  "level": 6,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-6/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-dustDevil",
+      "x": 1540,
+      "y": 560,
+      "proves": "hazard beat: dustDevil at x=1540",
+      "id": "02-hazard-dustDevil",
+      "file": "02-hazard-dustDevil.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-6/02-hazard-dustDevil.jpg"
+    },
+    {
+      "slug": "hazard-roller",
+      "x": 2000,
+      "y": 434,
+      "proves": "hazard beat: roller at x=2000",
+      "id": "03-hazard-roller",
+      "file": "03-hazard-roller.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-6/03-hazard-roller.jpg"
+    },
+    {
+      "slug": "hazard-laser",
+      "x": 2400,
+      "y": 324,
+      "proves": "hazard beat: laser at x=2400",
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-6/04-hazard-laser.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 2800,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-6/05-finale.jpg"
+    }
+  ]
+}

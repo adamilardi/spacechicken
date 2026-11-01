@@ -11,40 +11,40 @@
       "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/01-opener.jpg"
     },
     {
-      "slug": "hazard-cosmicRay",
-      "x": 1700,
-      "y": 140,
-      "proves": "hazard beat: cosmicRay at x=1700",
-      "id": "02-hazard-cosmicRay",
-      "file": "02-hazard-cosmicRay.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/02-hazard-cosmicRay.jpg"
+      "slug": "setpiece-cuspArc",
+      "x": 520,
+      "y": 430,
+      "proves": "set piece: cuspArc at x=520",
+      "id": "02-setpiece-cuspArc",
+      "file": "02-setpiece-cuspArc.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/02-setpiece-cuspArc.jpg"
+    },
+    {
+      "slug": "hazard-bonk",
+      "x": 1760,
+      "y": 520,
+      "proves": "hazard beat: bonk at x=1760",
+      "id": "03-hazard-bonk",
+      "file": "03-hazard-bonk.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/03-hazard-bonk.jpg"
     },
     {
       "slug": "hazard-drone",
       "x": 2350,
       "y": 240,
       "proves": "hazard beat: drone at x=2350",
-      "id": "03-hazard-drone",
-      "file": "03-hazard-drone.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/03-hazard-drone.jpg"
+      "id": "04-hazard-drone",
+      "file": "04-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/04-hazard-drone.jpg"
     },
     {
       "slug": "hazard-drip",
       "x": 3740,
       "y": 260,
       "proves": "hazard beat: drip at x=3740",
-      "id": "04-hazard-drip",
-      "file": "04-hazard-drip.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/04-hazard-drip.jpg"
-    },
-    {
-      "slug": "setpiece-cuspArc",
-      "x": 520,
-      "y": 430,
-      "proves": "set piece: cuspArc at x=520",
-      "id": "05-setpiece-cuspArc",
-      "file": "05-setpiece-cuspArc.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/05-setpiece-cuspArc.jpg"
+      "id": "05-hazard-drip",
+      "file": "05-hazard-drip.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-23/05-hazard-drip.jpg"
     },
     {
       "slug": "finale",

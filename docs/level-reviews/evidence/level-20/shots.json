@@ -29,22 +29,22 @@
       "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/03-hazard-laser.jpg"
     },
     {
-      "slug": "hazard-roller",
-      "x": 2900,
-      "y": 500,
-      "proves": "hazard beat: roller at x=2900",
-      "id": "04-hazard-roller",
-      "file": "04-hazard-roller.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/04-hazard-roller.jpg"
-    },
-    {
       "slug": "setpiece-countdownBoard",
       "x": 2400,
       "y": 400,
       "proves": "set piece: countdownBoard at x=2400",
-      "id": "05-setpiece-countdownBoard",
-      "file": "05-setpiece-countdownBoard.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/05-setpiece-countdownBoard.jpg"
+      "id": "04-setpiece-countdownBoard",
+      "file": "04-setpiece-countdownBoard.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/04-setpiece-countdownBoard.jpg"
+    },
+    {
+      "slug": "hazard-roller",
+      "x": 2900,
+      "y": 500,
+      "proves": "hazard beat: roller at x=2900",
+      "id": "05-hazard-roller",
+      "file": "05-hazard-roller.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-20/05-hazard-roller.jpg"
     },
     {
       "slug": "finale",

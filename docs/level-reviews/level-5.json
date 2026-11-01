@@ -1,0 +1,186 @@
+{
+  "level": 5,
+  "run": "full",
+  "analysis": {
+    "title": "Specimen Wing",
+    "gravity": 330,
+    "worldWidth": 2720,
+    "backgroundType": "facility",
+    "platformCount": 8,
+    "platformKeys": [
+      "labDeck"
+    ],
+    "dominantKeyShare": 1,
+    "hazardTypes": [
+      "bonk",
+      "laser",
+      "drip"
+    ],
+    "hazardCount": 8,
+    "hasBoss": false,
+    "movingCount": 1,
+    "propCount": 3,
+    "checkpoints": [
+      {
+        "x": 920,
+        "y": 342
+      }
+    ],
+    "crownX": 2580,
+    "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 2,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.092,
+      0.143,
+      0.316,
+      0.449,
+      0.574,
+      0.713,
+      0.838,
+      0.949
+    ],
+    "platformBands": [
+      12,
+      5,
+      6,
+      6,
+      7,
+      6,
+      5,
+      3
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "1 deck key(s), dominant share 1.00 across 8 decks"
+    }
+  ],
+  "telemetry": {
+    "level": 5,
+    "outcome": "crown-collected",
+    "durationSec": 49.7,
+    "deaths": 3,
+    "deathSpots": [
+      1287,
+      1277,
+      1280
+    ],
+    "maxX": 2587,
+    "hazardTypesSeen": [
+      "lab_tech",
+      "sentry",
+      "laser",
+      "specimen",
+      "acid_drip",
+      "rock",
+      "beetle",
+      "dust_devil",
+      "boulder",
+      "hopper"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-laser",
+      "file": "02-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=860"
+    },
+    {
+      "id": "03-finale",
+      "file": "03-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.48,
+      "fairness": 1.4,
+      "readability": 2.17,
+      "novelty": 1.26,
+      "pacing": 1.77,
+      "theme": 1.79,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.63,
+      "fairness": 1.47,
+      "readability": 2.16,
+      "novelty": 1.23,
+      "pacing": 1.96,
+      "theme": 2.03,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.64,
+      "fairness": 1.47,
+      "readability": 1.93,
+      "novelty": 1.29,
+      "pacing": 2.1,
+      "theme": 2.1,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.63,
+      "fairness": 1.41,
+      "readability": 2.25,
+      "novelty": 1.32,
+      "pacing": 2.06,
+      "theme": 2.14,
+      "flaw": "flat",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "1 deck key(s), dominant share 1.00 across 8 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "4/4 personas named \"flat\"; 02-hazard-laser.jpg (hazard beat: laser at x=860)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "flat"
+  ],
+  "passed": false
+}

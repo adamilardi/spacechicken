@@ -86,17 +86,29 @@
   ],
   "telemetry": {
     "level": 19,
-    "outcome": "crown-collected",
-    "durationSec": 50.7,
-    "deaths": 0,
-    "deathSpots": [],
-    "maxX": 5654,
+    "outcome": "timeout",
+    "durationSec": 150.2,
+    "deaths": 12,
+    "deathSpots": [
+      3707,
+      2877,
+      2933,
+      4907,
+      5220,
+      4889,
+      4935,
+      5235,
+      5251,
+      5241,
+      4942,
+      4905
+    ],
+    "maxX": 5270,
     "hazardTypesSeen": [
       "laser",
       "drone",
       "boulder",
-      "acid_drip",
-      "rock"
+      "acid_drip"
     ],
     "errors": []
   },
@@ -107,24 +119,24 @@
       "proves": "spawn read and first move"
     },
     {
-      "id": "02-hazard-drip",
-      "file": "02-hazard-drip.jpg",
+      "id": "02-setpiece-rfiEnvelope",
+      "file": "02-setpiece-rfiEnvelope.jpg",
+      "proves": "set piece: rfiEnvelope at x=950"
+    },
+    {
+      "id": "03-hazard-drip",
+      "file": "03-hazard-drip.jpg",
       "proves": "hazard beat: drip at x=1400"
     },
     {
-      "id": "03-hazard-laser",
-      "file": "03-hazard-laser.jpg",
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
       "proves": "hazard beat: laser at x=1960"
     },
     {
-      "id": "04-hazard-roller",
-      "file": "04-hazard-roller.jpg",
-      "proves": "hazard beat: roller at x=2900"
-    },
-    {
-      "id": "05-setpiece-rfiEnvelope",
-      "file": "05-setpiece-rfiEnvelope.jpg",
-      "proves": "set piece: rfiEnvelope at x=950"
+      "id": "05-hazard-drone",
+      "file": "05-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=3250"
     },
     {
       "id": "06-finale",
@@ -137,48 +149,48 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 1.74,
-      "fairness": 1.86,
-      "readability": 2.28,
+      "fun": 1.23,
+      "fairness": 0.96,
+      "readability": 2.04,
       "novelty": 0.55,
-      "pacing": 1.9,
-      "theme": 2.16,
+      "pacing": 1.51,
+      "theme": 2.11,
       "flaw": "clone",
-      "verdict": "iterate"
+      "verdict": "rework"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 1.92,
-      "fairness": 1.83,
-      "readability": 2.29,
+      "fun": 1.53,
+      "fairness": 1.03,
+      "readability": 2.08,
       "novelty": 0.5,
-      "pacing": 2.13,
-      "theme": 2.38,
+      "pacing": 1.63,
+      "theme": 2.26,
       "flaw": "clone",
       "verdict": "iterate"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 1.98,
-      "fairness": 1.82,
-      "readability": 2.16,
-      "novelty": 0.47,
-      "pacing": 2.18,
-      "theme": 2.37,
+      "fun": 1.27,
+      "fairness": 0.99,
+      "readability": 1.8,
+      "novelty": 0.57,
+      "pacing": 1.66,
+      "theme": 2.38,
       "flaw": "clone",
       "verdict": "iterate"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 1.89,
-      "fairness": 1.8,
-      "readability": 2.32,
-      "novelty": 0.51,
-      "pacing": 2.24,
-      "theme": 2.42,
+      "fun": 1.32,
+      "fairness": 0.99,
+      "readability": 2.08,
+      "novelty": 0.64,
+      "pacing": 1.61,
+      "theme": 2.36,
       "flaw": "clone",
       "verdict": "iterate"
     }
@@ -236,25 +248,25 @@
       {
         "element": "servicing arms",
         "signature": true,
-        "noul": 0.87,
+        "noul": 0.9,
         "verdict": "shown"
       },
       {
         "element": "RFI proposal envelopes",
         "signature": false,
-        "noul": 0.93,
+        "noul": 0.94,
         "verdict": "shown"
       },
       {
         "element": "capture net",
         "signature": false,
-        "noul": 0.23,
+        "noul": 0.14,
         "verdict": "missing"
       },
       {
         "element": "reboost flame",
         "signature": false,
-        "noul": 0.48,
+        "noul": 0.49,
         "verdict": "faint"
       }
     ],
@@ -264,55 +276,56 @@
         "mechanic": "Sink-and-rise topology: open high, dip low through decay decks, then lift tower climb to crown; gravity 200",
         "signature": false,
         "choice": "unsupported",
-        "confidence": 0.28
+        "confidence": 0.34
       },
       {
         "fact": "NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
         "mechanic": "Reboost lift tower + crown gate at top as the 600km dock; rescue cages as servicing tasks; lift timing gates",
         "signature": true,
-        "choice": "supports",
-        "confidence": 0.31
+        "choice": "unsupported",
+        "confidence": 0.4
       },
       {
         "fact": "No onboard propulsion, solar activity shifts reentry",
         "mechanic": "Cosmic-ray laser timing hazards + drip solar particles with varied on/off timing; patrol drone lanes",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.97
+        "confidence": 0.89
       },
       {
         "fact": "Contractor provides servicing spacecraft, mission by 2032",
         "mechanic": "Themed enemy Servicer Tug drones patrolling the climb; checkpoints as proposal milestones to crown objective",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.6
+        "confidence": 0.73
       }
     ],
-    "mechanicFidelity": 2.7,
-    "visualFidelity": 3.45,
-    "fidelityFlaw": "none",
+    "mechanicFidelity": 2.45,
+    "visualFidelity": 3.49,
+    "fidelityFlaw": "missing-elements",
     "universeFit": 0.97,
     "usage": {
-      "input_tokens": 12218,
-      "output_tokens": 388
+      "input_tokens": 12276,
+      "output_tokens": 389
     },
     "gate": {
       "passed": false,
       "shown": 4,
       "contradicted": 0,
-      "unsupported": 0,
+      "unsupported": 2,
       "needsHuman": [
-        "element:reboost flame"
+        "element:reboost flame",
+        "row:Hubble decayed 583km to 470km, will plunge 2033/34",
+        "row:NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
+        "row:Contractor provides servicing spacecraft, mission by 2032"
       ],
       "signatureMissing": [],
-      "signatureUnsupported": [],
+      "signatureUnsupported": [
+        "NASA RFI seeks commercial capture + boost to >=600km, must not harm HST"
+      ],
       "universeVerdict": "shown"
     },
-    "humanConfirmed": [
-      "row:Hubble decayed 583km to 470km, will plunge 2033/34",
-      "row:NASA RFI seeks commercial capture + boost to >=600km, must not harm HST",
-      "row:Contractor provides servicing spacecraft, mission by 2032"
-    ]
+    "humanConfirmed": []
   },
   "concept": {
     "passed": true,
@@ -322,7 +335,7 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [
-    "novelty mean 0.51 < news floor 1.5"
+    "novelty mean 0.57 < news floor 1.5"
   ],
   "fixes": [
     {
@@ -330,7 +343,7 @@
       "priority": 1,
       "flaw": "clone",
       "source": "quality",
-      "evidence": "4/4 personas named \"clone\"; 02-hazard-drip.jpg (hazard beat: drip at x=1400)",
+      "evidence": "4/4 personas named \"clone\"; 02-setpiece-rfiEnvelope.jpg (set piece: rfiEnvelope at x=950)",
       "owner": "skills/level-creator/SKILL.md",
       "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
       "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
@@ -350,13 +363,23 @@
       "priority": 2,
       "flaw": "missing-elements",
       "source": "fidelity",
-      "evidence": "element \"capture net\" missing in shots (noul=0.23)",
+      "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.45 visual=3.49",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
+    },
+    {
+      "rank": 4,
+      "priority": 2,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "element \"capture net\" missing in shots (noul=0.14)",
       "owner": "skills/level-art-creator/SKILL.md",
       "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
       "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
     },
     {
-      "rank": 4,
+      "rank": 5,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
@@ -366,8 +389,8 @@
       "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     }
   ],
-  "loop": 1,
-  "priorFlaw": null,
+  "loop": 2,
+  "priorFlaw": "clone",
   "loopExceeded": false,
   "pilotRuns": 2,
   "repeatedFlaws": [

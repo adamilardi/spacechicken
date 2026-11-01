@@ -1,0 +1,300 @@
+{
+  "level": 12,
+  "run": "full",
+  "analysis": {
+    "title": "Crimson Womb",
+    "gravity": 300,
+    "worldWidth": 12400,
+    "backgroundType": "womb",
+    "platformCount": 28,
+    "platformKeys": [
+      "wombFlesh",
+      "wombBone"
+    ],
+    "dominantKeyShare": 0.75,
+    "hazardTypes": [
+      "boarder",
+      "drip",
+      "dustDevil",
+      "drone",
+      "laser",
+      "bonk",
+      "shrike",
+      "boss"
+    ],
+    "hazardCount": 32,
+    "hasBoss": true,
+    "movingCount": 0,
+    "propCount": 7,
+    "checkpoints": [
+      {
+        "x": 1850,
+        "y": 568
+      },
+      {
+        "x": 2950,
+        "y": 448
+      },
+      {
+        "x": 6600,
+        "y": 332
+      },
+      {
+        "x": 7600,
+        "y": 302
+      },
+      {
+        "x": 11200,
+        "y": 270
+      }
+    ],
+    "crownX": 12050,
+    "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.032,
+      0.093,
+      0.101,
+      0.149,
+      0.206,
+      0.206,
+      0.246,
+      0.29,
+      0.309,
+      0.339,
+      0.387,
+      0.435,
+      0.435,
+      0.484,
+      0.532,
+      0.532,
+      0.577,
+      0.613,
+      0.665,
+      0.679,
+      0.716,
+      0.768,
+      0.819,
+      0.833,
+      0.869,
+      0.911,
+      0.948,
+      0.972
+    ],
+    "platformBands": [
+      11,
+      10,
+      10,
+      9,
+      8,
+      6,
+      8,
+      7,
+      6,
+      8,
+      8,
+      7,
+      7,
+      6,
+      6,
+      6,
+      5,
+      6,
+      5,
+      5,
+      5,
+      3,
+      3,
+      5,
+      4,
+      5,
+      5,
+      5
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "2 deck key(s), dominant share 0.75 across 28 decks"
+    },
+    {
+      "id": "checkpoint-desert",
+      "detail": "no checkpoint between x=2950 and x=6600"
+    }
+  ],
+  "telemetry": {
+    "level": 12,
+    "outcome": "timeout",
+    "durationSec": 310,
+    "deaths": 17,
+    "deathSpots": [
+      1699,
+      2929,
+      3181,
+      2975,
+      2989,
+      2950,
+      3163,
+      5949,
+      5961,
+      4891,
+      3195,
+      5495,
+      4889,
+      5966,
+      6013,
+      6016,
+      5958
+    ],
+    "maxX": 6042,
+    "hazardTypesSeen": [
+      "dust_devil",
+      "drone",
+      "laser",
+      "sentry",
+      "shrike",
+      "boss",
+      "acid_drip",
+      "boarder"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-boarder",
+      "file": "02-hazard-boarder.jpg",
+      "proves": "hazard beat: boarder at x=550"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=1250"
+    },
+    {
+      "id": "04-hazard-bonk",
+      "file": "04-hazard-bonk.jpg",
+      "proves": "hazard beat: bonk at x=3830"
+    },
+    {
+      "id": "05-hazard-boss",
+      "file": "05-hazard-boss.jpg",
+      "proves": "hazard beat: boss at x=12040"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 0.89,
+      "fairness": 0.74,
+      "readability": 1.95,
+      "novelty": 1.14,
+      "pacing": 0.37,
+      "theme": 2.16,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.2,
+      "fairness": 0.75,
+      "readability": 1.82,
+      "novelty": 1.19,
+      "pacing": 0.46,
+      "theme": 2.17,
+      "flaw": "cheap",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 0.6,
+      "fairness": 0.7,
+      "readability": 1.59,
+      "novelty": 1.23,
+      "pacing": 0.32,
+      "theme": 2.03,
+      "flaw": "cheap",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 0.96,
+      "fairness": 0.78,
+      "readability": 1.92,
+      "novelty": 1.24,
+      "pacing": 0.5,
+      "theme": 2.27,
+      "flaw": "cheap",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "cheap",
+      "source": "quality",
+      "evidence": "3/4 personas named \"cheap\"; deathSpots x=1699, 2929, 3181, 2975; nearest shot 03-hazard-drone.jpg",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "2 deck key(s), dominant share 0.75 across 28 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "1/4 personas named \"flat\"; 02-hazard-boarder.jpg (hazard beat: boarder at x=550)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 4,
+      "priority": 3,
+      "flaw": "checkpoint-desert",
+      "source": "mechanical",
+      "evidence": "no checkpoint between x=2950 and x=6600",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"checkpoint-desert\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "flat",
+    "cheap"
+  ],
+  "passed": false
+}

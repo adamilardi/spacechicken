@@ -1,0 +1,59 @@
+{
+  "level": 16,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-16/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-bonk",
+      "x": 1250,
+      "y": 420,
+      "proves": "hazard beat: bonk at x=1250",
+      "id": "02-hazard-bonk",
+      "file": "02-hazard-bonk.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-16/02-hazard-bonk.jpg"
+    },
+    {
+      "slug": "hazard-drone",
+      "x": 1700,
+      "y": 470,
+      "proves": "hazard beat: drone at x=1700",
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-16/03-hazard-drone.jpg"
+    },
+    {
+      "slug": "hazard-laser",
+      "x": 3250,
+      "y": 510,
+      "proves": "hazard beat: laser at x=3250",
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-16/04-hazard-laser.jpg"
+    },
+    {
+      "slug": "hazard-boss",
+      "x": 9540,
+      "y": 390,
+      "proves": "hazard beat: boss at x=9540",
+      "id": "05-hazard-boss",
+      "file": "05-hazard-boss.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-16/05-hazard-boss.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 9350,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-16/06-finale.jpg"
+    }
+  ]
+}

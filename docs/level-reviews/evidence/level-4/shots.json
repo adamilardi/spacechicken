@@ -1,0 +1,50 @@
+{
+  "level": 4,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-4/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-rover",
+      "x": 535,
+      "y": 560,
+      "proves": "hazard beat: rover at x=535",
+      "id": "02-hazard-rover",
+      "file": "02-hazard-rover.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-4/02-hazard-rover.jpg"
+    },
+    {
+      "slug": "hazard-drone",
+      "x": 900,
+      "y": 420,
+      "proves": "hazard beat: drone at x=900",
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-4/03-hazard-drone.jpg"
+    },
+    {
+      "slug": "hazard-laser",
+      "x": 2370,
+      "y": 285,
+      "proves": "hazard beat: laser at x=2370",
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-4/04-hazard-laser.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 2350,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-4/05-finale.jpg"
+    }
+  ]
+}

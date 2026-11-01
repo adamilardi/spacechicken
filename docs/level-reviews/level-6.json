@@ -1,0 +1,184 @@
+{
+  "level": 6,
+  "run": "full",
+  "analysis": {
+    "title": "Red Reach",
+    "gravity": 220,
+    "worldWidth": 3080,
+    "backgroundType": "mars",
+    "platformCount": 7,
+    "platformKeys": [
+      "mesa"
+    ],
+    "dominantKeyShare": 1,
+    "hazardTypes": [
+      "bonk",
+      "dustDevil",
+      "roller",
+      "laser"
+    ],
+    "hazardCount": 6,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 1,
+    "checkpoints": [],
+    "crownX": 3000,
+    "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.065,
+      0.433,
+      0.552,
+      0.669,
+      0.779,
+      0.883,
+      0.974
+    ],
+    "platformBands": [
+      10,
+      11,
+      9,
+      8,
+      6,
+      5,
+      4
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "1 deck key(s), dominant share 1.00 across 7 decks"
+    }
+  ],
+  "telemetry": {
+    "level": 6,
+    "outcome": "timeout",
+    "durationSec": 90.1,
+    "deaths": 1,
+    "deathSpots": [
+      357
+    ],
+    "maxX": 2055,
+    "hazardTypesSeen": [
+      "rock",
+      "beetle",
+      "dust_devil",
+      "boulder",
+      "laser",
+      "hopper"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-dustDevil",
+      "file": "02-hazard-dustDevil.jpg",
+      "proves": "hazard beat: dustDevil at x=1540"
+    },
+    {
+      "id": "03-hazard-roller",
+      "file": "03-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=2000"
+    },
+    {
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=2400"
+    },
+    {
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.15,
+      "fairness": 1.29,
+      "readability": 2.12,
+      "novelty": 1.36,
+      "pacing": 0.91,
+      "theme": 1.69,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.17,
+      "fairness": 1.07,
+      "readability": 2.03,
+      "novelty": 1.55,
+      "pacing": 0.65,
+      "theme": 1.64,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.19,
+      "fairness": 1.33,
+      "readability": 1.93,
+      "novelty": 1.63,
+      "pacing": 1.02,
+      "theme": 1.82,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.39,
+      "fairness": 1.3,
+      "readability": 2.24,
+      "novelty": 1.43,
+      "pacing": 1.27,
+      "theme": 1.9,
+      "flaw": "flat",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "1 deck key(s), dominant share 1.00 across 7 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "4/4 personas named \"flat\"; 02-hazard-dustDevil.jpg (hazard beat: dustDevil at x=1540)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "flat"
+  ],
+  "passed": false
+}

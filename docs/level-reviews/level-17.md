@@ -3,31 +3,31 @@
 - Run: full
 - Screenshots sent to critic: true
 - Mechanical flags: skeleton-rhyme (deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints); background-recycled (background type 'bastion' already used by levels 11, 16; build report must claim a new composition device)
-- Telemetry: {"level":17,"outcome":"crown-collected","durationSec":67.8,"deaths":2,"deathSpots":[1523,1510],"maxX":5611,"hazardTypesSeen":["laser","drone","boulder","rock"],"errors":[]}
+- Telemetry: {"level":17,"outcome":"crown-collected","durationSec":49.3,"deaths":1,"deathSpots":[5073],"maxX":5658,"hazardTypesSeen":["laser","drone","boulder","rock"],"errors":[]}
 - Quality gate: ITERATE/REWORK
-- Loop: 2 (prior top flaw: concept:incomplete-brief)
+- Loop: 3 (prior top flaw: clone)
 - Pilot runs: 2; repeated flaws across runs: clone
 - Concept gate: FAIL (missing: novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom)
 
 ## Quality panel
 
-- Marlowe (expert reviewer): fun=1.8 fair=1.5 read=2.3 novel=0.8 pace=2.1 theme=2.0 flaw=clone -> rework
-- Vic (contra veteran): fun=2.0 fair=1.6 read=2.3 novel=0.6 pace=2.0 theme=2.2 flaw=clone -> iterate
-- Sam (casual newcomer): fun=2.0 fair=1.6 read=2.1 novel=0.6 pace=2.2 theme=2.3 flaw=clone -> iterate
-- Lex (speedrunner): fun=2.0 fair=1.4 read=2.3 novel=0.5 pace=2.1 theme=2.3 flaw=clone -> iterate
-- Means: fun=1.94 fair=1.53 read=2.25 novel=0.60 pace=2.09 theme=2.21
-- News floor failures: novelty mean 0.60 < news floor 1.5
+- Marlowe (expert reviewer): fun=1.9 fair=1.8 read=2.3 novel=0.7 pace=2.2 theme=2.1 flaw=clone -> iterate
+- Vic (contra veteran): fun=1.9 fair=1.7 read=2.4 novel=0.5 pace=2.0 theme=2.2 flaw=clone -> iterate
+- Sam (casual newcomer): fun=2.0 fair=1.8 read=2.1 novel=0.5 pace=2.3 theme=2.3 flaw=clone -> iterate
+- Lex (speedrunner): fun=2.0 fair=1.7 read=2.4 novel=0.5 pace=2.2 theme=2.3 flaw=clone -> iterate
+- Means: fun=1.95 fair=1.73 read=2.29 novel=0.54 pace=2.16 theme=2.22
+- News floor failures: novelty mean 0.54 < news floor 1.5
 
 ## News fidelity
 
 - Brief: Level 17 — Ticker Plunge (news-to-level)
 - Gate: FAIL
-- Row "Value plunges, index falls" -> supports (confidence=0.33)
-- Row "AI data-center spending boom" -> supports (confidence=0.80)
-- Row "Panic spreads through names" -> supports (confidence=0.97)
-- Row "Investors must decide: hold or exit" -> supports (confidence=0.44)
-- Space Chicken universe: shown (noul=0.96)
-- Needs human: row:Value plunges, index falls; row:Investors must decide: hold or exit
+- Row "Value plunges, index falls" -> supports (confidence=0.34)
+- Row "AI data-center spending boom" -> supports (confidence=0.70)
+- Row "Panic spreads through names" -> supports (confidence=0.94)
+- Row "Investors must decide: hold or exit" -> supports (confidence=0.48)
+- Space Chicken universe: shown (noul=0.95)
+- Needs human: row:Value plunges, index falls; row:AI data-center spending boom; row:Investors must decide: hold or exit
 
 ## Fix contract
 

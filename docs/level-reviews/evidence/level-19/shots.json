@@ -11,40 +11,40 @@
       "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/01-opener.jpg"
     },
     {
+      "slug": "setpiece-rfiEnvelope",
+      "x": 950,
+      "y": 430,
+      "proves": "set piece: rfiEnvelope at x=950",
+      "id": "02-setpiece-rfiEnvelope",
+      "file": "02-setpiece-rfiEnvelope.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/02-setpiece-rfiEnvelope.jpg"
+    },
+    {
       "slug": "hazard-drip",
       "x": 1400,
       "y": 480,
       "proves": "hazard beat: drip at x=1400",
-      "id": "02-hazard-drip",
-      "file": "02-hazard-drip.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/02-hazard-drip.jpg"
+      "id": "03-hazard-drip",
+      "file": "03-hazard-drip.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/03-hazard-drip.jpg"
     },
     {
       "slug": "hazard-laser",
       "x": 1960,
       "y": 560,
       "proves": "hazard beat: laser at x=1960",
-      "id": "03-hazard-laser",
-      "file": "03-hazard-laser.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/03-hazard-laser.jpg"
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/04-hazard-laser.jpg"
     },
     {
-      "slug": "hazard-roller",
-      "x": 2900,
-      "y": 460,
-      "proves": "hazard beat: roller at x=2900",
-      "id": "04-hazard-roller",
-      "file": "04-hazard-roller.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/04-hazard-roller.jpg"
-    },
-    {
-      "slug": "setpiece-rfiEnvelope",
-      "x": 950,
-      "y": 430,
-      "proves": "set piece: rfiEnvelope at x=950",
-      "id": "05-setpiece-rfiEnvelope",
-      "file": "05-setpiece-rfiEnvelope.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/05-setpiece-rfiEnvelope.jpg"
+      "slug": "hazard-drone",
+      "x": 3250,
+      "y": 400,
+      "proves": "hazard beat: drone at x=3250",
+      "id": "05-hazard-drone",
+      "file": "05-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-19/05-hazard-drone.jpg"
     },
     {
       "slug": "finale",

@@ -1,0 +1,190 @@
+{
+  "level": 2,
+  "run": "full",
+  "analysis": {
+    "title": "Arcade Orbit",
+    "gravity": 400,
+    "worldWidth": 3000,
+    "backgroundType": "space",
+    "platformCount": 7,
+    "platformKeys": [
+      "default"
+    ],
+    "dominantKeyShare": 1,
+    "hazardTypes": [],
+    "hazardCount": 0,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 0,
+    "checkpoints": [],
+    "crownX": 2800,
+    "finaleHazardCount": 0,
+    "finaleVisibleHazardCount": 0,
+    "finaleVisible": false,
+    "deckLayout": [
+      0.133,
+      0.267,
+      0.4,
+      0.533,
+      0.667,
+      0.8,
+      0.933
+    ],
+    "platformBands": [
+      9,
+      8,
+      7,
+      5,
+      3,
+      7,
+      8
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "1 deck key(s), dominant share 1.00 across 7 decks"
+    },
+    {
+      "id": "sleeping-finale",
+      "detail": "no hazard within 900px before the crown and no crown gate"
+    }
+  ],
+  "telemetry": {
+    "level": 2,
+    "outcome": "timeout",
+    "durationSec": 90,
+    "deaths": 5,
+    "deathSpots": [
+      2136,
+      2189,
+      2196,
+      2203,
+      2200
+    ],
+    "maxX": 2208,
+    "hazardTypesSeen": [
+      "rock"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-mid",
+      "file": "02-mid.jpg",
+      "proves": "mid-level set piece and hazard read"
+    },
+    {
+      "id": "03-finale",
+      "file": "03-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 0.66,
+      "fairness": 0.92,
+      "readability": 2.01,
+      "novelty": 0.86,
+      "pacing": 0.18,
+      "theme": 1.21,
+      "flaw": "flat",
+      "verdict": "rework"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 0.57,
+      "fairness": 0.76,
+      "readability": 1.7,
+      "novelty": 0.94,
+      "pacing": 0.14,
+      "theme": 1.15,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 0.63,
+      "fairness": 0.85,
+      "readability": 1.54,
+      "novelty": 1.06,
+      "pacing": 0.16,
+      "theme": 1.33,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 0.6,
+      "fairness": 0.83,
+      "readability": 2.06,
+      "novelty": 1,
+      "pacing": 0.24,
+      "theme": 1.39,
+      "flaw": "flat",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "1 rework verdict(s) without a named clone flaw",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "1 deck key(s), dominant share 1.00 across 7 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "4/4 personas named \"flat\"; 02-mid.jpg (mid-level set piece and hazard read)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 4,
+      "priority": 3,
+      "flaw": "sleeping-finale",
+      "source": "mechanical",
+      "evidence": "no hazard within 900px before the crown and no crown gate",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add finale pressure within 900px of the crown on every route to it.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"sleeping-finale\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 2,
+  "priorFlaw": "clone",
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [],
+  "passed": false
+}

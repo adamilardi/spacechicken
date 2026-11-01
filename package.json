@@ -21,6 +21,7 @@
         "playtest:gpu": "HEADLESS=1 BOT_GPU=1 node scripts/playtest-bot.mjs",
         "playtest:light": "HEADLESS=1 RENDERER=canvas BOT_WIDTH=800 BOT_HEIGHT=450 node scripts/playtest-bot.mjs",
         "bot:fast": "FAST=1 node scripts/play-bot.mjs",
+        "bot:speedrun": "node scripts/speedrun-bot.mjs",
         "verify:fast": "node scripts/fast/verify.mjs",
         "bot:headed": "HEADLESS=0 node scripts/play-bot.mjs",
         "bot:watch": "HEADLESS=0 RECORD_VIDEO=1 node scripts/play-bot.mjs",
