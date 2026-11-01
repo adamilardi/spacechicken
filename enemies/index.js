@@ -10,6 +10,7 @@ import { spawn as spawnDustDevil } from './dust-devil.js';
 import { spawn as spawnBoarder } from './boarder.js';
 import { spawn as spawnBoss } from './boss.js';
 import { spawn as spawnBearRaider } from './bear-raider.js';
+import { spawn as spawnShrike } from './shrike.js';
 import { spawn as spawnGeneric } from './generic.js';
 
 const DYNAMIC_SPAWNERS = {
@@ -24,6 +25,7 @@ const DYNAMIC_SPAWNERS = {
     dustDevil: spawnDustDevil,
     boss: spawnBoss,
     bearRaider: spawnBearRaider,
+    shrike: spawnShrike,
 };
 
 export const spawners = {

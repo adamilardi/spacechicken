@@ -1,0 +1,2404 @@
+{
+    "id": 21,
+    "mode": "hard",
+    "outcome": "crown-collected",
+    "errors": [],
+    "deaths": [],
+    "samples": [
+        {
+            "t": 0.21,
+            "x": 150,
+            "y": 580,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 0.55,
+            "x": 153,
+            "y": 580,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 0.81,
+            "x": 158,
+            "y": 581,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 1.06,
+            "x": 163,
+            "y": 582,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 1.34,
+            "x": 169,
+            "y": 582,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 1.6,
+            "x": 174,
+            "y": 583,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 1.86,
+            "x": 179,
+            "y": 584,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 2.12,
+            "x": 185,
+            "y": 586,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 2.39,
+            "x": 190,
+            "y": 587,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 2.65,
+            "x": 195,
+            "y": 589,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 2.9,
+            "x": 201,
+            "y": 591,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 3.16,
+            "x": 206,
+            "y": 593,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 3.43,
+            "x": 211,
+            "y": 595,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 3.69,
+            "x": 217,
+            "y": 597,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 3.97,
+            "x": 222,
+            "y": 599,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 4.2,
+            "x": 227,
+            "y": 602,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 4.45,
+            "x": 233,
+            "y": 605,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 4.69,
+            "x": 238,
+            "y": 608,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 4.94,
+            "x": 243,
+            "y": 611,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 5.18,
+            "x": 249,
+            "y": 614,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 5.41,
+            "x": 254,
+            "y": 603,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 5.65,
+            "x": 259,
+            "y": 593,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 5.89,
+            "x": 265,
+            "y": 582,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 6.13,
+            "x": 270,
+            "y": 572,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 6.37,
+            "x": 275,
+            "y": 561,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 6.61,
+            "x": 281,
+            "y": 551,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 6.85,
+            "x": 286,
+            "y": 542,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 7.08,
+            "x": 291,
+            "y": 532,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 7.32,
+            "x": 297,
+            "y": 522,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 7.57,
+            "x": 302,
+            "y": 513,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 7.82,
+            "x": 307,
+            "y": 504,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 8.05,
+            "x": 313,
+            "y": 495,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 8.29,
+            "x": 318,
+            "y": 486,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 8.52,
+            "x": 323,
+            "y": 477,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 8.76,
+            "x": 329,
+            "y": 469,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 9.01,
+            "x": 334,
+            "y": 460,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 9.25,
+            "x": 339,
+            "y": 452,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 9.51,
+            "x": 345,
+            "y": 444,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 9.78,
+            "x": 350,
+            "y": 436,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 10.02,
+            "x": 355,
+            "y": 428,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 10.26,
+            "x": 361,
+            "y": 421,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 10.5,
+            "x": 366,
+            "y": 413,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 10.75,
+            "x": 371,
+            "y": 406,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 11,
+            "x": 377,
+            "y": 399,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 11.24,
+            "x": 382,
+            "y": 392,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 11.5,
+            "x": 387,
+            "y": 386,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 11.75,
+            "x": 393,
+            "y": 379,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 11.99,
+            "x": 398,
+            "y": 373,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 12.23,
+            "x": 403,
+            "y": 366,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 12.47,
+            "x": 409,
+            "y": 360,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 12.71,
+            "x": 414,
+            "y": 355,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 12.93,
+            "x": 419,
+            "y": 349,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 13.17,
+            "x": 425,
+            "y": 343,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 13.4,
+            "x": 430,
+            "y": 338,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 13.64,
+            "x": 441,
+            "y": 328,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 13.88,
+            "x": 457,
+            "y": 314,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 14.12,
+            "x": 481,
+            "y": 295,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 14.36,
+            "x": 510,
+            "y": 277,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 14.6,
+            "x": 547,
+            "y": 262,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 14.86,
+            "x": 587,
+            "y": 254,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 15.11,
+            "x": 625,
+            "y": 256,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 15.35,
+            "x": 665,
+            "y": 266,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 15.58,
+            "x": 665,
+            "y": 194,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 15.84,
+            "x": 705,
+            "y": 125,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 16.08,
+            "x": 745,
+            "y": 66,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 16.32,
+            "x": 785,
+            "y": 16,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 16.58,
+            "x": 822,
+            "y": -23,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 16.82,
+            "x": 862,
+            "y": -54,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 17.05,
+            "x": 902,
+            "y": -77,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 17.3,
+            "x": 939,
+            "y": -89,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 17.54,
+            "x": 979,
+            "y": -94,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 17.77,
+            "x": 1019,
+            "y": -89,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 18.04,
+            "x": 1057,
+            "y": -76,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 18.32,
+            "x": 1097,
+            "y": -53,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 18.61,
+            "x": 1137,
+            "y": -20,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 18.88,
+            "x": 1179,
+            "y": 25,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 19.13,
+            "x": 1179,
+            "y": 81,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 19.37,
+            "x": 1179,
+            "y": 147,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 19.61,
+            "x": 1201,
+            "y": 224,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 19.86,
+            "x": 1241,
+            "y": 306,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 20.1,
+            "x": 1281,
+            "y": 397,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 20.35,
+            "x": 1241,
+            "y": 411,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 20.59,
+            "x": 1201,
+            "y": 411,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 20.84,
+            "x": 1201,
+            "y": 374,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 21.06,
+            "x": 1241,
+            "y": 301,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 21.31,
+            "x": 1281,
+            "y": 237,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 21.56,
+            "x": 1318,
+            "y": 186,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 21.8,
+            "x": 1355,
+            "y": 143,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 22.03,
+            "x": 1395,
+            "y": 106,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 22.26,
+            "x": 1433,
+            "y": 80,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 22.5,
+            "x": 1470,
+            "y": 62,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 22.74,
+            "x": 1510,
+            "y": 52,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 22.98,
+            "x": 1547,
+            "y": 52,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 23.22,
+            "x": 1585,
+            "y": 59,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 23.46,
+            "x": 1585,
+            "y": 74,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 23.69,
+            "x": 1585,
+            "y": 100,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 23.94,
+            "x": 1585,
+            "y": 132,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 24.18,
+            "x": 1563,
+            "y": 176,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 24.43,
+            "x": 1563,
+            "y": 225,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 24.68,
+            "x": 1563,
+            "y": 287,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 24.91,
+            "x": 1601,
+            "y": 299,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 25.16,
+            "x": 1641,
+            "y": 177,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 25.41,
+            "x": 1678,
+            "y": 71,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 25.64,
+            "x": 1675,
+            "y": -33,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 25.87,
+            "x": 1715,
+            "y": -128,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 26.12,
+            "x": 1753,
+            "y": -209,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 26.37,
+            "x": 1793,
+            "y": -285,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 26.61,
+            "x": 1830,
+            "y": -349,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 26.86,
+            "x": 1870,
+            "y": -407,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 27.1,
+            "x": 1907,
+            "y": -454,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 27.33,
+            "x": 1947,
+            "y": -494,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 27.58,
+            "x": 1985,
+            "y": -524,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 27.83,
+            "x": 2025,
+            "y": -546,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 28.1,
+            "x": 2062,
+            "y": -559,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 28.34,
+            "x": 2102,
+            "y": -563,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 28.59,
+            "x": 2142,
+            "y": -558,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 28.85,
+            "x": 2182,
+            "y": -544,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 29.09,
+            "x": 2225,
+            "y": -518,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 29.34,
+            "x": 2265,
+            "y": -485,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 29.57,
+            "x": 2305,
+            "y": -441,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 29.83,
+            "x": 2342,
+            "y": -393,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 30.11,
+            "x": 2382,
+            "y": -331,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 30.36,
+            "x": 2422,
+            "y": -261,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 30.63,
+            "x": 2465,
+            "y": -175,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 30.88,
+            "x": 2505,
+            "y": -166,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 31.14,
+            "x": 2547,
+            "y": -243,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 31.39,
+            "x": 2590,
+            "y": -310,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 31.66,
+            "x": 2630,
+            "y": -363,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 31.91,
+            "x": 2673,
+            "y": -410,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 32.18,
+            "x": 2713,
+            "y": -444,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 32.45,
+            "x": 2755,
+            "y": -469,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 32.7,
+            "x": 2798,
+            "y": -484,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 32.98,
+            "x": 2838,
+            "y": -489,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 33.28,
+            "x": 2902,
+            "y": -476,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 33.54,
+            "x": 2961,
+            "y": -444,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 33.76,
+            "x": 3009,
+            "y": -402,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 34.03,
+            "x": 3065,
+            "y": -336,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 34.24,
+            "x": 3097,
+            "y": -291,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 34.51,
+            "x": 3142,
+            "y": -215,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 34.77,
+            "x": 3185,
+            "y": -134,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 35.02,
+            "x": 3227,
+            "y": -41,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 35.28,
+            "x": 3270,
+            "y": 62,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 35.56,
+            "x": 3299,
+            "y": 168,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 35.77,
+            "x": 3310,
+            "y": 260,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 35.98,
+            "x": 3323,
+            "y": 366,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 36.2,
+            "x": 3345,
+            "y": 398,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 36.48,
+            "x": 3390,
+            "y": 398,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 36.68,
+            "x": 3425,
+            "y": 398,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 36.96,
+            "x": 3470,
+            "y": 398,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 37.18,
+            "x": 3502,
+            "y": 356,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 37.38,
+            "x": 3537,
+            "y": 292,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 37.69,
+            "x": 3571,
+            "y": 236,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 37.94,
+            "x": 3598,
+            "y": 197,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 38.29,
+            "x": 3643,
+            "y": 141,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 38.56,
+            "x": 3678,
+            "y": 107,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 38.8,
+            "x": 3715,
+            "y": 77,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 39.06,
+            "x": 3755,
+            "y": 55,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 39.33,
+            "x": 3795,
+            "y": 42,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 39.6,
+            "x": 3835,
+            "y": 38,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 39.86,
+            "x": 3875,
+            "y": 43,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 40.14,
+            "x": 3918,
+            "y": 60,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 40.41,
+            "x": 3939,
+            "y": 87,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 40.67,
+            "x": 3939,
+            "y": 124,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 40.93,
+            "x": 3939,
+            "y": 176,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 41.19,
+            "x": 3939,
+            "y": 236,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 41.46,
+            "x": 3939,
+            "y": 306,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 41.72,
+            "x": 3939,
+            "y": 382,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 41.97,
+            "x": 3939,
+            "y": 471,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 42.23,
+            "x": 3961,
+            "y": 472,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 42.49,
+            "x": 4001,
+            "y": 471,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 42.76,
+            "x": 4043,
+            "y": 388,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 43.01,
+            "x": 4086,
+            "y": 317,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 43.27,
+            "x": 4126,
+            "y": 259,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 43.54,
+            "x": 4169,
+            "y": 208,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 43.78,
+            "x": 4209,
+            "y": 170,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 44.05,
+            "x": 4166,
+            "y": 140,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 44.31,
+            "x": 4206,
+            "y": 121,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 44.57,
+            "x": 4249,
+            "y": 111,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 44.82,
+            "x": 4289,
+            "y": 112,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 45.08,
+            "x": 4331,
+            "y": 123,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 45.35,
+            "x": 4331,
+            "y": 143,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 45.61,
+            "x": 4353,
+            "y": 174,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 45.87,
+            "x": 4395,
+            "y": 217,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 46.13,
+            "x": 4438,
+            "y": 270,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 46.38,
+            "x": 4478,
+            "y": 329,
+            "deaths": 0,
+            "rescues": 0,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 46.65,
+            "x": 4521,
+            "y": 403,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 46.9,
+            "x": 4561,
+            "y": 382,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 47.16,
+            "x": 4603,
+            "y": 388,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 47.41,
+            "x": 4643,
+            "y": 403,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 47.67,
+            "x": 4686,
+            "y": 418,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 47.93,
+            "x": 4726,
+            "y": 420,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 48.22,
+            "x": 4769,
+            "y": 418,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 48.53,
+            "x": 4809,
+            "y": 426,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 48.8,
+            "x": 4854,
+            "y": 446,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 49.07,
+            "x": 4899,
+            "y": 412,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 49.33,
+            "x": 4942,
+            "y": 335,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 49.59,
+            "x": 4987,
+            "y": 266,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 49.85,
+            "x": 5030,
+            "y": 212,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 50.11,
+            "x": 5073,
+            "y": 168,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 50.37,
+            "x": 5115,
+            "y": 135,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 50.63,
+            "x": 5155,
+            "y": 114,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 50.88,
+            "x": 5198,
+            "y": 101,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 51.14,
+            "x": 5238,
+            "y": 99,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 51.4,
+            "x": 5281,
+            "y": 108,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 51.66,
+            "x": 5281,
+            "y": 125,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 51.92,
+            "x": 5281,
+            "y": 154,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 52.18,
+            "x": 5281,
+            "y": 191,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 52.44,
+            "x": 5259,
+            "y": 241,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 52.69,
+            "x": 5257,
+            "y": 232,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 52.95,
+            "x": 5299,
+            "y": 155,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 53.22,
+            "x": 5339,
+            "y": 91,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 53.46,
+            "x": 5382,
+            "y": 34,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 53.73,
+            "x": 5422,
+            "y": -9,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 53.98,
+            "x": 5465,
+            "y": -46,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 54.24,
+            "x": 5505,
+            "y": -70,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 54.5,
+            "x": 5547,
+            "y": -86,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 54.76,
+            "x": 5587,
+            "y": -91,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 55.02,
+            "x": 5630,
+            "y": -86,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 55.28,
+            "x": 5673,
+            "y": -70,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 55.55,
+            "x": 5673,
+            "y": -46,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 55.82,
+            "x": 5673,
+            "y": -9,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 56.09,
+            "x": 5673,
+            "y": 38,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 56.35,
+            "x": 5673,
+            "y": 95,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 56.61,
+            "x": 5673,
+            "y": 159,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 56.88,
+            "x": 5673,
+            "y": 238,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": false,
+            "transition": false,
+            "deathKind": null
+        },
+        {
+            "t": 57.15,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 57.43,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 57.68,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 57.96,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 58.24,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 58.51,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 58.77,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 59.05,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 59.31,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 59.57,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 59.82,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 60.08,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        },
+        {
+            "t": 60.33,
+            "x": 5673,
+            "y": 281,
+            "deaths": 0,
+            "rescues": 1,
+            "grounded": true,
+            "transition": true,
+            "deathKind": null
+        }
+    ],
+    "shots": [],
+    "bonks": [
+        {
+            "level": 21,
+            "x": 1582.0000000000095,
+            "y": 319.32500000000005
+        }
+    ],
+    "liftSamples": 0,
+    "maxRescues": 1,
+    "actualMode": "hard",
+    "nextLevel": 1,
+    "seconds": 60.6,
+    "maxX": 5673,
+    "deathCount": 0
+}

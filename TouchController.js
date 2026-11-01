@@ -19,6 +19,8 @@ export class TouchController {
             leaderboard: false,
             name: false,
             phaser: false,
+            aimUp: false,
+            aimDown: false,
         };
         this.hitBounds = { x: 0, y: 0, width: 0, height: 0 };
     }
@@ -70,6 +72,8 @@ export class TouchController {
                 !this.targets.leaderboard &&
                 !this.targets.name &&
                 !this.targets.phaser &&
+                !this.targets.aimUp &&
+                !this.targets.aimDown &&
                 !this.targets.selectPrev &&
                 !this.targets.selectNext &&
                 !this.targets.news
@@ -169,6 +173,22 @@ export class TouchController {
                 controls.phaserButton,
                 controls.phaserButton?.touchHitPadding ?? pad
             );
+        targets.aimUp =
+            hasCoordinates &&
+            this.isPointerOverGameObject(
+                x,
+                y,
+                controls.aimUpButton,
+                controls.aimUpButton?.touchHitPadding ?? pad
+            );
+        targets.aimDown =
+            hasCoordinates &&
+            this.isPointerOverGameObject(
+                x,
+                y,
+                controls.aimDownButton,
+                controls.aimDownButton?.touchHitPadding ?? pad
+            );
         targets.selectPrev =
             hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectPrevButton);
         targets.selectNext =
@@ -190,6 +210,8 @@ export class TouchController {
             targets.leaderboard ||
             targets.name ||
             targets.phaser ||
+            targets.aimUp ||
+            targets.aimDown ||
             targets.selectPrev ||
             targets.selectNext ||
             targets.news
@@ -268,7 +290,9 @@ export class TouchController {
             targets.name ||
             targets.left ||
             targets.right ||
-            targets.phaser
+            targets.phaser ||
+            targets.aimUp ||
+            targets.aimDown
         ) {
             return false;
         }

@@ -39,6 +39,8 @@ function textureForDynamic(entry) {
             return 'laserBeamVertical';
         case 'bearRaider':
             return 'bearRaider';
+        case 'shrike':
+            return 'shrike';
         default:
             return 'rock';
     }

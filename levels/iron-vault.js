@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'IRON VAULT - The sealed branch. You chose the vault path: it rejoins the foundry. Skitterlings swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Cross the beam on the dark and slip the pad slam. The crown is shielded: defeat the guard on the crown platform to open it. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. Press G to swap guns. (M toggles music)',
+            'IRON VAULT - The sealed branch. You chose the vault path: it rejoins the foundry. Skitterlings swarm in waves on the deck and the high grates: face them and press J to fire the space phaser — hold Up/W while firing to aim up the vault stair and at the grates, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Cross the beam on the dark and slip the pad slam. Shrikes swoop the seals: stomp them or dodge the dive. The crown is shielded: defeat the guard on the crown platform to open it. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. Press G to swap guns. (M toggles music)',
         touchInstructions:
-            'IRON VAULT - The sealed branch. The bolt button fires. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Cross the beam on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
+            'IRON VAULT - The sealed branch. Skitterlings hold the grates too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Cross the beam on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'bastion',
             style: 'vault',
@@ -103,16 +103,16 @@ export const level = {
         ],
         dynamic: [
             { type: 'boarder', key: 'skitterling', x: 400, y: 568, wave: 1 },
-            { type: 'boarder', key: 'skitterling', x: 900, y: 538, wave: 1 },
+            { type: 'boarder', key: 'skitterling', x: 1000, y: 430, wave: 1 },
             { type: 'boarder', key: 'skitterling', x: 1600, y: 508, wave: 2 },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 1700,
                 y: 470,
-                patrol: { x: 1800, duration: 1600 },
+                patrol: { x: 1800, y: 410, duration: 1600 },
             },
-            { type: 'boarder', key: 'skitterling', x: 2150, y: 448, wave: 2 },
+            { type: 'boarder', key: 'skitterling', x: 2150, y: 358, wave: 2 },
             { type: 'boarder', key: 'skitterling', x: 2300, y: 312, wave: 3 },
             {
                 type: 'laser',
@@ -151,7 +151,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 3850,
                 y: 370,
-                patrol: { x: 3950, duration: 1600 },
+                patrol: { x: 3950, y: 310, duration: 1600 },
             },
             { type: 'boarder', key: 'skitterling', x: 2650, y: 480, wave: 4 },
             {
@@ -162,7 +162,7 @@ export const level = {
                 duration: 780,
                 delay: 390,
             },
-            { type: 'boarder', key: 'skitterling', x: 3800, y: 510, wave: 5 },
+            { type: 'boarder', key: 'skitterling', x: 3900, y: 428, wave: 5 },
             { type: 'boarder', key: 'skitterling', x: 4310, y: 480, wave: 5 },
             { type: 'boarder', key: 'skitterling', x: 5000, y: 440, wave: 5 },
             {
@@ -190,17 +190,35 @@ export const level = {
                 key: 'voltOrb',
                 x: 6380,
                 y: 276,
-                patrol: { x: 6480, duration: 1600 },
+                patrol: { x: 6480, y: 220, duration: 1600 },
             },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 5880,
                 y: 410,
-                patrol: { x: 5980, duration: 1600 },
+                patrol: { x: 5980, y: 350, duration: 1600 },
             },
             { type: 'boarder', key: 'skitterling', x: 6200, y: 454, wave: 6 },
-            { type: 'boarder', key: 'skitterling', x: 8120, y: 434, wave: 6 },
+            { type: 'boarder', key: 'skitterling', x: 8290, y: 324, wave: 6 },
+            {
+                type: 'shrike',
+                x: 1900,
+                y: 420,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 150,
+                swoopDY: 70,
+                startDelay: 1000,
+            },
+            {
+                type: 'shrike',
+                x: 7700,
+                y: 340,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: 120,
+                swoopDY: 120,
+                startDelay: 1600,
+            },
             {
                 type: 'bonk',
                 enemy: 'sentry',

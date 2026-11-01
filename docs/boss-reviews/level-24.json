@@ -1,0 +1,119 @@
+{
+    "brief": {
+        "name": "Champion King",
+        "level": 24,
+        "levelTheme": "Clutch Crown: the chess showdown bracket. Pawn boarder waves and file lasers on the lower ranks, rook drones on the middle rank, and the championship rank holds the crown.",
+        "bossFiction": "The reigning champion embodied as a crowned chess king: dark slate body, gold crown and trim, one big cyan lens. He guards the showdown crown on the top rank.",
+        "rule": "Read the telegraphed landing square; hold fire between leaps, burn the lens in the landing window.",
+        "tell": "Crouch and red flash for 750ms, landing square chosen as he leaves the ground; he arcs in a knight L and lands 240px over.",
+        "safeResponse": "Stand off the landing line, strafe as he leaves the ground, keep bolts on him while he recovers on the new square.",
+        "hp": 14,
+        "phases": ["pace", "telegraph (crouch + red flash)", "knight leap (airborne L)", "recover"],
+        "enrage": "Below half HP the final-day swing: leaps come 25% faster with shorter rests, tinted purple with an ENRAGED banner.",
+        "defeat": "Explosion, CHAMPION KING DOWN banner, crown shield opens. Wounds persist through player death."
+    },
+    "telemetry": {
+        "level": 24,
+        "boss": "Champion King",
+        "outcome": "boss-defeated",
+        "durationSec": 52.9,
+        "deaths": 2,
+        "deathSpots": [
+            {
+                "x": 4971,
+                "y": 362,
+                "bossX": 6400,
+                "bossHp": 14,
+                "bossPhase": "dormant",
+                "addDist": 41,
+                "bombDist": 218,
+                "deathKind": "hazard",
+                "likelyCause": "add"
+            },
+            {
+                "x": 5697,
+                "y": 701,
+                "bossX": 6400,
+                "bossHp": 14,
+                "bossPhase": "dormant",
+                "addDist": 735,
+                "bombDist": null,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            }
+        ],
+        "hpStart": 14,
+        "hpMin": 0,
+        "phasesSeen": ["dormant", "pace", "telegraph"],
+        "enraged": true,
+        "errors": [],
+        "flags": ["one-phase: kill saw no charge, summon, or leap phase"]
+    },
+    "reports": [
+        {
+            "persona": "reviewer",
+            "name": "Marlowe (expert reviewer)",
+            "fun": 1.57,
+            "fairness": 1.42,
+            "theme": 1.88,
+            "flaw": "stale",
+            "verdict": "iterate",
+            "confidence": {
+                "fun": 0.42,
+                "fairness": 0.17,
+                "theme": 0,
+                "flaw": 0.38,
+                "verdict": 0.4
+            }
+        },
+        {
+            "persona": "veteran",
+            "name": "Vic (contra veteran)",
+            "fun": 2.01,
+            "fairness": 1.02,
+            "theme": 2.16,
+            "flaw": "stale",
+            "verdict": "iterate",
+            "confidence": {
+                "fun": 0.4,
+                "fairness": 0.39,
+                "theme": 0.2,
+                "flaw": 0.25,
+                "verdict": 0.33
+            }
+        },
+        {
+            "persona": "casual",
+            "name": "Sam (casual newcomer)",
+            "fun": 1.64,
+            "fairness": 0.82,
+            "theme": 1.97,
+            "flaw": "pushover",
+            "verdict": "iterate",
+            "confidence": {
+                "fun": 0.31,
+                "fairness": 0.32,
+                "theme": 0.07,
+                "flaw": 0.17,
+                "verdict": 0.33
+            }
+        },
+        {
+            "persona": "speedrunner",
+            "name": "Lex (speedrunner)",
+            "fun": 1.95,
+            "fairness": 1.2,
+            "theme": 2.2,
+            "flaw": "stale",
+            "verdict": "iterate",
+            "confidence": {
+                "fun": 0.47,
+                "fairness": 0.28,
+                "theme": 0.26,
+                "flaw": 0.25,
+                "verdict": 0.22
+            }
+        }
+    ],
+    "passed": false
+}

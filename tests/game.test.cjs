@@ -221,7 +221,7 @@ test('news levels are marked and listed for the title screen', async () => {
     const { NEWS_LEVEL_IDS, LEVEL_DEFINITIONS, LEVEL_CONTENT } =
         await importModule('levels/index.js');
 
-    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18, 19, 20, 21, 22, 23]);
+    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18, 19, 20, 21, 22, 23, 24]);
     for (const id of NEWS_LEVEL_IDS) {
         assert.ok(LEVEL_DEFINITIONS[id].TITLE, `level ${id} has a title`);
         assert.ok(LEVEL_CONTENT[id].news.outlet, `level ${id} names its outlet`);
@@ -304,7 +304,7 @@ test('news level completion does not unlock campaign levels', async () => {
     assert.ok(queued, 'news completion still hands off to its next level');
 });
 
-const ALL_LEVEL_IDS = Array.from({ length: 23 }, (_, i) => i + 1);
+const ALL_LEVEL_IDS = Array.from({ length: 24 }, (_, i) => i + 1);
 
 test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('levels/index.js');
@@ -1392,16 +1392,16 @@ test('level unlocks persist, clamp, and survive corrupt storage', async () => {
     assert.equal(fresh.unlockLevel(4), 4);
     assert.equal(fresh.getMaxUnlocked(), 4);
     assert.equal(fresh.unlockLevel(2), 4);
-    assert.equal(fresh.unlockLevel(99), 23);
-    assert.equal(fresh.getMaxUnlocked(), 23);
+    assert.equal(fresh.unlockLevel(99), 24);
+    assert.equal(fresh.getMaxUnlocked(), 24);
 
     global.window = { localStorage: createStorage({ spaceChickenUnlocked: 'junk' }) };
     const corrupt = new LeaderboardManager({ storageAvailable: true });
     assert.equal(corrupt.getMaxUnlocked(), 1);
 
     const noStorage = new LeaderboardManager({ storageAvailable: false });
-    assert.equal(noStorage.getMaxUnlocked(), 23);
-    assert.equal(noStorage.unlockLevel(5), 23);
+    assert.equal(noStorage.getMaxUnlocked(), 24);
+    assert.equal(noStorage.unlockLevel(5), 24);
 });
 
 test('title selection cycles within unlocked levels and starts them', async () => {
@@ -1802,7 +1802,10 @@ test('coach lines show once for the phaser and a gold cap', async () => {
     scene.maybeShowCoach();
     scene.uiManager.bannerTitle = null;
     scene.maybeShowCoach();
-    assert.deepEqual(banners, ['PHASER:J to fire · K to jump', 'BONK:Drop on the gold cap']);
+    assert.deepEqual(banners, [
+        'PHASER:J fire · hold ↑/↓ while firing to aim · K jump',
+        'BONK:Drop on the gold cap',
+    ]);
 });
 
 test('vertical laser visuals and hitboxes have the same orientation', async () => {

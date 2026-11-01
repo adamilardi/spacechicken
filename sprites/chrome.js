@@ -45,7 +45,43 @@ export function createVirtualButtons(factory) {
     createJumpBtn(factory);
     createPhaserBtn(factory);
     createWeaponBtn(factory);
+    createAimBtn(factory, 'aimUpBtn', true);
+    createAimBtn(factory, 'aimDownBtn', false);
     createMusicToggleButtons(factory);
+}
+
+export function createAimBtn(factory, key, up) {
+    if (factory.scene.textures.exists(key)) {
+        return;
+    }
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    drawCircularControl(factory, ctx, size, 'rgba(12, 48, 72, 0.86)', 'rgba(140, 245, 255, 0.95)');
+    ctx.fillStyle = '#d7e6f2';
+    ctx.beginPath();
+    if (up) {
+        ctx.moveTo(size * 0.5, size * 0.26);
+        ctx.lineTo(size * 0.74, size * 0.56);
+        ctx.lineTo(size * 0.6, size * 0.56);
+        ctx.lineTo(size * 0.6, size * 0.76);
+        ctx.lineTo(size * 0.4, size * 0.76);
+        ctx.lineTo(size * 0.4, size * 0.56);
+        ctx.lineTo(size * 0.26, size * 0.56);
+    } else {
+        ctx.moveTo(size * 0.5, size * 0.74);
+        ctx.lineTo(size * 0.74, size * 0.44);
+        ctx.lineTo(size * 0.6, size * 0.44);
+        ctx.lineTo(size * 0.6, size * 0.24);
+        ctx.lineTo(size * 0.4, size * 0.24);
+        ctx.lineTo(size * 0.4, size * 0.44);
+        ctx.lineTo(size * 0.26, size * 0.44);
+    }
+    ctx.closePath();
+    ctx.fill();
+    factory.scene.textures.addCanvas(key, canvas);
 }
 
 export function drawCircularControl(factory, ctx, size, fillStyle, strokeStyle) {

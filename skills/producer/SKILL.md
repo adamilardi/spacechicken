@@ -17,6 +17,8 @@ Guard the invariants: level numbers never change (leaderboard keys), modes stay 
 
 Review readiness, not code: every touched level plays start to crown, `npm run check` is green, build reports exist under `docs/level-builds/` (or weapon/boss equivalents), and unverified paths are named. Triage feedback into backlog items with observed behavior, level id, and mode. Flag scope creep, unowned steps, and deploys attempted from a craft skill.
 
+**One canonical status per level.** The producer owns the level's current verdict: a single entry naming the level, the revision (commit) it was earned on, the run/report it links to, and what remains unverified. Build-note prose, review summaries, and memory never override it, and a PASS earned on an earlier revision does not certify the current one. The three-loop critic limit is enforced here, in the tracker, not in build-note narrative: a level at its loop limit stops being re-scored and ships as a named draft with its remaining flaw, until a human reopens it. Instruction text, canonical status, and shipped behavior must agree — audit all three before any "pass" is repeated anywhere.
+
 Write the verdict as ship, ship with notes, or not yet, with the exact remaining checks.
 
 ## Verify

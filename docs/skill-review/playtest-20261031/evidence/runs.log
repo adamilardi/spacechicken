@@ -1,0 +1,14 @@
+{"id":17,"mode":"normal","outcome":"crown-collected","seconds":58.8,"deaths":1,"bonks":0,"rescues":0,"liftSamples":0,"maxX":5666,"errors":[]}
+{"id":17,"mode":"hard","outcome":"crown-collected","seconds":94,"deaths":18,"bonks":0,"rescues":0,"liftSamples":0,"maxX":5665,"errors":[]}
+{"id":18,"mode":"normal","outcome":"timeout","seconds":171.6,"deaths":34,"bonks":2,"rescues":0,"liftSamples":0,"maxX":5247,"errors":[]}
+{"id":18,"mode":"hard","outcome":"timeout","seconds":171.5,"deaths":10,"bonks":6,"rescues":0,"liftSamples":0,"maxX":2203,"errors":[]}
+{"id":19,"mode":"normal","outcome":"crown-collected","seconds":60.4,"deaths":0,"bonks":0,"rescues":2,"liftSamples":0,"maxX":5641,"errors":[]}
+{"id":19,"mode":"hard","outcome":"crown-collected","seconds":80.4,"deaths":2,"bonks":0,"rescues":2,"liftSamples":6,"maxX":5693,"errors":[]}
+{"id":20,"mode":"normal","outcome":"timeout","seconds":171.7,"deaths":17,"bonks":0,"rescues":0,"liftSamples":0,"maxX":1843,"errors":[]}
+{"id":20,"mode":"hard","outcome":"timeout","seconds":171.5,"deaths":13,"bonks":1,"rescues":0,"liftSamples":0,"maxX":5466,"errors":[]}
+{"id":21,"mode":"normal","outcome":"crown-collected","seconds":88.4,"deaths":3,"bonks":0,"rescues":2,"liftSamples":0,"maxX":5674,"errors":[]}
+{"id":21,"mode":"hard","outcome":"crown-collected","seconds":60.6,"deaths":0,"bonks":1,"rescues":1,"liftSamples":0,"maxX":5673,"errors":[]}
+{"id":22,"mode":"normal","outcome":"crown-collected","seconds":64.3,"deaths":3,"bonks":0,"rescues":1,"liftSamples":2,"maxX":3529,"errors":[]}
+{"id":23,"mode":"normal","outcome":"crown-collected","seconds":49.9,"deaths":1,"bonks":0,"rescues":0,"liftSamples":0,"maxX":4326,"errors":[]}
+{"id":22,"mode":"hard","outcome":"crown-collected","seconds":117.9,"deaths":15,"bonks":0,"rescues":1,"liftSamples":1,"maxX":3524,"errors":[]}
+{"id":23,"mode":"hard","outcome":"crown-collected","seconds":48.1,"deaths":1,"bonks":0,"rescues":0,"liftSamples":0,"maxX":4254,"errors":[]}

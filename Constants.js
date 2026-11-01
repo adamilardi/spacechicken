@@ -85,6 +85,8 @@ export const GAME_CONSTANTS = {
     },
 
     DOUBLE_TAP_THRESHOLD: 350,
+    // Left-stick Y past this aims the phaser up/down instead of firing flat.
+    GAMEPAD_AIM_DEADZONE: 0.35,
     // With no gamepad connected, re-check for one this often instead of
     // calling navigator.getGamepads() every frame (touch devices pay ~nothing).
     GAMEPAD_SLOW_POLL_FRAMES: 30,

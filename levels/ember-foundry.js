@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'EMBER FOUNDRY - The smelter. Gnawers swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Ride the ore trams across the wide gaps, scale the chain vent tower, and cross the ember beams on the dark: warning means leave, active means do not cross. EMBERMAW holds the crown deck: jump her charge, duel her spawn, burn the maw. New gun: COMET, a tight five-way fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'EMBER FOUNDRY - The smelter. Gnawers swarm in waves on the deck and the high chains: face them and press J to fire the space phaser — hold Up/W while firing to aim up the vent tower and at the chains, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Ride the ore trams across the wide gaps, scale the chain vent tower, and cross the ember beams on the dark: warning means leave, active means do not cross. Shrikes swoop the gaps: stomp them or dodge the dive. EMBERMAW holds the crown deck: jump her charge, duel her spawn, burn the maw. New gun: COMET, a tight five-way fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'EMBER FOUNDRY - The smelter. The bolt button fires. New gun: COMET. EMBERMAW holds the deck: jump her charge, duel her spawn. Ride the trams. Cross the beams on the dark. Pods grant 30s guns. Free cages for −2s.',
+            'EMBER FOUNDRY - The smelter. Gnawers hold the chains too: the bolt button fires, the up-arrow aims up the tower, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: COMET. EMBERMAW holds the deck: jump her charge, duel her spawn. Ride the trams. Cross the beams on the dark. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'foundry',
             style: 'smelter',
@@ -136,16 +136,16 @@ export const level = {
         ],
         dynamic: [
             { type: 'boarder', key: 'gnawer', x: 550, y: 588, wave: 1 },
-            { type: 'boarder', key: 'gnawer', x: 1100, y: 558, wave: 1 },
+            { type: 'boarder', key: 'gnawer', x: 1150, y: 446, wave: 1 },
             { type: 'boarder', key: 'gnawer', x: 1700, y: 528, wave: 2 },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 1900,
                 y: 436,
-                patrol: { x: 2000, duration: 1600 },
+                patrol: { x: 2000, y: 376, duration: 1600 },
             },
-            { type: 'boarder', key: 'gnawer', x: 2450, y: 498, wave: 2 },
+            { type: 'boarder', key: 'gnawer', x: 2450, y: 392, wave: 2 },
             {
                 type: 'dustDevil',
                 x: 2550,
@@ -159,7 +159,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 3050,
                 y: 400,
-                patrol: { x: 3150, duration: 1800 },
+                patrol: { x: 3150, y: 340, duration: 1800 },
             },
             {
                 type: 'bonk',
@@ -226,7 +226,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 5500,
                 y: 340,
-                patrol: { x: 5600, duration: 1600 },
+                patrol: { x: 5600, y: 280, duration: 1600 },
             },
             { type: 'boarder', key: 'gnawer', x: 4150, y: 420, wave: 5 },
             { type: 'boarder', key: 'gnawer', x: 4750, y: 450, wave: 5 },
@@ -238,7 +238,7 @@ export const level = {
             },
             { type: 'boarder', key: 'gnawer', x: 5450, y: 480, wave: 6 },
             { type: 'boarder', key: 'gnawer', x: 6060, y: 450, wave: 6 },
-            { type: 'boarder', key: 'gnawer', x: 6850, y: 420, wave: 6 },
+            { type: 'boarder', key: 'gnawer', x: 7000, y: 338, wave: 6 },
             {
                 type: 'laser',
                 x: 9420,
@@ -268,14 +268,14 @@ export const level = {
                 key: 'voltOrb',
                 x: 9020,
                 y: 214,
-                patrol: { x: 9120, duration: 1600 },
+                patrol: { x: 9120, y: 160, duration: 1600 },
             },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 10450,
                 y: 350,
-                patrol: { x: 10550, duration: 1600 },
+                patrol: { x: 10550, y: 290, duration: 1600 },
             },
             {
                 type: 'dustDevil',
@@ -285,7 +285,25 @@ export const level = {
             },
             { type: 'boarder', key: 'gnawer', x: 8840, y: 394, wave: 7 },
             { type: 'boarder', key: 'gnawer', x: 10120, y: 394, wave: 7 },
-            { type: 'boarder', key: 'gnawer', x: 11380, y: 374, wave: 7 },
+            { type: 'boarder', key: 'gnawer', x: 10930, y: 264, wave: 7 },
+            {
+                type: 'shrike',
+                x: 3550,
+                y: 250,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 150,
+                swoopDY: 125,
+                startDelay: 1100,
+            },
+            {
+                type: 'shrike',
+                x: 7300,
+                y: 350,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: 100,
+                swoopDY: 120,
+                startDelay: 1700,
+            },
             {
                 type: 'boss',
                 key: 'embermaw',

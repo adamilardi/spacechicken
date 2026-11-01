@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Spore-mines drift; jump them or shoot past. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: defeat the BROODMOTHER on the crown platform to open it. She telegraphs each charge — jump it and hold fire. New gun: SCATTER, a 3-bolt fan. Press G to swap guns. (M toggles music)',
+            'COLONY DROP - Beachhead landing. Skitterers rush the line in waves on the ground AND the high girders: face them and press J to fire the space phaser — hold Up/W while firing to aim up and diagonal-up at the girders, Down/S to fire down from the air (Space/K always jump). Gamepad: left stick Y aims, left face button fires. Spore-mines drift between tiers; jump them or shoot past. Shrikes patrol the sky and swoop: stomp them or dodge the dive. Cross the girder bridge mid-run. Gun pods grant 30s of heavy fire. Free caged crew for −2s each. The crown is shielded: defeat the BROODMOTHER on the crown platform to open it. She telegraphs each charge — jump it and hold fire. New gun: SCATTER, a 3-bolt fan. Press G to swap guns. (M toggles music)',
         touchInstructions:
-            'COLONY DROP - Aliens rush the line. The bolt button fires the space phaser. New gun: SCATTER. The gun button swaps guns. Defeat the BROODMOTHER to open the crown; jump her charge. Pods grant 30s guns. Free cages for −2s. Arrows move, jump leaps.',
+            'COLONY DROP - Aliens rush the line on the ground and the high girders. The bolt button fires; hold the up-arrow button to aim up at the girders, the down-arrow to fire down from the air. Stomp swooping shrikes. New gun: SCATTER. The gun button swaps guns. Defeat the BROODMOTHER to open the crown; jump her charge. Pods grant 30s guns. Free cages for −2s. Arrows move, jump leaps.',
         background: {
             type: 'colony',
             style: 'beachhead',
@@ -108,15 +108,15 @@ export const level = {
         ],
         dynamic: [
             { type: 'boarder', key: 'skitterling', x: 700, y: 540, wave: 1 },
-            { type: 'boarder', key: 'skitterling', x: 1120, y: 540, wave: 1 },
-            { type: 'boarder', key: 'skitterling', x: 1700, y: 540, wave: 2 },
+            { type: 'boarder', key: 'skitterling', x: 1300, y: 412, wave: 1 },
+            { type: 'boarder', key: 'skitterling', x: 1600, y: 430, wave: 2 },
             { type: 'boarder', key: 'skitterling', x: 2100, y: 540, wave: 2 },
             {
                 type: 'drone',
                 key: 'sporeFloater',
                 x: 2500,
                 y: 480,
-                patrol: { x: 2620, duration: 1600 },
+                patrol: { x: 2620, y: 400, duration: 1600 },
             },
             {
                 type: 'roller',
@@ -125,7 +125,7 @@ export const level = {
                 patrol: { x: 3020, duration: 1400 },
                 spinDuration: 640,
             },
-            { type: 'boarder', key: 'skitterling', x: 3200, y: 540, wave: 3 },
+            { type: 'boarder', key: 'skitterling', x: 3100, y: 430, wave: 3 },
             { type: 'boarder', key: 'skitterling', x: 3550, y: 540, wave: 3 },
             {
                 type: 'drone',
@@ -152,7 +152,7 @@ export const level = {
                 key: 'sporeFloater',
                 x: 5200,
                 y: 480,
-                patrol: { x: 5320, duration: 1600 },
+                patrol: { x: 5320, y: 400, duration: 1600 },
             },
             {
                 type: 'roller',
@@ -161,23 +161,23 @@ export const level = {
                 patrol: { x: 5420, duration: 1400 },
                 spinDuration: 640,
             },
-            { type: 'boarder', key: 'skitterling', x: 4300, y: 540, wave: 5 },
+            { type: 'boarder', key: 'skitterling', x: 4600, y: 430, wave: 5 },
             { type: 'boarder', key: 'skitterling', x: 4700, y: 540, wave: 5 },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 6400,
                 y: 490,
-                patrol: { x: 6520, duration: 1600 },
+                patrol: { x: 6520, y: 420, duration: 1600 },
             },
             { type: 'boarder', key: 'skitterling', x: 5800, y: 540, wave: 6 },
-            { type: 'boarder', key: 'skitterling', x: 6250, y: 540, wave: 6 },
+            { type: 'boarder', key: 'skitterling', x: 5950, y: 430, wave: 6 },
             {
                 type: 'drone',
                 key: 'sporeFloater',
                 x: 7700,
                 y: 480,
-                patrol: { x: 7820, duration: 1600 },
+                patrol: { x: 7820, y: 410, duration: 1600 },
             },
             {
                 type: 'drone',
@@ -191,7 +191,7 @@ export const level = {
                 key: 'sporeFloater',
                 x: 8900,
                 y: 490,
-                patrol: { x: 9020, duration: 1600 },
+                patrol: { x: 9020, y: 410, duration: 1600 },
             },
             {
                 type: 'roller',
@@ -209,8 +209,26 @@ export const level = {
             },
             { type: 'boarder', key: 'skitterling', x: 7260, y: 540, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 8540, y: 540, wave: 7 },
-            { type: 'boarder', key: 'skitterling', x: 9790, y: 540, wave: 7 },
+            { type: 'boarder', key: 'skitterling', x: 9360, y: 440, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 9700, y: 540, wave: 7 },
+            {
+                type: 'shrike',
+                x: 3400,
+                y: 380,
+                sweep: { range: 70, duration: 1800 },
+                swoopDX: 120,
+                swoopDY: 140,
+                startDelay: 600,
+            },
+            {
+                type: 'shrike',
+                x: 9900,
+                y: 420,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: -60,
+                swoopDY: 120,
+                startDelay: 1200,
+            },
             {
                 type: 'boss',
                 key: 'broodmother',

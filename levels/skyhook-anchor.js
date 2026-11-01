@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'SKYHOOK ANCHOR - The tether station. Wardens swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Take the panel stair, ride the anchor lift, cross the beam on the dark, and slip the slam on the crown pad. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HALO, a piercing orb that never stops. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SKYHOOK ANCHOR - The tether station. Wardens swarm in waves on the deck and the high panels: face them and press J to fire the space phaser — hold Up/W while firing to aim up the panel stair and at the high decks, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Take the panel stair, ride the anchor lift, cross the beam on the dark, and slip the slam on the crown pad. Shrikes swoop the station: stomp them or dodge the dive. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HALO, a piercing orb that never stops. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'SKYHOOK ANCHOR - The tether station. The bolt button fires. New gun: HALO. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Ride the lift, cross on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
+            'SKYHOOK ANCHOR - The tether station. Wardens hold the panels too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: HALO. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Ride the lift, cross on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'skyhook',
             style: 'night',
@@ -129,16 +129,16 @@ export const level = {
         ],
         dynamic: [
             { type: 'boarder', key: 'spireWarden', x: 550, y: 588, wave: 1 },
-            { type: 'boarder', key: 'spireWarden', x: 1100, y: 558, wave: 1 },
+            { type: 'boarder', key: 'spireWarden', x: 1150, y: 446, wave: 1 },
             { type: 'boarder', key: 'spireWarden', x: 1700, y: 528, wave: 2 },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 1900,
                 y: 436,
-                patrol: { x: 2000, duration: 1600 },
+                patrol: { x: 2000, y: 376, duration: 1600 },
             },
-            { type: 'boarder', key: 'spireWarden', x: 2450, y: 498, wave: 2 },
+            { type: 'boarder', key: 'spireWarden', x: 2450, y: 392, wave: 2 },
             {
                 type: 'dustDevil',
                 x: 2550,
@@ -152,7 +152,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 3150,
                 y: 400,
-                patrol: { x: 3250, duration: 1800 },
+                patrol: { x: 3250, y: 340, duration: 1800 },
             },
             { type: 'boarder', key: 'spireWarden', x: 3650, y: 346, wave: 4 },
             {
@@ -192,7 +192,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 5550,
                 y: 340,
-                patrol: { x: 5650, duration: 1600 },
+                patrol: { x: 5650, y: 280, duration: 1600 },
             },
             { type: 'boarder', key: 'spireWarden', x: 4200, y: 420, wave: 5 },
             { type: 'boarder', key: 'spireWarden', x: 4800, y: 450, wave: 5 },
@@ -210,7 +210,7 @@ export const level = {
                 duration: 780,
                 delay: 0,
             },
-            { type: 'boarder', key: 'spireWarden', x: 5500, y: 480, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 5650, y: 398, wave: 6 },
             { type: 'boarder', key: 'spireWarden', x: 6110, y: 450, wave: 6 },
             { type: 'boarder', key: 'spireWarden', x: 6900, y: 420, wave: 6 },
             {
@@ -238,14 +238,14 @@ export const level = {
                 key: 'voltOrb',
                 x: 9070,
                 y: 216,
-                patrol: { x: 9170, duration: 1600 },
+                patrol: { x: 9170, y: 160, duration: 1600 },
             },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 8570,
                 y: 350,
-                patrol: { x: 8670, duration: 1600 },
+                patrol: { x: 8670, y: 290, duration: 1600 },
             },
             {
                 type: 'dustDevil',
@@ -255,7 +255,25 @@ export const level = {
             },
             { type: 'boarder', key: 'spireWarden', x: 8890, y: 394, wave: 7 },
             { type: 'boarder', key: 'spireWarden', x: 10170, y: 394, wave: 7 },
-            { type: 'boarder', key: 'spireWarden', x: 11430, y: 374, wave: 7 },
+            { type: 'boarder', key: 'spireWarden', x: 10980, y: 264, wave: 7 },
+            {
+                type: 'shrike',
+                x: 3900,
+                y: 240,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 100,
+                swoopDY: 150,
+                startDelay: 1200,
+            },
+            {
+                type: 'shrike',
+                x: 9600,
+                y: 300,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: 150,
+                swoopDY: 120,
+                startDelay: 1800,
+            },
             {
                 type: 'bonk',
                 enemy: 'sentry',

@@ -17,7 +17,9 @@ Tune with authored numbers for Normal; hard mode scales them at spawn (`applyHar
 
 ## Review
 
-Play or watch the route start to crown and score it: readable opener, one idea at a time, calm window before the finale, finishable with normal jumps, crown on a reachable deck. Flag stacked hazards with no shared safe response, gates with no tell, and rests that never come. Check the campaign curve: hazard density should roughly rise across levels with dips after finales (see GB-3 in `docs/GAME_BACKLOG.md`).
+Play or watch the route start to crown and score it: readable opener, one idea at a time, calm window before the finale, finishable with normal jumps, crown on a reachable deck. Flag stacked hazards with no shared safe response, gates with no tell, and rests that never come. Check the campaign curve: hazard density should roughly rise across levels with dips after finales (see GB-3 in `docs/GAME_BACKLOG.md`). Anchor new levels to the shipped bands — contra 2.30–2.83 dynamics/1k px with 5–7 hazard types, news 1.0–2.2 with 3–5 types; a contra build under its band is sent back at review.
+
+For contra-style briefs, review the **Height & Path Map** (in [level-creator](../level-creator/SKILL.md)) as a design document, not a drawing: count the tiers, check each tier's verb (same-tier gunfight, fan lane, drop-in, defended high ground, underpass fight, pressured mover, vertical set piece), and price every split — what the low road costs and pays versus the high road, and where they rejoin. Send back: a contra brief with one fighting height; a branch that dominates (safer _and_ richer _and_ shorter); boarders placed where no aim direction can answer them; a tall tier whose only climb is an untaught double jump; cross-height pressure stacked without a shared safe response. Height variety is pacing, not scenery: teach one tier change safely, press it under fire, then combine tiers before the finale.
 
 Write findings as observed behavior plus the smallest tuning change, with file and level id. Leave implementation to the level, weapon, or programmer skill unless the fix is a one-number tune you were asked to make.
 

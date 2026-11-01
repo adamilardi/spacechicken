@@ -39,3 +39,6 @@ rl/rollouts/
 # Optional: if you ever add a real test runner or coverage
 coverage/
 __pycache__/
+
+# Scratch image output, never committed
+generated_images/

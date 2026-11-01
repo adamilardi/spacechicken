@@ -1,0 +1,102 @@
+{
+    "selection": "art-selections/clutch-crown/selection.json",
+    "verdict": "PASS",
+    "checks": [
+        {
+            "asset": "assets/news-clutch-crown/bg.jpg",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-clutch-crown/bg.jpg",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/clutch-crown/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-clutch-crown/bg.jpg",
+            "check": "plate-covers",
+            "result": "pass",
+            "detail": "1920x1280"
+        },
+        {
+            "asset": "assets/news-clutch-crown/champion-king.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-clutch-crown/champion-king.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/clutch-crown/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-clutch-crown/champion-king.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "225x150 RGBA"
+        },
+        {
+            "asset": "assets/news-clutch-crown/champion-king.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "21.2% opaque"
+        },
+        {
+            "asset": "assets/news-clutch-crown/knight-prop.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present"
+        },
+        {
+            "asset": "assets/news-clutch-crown/knight-prop.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/clutch-crown/art-critic/02-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-clutch-crown/knight-prop.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "1920x1280 RGBA"
+        },
+        {
+            "asset": "assets/news-clutch-crown/knight-prop.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "32.5% opaque"
+        },
+        {
+            "asset": "canvas:bastionDeck/labDeck/vaultDeck",
+            "check": "existing-art",
+            "result": "pass",
+            "detail": "shipped SpriteFactory paint, no file check"
+        }
+    ],
+    "previews": [
+        {
+            "asset": "assets/news-clutch-crown/bg.jpg",
+            "kind": "background",
+            "preview": "art-selections/clutch-crown/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-clutch-crown/champion-king.png",
+            "kind": "actor",
+            "preview": "art-selections/clutch-crown/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-clutch-crown/knight-prop.png",
+            "kind": "actor",
+            "preview": "art-selections/clutch-crown/art-critic/02-actor-gameplay-52px.png"
+        }
+    ],
+    "checklist": [
+        "Two-device difference: name the two composition devices that differ from every shipped background type (see the authoring reference catalog).",
+        "Landmark read at 1x: open the gameplay preview — the signature landmark names the place without the instructions paragraph.",
+        "Silhouette distinctness: the actor cutout at 52px is not mistakable for a shipped hazard or the chicken.",
+        "Palette anchor: the set matches the style-anchor palette; background stays quieter than chicken, hazards, and platform edges.",
+        "No doubles: the plate paints no characters, crowns, or text that duplicate live sprites."
+    ]
+}

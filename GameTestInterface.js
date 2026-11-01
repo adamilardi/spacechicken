@@ -33,6 +33,22 @@ const ACTION_INPUTS = Object.freeze({
         shoot: true,
         start: false,
     }),
+    fire_up: Object.freeze({
+        left: false,
+        right: false,
+        jump: false,
+        shoot: true,
+        aimUp: true,
+        start: false,
+    }),
+    fire_down: Object.freeze({
+        left: false,
+        right: false,
+        jump: false,
+        shoot: true,
+        aimDown: true,
+        start: false,
+    }),
     jump: Object.freeze({ left: false, right: false, jump: true, shoot: false, start: false }),
     jump_left: Object.freeze({ left: true, right: false, jump: true, shoot: false, start: false }),
     jump_right: Object.freeze({

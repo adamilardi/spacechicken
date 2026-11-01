@@ -609,6 +609,7 @@ export function assessConcept(markdown) {
     if (brief.mappings.length < 3) missing.push('fact-mechanic-rows>=3');
     if (brief.elements.length < 3) missing.push('element-inventory>=3');
     if (!/themed enemy\s*:/.test(lower)) missing.push('themed-enemy');
+    if (!/boss theme\s*:/.test(lower)) missing.push('boss-theme-decision');
     if (!brief.signatureElements.length && !brief.signatureFacts.length) {
         missing.push('signature-marking');
     }
@@ -721,10 +722,13 @@ export function selectPanelShots(shots, max = 4) {
     return picked;
 }
 
-// Beat sheet derived from level data: opener, one beat per distinct hazard
-// type at its first spawn (the themed enemy is a hazard type, so it is
-// photographed), signature set-piece props, then the finale. Beats closer
-// than 350px to an earlier beat are merged; at most 6 beats are shot.
+// Beat sheet derived from level data: opener, signature beats before
+// generic ones (themed/keyed hazards and bonk verbs, then other hazard
+// types), signature set-piece props, then the finale. Presence stills
+// cannot prove synchrony, rides, or bonk-dependent reachability — those
+// need the motion/telemetry evidence the QA skill requires — but the
+// sheet must at least spend its slots on the beats the brief advertises.
+// Beats closer than 350px to an earlier beat are merged; at most 6 shot.
 export function planBeats(analysis, content) {
     const crownX = analysis?.crownX || 600;
     const candidates = [{ slug: 'opener', x: 150, y: 480, proves: 'spawn read and first move' }];
@@ -734,7 +738,10 @@ export function planBeats(analysis, content) {
         }
     };
     const clampY = (y) => Math.min(560, Math.max(140, y ?? 400));
-    const dynamic = [...(content?.dynamic || [])].sort((a, b) => (a.x || 0) - (b.x || 0));
+    const byX = (a, b) => (a.x || 0) - (b.x || 0);
+    const sorted = [...(content?.dynamic || [])].sort(byX);
+    const isSignature = (hazard) => Boolean(hazard.key || hazard.enemy || hazard.type === 'bonk');
+    const dynamic = [...sorted.filter(isSignature), ...sorted.filter((h) => !isSignature(h))];
     const seenTypes = new Set();
     for (const hazard of dynamic) {
         if (!hazard.type || seenTypes.has(hazard.type)) continue;
@@ -770,6 +777,7 @@ export function planBeats(analysis, content) {
             proves: 'mid-level set piece and hazard read',
         });
     }
+    candidates.sort((a, b) => a.x - b.x);
     candidates.push({
         slug: 'finale',
         x: Math.max(150, crownX - 200),
@@ -1477,10 +1485,37 @@ function renderFixLines(report) {
     return lines;
 }
 
+// Human confirmations are evidence, not a rubber stamp: only a named
+// human reviewer counts toward the fidelity gate. Agent visual review is
+// recorded separately and never silently stands in for the human check
+// the skill requires. Confirmations name no shot or basis at their peril:
+// missing reviewer/reasoning is reported as an issue by callers.
+export function confirmationReview(human) {
+    const confirmed = Array.isArray(human?.confirmed) ? human.confirmed : [];
+    const reviewerType =
+        human?.reviewerType || (/agent/i.test(human?.reviewer || '') ? 'agent' : null);
+    const issues = [];
+    if (confirmed.length && reviewerType !== 'human') {
+        issues.push('confirmations are not from a named human reviewer (reviewerType)');
+    }
+    if (confirmed.length && !human?.reviewer) issues.push('confirmation has no reviewer');
+    if (confirmed.length && !human?.reasoning) issues.push('confirmation has no observed basis');
+    return {
+        confirmed: reviewerType === 'human' ? confirmed : [],
+        agentConfirmed: reviewerType === 'human' ? [] : confirmed,
+        reviewerType,
+        issues,
+    };
+}
+
 function loadHumanConfirmations(evidenceDir) {
     try {
         const human = JSON.parse(readFileSync(path.join(evidenceDir, 'human.json'), 'utf8'));
-        if (Array.isArray(human?.confirmed)) return human.confirmed;
+        const review = confirmationReview(human);
+        for (const issue of review.issues) {
+            console.warn(`warning: human.json ${issue}`);
+        }
+        return review.confirmed;
     } catch {
         // No confirmations recorded.
     }

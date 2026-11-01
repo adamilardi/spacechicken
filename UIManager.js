@@ -20,6 +20,8 @@ export class UIManager {
         this.jumpButton = null;
         this.phaserButton = null;
         this.weaponButton = null;
+        this.aimUpButton = null;
+        this.aimDownButton = null;
         this.leftButton = null;
         this.rightButton = null;
         this.touchControlsEnabled = false;
@@ -224,6 +226,8 @@ export class UIManager {
             this.jumpButton,
             this.phaserButton,
             this.weaponButton,
+            this.aimUpButton,
+            this.aimDownButton,
         ].forEach((button) => {
             button?.setVisible?.(visible);
         });
@@ -344,6 +348,8 @@ export class UIManager {
         this.jumpButton = this.markUi(this.createJumpButton());
         if (this.scene.levelConfig?.phaser) {
             this.phaserButton = this.markUi(this.createPhaserButton());
+            this.aimUpButton = this.markUi(this.createAimButton('up'));
+            this.aimDownButton = this.markUi(this.createAimButton('down'));
             if (weaponsForLevel(this.scene.level).length > 1) {
                 this.weaponButton = this.markUi(this.createWeaponButton());
             }
@@ -450,6 +456,42 @@ export class UIManager {
         };
         button.on('pointerup', release);
         button.on('pointerout', slideOut);
+        button.on('pointerupoutside', release);
+        return button;
+    }
+
+    // Hold-to-aim buttons: while held they set a scene flag the input
+    // poll reads, mirroring phaserHeld. Aim only steers fire; the bolt
+    // button still does the shooting.
+    createAimButton(direction) {
+        const button = this.scene.add.image(0, 0, direction === 'up' ? 'aimUpBtn' : 'aimDownBtn');
+        button.setScrollFactor(0);
+        button.setDepth(GAME_CONSTANTS.JUMP_BUTTON_DEPTH);
+        button.setAlpha(0.9);
+        button.setInteractive({ useHandCursor: false });
+        const flag = direction === 'up' ? 'touchAimUpHeld' : 'touchAimDownHeld';
+        let pointerId = null;
+        button.on('pointerdown', (pointer) => {
+            pointerId = pointer.id;
+            this.scene[flag] = true;
+            button.setTint(0x99ffff);
+        });
+        button.on('pointerover', (pointer) => {
+            if (pointer?.isDown && pointerId === null) {
+                pointerId = pointer.id;
+                this.scene[flag] = true;
+                button.setTint(0x99ffff);
+            }
+        });
+        const release = (pointer) => {
+            if (!pointer || pointer.id === pointerId) {
+                pointerId = null;
+                this.scene[flag] = false;
+            }
+            button.clearTint();
+        };
+        button.on('pointerup', release);
+        button.on('pointerout', release);
         button.on('pointerupoutside', release);
         return button;
     }
@@ -900,6 +942,20 @@ export class UIManager {
                 buttonY - controlSize / 2 - gap - small / 2
             );
             this.expandControlHitArea(this.weaponButton, small, hitPadding);
+        }
+        if (this.aimUpButton && this.jumpButton) {
+            // Aim stack over the fire/jump pair: up over jump, down over
+            // fire (above the weapon swap when that is present).
+            const small = controlSize * 0.62;
+            const stackY = buttonY - controlSize / 2 - gap - small / 2;
+            this.aimUpButton.setDisplaySize(small, small);
+            this.aimUpButton.setPosition(this.jumpButton.x, stackY);
+            this.expandControlHitArea(this.aimUpButton, small, hitPadding);
+            if (this.phaserButton) {
+                this.aimDownButton.setDisplaySize(small, small);
+                this.aimDownButton.setPosition(this.phaserButton.x, stackY - small - gap);
+                this.expandControlHitArea(this.aimDownButton, small, hitPadding);
+            }
         }
     }
 
@@ -1360,6 +1416,8 @@ export class UIManager {
             this.jumpButton,
             this.phaserButton,
             this.weaponButton,
+            this.aimUpButton,
+            this.aimDownButton,
             this.leftButton,
             this.rightButton,
         ];
@@ -1381,6 +1439,8 @@ export class UIManager {
         this.jumpButton = null;
         this.phaserButton = null;
         this.weaponButton = null;
+        this.aimUpButton = null;
+        this.aimDownButton = null;
         this.leftButton = null;
         this.rightButton = null;
     }

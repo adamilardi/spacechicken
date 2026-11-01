@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'BASTION RELAY - Inside the enemy base. Wardens hold the line: face them and press J to fire the space phaser. Gamepad uses the left face button. Red gates sweep the hall on a beat: cross on the dark. Drop through the grate trench mid-run. The GATEKEEPER holds the crown deck: jump her charge, duel her wardens, burn the lens. New gun: TEMPEST, a 5-way fan. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'BASTION RELAY - Inside the enemy base. Wardens hold the line on the deck and the high grates: face them and press J to fire the space phaser — hold Up/W while firing to aim up at the grates, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Red gates sweep the hall on a beat: cross on the dark. Drop through the grate trench mid-run. Shrikes swoop the halls: stomp them or dodge the dive. The GATEKEEPER holds the crown deck: jump her charge, duel her wardens, burn the lens. New gun: TEMPEST, a 5-way fan. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'BASTION RELAY - Inside the base. The bolt button fires. New gun: TEMPEST. The GATEKEEPER holds the deck: jump her charge, duel her wardens. Cross the gates on the dark. Pods grant 30s guns. Free cages for −2s.',
+            'BASTION RELAY - Inside the base. Wardens hold the grates too: the bolt button fires, the up-arrow aims up, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: TEMPEST. The GATEKEEPER holds the deck: jump her charge, duel her wardens. Cross the gates on the dark. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'bastion',
             style: 'relay',
@@ -107,7 +107,7 @@ export const level = {
         ],
         dynamic: [
             { type: 'boarder', key: 'spireWarden', x: 700, y: 540, wave: 1 },
-            { type: 'boarder', key: 'spireWarden', x: 1120, y: 540, wave: 1 },
+            { type: 'boarder', key: 'spireWarden', x: 1300, y: 412, wave: 1 },
             { type: 'boarder', key: 'spireWarden', x: 2250, y: 540, wave: 2 },
             { type: 'boarder', key: 'spireWarden', x: 2100, y: 540, wave: 2 },
             {
@@ -146,7 +146,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 2500,
                 y: 480,
-                patrol: { x: 2620, duration: 1600 },
+                patrol: { x: 2620, y: 400, duration: 1600 },
             },
             {
                 type: 'roller',
@@ -216,7 +216,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 4500,
                 y: 430,
-                patrol: { x: 4600, duration: 1600 },
+                patrol: { x: 4600, y: 370, duration: 1600 },
             },
             {
                 type: 'roller',
@@ -226,7 +226,7 @@ export const level = {
                 spinDuration: 640,
             },
             { type: 'boarder', key: 'spireWarden', x: 3900, y: 560, wave: 4 },
-            { type: 'boarder', key: 'spireWarden', x: 4400, y: 580, wave: 4 },
+            { type: 'boarder', key: 'spireWarden', x: 4650, y: 498, wave: 4 },
             {
                 type: 'crusher',
                 x: 6650,
@@ -246,7 +246,7 @@ export const level = {
                 hold: 280,
             },
             { type: 'boarder', key: 'spireWarden', x: 5400, y: 560, wave: 5 },
-            { type: 'boarder', key: 'spireWarden', x: 6200, y: 530, wave: 5 },
+            { type: 'boarder', key: 'spireWarden', x: 6100, y: 448, wave: 5 },
             { type: 'boarder', key: 'spireWarden', x: 6800, y: 500, wave: 5 },
             {
                 type: 'laser',
@@ -277,14 +277,14 @@ export const level = {
                 key: 'voltOrb',
                 x: 8100,
                 y: 334,
-                patrol: { x: 8200, duration: 1600 },
+                patrol: { x: 8200, y: 280, duration: 1600 },
             },
             {
                 type: 'drone',
                 key: 'voltOrb',
                 x: 10200,
                 y: 450,
-                patrol: { x: 10300, duration: 1600 },
+                patrol: { x: 10300, y: 380, duration: 1600 },
             },
             {
                 type: 'roller',
@@ -312,7 +312,25 @@ export const level = {
                 hold: 280,
             },
             { type: 'boarder', key: 'spireWarden', x: 7920, y: 514, wave: 6 },
-            { type: 'boarder', key: 'spireWarden', x: 9840, y: 494, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 10000, y: 384, wave: 6 },
+            {
+                type: 'shrike',
+                x: 2400,
+                y: 360,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 120,
+                swoopDY: 160,
+                startDelay: 800,
+            },
+            {
+                type: 'shrike',
+                x: 8900,
+                y: 330,
+                sweep: { range: 70, duration: 2000 },
+                swoopDX: 150,
+                swoopDY: 180,
+                startDelay: 1400,
+            },
             { type: 'boarder', key: 'spireWarden', x: 10460, y: 494, wave: 6 },
             {
                 type: 'bonk',

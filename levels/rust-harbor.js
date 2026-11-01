@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves on the deck and the high planks: face them and press J to fire the space phaser — hold Up/W while firing to aim up the plank stair and at the high decks, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Shrikes swoop the yard: stomp them or dodge the dive. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'RUST HARBOR - The breaker yard. The bolt button fires. New gun: RIPPER. SCRAPJAW holds the deck: jump her charge between the slams. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s.',
+            'RUST HARBOR - The breaker yard. Skitterlings hold the planks too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: RIPPER. SCRAPJAW holds the deck: jump her charge between the slams. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'harbor',
             style: 'dusk',
@@ -117,7 +117,7 @@ export const level = {
             { type: 'boarder', key: 'skitterling', x: 550, y: 588, wave: 1 },
             { type: 'drip', x: 600, y: 500, interval: 1600, delay: 0 },
             { type: 'drip', x: 750, y: 500, interval: 1600, delay: 750 },
-            { type: 'boarder', key: 'skitterling', x: 1100, y: 562, wave: 1 },
+            { type: 'boarder', key: 'skitterling', x: 1150, y: 450, wave: 1 },
             {
                 type: 'bonk',
                 enemy: 'sentry',
@@ -135,9 +135,9 @@ export const level = {
                 key: 'voltOrb',
                 x: 1900,
                 y: 440,
-                patrol: { x: 2000, duration: 1600 },
+                patrol: { x: 2000, y: 380, duration: 1600 },
             },
-            { type: 'boarder', key: 'skitterling', x: 2450, y: 502, wave: 2 },
+            { type: 'boarder', key: 'skitterling', x: 2450, y: 402, wave: 2 },
             {
                 type: 'dustDevil',
                 x: 2550,
@@ -182,7 +182,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 6600,
                 y: 430,
-                patrol: { x: 6700, duration: 1600 },
+                patrol: { x: 6700, y: 370, duration: 1600 },
             },
             {
                 type: 'dustDevil',
@@ -194,7 +194,7 @@ export const level = {
             { type: 'boarder', key: 'skitterling', x: 4900, y: 450, wave: 5 },
             { type: 'boarder', key: 'skitterling', x: 5600, y: 480, wave: 6 },
             { type: 'boarder', key: 'skitterling', x: 6210, y: 450, wave: 6 },
-            { type: 'boarder', key: 'skitterling', x: 7000, y: 420, wave: 6 },
+            { type: 'boarder', key: 'skitterling', x: 7100, y: 338, wave: 6 },
             { type: 'drip', x: 10200, y: 284, interval: 1600, delay: 300 },
             { type: 'drip', x: 10350, y: 284, interval: 1600, delay: 1050 },
             {
@@ -213,7 +213,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 8670,
                 y: 350,
-                patrol: { x: 8770, duration: 1600 },
+                patrol: { x: 8770, y: 290, duration: 1600 },
             },
             {
                 type: 'dustDevil',
@@ -223,7 +223,25 @@ export const level = {
             },
             { type: 'boarder', key: 'skitterling', x: 8990, y: 394, wave: 7 },
             { type: 'boarder', key: 'skitterling', x: 10450, y: 394, wave: 7 },
-            { type: 'boarder', key: 'skitterling', x: 11350, y: 374, wave: 7 },
+            { type: 'boarder', key: 'skitterling', x: 11080, y: 264, wave: 7 },
+            {
+                type: 'shrike',
+                x: 3350,
+                y: 320,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 130,
+                swoopDY: 110,
+                startDelay: 900,
+            },
+            {
+                type: 'shrike',
+                x: 9500,
+                y: 300,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: 120,
+                swoopDY: 120,
+                startDelay: 1500,
+            },
             {
                 type: 'boss',
                 key: 'scrapjaw',

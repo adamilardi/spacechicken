@@ -1503,7 +1503,7 @@ export class Overlays {
             <button data-mode="keyboard">Two players · keyboard</button>
             <button data-mode="keyboard-controller">Keyboard + controller</button>
             <button data-mode="controllers">Two controllers</button>
-            <p id="race-controls">P1: A/D + Space/K, J fires. P2: arrows + ↑, numpad 1 fires.</p>
+            <p id="race-controls">P1: A/D + Space/K, J fires, G swaps. P2: arrows + ↑, numpad 1 fires, numpad 2 swaps.</p>
             <p>Controller: D-pad selects · A confirms · B closes</p>
             <button class="game-button" data-close>Back</button>`;
         const options = [...dialog.querySelectorAll('[data-mode]')];

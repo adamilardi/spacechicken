@@ -19,11 +19,11 @@ export const level = {
     },
     content: {
         instructions:
-            'CRIMSON WOMB - The heart of the enemy. Gnawers swarm in waves: face them and press J to fire the space phaser. Gamepad uses the left face button. Drips fall in the low run, devils patrol the flesh. Cross the marrow bridge to the crown deck. A spore-beam guards the last gap: cross on the dark. The CRIMSON HEART holds the crown deck: jump her slam-charge, burn the lens. New gun: HAIL, a fan that punches through. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'CRIMSON WOMB - The heart of the enemy. Gnawers swarm in waves on the flesh and the high bones: face them and press J to fire the space phaser — hold Up/W while firing to aim up the rising flesh and at the bones, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Drips fall in the low run, devils patrol the flesh. Cross the marrow bridge to the crown deck. Shrikes swoop the bridge: stomp them or dodge the dive. A spore-beam guards the last gap: cross on the dark. The CRIMSON HEART holds the crown deck: jump her slam-charge, burn the lens. New gun: HAIL, a fan that punches through. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         branchInstructions:
             'Shoot the wounded core. Finish this level to choose: RUST HARBOR or the IRON VAULT branch. The vault rejoins the foundry.',
         touchInstructions:
-            'CRIMSON WOMB - The alien heart. The bolt button fires. New gun: HAIL. The CRIMSON HEART holds the deck: jump her charge, burn the lens. Cross the beam on the dark. Pods grant 30s guns.',
+            'CRIMSON WOMB - The alien heart. Gnawers hold the bones too: the bolt button fires, the up-arrow aims up, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: HAIL. The CRIMSON HEART holds the deck: jump her charge, burn the lens. Cross the beam on the dark. Pods grant 30s guns.',
         background: {
             type: 'womb',
             style: 'lair',
@@ -112,7 +112,7 @@ export const level = {
             { type: 'boarder', key: 'gnawer', x: 550, y: 600, wave: 1 },
             { type: 'drip', x: 600, y: 510, interval: 1600, delay: 0 },
             { type: 'drip', x: 750, y: 510, interval: 1600, delay: 750 },
-            { type: 'boarder', key: 'gnawer', x: 1350, y: 570, wave: 2 },
+            { type: 'boarder', key: 'gnawer', x: 1300, y: 464, wave: 2 },
             { type: 'boarder', key: 'gnawer', x: 2000, y: 540, wave: 2 },
             {
                 type: 'dustDevil',
@@ -120,21 +120,21 @@ export const level = {
                 y: 490,
                 patrol: { x: 2630, duration: 1500 },
             },
-            { type: 'boarder', key: 'gnawer', x: 2600, y: 510, wave: 3 },
+            { type: 'boarder', key: 'gnawer', x: 2600, y: 398, wave: 3 },
             { type: 'boarder', key: 'gnawer', x: 3100, y: 420, wave: 3 },
             {
                 type: 'drone',
                 key: 'sporeFloater',
                 x: 1250,
                 y: 390,
-                patrol: { x: 1350, duration: 1700 },
+                patrol: { x: 1350, y: 330, duration: 1700 },
             },
             {
                 type: 'drone',
                 key: 'sporeFloater',
                 x: 3100,
                 y: 380,
-                patrol: { x: 3200, duration: 1600 },
+                patrol: { x: 3200, y: 320, duration: 1600 },
             },
             {
                 type: 'laser',
@@ -161,7 +161,7 @@ export const level = {
                 key: 'sporeFloater',
                 x: 5450,
                 y: 220,
-                patrol: { x: 5550, duration: 1600 },
+                patrol: { x: 5550, y: 170, duration: 1600 },
             },
             {
                 type: 'bonk',
@@ -178,7 +178,7 @@ export const level = {
             { type: 'boarder', key: 'gnawer', x: 4700, y: 370, wave: 4 },
             { type: 'boarder', key: 'gnawer', x: 5350, y: 340, wave: 5 },
             { type: 'boarder', key: 'gnawer', x: 5950, y: 310, wave: 5 },
-            { type: 'boarder', key: 'gnawer', x: 6450, y: 280, wave: 5 },
+            { type: 'boarder', key: 'gnawer', x: 6480, y: 218, wave: 5 },
             { type: 'drip', x: 9450, y: 164, interval: 1600, delay: 0 },
             { type: 'drip', x: 9600, y: 164, interval: 1600, delay: 750 },
             {
@@ -186,14 +186,14 @@ export const level = {
                 key: 'sporeFloater',
                 x: 7920,
                 y: 220,
-                patrol: { x: 8020, duration: 1700 },
+                patrol: { x: 8020, y: 160, duration: 1700 },
             },
             {
                 type: 'drone',
                 key: 'sporeFloater',
                 x: 10330,
                 y: 110,
-                patrol: { x: 10430, duration: 1600 },
+                patrol: { x: 10430, y: 150, duration: 1600 },
             },
             {
                 type: 'dustDevil',
@@ -202,7 +202,25 @@ export const level = {
                 patrol: { x: 8960, duration: 1500 },
             },
             { type: 'boarder', key: 'gnawer', x: 8240, y: 264, wave: 6 },
-            { type: 'boarder', key: 'gnawer', x: 10160, y: 244, wave: 6 },
+            { type: 'boarder', key: 'gnawer', x: 10330, y: 178, wave: 6 },
+            {
+                type: 'shrike',
+                x: 4400,
+                y: 320,
+                sweep: { range: 70, duration: 1800 },
+                swoopDX: 120,
+                swoopDY: 100,
+                startDelay: 1000,
+            },
+            {
+                type: 'shrike',
+                x: 8150,
+                y: 140,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: 80,
+                swoopDY: 130,
+                startDelay: 1600,
+            },
             { type: 'boarder', key: 'gnawer', x: 10780, y: 244, wave: 6 },
             {
                 type: 'boss',

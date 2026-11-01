@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Shrike candidates preview</title>
+        <style>
+            body {
+                font-family: monospace;
+                background: #888;
+            }
+            .row {
+                display: flex;
+                gap: 16px;
+                margin: 12px;
+            }
+            figure {
+                margin: 0;
+                text-align: center;
+            }
+            canvas {
+                image-rendering: pixelated;
+            }
+            .on-black {
+                background: #000;
+            }
+            .on-white {
+                background: #fff;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>contra-shrike candidates at 1x and 3x</h1>
+        <div class="row" id="row"></div>
+        <pre id="alpha"></pre>
+        <script type="module">
+            import { paint as paintA } from '../enemy-shrike-a/paint.js';
+            import { paint as paintB } from '../enemy-shrike-b/paint.js';
+            import { paint as paintC } from '../enemy-shrike-c/paint.js';
+            const row = document.getElementById('row');
+            const report = [];
+            for (const [id, paint] of [
+                ['shrike-a', paintA],
+                ['shrike-b', paintB],
+                ['shrike-c', paintC],
+            ]) {
+                for (const bg of ['on-black', 'on-white']) {
+                    for (const scale of [1, 3]) {
+                        const figure = document.createElement('figure');
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 48;
+                        canvas.height = 48;
+                        canvas.className = bg;
+                        canvas.style.width = `${48 * scale}px`;
+                        canvas.style.height = `${48 * scale}px`;
+                        const ctx = canvas.getContext('2d');
+                        paint(ctx, 48, 48);
+                        figure.appendChild(canvas);
+                        const caption = document.createElement('figcaption');
+                        caption.textContent = `${id} ${scale}x ${bg}`;
+                        figure.appendChild(caption);
+                        row.appendChild(figure);
+                    }
+                }
+                const probe = document.createElement('canvas');
+                probe.width = 48;
+                probe.height = 48;
+                const pctx = probe.getContext('2d');
+                paint(pctx, 48, 48);
+                const corners = [
+                    [0, 0],
+                    [47, 0],
+                    [0, 47],
+                    [47, 47],
+                ].map(([x, y]) => pctx.getImageData(x, y, 1, 1).data[3]);
+                report.push(`${id} corner alphas: ${corners.join(',')}`);
+            }
+            document.getElementById('alpha').textContent = report.join('\n');
+        </script>
+    </body>
+</html>

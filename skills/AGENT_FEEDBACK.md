@@ -23,6 +23,13 @@ None yet.
 
 ## Triaged
 
+## 2026-10-31 — playtest batch — P1/P2 skill improvements
+
+- Tried: externally-run keyboard/touch bot playtests of levels 17-23 with screenshots, telemetry, and mode checks (`docs/skill-review/playtest-20261031/feedback.md`).
+- Friction: signature mechanics unverified or bypassable (optional lifts sold as mandatory, bonk bridges crownable with zero bonks, renamed rescue bonuses), topology words contradicting deck geometry, single-run verdicts substituted for distributions, agent confirmations standing in for human ones, synchronized stories judged from stills, route contrast judged on empty plates, and canonical level status scattered across prose.
+- Suggestion: per-item rules in the feedback file, preferring executable checks.
+- Triaged: fixed same day — Signature proof + bypass tests and measurable topology geometry (level-creator, news-to-level), distribution judging and bound human confirmations with `confirmationReview` enforcement (game-critic, qa-reviewer), signature-first beat planning (`planBeats`), ensemble motion verdicts (enemy-animation-creator/integrator), route contrast budgets (level-art-creator/selector), promise audit (story-writer), canonical status + loop enforcement (producer). Proof: tests/level-critic.test.cjs (confirmationReview, planBeats priority).
+
 ## 2026-10-31 — news-to-level batch — F1-F10 skill frictions
 
 - Tried: three unattended news levels (19 Hubble Rescue, 20 Robot Dance Sync, 21 Phobos Sample Run) end to end.

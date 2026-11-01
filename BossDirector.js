@@ -33,6 +33,10 @@ export function bossUpdate(state, now, x, targetX, leadX, config, hard, minionsA
         cooldownMs: state.enraged ? speeds.enrageCooldownMs : speeds.cooldownMs,
         chargeSpeed: state.enraged ? speeds.charge * speeds.enrageChargeMult : speeds.charge,
         paceSpeed: speeds.pace,
+        leap: config.leap || null,
+        leapMs: (config.leap?.ms ?? 520) * (state.enraged ? 0.75 : 1),
+        leapDx: config.leap?.dx ?? 220,
+        leapVelocityY: config.leap?.velocityY ?? 560,
         summon: config.summon || null,
         summonTellMs: config.summon?.tellMs ?? 600,
         summonIntervalMs: summonIntervalMs(config.summon, state.enraged === true, hard),
@@ -51,6 +55,9 @@ export function bossUpdate(state, now, x, targetX, leadX, config, hard, minionsA
     }
     if (state.phase === 'charge') {
         return bossChargeStep(state, now, x, tune);
+    }
+    if (state.phase === 'leap') {
+        return bossLeapStep(state, now, x, tune);
     }
     if (state.phase === 'summonTell') {
         return bossSummonStep(state, now, tune);
@@ -128,6 +135,25 @@ function bossTelegraphStep(state, now, x, targetX, tune) {
         return { ...state, velocityX: 0, events: [] };
     }
     const dir = targetX == null ? state.dir : Math.sign(targetX - x) || state.dir || 1;
+    if (tune.leap) {
+        // Knight-leap: displace through the air in an L to a square chosen
+        // at the telegraph. The director applies velocityY once on the
+        // leap event; gravity flies the arc while velocityX carries the
+        // horizontal leg. Positioning, not charge timing, is the answer.
+        const leapTargetX = Math.min(tune.maxX, Math.max(tune.minX, x + dir * tune.leapDx));
+        const leapVelocityX = (leapTargetX - x) / (tune.leapMs / 1000);
+        return {
+            ...state,
+            phase: 'leap',
+            phaseAt: now,
+            dir,
+            leapTargetX,
+            leapVelocityX,
+            velocityX: leapVelocityX,
+            velocityY: -tune.leapVelocityY,
+            events: ['leap'],
+        };
+    }
     return {
         ...state,
         phase: 'charge',
@@ -136,6 +162,15 @@ function bossTelegraphStep(state, now, x, targetX, tune) {
         velocityX: dir * tune.chargeSpeed,
         events: ['charge'],
     };
+}
+
+function bossLeapStep(state, now, x, tune) {
+    const target = state.leapTargetX ?? x;
+    const passed = state.dir > 0 ? x >= target : x <= target;
+    if (now - state.phaseAt < tune.leapMs && !passed) {
+        return { ...state, velocityX: state.leapVelocityX || 0, events: [] };
+    }
+    return { ...state, phase: 'recover', phaseAt: now, velocityX: 0, events: ['recover'] };
 }
 
 function bossChargeStep(state, now, x, tune) {
@@ -164,7 +199,15 @@ function bossRecoverStep(state, now, tune) {
 }
 
 export function bossInitialState() {
-    return { phase: 'dormant', phaseAt: 0, nextAttackAt: 0, nextSummonAt: 0, dir: -1 };
+    return {
+        phase: 'dormant',
+        phaseAt: 0,
+        nextAttackAt: 0,
+        nextSummonAt: 0,
+        dir: -1,
+        leapTargetX: 0,
+        leapVelocityX: 0,
+    };
 }
 
 export function summonIntervalMs(summon, enraged, hard) {
@@ -261,9 +304,17 @@ export class BossDirector {
                 nextAttackAt: out.nextAttackAt,
                 nextSummonAt: out.nextSummonAt,
                 dir: out.dir,
+                leapTargetX: out.leapTargetX || 0,
+                leapVelocityX: out.leapVelocityX || 0,
                 enraged: boss.bossState.enraged === true,
             };
             boss.setVelocityX?.(out.velocityX);
+            // velocityY is a one-shot impulse: state spread carries it on
+            // later ticks, so apply it only on the leap event itself or
+            // the boss re-launches every frame and never lands.
+            if (out.events?.includes('leap') && Number.isFinite(out.velocityY)) {
+                boss.setVelocityY?.(out.velocityY);
+            }
             if (out.dir !== 0) {
                 boss.setFlipX?.(out.dir > 0);
             }
@@ -335,6 +386,7 @@ export class BossDirector {
     nextChangeAt(out, now, config) {
         if (out.phase === 'summonTell') return now + (config.summon?.tellMs ?? 600);
         if (out.phase === 'telegraph') return now + (config.telegraphMs ?? 700);
+        if (out.phase === 'leap') return now + (config.leap?.ms ?? 520);
         if (out.phase === 'charge') return now + (config.chargeMs ?? 900);
         if (out.phase === 'recover') return now + (config.recoverMs ?? 800);
         if (out.phase === 'pace') return out.nextAttackAt;
@@ -360,6 +412,13 @@ export class BossDirector {
             if (boss.bossState.enraged) {
                 boss.setTint?.(0xc44dff);
             }
+        } else if (event === 'leap') {
+            this.setBossCrouch(boss, false);
+            boss.clearTint?.();
+            if (boss.bossState.enraged) {
+                boss.setTint?.(0xc44dff);
+            }
+            scene.audioManager?.playJumpPuff?.();
         } else if (event === 'recover') {
             boss.clearTint?.();
             if (boss.bossState.enraged) {

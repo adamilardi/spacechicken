@@ -21,6 +21,7 @@ import { level as robotDanceSync } from './robot-dance-sync.js';
 import { level as phobosSampleRun } from './phobos-sample-run.js';
 import { level as boosterHomecoming } from './booster-homecoming.js';
 import { level as reconnection } from './reconnection.js';
+import { level as clutchCrown } from './clutch-crown.js';
 
 const LEVELS = [
     dawnRun,
@@ -46,6 +47,7 @@ const LEVELS = [
     phobosSampleRun,
     boosterHomecoming,
     reconnection,
+    clutchCrown,
 ].sort((left, right) => left.id - right.id);
 
 export const LEVEL_DEFINITIONS = Object.fromEntries(

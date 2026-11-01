@@ -1,0 +1,315 @@
+{
+    "17": {
+        "analysis": {
+            "title": "Ticker Plunge",
+            "gravity": 300,
+            "worldWidth": 6000,
+            "backgroundType": "bastion",
+            "platformCount": 14,
+            "platformKeys": ["bastionDeck", "bastionGrate", "vaultDeck"],
+            "dominantKeyShare": 0.5714285714285714,
+            "hazardTypes": ["laser", "drone", "roller"],
+            "hazardCount": 6,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 0,
+            "checkpoints": [
+                {
+                    "x": 1750,
+                    "y": 520
+                },
+                {
+                    "x": 2600,
+                    "y": 500
+                },
+                {
+                    "x": 3350,
+                    "y": 530
+                },
+                {
+                    "x": 4650,
+                    "y": 500
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 1,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.367, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783,
+                0.858, 0.942
+            ],
+            "platformBands": [11, 10, 10, 9, 8, 6, 9, 10, 10, 9, 9, 7, 7, 7]
+        },
+        "flags": [
+            {
+                "id": "skeleton-rhyme",
+                "detail": "deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints"
+            },
+            {
+                "id": "background-recycled",
+                "detail": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device"
+            }
+        ]
+    },
+    "18": {
+        "analysis": {
+            "title": "Fear Spike",
+            "gravity": 300,
+            "worldWidth": 6000,
+            "backgroundType": "skyhook",
+            "platformCount": 16,
+            "platformKeys": ["skyhookDeck", "skyhookPanel", "vaultDeck"],
+            "dominantKeyShare": 0.5,
+            "hazardTypes": ["laser", "bearRaider", "crusher"],
+            "hazardCount": 13,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 4,
+            "checkpoints": [
+                {
+                    "x": 1800,
+                    "y": 490
+                },
+                {
+                    "x": 3300,
+                    "y": 290
+                },
+                {
+                    "x": 4700,
+                    "y": 120
+                }
+            ],
+            "crownX": 5700,
+            "finaleHazardCount": 4,
+            "finaleVisibleHazardCount": 4,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.333, 0.37, 0.442, 0.542, 0.558, 0.642, 0.693, 0.727,
+                0.792, 0.808, 0.875, 0.95
+            ],
+            "platformBands": [11, 10, 9, 8, 8, 7, 6, 6, 6, 4, 5, 3, 3, 3, 2, 1]
+        },
+        "flags": []
+    },
+    "19": {
+        "analysis": {
+            "title": "Hubble Rescue",
+            "gravity": 200,
+            "worldWidth": 6000,
+            "backgroundType": "iss",
+            "platformCount": 14,
+            "platformKeys": ["issHull", "stationPanel", "vaultDeck"],
+            "dominantKeyShare": 0.5714285714285714,
+            "hazardTypes": ["laser", "drip", "drone", "roller"],
+            "hazardCount": 8,
+            "hasBoss": false,
+            "movingCount": 2,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1750,
+                    "y": 600
+                },
+                {
+                    "x": 2600,
+                    "y": 460
+                },
+                {
+                    "x": 3500,
+                    "y": 410
+                },
+                {
+                    "x": 4650,
+                    "y": 290
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 2,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.367, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783,
+                0.858, 0.942
+            ],
+            "platformBands": [11, 11, 11, 10, 8, 8, 9, 8, 7, 6, 5, 5, 6, 5]
+        },
+        "flags": [
+            {
+                "id": "skeleton-rhyme",
+                "detail": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints"
+            }
+        ]
+    },
+    "20": {
+        "analysis": {
+            "title": "Robot Dance Sync",
+            "gravity": 240,
+            "worldWidth": 6000,
+            "backgroundType": "facility",
+            "platformCount": 14,
+            "platformKeys": ["labDeck", "bastionGrate", "vaultDeck"],
+            "dominantKeyShare": 0.5714285714285714,
+            "hazardTypes": ["laser", "drone", "roller", "bonk"],
+            "hazardCount": 8,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1750,
+                    "y": 520
+                },
+                {
+                    "x": 2600,
+                    "y": 500
+                },
+                {
+                    "x": 3350,
+                    "y": 500
+                },
+                {
+                    "x": 4650,
+                    "y": 440
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 2,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.175, 0.183, 0.275, 0.367, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783,
+                0.858, 0.942
+            ],
+            "platformBands": [11, 10, 10, 9, 8, 7, 9, 9, 9, 8, 8, 7, 7, 7]
+        },
+        "flags": [
+            {
+                "id": "skeleton-rhyme",
+                "detail": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints"
+            }
+        ]
+    },
+    "21": {
+        "analysis": {
+            "title": "Phobos Sample Run",
+            "gravity": 150,
+            "worldWidth": 6000,
+            "backgroundType": "mars",
+            "platformCount": 13,
+            "platformKeys": ["cliff", "mesa", "vaultDeck"],
+            "dominantKeyShare": 0.46153846153846156,
+            "hazardTypes": ["laser", "drone", "roller", "bonk"],
+            "hazardCount": 8,
+            "hasBoss": false,
+            "movingCount": 1,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1300,
+                    "y": 380
+                },
+                {
+                    "x": 2800,
+                    "y": 480
+                },
+                {
+                    "x": 3350,
+                    "y": 480
+                },
+                {
+                    "x": 4650,
+                    "y": 390
+                }
+            ],
+            "crownX": 5650,
+            "finaleHazardCount": 2,
+            "finaleVisibleHazardCount": 1,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.063, 0.133, 0.2, 0.275, 0.375, 0.458, 0.558, 0.567, 0.658, 0.758, 0.783, 0.858,
+                0.942
+            ],
+            "platformBands": [11, 9, 7, 7, 8, 9, 9, 8, 8, 7, 6, 7, 6]
+        },
+        "flags": []
+    },
+    "22": {
+        "analysis": {
+            "title": "Booster Homecoming",
+            "gravity": 250,
+            "worldWidth": 3800,
+            "backgroundType": "harbor",
+            "platformCount": 11,
+            "platformKeys": ["harborDeck", "skyhookPanel", "vaultDeck"],
+            "dominantKeyShare": 0.5454545454545454,
+            "hazardTypes": ["drone", "laser", "roller", "drip"],
+            "hazardCount": 7,
+            "hasBoss": false,
+            "movingCount": 1,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1050,
+                    "y": 440
+                },
+                {
+                    "x": 2300,
+                    "y": 160
+                },
+                {
+                    "x": 3020,
+                    "y": 395
+                }
+            ],
+            "crownX": 3520,
+            "finaleHazardCount": 5,
+            "finaleVisibleHazardCount": 5,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.089, 0.208, 0.303, 0.311, 0.411, 0.521, 0.626, 0.726, 0.803, 0.821, 0.916
+            ],
+            "platformBands": [11, 10, 8, 7, 6, 4, 6, 8, 9, 6, 5]
+        },
+        "flags": []
+    },
+    "23": {
+        "analysis": {
+            "title": "Reconnection",
+            "gravity": 340,
+            "worldWidth": 4600,
+            "backgroundType": "moon",
+            "platformCount": 12,
+            "platformKeys": ["labDeck", "issHull", "vaultDeck"],
+            "dominantKeyShare": 0.5,
+            "hazardTypes": ["bonk", "cosmicRay", "drone", "drip", "laser"],
+            "hazardCount": 9,
+            "hasBoss": false,
+            "movingCount": 0,
+            "propCount": 2,
+            "checkpoints": [
+                {
+                    "x": 1300,
+                    "y": 400
+                },
+                {
+                    "x": 1950,
+                    "y": 325
+                },
+                {
+                    "x": 2950,
+                    "y": 345
+                }
+            ],
+            "crownX": 4250,
+            "finaleHazardCount": 3,
+            "finaleVisibleHazardCount": 2,
+            "finaleVisible": true,
+            "deckLayout": [
+                0.074, 0.174, 0.283, 0.315, 0.402, 0.402, 0.446, 0.533, 0.565, 0.663, 0.772, 0.913
+            ],
+            "platformBands": [11, 9, 8, 6, 6, 10, 9, 8, 7, 6, 5, 4]
+        },
+        "flags": []
+    }
+}

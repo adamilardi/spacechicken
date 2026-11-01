@@ -23,13 +23,15 @@ Register the switch on the keyboard, the gamepad, and the touch controls, and na
 
 Use the scene clock. Pause freezes cooldown and a shot already in the air. Switching away does not reset the other weapon's cooldown.
 
+**Aim and fans are the cross-height tools.** Every gun aims the same way (`aimVector` in `GameUtils.js`, resolved per chicken in `CombatSystem.syncChickenAim`): forward by default; hold ↑/W while firing for up (diagonal while moving), ↓/S for down while airborne (grounded down still fires forward — there is no crouch), left-stick Y or touch ▲/▼ on the other schemes. A weapon's `spread` (and `ways`) in `WEAPON_DEFS` fans **perpendicular to the aim**, so a fan weapon earns its slot by what it does across tiers in each direction: name the tier gap it is meant to clip (close tier at standoff range, or a cone swept upward), the gun it replaces for that job, and its cost at point blank where the fan is still narrow. Pods that grant fan weapons belong where the fan starts paying (the standoff lane before a two-tier fight), not beside the target. A new weapon never adds its own aim keys — aiming belongs to the one fire path, not to a gun.
+
 ## Verify
 
 Run `npm test`. In the browser, on a level with `PHASER` and on one without:
 
 - The new control does nothing on the level that has no weapon flag.
 - On Earthwatch or the level you enabled, the phaser still fires for a pilot who never switches.
-- The new weapon fires from the chicken's facing, uses its painted sprite, and hits only the actors you named.
+- The new weapon fires from the chicken's facing, uses its painted sprite, and hits only the actors you named. Fire it in every aim direction the level offers (forward, up, diagonal up, down from the air): bolts fly the aimed way, the gun sprite points along the aim, and fan volleys rotate around the aim without changing bolt speed. For a fan weapon, also fire it across a real tier gap in a contra level: confirm the spread clips the next tier at standoff range and stays narrow (no phantom height coverage) at point blank.
 - The HUD shows the name. Pause stops the cooldown.
 - In co-op, each chicken switches and fires on its own.
 

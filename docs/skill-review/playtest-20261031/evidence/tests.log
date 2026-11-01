@@ -1,0 +1,2636 @@
+
+> space-chicken@1.0.0 test
+> node --test tests/*.test.cjs
+
+TAP version 13
+# Subtest: each hazard texture keeps a single role across the campaign
+ok 1 - each hazard texture keeps a single role across the campaign
+  ---
+  duration_ms: 39.181554
+  type: 'test'
+  ...
+# Subtest: hazard textures never double as props, platforms, or pickups
+ok 2 - hazard textures never double as props, platforms, or pickups
+  ---
+  duration_ms: 1.440375
+  type: 'test'
+  ...
+# Subtest: boarders pursue an airborne target without jumping at empty sky
+ok 3 - boarders pursue an airborne target without jumping at empty sky
+  ---
+  duration_ms: 7.196792
+  type: 'test'
+  ...
+# Subtest: boarders stop at an unlandable gap and jump across a reachable one
+ok 4 - boarders stop at an unlandable gap and jump across a reachable one
+  ---
+  duration_ms: 0.846555
+  type: 'test'
+  ...
+# Subtest: boarders reject leaps through ceilings and cannot jump onto unreachable shelves
+ok 5 - boarders reject leaps through ceilings and cannot jump onto unreachable shelves
+  ---
+  duration_ms: 5.346801
+  type: 'test'
+  ...
+# Subtest: crown guards hold the pad instead of chasing off its edge
+ok 6 - crown guards hold the pad instead of chasing off its edge
+  ---
+  duration_ms: 0.469758
+  type: 'test'
+  ...
+# Subtest: every shield has a guard on the crown pad, and bypassed enemies are not guards
+ok 7 - every shield has a guard on the crown pad, and bypassed enemies are not guards
+  ---
+  duration_ms: 22.755261
+  type: 'test'
+  ...
+# Subtest: grounded pursuit follows a moving fight away from the original spawn
+ok 8 - grounded pursuit follows a moving fight away from the original spawn
+  ---
+  duration_ms: 2.846053
+  type: 'test'
+  ...
+# Subtest: each pickup texture maps to the exact weapon granted
+ok 9 - each pickup texture maps to the exact weapon granted
+  ---
+  duration_ms: 14.600828
+  type: 'test'
+  ...
+# Subtest: boarders can take a safe step down under a low ceiling without jumping
+ok 10 - boarders can take a safe step down under a low ceiling without jumping
+  ---
+  duration_ms: 0.338326
+  type: 'test'
+  ...
+# Subtest: checkpoint retries restore waves on their decks instead of dropping them onto the runner
+ok 11 - checkpoint retries restore waves on their decks instead of dropping them onto the runner
+  ---
+  duration_ms: 1.15722
+  type: 'test'
+  ...
+# Subtest: booster homecoming: reachable decks, safe checkpoints, crown in range
+ok 12 - booster homecoming: reachable decks, safe checkpoints, crown in range
+  ---
+  duration_ms: 10.647401
+  type: 'test'
+  ...
+# Subtest: the boss sleeps until the lead chicken crosses the trigger
+ok 13 - the boss sleeps until the lead chicken crosses the trigger
+  ---
+  duration_ms: 14.184156
+  type: 'test'
+  ...
+# Subtest: a summoner defers its first attack past the fight
+ok 14 - a summoner defers its first attack past the fight
+  ---
+  duration_ms: 0.334225
+  type: 'test'
+  ...
+# Subtest: the boss paces toward its target and turns at the arena bounds
+ok 15 - the boss paces toward its target and turns at the arena bounds
+  ---
+  duration_ms: 0.630691
+  type: 'test'
+  ...
+# Subtest: the boss holds center for off-pad challengers
+ok 16 - the boss holds center for off-pad challengers
+  ---
+  duration_ms: 0.353386
+  type: 'test'
+  ...
+# Subtest: the boss telegraphs, charges, recovers, and re-arms
+ok 17 - the boss telegraphs, charges, recovers, and re-arms
+  ---
+  duration_ms: 0.885095
+  type: 'test'
+  ...
+# Subtest: a summon-recover keeps a due charge on the clock
+ok 18 - a summon-recover keeps a due charge on the clock
+  ---
+  duration_ms: 0.338196
+  type: 'test'
+  ...
+# Subtest: a charge ends early past the arena bounds
+ok 19 - a charge ends early past the arena bounds
+  ---
+  duration_ms: 0.410897
+  type: 'test'
+  ...
+# Subtest: hard mode quickens the boss and enrage presses harder
+ok 20 - hard mode quickens the boss and enrage presses harder
+  ---
+  duration_ms: 1.198081
+  type: 'test'
+  ...
+# Subtest: bolts damage an awake boss and the kill opens the crown
+ok 21 - bolts damage an awake boss and the kill opens the crown
+  ---
+  duration_ms: 2.157597
+  type: 'test'
+  ...
+# Subtest: a dormant boss ignores bolts
+ok 22 - a dormant boss ignores bolts
+  ---
+  duration_ms: 0.813474
+  type: 'test'
+  ...
+# Subtest: death resets the boss position but wounds stay and the shield re-arms
+ok 23 - death resets the boss position but wounds stay and the shield re-arms
+  ---
+  duration_ms: 0.971276
+  type: 'test'
+  ...
+# Subtest: death dissolves the boss summons but keeps wave boarders
+ok 24 - death dissolves the boss summons but keeps wave boarders
+  ---
+  duration_ms: 3.754894
+  type: 'test'
+  ...
+# Subtest: a summoner births minions on its own timer with a tell
+ok 25 - a summoner births minions on its own timer with a tell
+  ---
+  duration_ms: 0.5725
+  type: 'test'
+  ...
+# Subtest: a boss past the pad edge leashes home instead of falling
+ok 26 - a boss past the pad edge leashes home instead of falling
+  ---
+  duration_ms: 0.57792
+  type: 'test'
+  ...
+# Subtest: a kill stays a kill through death
+ok 27 - a kill stays a kill through death
+  ---
+  duration_ms: 0.308155
+  type: 'test'
+  ...
+# Subtest: the spawner tags a shootable boss body
+ok 28 - the spawner tags a shootable boss body
+  ---
+  duration_ms: 12.927419
+  type: 'test'
+  ...
+# Subtest: an awake boss is lethal to touch, a dormant or dead one is not
+ok 29 - an awake boss is lethal to touch, a dormant or dead one is not
+  ---
+  duration_ms: 0.501098
+  type: 'test'
+  ...
+# Subtest: a runaway summon pins to the arena leash instead of roaming
+ok 30 - a runaway summon pins to the arena leash instead of roaming
+  ---
+  duration_ms: 1.999884
+  type: 'test'
+  ...
+# Subtest: the kill dissolves the boss summons but keeps wave boarders
+ok 31 - the kill dissolves the boss summons but keeps wave boarders
+  ---
+  duration_ms: 0.446148
+  type: 'test'
+  ...
+# Subtest: wsl host ip prefers the gateway over the dns-tunneling virtual
+ok 32 - wsl host ip prefers the gateway over the dns-tunneling virtual
+  ---
+  duration_ms: 55.902168
+  type: 'test'
+  ...
+# Subtest: windows chrome args uncap the frame rate for rollouts only
+ok 33 - windows chrome args uncap the frame rate for rollouts only
+  ---
+  duration_ms: 0.474278
+  type: 'test'
+  ...
+# (node:55983) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: run tokens cover the full game and every campaign level
+ok 34 - run tokens cover the full game and every campaign level
+  ---
+  duration_ms: 71.607401
+  type: 'test'
+  ...
+# Subtest: run tokens are required, time checked, and single use
+ok 35 - run tokens are required, time checked, and single use
+  ---
+  duration_ms: 7.261463
+  type: 'test'
+  ...
+# Subtest: hard and normal leaderboards stay in separate scopes
+ok 36 - hard and normal leaderboards stay in separate scopes
+  ---
+  duration_ms: 6.48268
+  type: 'test'
+  ...
+# Subtest: null submission returns a validation error
+ok 37 - null submission returns a validation error
+  ---
+  duration_ms: 0.897495
+  type: 'test'
+  ...
+# Subtest: weekly rank uses the player’s best time for the week
+ok 38 - weekly rank uses the player’s best time for the week
+  ---
+  duration_ms: 1.942323
+  type: 'test'
+  ...
+# Subtest: weekly standings reset while past winners and full run remain visible
+ok 39 - weekly standings reset while past winners and full run remain visible
+  ---
+  duration_ms: 6.400528
+  type: 'test'
+  ...
+# Subtest: leaderboard GET rejects an invalid level instead of returning everything
+ok 40 - leaderboard GET rejects an invalid level instead of returning everything
+  ---
+  duration_ms: 0.512319
+  type: 'test'
+  ...
+# Subtest: leaderboard keeps unicode names and records deaths
+ok 41 - leaderboard keeps unicode names and records deaths
+  ---
+  duration_ms: 5.171158
+  type: 'test'
+  ...
+# Subtest: submits survive long pauses between mint and submit
+ok 42 - submits survive long pauses between mint and submit
+  ---
+  duration_ms: 1.833512
+  type: 'test'
+  ...
+# Subtest: run minting throttles runaway clients
+ok 43 - run minting throttles runaway clients
+  ---
+  duration_ms: 60.68751
+  type: 'test'
+  ...
+# Subtest: contra decks form one reachable run with stacked lines
+ok 44 - contra decks form one reachable run with stacked lines
+  ---
+  duration_ms: 28.427297
+  type: 'test'
+  ...
+# Subtest: contra crowns sit on wide reachable pads
+ok 45 - contra crowns sit on wide reachable pads
+  ---
+  duration_ms: 0.377396
+  type: 'test'
+  ...
+# Subtest: contra boarder homes sit over decks, never over gaps
+ok 46 - contra boarder homes sit over decks, never over gaps
+  ---
+  duration_ms: 0.857539
+  type: 'test'
+  ...
+# Subtest: contra checkpoints sit on decks above the kill line
+ok 47 - contra checkpoints sit on decks above the kill line
+  ---
+  duration_ms: 2.823538
+  type: 'test'
+  ...
+# Subtest: contra boarder waves sit at or past their release line
+ok 48 - contra boarder waves sit at or past their release line
+  ---
+  duration_ms: 0.795544
+  type: 'test'
+  ...
+# Subtest: contra levels run full stage length
+ok 49 - contra levels run full stage length
+  ---
+  duration_ms: 0.704052
+  type: 'test'
+  ...
+# Subtest: rescues stand on decks and pods float within jump reach
+ok 50 - rescues stand on decks and pods float within jump reach
+  ---
+  duration_ms: 3.228915
+  type: 'test'
+  ...
+# Subtest: every contra reinforcement gives at least 300px of approach and arrives before the crown
+ok 51 - every contra reinforcement gives at least 300px of approach and arrives before the crown
+  ---
+  duration_ms: 29.020567
+  type: 'test'
+  ...
+# Subtest: crown shield waits for its unreleased guard, not enemies on other routes
+ok 52 - crown shield waits for its unreleased guard, not enemies on other routes
+  ---
+  duration_ms: 2.557073
+  type: 'test'
+  ...
+# Subtest: checkpoint recovery keeps earned kills through repeated resets and wave release
+ok 53 - checkpoint recovery keeps earned kills through repeated resets and wave release
+  ---
+  duration_ms: 0.851895
+  type: 'test'
+  ...
+# Subtest: reinforcements drop below overlapping catwalks into their intended lane
+ok 54 - reinforcements drop below overlapping catwalks into their intended lane
+  ---
+  duration_ms: 0.436128
+  type: 'test'
+  ...
+# Subtest: director uses level encounter triggers instead of the legacy global schedule
+ok 55 - director uses level encounter triggers instead of the legacy global schedule
+  ---
+  duration_ms: 0.59063
+  type: 'test'
+  ...
+# Subtest: every device profile keeps touch targets, fonts, and HUD readable
+ok 56 - every device profile keeps touch targets, fonts, and HUD readable
+  ---
+  duration_ms: 19.303493
+  type: 'test'
+  ...
+# Subtest: laid-out touch buttons never overlap, with or without fire
+ok 57 - laid-out touch buttons never overlap, with or without fire
+  ---
+  duration_ms: 26.110268
+  type: 'test'
+  ...
+# Subtest: safe-area insets shrink the playable layout instead of clipping it
+ok 58 - safe-area insets shrink the playable layout instead of clipping it
+  ---
+  duration_ms: 0.392077
+  type: 'test'
+  ...
+# Subtest: compact and tiny breakpoints classify phones, tablets, and desktops
+ok 59 - compact and tiny breakpoints classify phones, tablets, and desktops
+  ---
+  duration_ms: 3.172199
+  type: 'test'
+  ...
+# Subtest: font fitting never shrinks the timer into illegibility
+ok 60 - font fitting never shrinks the timer into illegibility
+  ---
+  duration_ms: 0.301215
+  type: 'test'
+  ...
+# Subtest: hud layout math is pure and matches the viewport delegate
+ok 61 - hud layout math is pure and matches the viewport delegate
+  ---
+  duration_ms: 0.513009
+  type: 'test'
+  ...
+# Subtest: ui manager without a viewport shares the hud layout math
+ok 62 - ui manager without a viewport shares the hud layout math
+  ---
+  duration_ms: 0.729232
+  type: 'test'
+  ...
+# Subtest: game config scales to any window and keeps desktop + mobile input ready
+ok 63 - game config scales to any window and keeps desktop + mobile input ready
+  ---
+  duration_ms: 1.709229
+  type: 'test'
+  ...
+# Subtest: the game config honors a canvas renderer override for bot runs
+ok 64 - the game config honors a canvas renderer override for bot runs
+  ---
+  duration_ms: 0.909376
+  type: 'test'
+  ...
+# Subtest: multitouch movement survives a second finger and release order
+ok 65 - multitouch movement survives a second finger and release order
+  ---
+  duration_ms: 3.22873
+  type: 'test'
+  ...
+# Subtest: short taps jump, long presses and UI taps do not
+ok 66 - short taps jump, long presses and UI taps do not
+  ---
+  duration_ms: 0.874025
+  type: 'test'
+  ...
+# Subtest: touch movement survives handleInput; bot input only overrides in debug mode
+ok 67 - touch movement survives handleInput; bot input only overrides in debug mode
+  ---
+  duration_ms: 69.038322
+  type: 'test'
+  ...
+# Subtest: pointer tracking dedupes phaser pointer lists
+ok 68 - pointer tracking dedupes phaser pointer lists
+  ---
+  duration_ms: 0.293795
+  type: 'test'
+  ...
+# Subtest: gamepad and touch controllers work standalone and back the facade
+ok 69 - gamepad and touch controllers work standalone and back the facade
+  ---
+  duration_ms: 1.233136
+  type: 'test'
+  ...
+# Subtest: gamepads slow-poll when absent and share one snapshot per frame
+ok 70 - gamepads slow-poll when absent and share one snapshot per frame
+  ---
+  duration_ms: 1.295312
+  type: 'test'
+  ...
+# Subtest: pooled glow particles reset blending when reused for landing dust
+ok 71 - pooled glow particles reset blending when reused for landing dust
+  ---
+  duration_ms: 8.580296
+  type: 'test'
+  ...
+# Subtest: drone body uses source coordinates for scaled generated textures
+ok 72 - drone body uses source coordinates for scaled generated textures
+  ---
+  duration_ms: 12.215288
+  type: 'test'
+  ...
+# Subtest: unscaled canvas drones keep their existing body
+ok 73 - unscaled canvas drones keep their existing body
+  ---
+  duration_ms: 0.314036
+  type: 'test'
+  ...
+# Subtest: bear raider body uses source coordinates at scale 0.05
+ok 74 - bear raider body uses source coordinates at scale 0.05
+  ---
+  duration_ms: 2.510782
+  type: 'test'
+  ...
+# Subtest: simulation advances Date, performance and timers without sleeping
+ok 75 - simulation advances Date, performance and timers without sleeping
+  ---
+  duration_ms: 13.310591
+  type: 'test'
+  ...
+# Subtest: rAF callbacks run once per tick, respect cancellation and reset
+ok 76 - rAF callbacks run once per tick, respect cancellation and reset
+  ---
+  duration_ms: 1.388373
+  type: 'test'
+  ...
+# Subtest: timer callbacks can cancel other callbacks in the same tick
+ok 77 - timer callbacks can cancel other callbacks in the same tick
+  ---
+  duration_ms: 0.432497
+  type: 'test'
+  ...
+# Subtest: browser features and inference retain the Node training contract
+ok 78 - browser features and inference retain the Node training contract
+  ---
+  duration_ms: 398.953476
+  type: 'test'
+  ...
+# Subtest: fear spike: route graph connects spawn to crown
+ok 79 - fear spike: route graph connects spawn to crown
+  ---
+  duration_ms: 9.870018
+  type: 'test'
+  ...
+# Subtest: fear spike: three deck reads, ordered checkpoints, themed hazards
+ok 80 - fear spike: three deck reads, ordered checkpoints, themed hazards
+  ---
+  duration_ms: 0.734383
+  type: 'test'
+  ...
+# Subtest: fear spike: registered everywhere it must be
+ok 81 - fear spike: registered everywhere it must be
+  ---
+  duration_ms: 48.546064
+  type: 'test'
+  ...
+# Subtest: all active JavaScript files pass the JavaScript parser
+ok 82 - all active JavaScript files pass the JavaScript parser
+  ---
+  duration_ms: 485.250541
+  type: 'test'
+  ...
+# Subtest: news levels are marked and listed for the title screen
+ok 83 - news levels are marked and listed for the title screen
+  ---
+  duration_ms: 13.085092
+  type: 'test'
+  ...
+# Subtest: news menu switches to two columns when rows overflow portrait
+ok 84 - news menu switches to two columns when rows overflow portrait
+  ---
+  duration_ms: 4.227041
+  type: 'test'
+  ...
+# Subtest: news rows label the level and outlet
+ok 85 - news rows label the level and outlet
+  ---
+  duration_ms: 0.203593
+  type: 'test'
+  ...
+# Subtest: title news rows start their level without unlocks
+ok 86 - title news rows start their level without unlocks
+  ---
+  duration_ms: 26.032872
+  type: 'test'
+  ...
+# Subtest: news level completion does not unlock campaign levels
+ok 87 - news level completion does not unlock campaign levels
+  ---
+  duration_ms: 1.898763
+  type: 'test'
+  ...
+# Subtest: level configuration exposes every playable level
+ok 88 - level configuration exposes every playable level
+  ---
+  duration_ms: 1.966753
+  type: 'test'
+  ...
+# Subtest: a falling chicken bonks only the top of a bonkable enemy
+ok 89 - a falling chicken bonks only the top of a bonkable enemy
+  ---
+  duration_ms: 0.750953
+  type: 'test'
+  ...
+# Subtest: elapsed times use one stable display format
+ok 90 - elapsed times use one stable display format
+  ---
+  duration_ms: 0.559609
+  type: 'test'
+  ...
+# Subtest: releasing jump cuts the rise but never a bonk boost
+ok 91 - releasing jump cuts the rise but never a bonk boost
+  ---
+  duration_ms: 0.668062
+  type: 'test'
+  ...
+# Subtest: jump styles normalize to max or fine control
+ok 92 - jump styles normalize to max or fine control
+  ---
+  duration_ms: 0.227574
+  type: 'test'
+  ...
+# Subtest: max jump is the default and skips the cut
+ok 93 - max jump is the default and skips the cut
+  ---
+  duration_ms: 0.280645
+  type: 'test'
+  ...
+# Subtest: jump style persists and toggles from the title screen
+ok 94 - jump style persists and toggles from the title screen
+  ---
+  duration_ms: 0.297225
+  type: 'test'
+  ...
+# Subtest: title menu up toggles jump style while down opens race setup
+ok 95 - title menu up toggles jump style while down opens race setup
+  ---
+  duration_ms: 0.318586
+  type: 'test'
+  ...
+# Subtest: the jump toggle names the current style
+ok 96 - the jump toggle names the current style
+  ---
+  duration_ms: 0.344216
+  type: 'test'
+  ...
+# Subtest: difficulties normalize to normal or hard
+ok 97 - difficulties normalize to normal or hard
+  ---
+  duration_ms: 0.192083
+  type: 'test'
+  ...
+# Subtest: normal is the default difficulty and persists the toggle
+ok 98 - normal is the default difficulty and persists the toggle
+  ---
+  duration_ms: 0.272684
+  type: 'test'
+  ...
+# Subtest: hard mode remixes hazard configs without touching level data
+ok 99 - hard mode remixes hazard configs without touching level data
+  ---
+  duration_ms: 0.316205
+  type: 'test'
+  ...
+# Subtest: hard mode quickens bombs without touching level data
+ok 100 - hard mode quickens bombs without touching level data
+  ---
+  duration_ms: 0.229634
+  type: 'test'
+  ...
+# Subtest: boarders run faster on hard and normally otherwise
+ok 101 - boarders run faster on hard and normally otherwise
+  ---
+  duration_ms: 0.461288
+  type: 'test'
+  ...
+# Subtest: boss summons drop the chase past the arena leash
+ok 102 - boss summons drop the chase past the arena leash
+  ---
+  duration_ms: 0.249425
+  type: 'test'
+  ...
+# Subtest: idle boarders patrol around home instead of standing still
+ok 103 - idle boarders patrol around home instead of standing still
+  ---
+  duration_ms: 0.635571
+  type: 'test'
+  ...
+# Subtest: the patrol anchor sweeps both sides of home
+ok 104 - the patrol anchor sweeps both sides of home
+  ---
+  duration_ms: 0.203273
+  type: 'test'
+  ...
+# Subtest: boarders join a nearby pack-mate fight and drop it when the latch fades
+ok 105 - boarders join a nearby pack-mate fight and drop it when the latch fades
+  ---
+  duration_ms: 0.331006
+  type: 'test'
+  ...
+# Subtest: trailing boarders slow instead of freezing mid-chase
+ok 106 - trailing boarders slow instead of freezing mid-chase
+  ---
+  duration_ms: 0.321945
+  type: 'test'
+  ...
+# Subtest: hard mode widens boarder aggro as well as speed
+ok 107 - hard mode widens boarder aggro as well as speed
+  ---
+  duration_ms: 0.326375
+  type: 'test'
+  ...
+# Subtest: hard mode mults stay hard: short safe windows, faster hunters
+ok 108 - hard mode mults stay hard: short safe windows, faster hunters
+  ---
+  duration_ms: 0.362536
+  type: 'test'
+  ...
+# Subtest: hard mode halves the post-death boarder grace
+ok 109 - hard mode halves the post-death boarder grace
+  ---
+  duration_ms: 0.203733
+  type: 'test'
+  ...
+# Subtest: rescue cages carry a floating rescue-me callout
+ok 110 - rescue cages carry a floating rescue-me callout
+  ---
+  duration_ms: 0.656261
+  type: 'test'
+  ...
+# Subtest: collecting a rescue dismisses its callout
+ok 111 - collecting a rescue dismisses its callout
+  ---
+  duration_ms: 0.265395
+  type: 'test'
+  ...
+# Subtest: K jumps the P1 chicken like Space
+ok 112 - K jumps the P1 chicken like Space
+  ---
+  duration_ms: 0.234374
+  type: 'test'
+  ...
+# Subtest: the K key polls as a jump press and release
+ok 113 - the K key polls as a jump press and release
+  ---
+  duration_ms: 1.19907
+  type: 'test'
+  ...
+# Subtest: hard mode marks the hud level text and level banner
+ok 114 - hard mode marks the hud level text and level banner
+  ---
+  duration_ms: 0.526279
+  type: 'test'
+  ...
+# Subtest: title menu back toggles difficulty
+ok 115 - title menu back toggles difficulty
+  ---
+  duration_ms: 0.348246
+  type: 'test'
+  ...
+# Subtest: the difficulty toggle names the current mode
+ok 116 - the difficulty toggle names the current mode
+  ---
+  duration_ms: 0.772393
+  type: 'test'
+  ...
+# Subtest: checkpoints advance on grounded crossings and never downgrade
+ok 117 - checkpoints advance on grounded crossings and never downgrade
+  ---
+  duration_ms: 0.451168
+  type: 'test'
+  ...
+# Subtest: long contra levels expose four ordered checkpoints
+ok 118 - long contra levels expose four ordered checkpoints
+  ---
+  duration_ms: 0.260084
+  type: 'test'
+  ...
+# Subtest: leaderboards keep level 4 separate and reject corrupt times
+ok 119 - leaderboards keep level 4 separate and reject corrupt times
+  ---
+  duration_ms: 1.590777
+  type: 'test'
+  ...
+# Subtest: full runs submit with deaths and old entries still read
+ok 120 - full runs submit with deaths and old entries still read
+  ---
+  duration_ms: 0.414517
+  type: 'test'
+  ...
+# Subtest: level unlocks persist, clamp, and survive corrupt storage
+ok 121 - level unlocks persist, clamp, and survive corrupt storage
+  ---
+  duration_ms: 0.239554
+  type: 'test'
+  ...
+# Subtest: title selection cycles within unlocked levels and starts them
+ok 122 - title selection cycles within unlocked levels and starts them
+  ---
+  duration_ms: 0.500708
+  type: 'test'
+  ...
+# Subtest: chevron taps cycle instead of starting
+ok 123 - chevron taps cycle instead of starting
+  ---
+  duration_ms: 0.485133
+  type: 'test'
+  ...
+# Subtest: remote leaderboard requests include all configured levels
+ok 124 - remote leaderboard requests include all configured levels
+  ---
+  duration_ms: 0.361716
+  type: 'test'
+  ...
+# Subtest: hard mode reads and writes its own leaderboards
+ok 125 - hard mode reads and writes its own leaderboards
+  ---
+  duration_ms: 0.724832
+  type: 'test'
+  ...
+# Subtest: all levels have distinct, layered music arrangements
+ok 126 - all levels have distinct, layered music arrangements
+  ---
+  duration_ms: 0.536404
+  type: 'test'
+  ...
+# Subtest: audio scheduling routes melodic and percussion events
+ok 127 - audio scheduling routes melodic and percussion events
+  ---
+  duration_ms: 0.525618
+  type: 'test'
+  ...
+# Subtest: sound effects use distinct layered voices
+ok 128 - sound effects use distinct layered voices
+  ---
+  duration_ms: 1.113009
+  type: 'test'
+  ...
+# Subtest: deaths use a different stinger for a fall, a laser, and an alien
+ok 129 - deaths use a different stinger for a fall, a laser, and an alien
+  ---
+  duration_ms: 0.272965
+  type: 'test'
+  ...
+# Subtest: bonk hit-stop is left out of the speedrun clock
+ok 130 - bonk hit-stop is left out of the speedrun clock
+  ---
+  duration_ms: 0.264345
+  type: 'test'
+  ...
+# Subtest: coach lines show once for the phaser and a gold cap
+ok 131 - coach lines show once for the phaser and a gold cap
+  ---
+  duration_ms: 0.383247
+  type: 'test'
+  ...
+# Subtest: vertical laser visuals and hitboxes have the same orientation
+ok 132 - vertical laser visuals and hitboxes have the same orientation
+  ---
+  duration_ms: 0.470848
+  type: 'test'
+  ...
+# Subtest: simultaneous input sources consume only one jump
+ok 133 - simultaneous input sources consume only one jump
+  ---
+  duration_ms: 0.653862
+  type: 'test'
+  ...
+# Subtest: a held bot jump is edge-triggered like human input
+ok 134 - a held bot jump is edge-triggered like human input
+  ---
+  duration_ms: 0.57441
+  type: 'test'
+  ...
+# Subtest: bot input is ignored outside debug mode
+ok 135 - bot input is ignored outside debug mode
+  ---
+  duration_ms: 0.172523
+  type: 'test'
+  ...
+# Subtest: run token URL targets the run API route
+ok 136 - run token URL targets the run API route
+  ---
+  duration_ms: 0.242114
+  type: 'test'
+  ...
+# Subtest: competition boards are cached per mode and refreshed after submit
+ok 137 - competition boards are cached per mode and refreshed after submit
+  ---
+  duration_ms: 0.518809
+  type: 'test'
+  ...
+# Subtest: name prompt triggers once on first personal best
+ok 138 - name prompt triggers once on first personal best
+  ---
+  duration_ms: 0.240324
+  type: 'test'
+  ...
+# Subtest: bot debug APIs are only exposed in debug mode
+ok 139 - bot debug APIs are only exposed in debug mode
+  ---
+  duration_ms: 0.249335
+  type: 'test'
+  ...
+# Subtest: debug teleport repositions the player for warm starts only in debug mode
+ok 140 - debug teleport repositions the player for warm starts only in debug mode
+  ---
+  duration_ms: 0.305245
+  type: 'test'
+  ...
+# Subtest: the opening scene waits for a title start on a fresh run only
+ok 141 - the opening scene waits for a title start on a fresh run only
+  ---
+  duration_ms: 0.453268
+  type: 'test'
+  ...
+# Subtest: the chicken faces the direction it is moving
+ok 142 - the chicken faces the direction it is moving
+  ---
+  duration_ms: 0.254204
+  type: 'test'
+  ...
+# Subtest: baked backgrounds reuse generated parallax textures instead of redrawing
+ok 143 - baked backgrounds reuse generated parallax textures instead of redrawing
+  ---
+  duration_ms: 1.022317
+  type: 'test'
+  ...
+# Subtest: wide worlds bake a smaller background texture and stretch it
+ok 144 - wide worlds bake a smaller background texture and stretch it
+  ---
+  duration_ms: 0.719362
+  type: 'test'
+  ...
+# Subtest: progressive backgrounds place cached layers now and bake the rest later
+ok 145 - progressive backgrounds place cached layers now and bake the rest later
+  ---
+  duration_ms: 0.734562
+  type: 'test'
+  ...
+# Subtest: zoomed cameras extend parallax layers past the right edge of the screen
+ok 146 - zoomed cameras extend parallax layers past the right edge of the screen
+  ---
+  duration_ms: 0.197573
+  type: 'test'
+  ...
+# Subtest: parallax layers are narrower than the world so the full backdrop scrolls into view
+ok 147 - parallax layers are narrower than the world so the full backdrop scrolls into view
+  ---
+  duration_ms: 0.471108
+  type: 'test'
+  ...
+# Subtest: timer redraws at most 20 times per second and resets immediately
+ok 148 - timer redraws at most 20 times per second and resets immediately
+  ---
+  duration_ms: 0.245875
+  type: 'test'
+  ...
+# Subtest: effects burst particles and squash the player with a yoyo scale tween
+ok 149 - effects burst particles and squash the player with a yoyo scale tween
+  ---
+  duration_ms: 0.701562
+  type: 'test'
+  ...
+# Subtest: effects recycle particle sprites instead of destroying them
+ok 150 - effects recycle particle sprites instead of destroying them
+  ---
+  duration_ms: 0.320615
+  type: 'test'
+  ...
+# Subtest: a one-frame ground flicker does not emit landing dust
+ok 151 - a one-frame ground flicker does not emit landing dust
+  ---
+  duration_ms: 0.249604
+  type: 'test'
+  ...
+# Subtest: dying respawns in place without rebuilding the scene
+ok 152 - dying respawns in place without rebuilding the scene
+  ---
+  duration_ms: 1.440395
+  type: 'test'
+  ...
+# Subtest: floor tiles share one collider per contiguous run
+ok 153 - floor tiles share one collider per contiguous run
+  ---
+  duration_ms: 0.481528
+  type: 'test'
+  ...
+# Subtest: hazards cannot kill the chicken during the title screen
+ok 154 - hazards cannot kill the chicken during the title screen
+  ---
+  duration_ms: 0.183573
+  type: 'test'
+  ...
+# Subtest: title start consumes the first press without jumping
+ok 155 - title start consumes the first press without jumping
+  ---
+  duration_ms: 0.435917
+  type: 'test'
+  ...
+# Subtest: scene cleanup is idempotent and removes both lifecycle listeners
+ok 156 - scene cleanup is idempotent and removes both lifecycle listeners
+  ---
+  duration_ms: 0.697971
+  type: 'test'
+  ...
+# Subtest: the development server serves only game assets
+ok 157 - the development server serves only game assets
+  ---
+  duration_ms: 36.821635
+  type: 'test'
+  ...
+# Subtest: the Cloudflare build contains only deployable runtime assets
+ok 158 - the Cloudflare build contains only deployable runtime assets
+  ---
+  duration_ms: 42.38805
+  type: 'test'
+  ...
+# Subtest: viewport metrics shrink HUD and keep large controls on phones and tablets
+ok 159 - viewport metrics shrink HUD and keep large controls on phones and tablets
+  ---
+  duration_ms: 0.610481
+  type: 'test'
+  ...
+# Subtest: touch arrow buttons move the chicken and do not steal the jump pointer
+ok 160 - touch arrow buttons move the chicken and do not steal the jump pointer
+  ---
+  duration_ms: 0.497779
+  type: 'test'
+  ...
+# Subtest: releasing the touch jump button reports jumpReleased for the jump cut
+ok 161 - releasing the touch jump button reports jumpReleased for the jump cut
+  ---
+  duration_ms: 0.457728
+  type: 'test'
+  ...
+# Subtest: standard gamepad maps stick, d-pad, and jump edges
+ok 162 - standard gamepad maps stick, d-pad, and jump edges
+  ---
+  duration_ms: 0.612561
+  type: 'test'
+  ...
+# Subtest: Phaser manager retains movement while a second finger jumps
+ok 163 - Phaser manager retains movement while a second finger jumps
+  ---
+  duration_ms: 0.294765
+  type: 'test'
+  ...
+# Subtest: touch controls sit in the bottom corners on a phone-sized viewport
+ok 164 - touch controls sit in the bottom corners on a phone-sized viewport
+  ---
+  duration_ms: 0.506129
+  type: 'test'
+  ...
+# Subtest: fire sits left of jump on the same row with switch above
+ok 165 - fire sits left of jump on the same row with switch above
+  ---
+  duration_ms: 0.346786
+  type: 'test'
+  ...
+# Subtest: sliding between fire and jump holds both like an NES roll
+ok 166 - sliding between fire and jump holds both like an NES roll
+  ---
+  duration_ms: 0.515798
+  type: 'test'
+  ...
+# Subtest: resizing a touch session stores the viewport and offsets the camera
+ok 167 - resizing a touch session stores the viewport and offsets the camera
+  ---
+  duration_ms: 0.334275
+  type: 'test'
+  ...
+# Subtest: split panes sit side by side on a wide screen and stack on a tall one
+ok 168 - split panes sit side by side on a wide screen and stack on a tall one
+  ---
+  duration_ms: 0.290245
+  type: 'test'
+  ...
+# Subtest: the first chicken to the crown wins and the other is lined up for the bomb
+ok 169 - the first chicken to the crown wins and the other is lined up for the bomb
+  ---
+  duration_ms: 0.62892
+  type: 'test'
+  ...
+# Subtest: UI objects are removed from the world camera after being marked
+ok 170 - UI objects are removed from the world camera after being marked
+  ---
+  duration_ms: 0.284234
+  type: 'test'
+  ...
+# Subtest: instructions stay hidden until the level banner has finished
+ok 171 - instructions stay hidden until the level banner has finished
+  ---
+  duration_ms: 0.328825
+  type: 'test'
+  ...
+# Subtest: touch instructions describe the on-screen arrow controls
+ok 172 - touch instructions describe the on-screen arrow controls
+  ---
+  duration_ms: 0.300405
+  type: 'test'
+  ...
+# Subtest: the Jev playtest keeps the API key in Node and walks toward the crown
+ok 173 - the Jev playtest keeps the API key in Node and walks toward the crown
+  ---
+  duration_ms: 164.104965
+  type: 'test'
+  ...
+# Subtest: the Jev fallback fires at a level boarder instead of walking into it
+ok 174 - the Jev fallback fires at a level boarder instead of walking into it
+  ---
+  duration_ms: 0.222444
+  type: 'test'
+  ...
+# Subtest: the Jev fallback hunts pad guards off-lane when the crown is shielded
+ok 175 - the Jev fallback hunts pad guards off-lane when the crown is shielded
+  ---
+  duration_ms: 0.248074
+  type: 'test'
+  ...
+# Subtest: the Jev fallback spends an air jump instead of drifting past landings
+ok 176 - the Jev fallback spends an air jump instead of drifting past landings
+  ---
+  duration_ms: 0.167173
+  type: 'test'
+  ...
+# Subtest: the Jev overhead grab jumps for crowns straight above
+ok 177 - the Jev overhead grab jumps for crowns straight above
+  ---
+  duration_ms: 0.282125
+  type: 'test'
+  ...
+# Subtest: the Jev validation offsets seeds per run and summarizes them
+ok 178 - the Jev validation offsets seeds per run and summarizes them
+  ---
+  duration_ms: 0.315585
+  type: 'test'
+  ...
+# Subtest: colony guns unlock by level and cycle past the phaser
+ok 179 - colony guns unlock by level and cycle past the phaser
+  ---
+  duration_ms: 0.268984
+  type: 'test'
+  ...
+# Subtest: rescue bonus and temp-gun helpers follow the arcade rules
+ok 180 - rescue bonus and temp-gun helpers follow the arcade rules
+  ---
+  duration_ms: 0.214204
+  type: 'test'
+  ...
+# Subtest: contra levels expose rescues, pods, and no branch by default
+ok 181 - contra levels expose rescues, pods, and no branch by default
+  ---
+  duration_ms: 0.138083
+  type: 'test'
+  ...
+# Subtest: branch offers keep key 2 for the vault instead of coop
+ok 182 - branch offers keep key 2 for the vault instead of coop
+  ---
+  duration_ms: 0.269234
+  type: 'test'
+  ...
+# Subtest: iron vault branch leaves the womb and rejoins the foundry
+ok 183 - iron vault branch leaves the womb and rejoins the foundry
+  ---
+  duration_ms: 0.232664
+  type: 'test'
+  ...
+# Subtest: tempest fans five bolts and hail pierces through one fire path
+ok 184 - tempest fans five bolts and hail pierces through one fire path
+  ---
+  duration_ms: 0.923525
+  type: 'test'
+  ...
+# Subtest: scatter fires a three-bolt volley through the single fire path
+ok 185 - scatter fires a three-bolt volley through the single fire path
+  ---
+  duration_ms: 0.426947
+  type: 'test'
+  ...
+# Subtest: piercer bolts pass through boarders until range recycles them
+ok 186 - piercer bolts pass through boarders until range recycles them
+  ---
+  duration_ms: 0.224054
+  type: 'test'
+  ...
+# Subtest: switching cycles one gun per press and names it in the HUD
+ok 187 - switching cycles one gun per press and names it in the HUD
+  ---
+  duration_ms: 0.295165
+  type: 'test'
+  ...
+# Subtest: the colony crown shield gates the clear on dead boarders
+ok 188 - the colony crown shield gates the clear on dead boarders
+  ---
+  duration_ms: 0.521738
+  type: 'test'
+  ...
+# Subtest: boarder wave banners only fire when aliens actually drop in
+ok 189 - boarder wave banners only fire when aliens actually drop in
+  ---
+  duration_ms: 0.366116
+  type: 'test'
+  ...
+# Subtest: boarder updates reuse their target and ally scratch lists
+ok 190 - boarder updates reuse their target and ally scratch lists
+  ---
+  duration_ms: 0.379407
+  type: 'test'
+  ...
+# Subtest: keyboard race is blocked only on coarse-only devices
+ok 191 - keyboard race is blocked only on coarse-only devices
+  ---
+  duration_ms: 0.216514
+  type: 'test'
+  ...
+# Subtest: overlay cleanup destroys an open branch choice
+ok 192 - overlay cleanup destroys an open branch choice
+  ---
+  duration_ms: 0.680641
+  type: 'test'
+  ...
+# Subtest: combat updates never drive the boarder director
+ok 193 - combat updates never drive the boarder director
+  ---
+  duration_ms: 0.256094
+  type: 'test'
+  ...
+# Subtest: the test interface fire action holds the phaser trigger
+ok 194 - the test interface fire action holds the phaser trigger
+  ---
+  duration_ms: 0.243974
+  type: 'test'
+  ...
+# Subtest: the play-bot ships a self-contained in-page pilot
+ok 195 - the play-bot ships a self-contained in-page pilot
+  ---
+  duration_ms: 1.595967
+  type: 'test'
+  ...
+# Subtest: the game test interface exposes compact observations and game-rule objectives
+ok 196 - the game test interface exposes compact observations and game-rule objectives
+  ---
+  duration_ms: 1.471645
+  type: 'test'
+  ...
+# Subtest: stomp hints and facing-aware fallback read the combat context
+ok 197 - stomp hints and facing-aware fallback read the combat context
+  ---
+  duration_ms: 0.425928
+  type: 'test'
+  ...
+# Subtest: bot snapshot distinguishes death from collecting the crown
+ok 198 - bot snapshot distinguishes death from collecting the crown
+  ---
+  duration_ms: 0.818304
+  type: 'test'
+  ...
+# Subtest: the game page opts into a mobile visual viewport
+ok 199 - the game page opts into a mobile visual viewport
+  ---
+  duration_ms: 0.191894
+  type: 'test'
+  ...
+# Subtest: the pause dialog names the current jump keys
+ok 200 - the pause dialog names the current jump keys
+  ---
+  duration_ms: 0.099262
+  type: 'test'
+  ...
+# Subtest: the Jev pilot fallback runs the shared brain and maps its input
+ok 201 - the Jev pilot fallback runs the shared brain and maps its input
+  ---
+  duration_ms: 1.999614
+  type: 'test'
+  ...
+# Subtest: hubble rescue: reachable decks, safe checkpoints, crown in range
+ok 202 - hubble rescue: reachable decks, safe checkpoints, crown in range
+  ---
+  duration_ms: 8.853215
+  type: 'test'
+  ...
+# Leaderboard request failed: Error: boom
+#     at Object.prepare (/home/adam/GameDevelopment/spacechicken/tests/leaderboard-api.test.cjs:184:19)
+#     at file:///home/adam/GameDevelopment/spacechicken/functions/api/leaderboard.js:68:34
+#     at Array.map (<anonymous>)
+#     at handleGet (file:///home/adam/GameDevelopment/spacechicken/functions/api/leaderboard.js:68:14)
+#     at handleRequest (file:///home/adam/GameDevelopment/spacechicken/functions/api/leaderboard.js:28:16)
+#     at onRequest (file:///home/adam/GameDevelopment/spacechicken/functions/api/leaderboard.js:13:22)
+#     at TestContext.<anonymous> (/home/adam/GameDevelopment/spacechicken/tests/leaderboard-api.test.cjs:190:28)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+# Subtest: leaderboard api ranks every campaign level including 8-16
+ok 203 - leaderboard api ranks every campaign level including 8-16
+  ---
+  duration_ms: 72.15022
+  type: 'test'
+  ...
+# Subtest: leaderboard api binds run tokens to their mode
+ok 204 - leaderboard api binds run tokens to their mode
+  ---
+  duration_ms: 2.334919
+  type: 'test'
+  ...
+# Subtest: leaderboard api lists all campaign levels
+ok 205 - leaderboard api lists all campaign levels
+  ---
+  duration_ms: 3.479425
+  type: 'test'
+  ...
+# Subtest: run api mints tokens for every campaign level
+ok 206 - run api mints tokens for every campaign level
+  ---
+  duration_ms: 2.840058
+  type: 'test'
+  ...
+# Subtest: run api handles preflight and names invalid requests
+ok 207 - run api handles preflight and names invalid requests
+  ---
+  duration_ms: 1.370383
+  type: 'test'
+  ...
+# Subtest: leaderboard api returns a JSON error when the database fails
+ok 208 - leaderboard api returns a JSON error when the database fails
+  ---
+  duration_ms: 6.192845
+  type: 'test'
+  ...
+# Subtest: rankBoardRows sorts fastest-first with gaps and medals
+ok 209 - rankBoardRows sorts fastest-first with gaps and medals
+  ---
+  duration_ms: 27.022094
+  type: 'test'
+  ...
+# Subtest: tagPlayerRows matches name and time together
+ok 210 - tagPlayerRows matches name and time together
+  ---
+  duration_ms: 0.597761
+  type: 'test'
+  ...
+# Subtest: insertionRank shares ties and handles no best
+ok 211 - insertionRank shares ties and handles no best
+  ---
+  duration_ms: 0.450648
+  type: 'test'
+  ...
+# Subtest: callouts celebrate crowns and chase the lead
+ok 212 - callouts celebrate crowns and chase the lead
+  ---
+  duration_ms: 1.372963
+  type: 'test'
+  ...
+# Subtest: plain-text fallback keeps section order and row format
+ok 213 - plain-text fallback keeps section order and row format
+  ---
+  duration_ms: 0.818174
+  type: 'test'
+  ...
+# Subtest: B and the arrows drive the leaderboard menu on keyboard
+ok 214 - B and the arrows drive the leaderboard menu on keyboard
+  ---
+  duration_ms: 2.98548
+  type: 'test'
+  ...
+# Subtest: identical skeletons score as clones, divergent kits do not
+ok 215 - identical skeletons score as clones, divergent kits do not
+  ---
+  duration_ms: 359.038189
+  type: 'test'
+  ...
+# Subtest: flat single-key deck rows raise the flat-deck flag
+ok 216 - flat single-key deck rows raise the flat-deck flag
+  ---
+  duration_ms: 0.822064
+  type: 'test'
+  ...
+# Subtest: news brief parsing extracts the table and inventory
+ok 217 - news brief parsing extracts the table and inventory
+  ---
+  duration_ms: 1.402444
+  type: 'test'
+  ...
+# Subtest: news brief parsing ignores later tables and themed-enemy trailer
+ok 218 - news brief parsing ignores later tables and themed-enemy trailer
+  ---
+  duration_ms: 1.597427
+  type: 'test'
+  ...
+# Subtest: news brief parsing strips trailing periods from elements
+ok 219 - news brief parsing strips trailing periods from elements
+  ---
+  duration_ms: 0.60748
+  type: 'test'
+  ...
+# Subtest: fidelity gate honors exact human confirmations
+ok 220 - fidelity gate honors exact human confirmations
+  ---
+  duration_ms: 0.477338
+  type: 'test'
+  ...
+# Subtest: pilot budget scales with level size
+ok 221 - pilot budget scales with level size
+  ---
+  duration_ms: 0.274804
+  type: 'test'
+  ...
+# Subtest: fidelity code checks require claims in level data, not titles
+ok 222 - fidelity code checks require claims in level data, not titles
+  ---
+  duration_ms: 0.502919
+  type: 'test'
+  ...
+# Subtest: fidelity gate needs three shown elements and clean rows
+ok 223 - fidelity gate needs three shown elements and clean rows
+  ---
+  duration_ms: 0.486959
+  type: 'test'
+  ...
+# Subtest: quality gate refuses unsent screenshots and clone flaws
+ok 224 - quality gate refuses unsent screenshots and clone flaws
+  ---
+  duration_ms: 0.789463
+  type: 'test'
+  ...
+# Subtest: news brief parsing extracts signature elements and facts
+ok 225 - news brief parsing extracts signature elements and facts
+  ---
+  duration_ms: 0.454858
+  type: 'test'
+  ...
+# Subtest: fidelity gate protects signature elements and blocks unconfirmed needs-human
+ok 226 - fidelity gate protects signature elements and blocks unconfirmed needs-human
+  ---
+  duration_ms: 0.522559
+  type: 'test'
+  ...
+# Subtest: fidelity gate blocks a failed Space Chicken universe check
+ok 227 - fidelity gate blocks a failed Space Chicken universe check
+  ---
+  duration_ms: 0.290775
+  type: 'test'
+  ...
+# Subtest: news quality floors are stricter than campaign floors
+ok 228 - news quality floors are stricter than campaign floors
+  ---
+  duration_ms: 0.479998
+  type: 'test'
+  ...
+# Subtest: planBeats shoots hazards and set pieces from level data, finale last
+ok 229 - planBeats shoots hazards and set pieces from level data, finale last
+  ---
+  duration_ms: 1.338372
+  type: 'test'
+  ...
+# Subtest: planBeats never slices the finale off a full sheet
+ok 230 - planBeats never slices the finale off a full sheet
+  ---
+  duration_ms: 0.382456
+  type: 'test'
+  ...
+# Subtest: concept gate requires the three artefacts, rows, inventory, and themed enemy
+ok 231 - concept gate requires the three artefacts, rows, inventory, and themed enemy
+  ---
+  duration_ms: 0.474168
+  type: 'test'
+  ...
+# Subtest: fix contract ranks structural flaws first with owner and recheck
+ok 232 - fix contract ranks structural flaws first with owner and recheck
+  ---
+  duration_ms: 6.315883
+  type: 'test'
+  ...
+# Subtest: loop state increments only after an unpassed run
+ok 233 - loop state increments only after an unpassed run
+  ---
+  duration_ms: 0.342945
+  type: 'test'
+  ...
+# Subtest: report renders signature marks, static fidelity, and the fix contract
+ok 234 - report renders signature marks, static fidelity, and the fix contract
+  ---
+  duration_ms: 0.671101
+  type: 'test'
+  ...
+# Subtest: panel shot selection keeps opener and finale within the request cap
+ok 235 - panel shot selection keeps opener and finale within the request cap
+  ---
+  duration_ms: 0.338885
+  type: 'test'
+  ...
+# Subtest: unmatched human confirmations are reported for warning
+ok 236 - unmatched human confirmations are reported for warning
+  ---
+  duration_ms: 0.359146
+  type: 'test'
+  ...
+# Subtest: structural flaws are all real flaw enum options
+ok 237 - structural flaws are all real flaw enum options
+  ---
+  duration_ms: 0.242664
+  type: 'test'
+  ...
+# Subtest: copied deck x-lists rhyme even under new paints
+ok 238 - copied deck x-lists rhyme even under new paints
+  ---
+  duration_ms: 0.487839
+  type: 'test'
+  ...
+# Subtest: finale pressure must be visible in a frozen still
+ok 239 - finale pressure must be visible in a frozen still
+  ---
+  duration_ms: 0.461748
+  type: 'test'
+  ...
+# Subtest: news status comes from the content marker, not brief availability
+ok 240 - news status comes from the content marker, not brief availability
+  ---
+  duration_ms: 0.280265
+  type: 'test'
+  ...
+# Subtest: news novelty floor separates clones from genuine departures
+ok 241 - news novelty floor separates clones from genuine departures
+  ---
+  duration_ms: 0.325536
+  type: 'test'
+  ...
+# Subtest: checkpoints clear every boarder home by 150px
+ok 242 - checkpoints clear every boarder home by 150px
+  ---
+  duration_ms: 26.903177
+  type: 'test'
+  ...
+# Subtest: checkpoints never sit under a drone or dust devil lane
+ok 243 - checkpoints never sit under a drone or dust devil lane
+  ---
+  duration_ms: 0.643801
+  type: 'test'
+  ...
+# Subtest: contra finales stand within reach of the last checkpoint
+ok 244 - contra finales stand within reach of the last checkpoint
+  ---
+  duration_ms: 0.293335
+  type: 'test'
+  ...
+# Subtest: review checkpoints cover the specimen gauntlet and clear the drone band
+ok 245 - review checkpoints cover the specimen gauntlet and clear the drone band
+  ---
+  duration_ms: 0.451207
+  type: 'test'
+  ...
+# Subtest: props clear crusher slam footprints
+ok 246 - props clear crusher slam footprints
+  ---
+  duration_ms: 0.730943
+  type: 'test'
+  ...
+# Subtest: drones clear the lift exits by sprite
+ok 247 - drones clear the lift exits by sprite
+  ---
+  duration_ms: 0.836915
+  type: 'test'
+  ...
+# Subtest: moonfall rays ramp pressure along the run
+ok 248 - moonfall rays ramp pressure along the run
+  ---
+  duration_ms: 30.396266
+  type: 'test'
+  ...
+# Subtest: moonfall drones clear the lift exits
+ok 249 - moonfall drones clear the lift exits
+  ---
+  duration_ms: 0.668041
+  type: 'test'
+  ...
+# Subtest: moonfall rovers stop before their rocks and rocks rest on decks
+ok 250 - moonfall rovers stop before their rocks and rocks rest on decks
+  ---
+  duration_ms: 0.58314
+  type: 'test'
+  ...
+# Subtest: specimen wing gates its finale and dots the back third
+ok 251 - specimen wing gates its finale and dots the back third
+  ---
+  duration_ms: 0.452498
+  type: 'test'
+  ...
+# Subtest: red reach plants its crown, laser, and deck-3 actors
+ok 252 - red reach plants its crown, laser, and deck-3 actors
+  ---
+  duration_ms: 0.642531
+  type: 'test'
+  ...
+# Subtest: earthwatch checkpoints its combat tutorial and tests the back half
+ok 253 - earthwatch checkpoints its combat tutorial and tests the back half
+  ---
+  duration_ms: 0.939206
+  type: 'test'
+  ...
+# Subtest: parses headline and URL from a Story line
+ok 254 - parses headline and URL from a Story line
+  ---
+  duration_ms: 9.560323
+  type: 'test'
+  ...
+# Subtest: returns null headline when no Story line is present
+ok 255 - returns null headline when no Story line is present
+  ---
+  duration_ms: 1.708248
+  type: 'test'
+  ...
+# Subtest: dedupes URLs including trailing punctuation and slash variants
+ok 256 - dedupes URLs including trailing punctuation and slash variants
+  ---
+  duration_ms: 0.54382
+  type: 'test'
+  ...
+# Subtest: isUsed matches headlines case-insensitively and URLs exactly
+ok 257 - isUsed matches headlines case-insensitively and URLs exactly
+  ---
+  duration_ms: 0.723023
+  type: 'test'
+  ...
+# Subtest: collectUsedStories reads a directory sorted by file
+ok 258 - collectUsedStories reads a directory sorted by file
+  ---
+  duration_ms: 2.862868
+  type: 'test'
+  ...
+# Subtest: filters localhost and level URLs out of used-story output
+ok 259 - filters localhost and level URLs out of used-story output
+  ---
+  duration_ms: 0.496978
+  type: 'test'
+  ...
+# Subtest: CLI --check prints USED with exit 0 and NEW with exit 3
+ok 260 - CLI --check prints USED with exit 0 and NEW with exit 3
+  ---
+  duration_ms: 247.826066
+  type: 'test'
+  ...
+# Subtest: frame summaries expose the percentiles and stall counts budgets need
+ok 261 - frame summaries expose the percentiles and stall counts budgets need
+  ---
+  duration_ms: 11.470869
+  type: 'test'
+  ...
+# Subtest: smooth 60fps gameplay passes every hardware gate
+ok 262 - smooth 60fps gameplay passes every hardware gate
+  ---
+  duration_ms: 3.020896
+  type: 'test'
+  ...
+# Subtest: recurring stalls and freezes fail the real-device gate
+ok 263 - recurring stalls and freezes fail the real-device gate
+  ---
+  duration_ms: 0.500048
+  type: 'test'
+  ...
+# Subtest: emulated CI tolerates software rasterizer spacing but catches freezes
+ok 264 - emulated CI tolerates software rasterizer spacing but catches freezes
+  ---
+  duration_ms: 0.734922
+  type: 'test'
+  ...
+# Subtest: emulated runs gate on average cost plus single-frame spikes
+ok 265 - emulated runs gate on average cost plus single-frame spikes
+  ---
+  duration_ms: 0.876925
+  type: 'test'
+  ...
+# Subtest: main-thread budgets catch update/render regressions, including throttled phones
+ok 266 - main-thread budgets catch update/render regressions, including throttled phones
+  ---
+  duration_ms: 0.966746
+  type: 'test'
+  ...
+# Subtest: texture and scene-resource budgets guard phone memory
+ok 267 - texture and scene-resource budgets guard phone memory
+  ---
+  duration_ms: 0.563619
+  type: 'test'
+  ...
+# Subtest: HUD timer work stays at or below a 20Hz rasterization cadence
+ok 268 - HUD timer work stays at or below a 20Hz rasterization cadence
+  ---
+  duration_ms: 24.561543
+  type: 'test'
+  ...
+# Subtest: particle bursts expire and pooled sprites are reused instead of leaking
+ok 269 - particle bursts expire and pooled sprites are reused instead of leaking
+  ---
+  duration_ms: 3.958392
+  type: 'test'
+  ...
+# Subtest: background bakes stay capped for low-end phone GPUs
+ok 270 - background bakes stay capped for low-end phone GPUs
+  ---
+  duration_ms: 0.550549
+  type: 'test'
+  ...
+# Subtest: frame reports use full sample intervals, correct percentiles, and stall counts
+ok 271 - frame reports use full sample intervals, correct percentiles, and stall counts
+  ---
+  duration_ms: 7.238363
+  type: 'test'
+  ...
+# Subtest: missing samples remain unavailable instead of reporting perfect performance
+ok 272 - missing samples remain unavailable instead of reporting perfect performance
+  ---
+  duration_ms: 0.389507
+  type: 'test'
+  ...
+# Subtest: phobos sample run: reachable decks, safe checkpoints, crown in range
+ok 273 - phobos sample run: reachable decks, safe checkpoints, crown in range
+  ---
+  duration_ms: 9.264718
+  type: 'test'
+  ...
+# Subtest: the pilot starts the game from the title state
+ok 274 - the pilot starts the game from the title state
+  ---
+  duration_ms: 15.572394
+  type: 'test'
+  ...
+# Subtest: the pilot holds still through terminal states
+ok 275 - the pilot holds still through terminal states
+  ---
+  duration_ms: 2.063865
+  type: 'test'
+  ...
+# Subtest: the pilot runs toward the crown on flat ground
+ok 276 - the pilot runs toward the crown on flat ground
+  ---
+  duration_ms: 3.128048
+  type: 'test'
+  ...
+# Subtest: a shielded pilot hunts the pad guard instead of camping the pad
+ok 277 - a shielded pilot hunts the pad guard instead of camping the pad
+  ---
+  duration_ms: 2.173982
+  type: 'test'
+  ...
+# Subtest: hunting never burns jumps grabbing at a nearby guard
+ok 278 - hunting never burns jumps grabbing at a nearby guard
+  ---
+  duration_ms: 0.988327
+  type: 'test'
+  ...
+# Subtest: the pilot strafes instead of hopping under a hanging sentry
+ok 279 - the pilot strafes instead of hopping under a hanging sentry
+  ---
+  duration_ms: 0.697892
+  type: 'test'
+  ...
+# Subtest: the falling pilot spends its air jump over a gap
+ok 280 - the falling pilot spends its air jump over a gap
+  ---
+  duration_ms: 1.083333
+  type: 'test'
+  ...
+# Subtest: the pilot jumps at a gap
+ok 281 - the pilot jumps at a gap
+  ---
+  duration_ms: 0.690172
+  type: 'test'
+  ...
+# Subtest: the pilot backs off a tall blocker to open the runway
+ok 282 - the pilot backs off a tall blocker to open the runway
+  ---
+  duration_ms: 1.097433
+  type: 'test'
+  ...
+# Subtest: the pilot leaps over a low bonkable with no height purpose
+ok 283 - the pilot leaps over a low bonkable with no height purpose
+  ---
+  duration_ms: 0.972517
+  type: 'test'
+  ...
+# Subtest: the pilot takes off down the runway toward its spring
+ok 284 - the pilot takes off down the runway toward its spring
+  ---
+  duration_ms: 0.727572
+  type: 'test'
+  ...
+# Subtest: the pilot backs up a runway instead of pogoing on a tall head
+ok 285 - the pilot backs up a runway instead of pogoing on a tall head
+  ---
+  duration_ms: 0.524569
+  type: 'test'
+  ...
+# Subtest: the pilot flies on past a spring when a deck waits below
+ok 286 - the pilot flies on past a spring when a deck waits below
+  ---
+  duration_ms: 3.668912
+  type: 'test'
+  ...
+# Subtest: the pilot holds when crowded with no backing room
+ok 287 - the pilot holds when crowded with no backing room
+  ---
+  duration_ms: 0.423678
+  type: 'test'
+  ...
+# Subtest: the pilot centers over the head while falling onto it
+ok 288 - the pilot centers over the head while falling onto it
+  ---
+  duration_ms: 0.368337
+  type: 'test'
+  ...
+# Subtest: the pilot holds off while rising toward a head above the boots
+ok 289 - the pilot holds off while rising toward a head above the boots
+  ---
+  duration_ms: 0.410147
+  type: 'test'
+  ...
+# Subtest: the pilot veers off when airborne below head level
+ok 290 - the pilot veers off when airborne below head level
+  ---
+  duration_ms: 0.446097
+  type: 'test'
+  ...
+# Subtest: the pilot takes off with a runway toward a canyon spring
+ok 291 - the pilot takes off with a runway toward a canyon spring
+  ---
+  duration_ms: 0.301825
+  type: 'test'
+  ...
+# Subtest: bonk-seeking overrides the high-landing hold
+ok 292 - bonk-seeking overrides the high-landing hold
+  ---
+  duration_ms: 0.372956
+  type: 'test'
+  ...
+# Subtest: the pilot burns its air jump to line up a canyon drop
+ok 293 - the pilot burns its air jump to line up a canyon drop
+  ---
+  duration_ms: 0.447417
+  type: 'test'
+  ...
+# Subtest: the pilot hops a pothole instead of detouring to a grounded beetle
+ok 294 - the pilot hops a pothole instead of detouring to a grounded beetle
+  ---
+  duration_ms: 0.265864
+  type: 'test'
+  ...
+# Subtest: the pilot steers a bonk bounce for the high landing, not the crown
+ok 295 - the pilot steers a bonk bounce for the high landing, not the crown
+  ---
+  duration_ms: 0.440517
+  type: 'test'
+  ...
+# Subtest: the pilot ignores bonkables it cannot reach or use
+ok 296 - the pilot ignores bonkables it cannot reach or use
+  ---
+  duration_ms: 0.325745
+  type: 'test'
+  ...
+# Subtest: stuck recovery hops away after a stall unless suppressed
+ok 297 - stuck recovery hops away after a stall unless suppressed
+  ---
+  duration_ms: 0.513679
+  type: 'test'
+  ...
+# Subtest: threat suppression expires but deliberate holds never do
+ok 298 - threat suppression expires but deliberate holds never do
+  ---
+  duration_ms: 0.296185
+  type: 'test'
+  ...
+# Subtest: airborne jumps pulse so the second air jump edge-fires
+ok 299 - airborne jumps pulse so the second air jump edge-fires
+  ---
+  duration_ms: 0.477148
+  type: 'test'
+  ...
+# Subtest: the pilot holds its air jump until the fall commits
+ok 300 - the pilot holds its air jump until the fall commits
+  ---
+  duration_ms: 0.699942
+  type: 'test'
+  ...
+# Subtest: the pilot holds duels instead of running past live boarders
+ok 301 - the pilot holds duels instead of running past live boarders
+  ---
+  duration_ms: 0.703642
+  type: 'test'
+  ...
+# Subtest: the pilot dodges an aimed dive instead of dueling it
+ok 302 - the pilot dodges an aimed dive instead of dueling it
+  ---
+  duration_ms: 1.996514
+  type: 'test'
+  ...
+# Subtest: the pilot pre-fires a wave drop instead of leaping over it
+ok 303 - the pilot pre-fires a wave drop instead of leaping over it
+  ---
+  duration_ms: 0.404537
+  type: 'test'
+  ...
+# Subtest: the pilot jumps a boss telegraph and fires on the lane
+ok 304 - the pilot jumps a boss telegraph and fires on the lane
+  ---
+  duration_ms: 1.120129
+  type: 'test'
+  ...
+# Subtest: airborne drift holds short of an active boss under a shielded crown
+ok 305 - airborne drift holds short of an active boss under a shielded crown
+  ---
+  duration_ms: 1.039528
+  type: 'test'
+  ...
+# Subtest: the pilot faces rear boss threats and holds the shielded crown
+ok 306 - the pilot faces rear boss threats and holds the shielded crown
+  ---
+  duration_ms: 0.494259
+  type: 'test'
+  ...
+# Subtest: the pilot steers boss-column descents and holds its crossings
+ok 307 - the pilot steers boss-column descents and holds its crossings
+  ---
+  duration_ms: 0.916386
+  type: 'test'
+  ...
+# Subtest: the pilot hops over lethal hazards instead of landing on them
+ok 308 - the pilot hops over lethal hazards instead of landing on them
+  ---
+  duration_ms: 0.57538
+  type: 'test'
+  ...
+# Subtest: the pilot descends onto a deck below instead of overshooting it
+ok 309 - the pilot descends onto a deck below instead of overshooting it
+  ---
+  duration_ms: 0.305756
+  type: 'test'
+  ...
+# Subtest: the pilot crosses timed beams only with a safe window
+ok 310 - the pilot crosses timed beams only with a safe window
+  ---
+  duration_ms: 1.381144
+  type: 'test'
+  ...
+# Subtest: the pilot ignores dormant and distant beams
+ok 311 - the pilot ignores dormant and distant beams
+  ---
+  duration_ms: 0.543779
+  type: 'test'
+  ...
+# Subtest: the pilot ignores overhead bonkables when crossing a pit
+ok 312 - the pilot ignores overhead bonkables when crossing a pit
+  ---
+  duration_ms: 0.298855
+  type: 'test'
+  ...
+# Subtest: the pilot enters crusher lanes only on the rise
+ok 313 - the pilot enters crusher lanes only on the rise
+  ---
+  duration_ms: 0.710092
+  type: 'test'
+  ...
+# Subtest: the pilot commits across crusher lanes mid-air with fuel
+ok 314 - the pilot commits across crusher lanes mid-air with fuel
+  ---
+  duration_ms: 0.61065
+  type: 'test'
+  ...
+# Subtest: the pilot doubles over a piston lane when it sits low
+ok 315 - the pilot doubles over a piston lane when it sits low
+  ---
+  duration_ms: 0.344875
+  type: 'test'
+  ...
+# Subtest: the pilot never veers off a piston lane over open gap
+ok 316 - the pilot never veers off a piston lane over open gap
+  ---
+  duration_ms: 0.547059
+  type: 'test'
+  ...
+# Subtest: the pilot ignores grounded flicker under a higher deck
+ok 317 - the pilot ignores grounded flicker under a higher deck
+  ---
+  duration_ms: 0.268634
+  type: 'test'
+  ...
+# Subtest: the pilot never climbs a deck it already passed
+ok 318 - the pilot never climbs a deck it already passed
+  ---
+  duration_ms: 0.392846
+  type: 'test'
+  ...
+# Subtest: the pilot leaps dust devils with runway and backs up without it
+ok 319 - the pilot leaps dust devils with runway and backs up without it
+  ---
+  duration_ms: 0.545789
+  type: 'test'
+  ...
+# Subtest: the pilot retreats to mount the bridge over a lidded devil
+ok 320 - the pilot retreats to mount the bridge over a lidded devil
+  ---
+  duration_ms: 0.669341
+  type: 'test'
+  ...
+# Subtest: the pilot doubles at the apex for a high landing the arc misses
+ok 321 - the pilot doubles at the apex for a high landing the arc misses
+  ---
+  duration_ms: 0.335075
+  type: 'test'
+  ...
+# Subtest: the pilot abandons a duel it cannot finish
+ok 322 - the pilot abandons a duel it cannot finish
+  ---
+  duration_ms: 0.394741
+  type: 'test'
+  ...
+# Subtest: the pilot holds for falling drips and rushes out from under them
+ok 323 - the pilot holds for falling drips and rushes out from under them
+  ---
+  duration_ms: 0.404307
+  type: 'test'
+  ...
+# Subtest: the pilot runs off small step-downs and jumps real pits
+ok 324 - the pilot runs off small step-downs and jumps real pits
+  ---
+  duration_ms: 0.370487
+  type: 'test'
+  ...
+# Subtest: the pilot lands beside a duelable boarder instead of burning fuel
+ok 325 - the pilot lands beside a duelable boarder instead of burning fuel
+  ---
+  duration_ms: 0.786013
+  type: 'test'
+  ...
+# Subtest: the spent double-back flies for the deck behind, then drops on
+ok 326 - the spent double-back flies for the deck behind, then drops on
+  ---
+  duration_ms: 0.317625
+  type: 'test'
+  ...
+# Subtest: a column threat preempts the double-back flight, and the hop flees it
+ok 327 - a column threat preempts the double-back flight, and the hop flees it
+  ---
+  duration_ms: 0.465928
+  type: 'test'
+  ...
+# Subtest: the pilot brakes over deck for a head-on chaser, flies over pits
+ok 328 - the pilot brakes over deck for a head-on chaser, flies over pits
+  ---
+  duration_ms: 0.336005
+  type: 'test'
+  ...
+# Subtest: the pilot veers off accidental bonkables and lines up real springs
+ok 329 - the pilot veers off accidental bonkables and lines up real springs
+  ---
+  duration_ms: 0.230194
+  type: 'test'
+  ...
+# Subtest: the pilot delays a mount jump while a drone patrols the arc
+ok 330 - the pilot delays a mount jump while a drone patrols the arc
+  ---
+  duration_ms: 0.358756
+  type: 'test'
+  ...
+# Subtest: the pilot jumps early when a floater hangs over the edge arc
+ok 331 - the pilot jumps early when a floater hangs over the edge arc
+  ---
+  duration_ms: 0.309025
+  type: 'test'
+  ...
+# Subtest: the pilot turns and duels a chaser on its heels
+ok 332 - the pilot turns and duels a chaser on its heels
+  ---
+  duration_ms: 0.222064
+  type: 'test'
+  ...
+# Subtest: buildPilotSource ships a self-contained installer
+ok 333 - buildPilotSource ships a self-contained installer
+  ---
+  duration_ms: 1.208521
+  type: 'test'
+  ...
+# Subtest: buildPilotSource stitches every brain function the page can call
+ok 334 - buildPilotSource stitches every brain function the page can call
+  ---
+  duration_ms: 5.943521
+  type: 'test'
+  ...
+# Subtest: the stitched pilot installs and ticks in a bare page sandbox
+ok 335 - the stitched pilot installs and ticks in a bare page sandbox
+  ---
+  duration_ms: 7.323955
+  type: 'test'
+  ...
+# Subtest: the pilot jumps early when an edge takeoff would overshoot a narrow landing
+ok 336 - the pilot jumps early when an edge takeoff would overshoot a narrow landing
+  ---
+  duration_ms: 0.268835
+  type: 'test'
+  ...
+# Subtest: the pilot runs to the edge when the edge takeoff lands fine
+ok 337 - the pilot runs to the edge when the edge takeoff lands fine
+  ---
+  duration_ms: 0.247784
+  type: 'test'
+  ...
+# Subtest: the pilot holds its double when the arc sails past the high deck
+ok 338 - the pilot holds its double when the arc sails past the high deck
+  ---
+  duration_ms: 4.728605
+  type: 'test'
+  ...
+# Subtest: the pilot still doubles onto a high deck it can actually land on
+ok 339 - the pilot still doubles onto a high deck it can actually land on
+  ---
+  duration_ms: 0.286275
+  type: 'test'
+  ...
+# Subtest: the pilot skips a max-range climb that grazes the deck corner
+ok 340 - the pilot skips a max-range climb that grazes the deck corner
+  ---
+  duration_ms: 0.268185
+  type: 'test'
+  ...
+# Subtest: the pilot lands instead of doubling off the touchdown
+ok 341 - the pilot lands instead of doubling off the touchdown
+  ---
+  duration_ms: 0.307985
+  type: 'test'
+  ...
+# Subtest: the pilot runs flat ground instead of holding for a high platform
+ok 342 - the pilot runs flat ground instead of holding for a high platform
+  ---
+  duration_ms: 0.301725
+  type: 'test'
+  ...
+# Subtest: the pilot still holds at a pit when the only way is high above
+ok 343 - the pilot still holds at a pit when the only way is high above
+  ---
+  duration_ms: 0.217494
+  type: 'test'
+  ...
+# Subtest: the pilot jumps to apex over a lift it cannot reach by landing
+ok 344 - the pilot jumps to apex over a lift it cannot reach by landing
+  ---
+  duration_ms: 0.54047
+  type: 'test'
+  ...
+# Subtest: the pilot waits when the lift is rushing up past the apex
+ok 345 - the pilot waits when the lift is rushing up past the apex
+  ---
+  duration_ms: 0.335496
+  type: 'test'
+  ...
+# Subtest: the pilot walks onto a level lift instead of jumping over it
+ok 346 - the pilot walks onto a level lift instead of jumping over it
+  ---
+  duration_ms: 0.264645
+  type: 'test'
+  ...
+# Subtest: the falling pilot steers its drop onto a lift below
+ok 347 - the falling pilot steers its drop onto a lift below
+  ---
+  duration_ms: 0.244334
+  type: 'test'
+  ...
+# Subtest: the pilot rides a lift until a dismount opens
+ok 348 - the pilot rides a lift until a dismount opens
+  ---
+  duration_ms: 0.543899
+  type: 'test'
+  ...
+# Subtest: the pilot steps away from a ray column on top of it
+ok 349 - the pilot steps away from a ray column on top of it
+  ---
+  duration_ms: 0.285185
+  type: 'test'
+  ...
+# Subtest: the pilot holds its dismount when a drone holds the deck
+ok 350 - the pilot holds its dismount when a drone holds the deck
+  ---
+  duration_ms: 0.383997
+  type: 'test'
+  ...
+# Subtest: the pilot times its dismount to a patrol moving away
+ok 351 - the pilot times its dismount to a patrol moving away
+  ---
+  duration_ms: 0.57763
+  type: 'test'
+  ...
+# Subtest: the pilot holds its hop while a patrol closes, then leaps the opening
+ok 352 - the pilot holds its hop while a patrol closes, then leaps the opening
+  ---
+  duration_ms: 0.536289
+  type: 'test'
+  ...
+# Subtest: the pilot backs out of a closing patrol instead of standing in it
+ok 353 - the pilot backs out of a closing patrol instead of standing in it
+  ---
+  duration_ms: 0.237664
+  type: 'test'
+  ...
+# Subtest: the pilot backs up to board instead of hopping a patrol mid-boarding
+ok 354 - the pilot backs up to board instead of hopping a patrol mid-boarding
+  ---
+  duration_ms: 0.349716
+  type: 'test'
+  ...
+# Subtest: the pilot holds its double under a deck instead of bonking
+ok 355 - the pilot holds its double under a deck instead of bonking
+  ---
+  duration_ms: 0.330896
+  type: 'test'
+  ...
+# Subtest: the pilot rides a lift it stands on the edge of
+ok 356 - the pilot rides a lift it stands on the edge of
+  ---
+  duration_ms: 0.294535
+  type: 'test'
+  ...
+# Subtest: the pilot holds a double that drifts into a deck underside
+ok 357 - the pilot holds a double that drifts into a deck underside
+  ---
+  duration_ms: 0.321966
+  type: 'test'
+  ...
+# Subtest: the airborne pilot veers off a bomb instead of steering into it
+ok 358 - the airborne pilot veers off a bomb instead of steering into it
+  ---
+  duration_ms: 0.323696
+  type: 'test'
+  ...
+# Subtest: the pilot runs a cooling beam it can cross instead of leaping it
+ok 359 - the pilot runs a cooling beam it can cross instead of leaping it
+  ---
+  duration_ms: 0.304786
+  type: 'test'
+  ...
+# Subtest: the pilot hops past a tracking chaser onto the next deck
+ok 360 - the pilot hops past a tracking chaser onto the next deck
+  ---
+  duration_ms: 0.283555
+  type: 'test'
+  ...
+# Subtest: the pilot steps out of a shallow beam instead of doubling
+ok 361 - the pilot steps out of a shallow beam instead of doubling
+  ---
+  duration_ms: 0.260495
+  type: 'test'
+  ...
+# Subtest: the pilot commits to a beam leap instead of veering back
+ok 362 - the pilot commits to a beam leap instead of veering back
+  ---
+  duration_ms: 0.317825
+  type: 'test'
+  ...
+# Subtest: the pilot brakes onto a rescue deck when its descent overshoots
+ok 363 - the pilot brakes onto a rescue deck when its descent overshoots
+  ---
+  duration_ms: 0.278675
+  type: 'test'
+  ...
+# Subtest: the pilot keeps goal steering when a deck waits below
+ok 364 - the pilot keeps goal steering when a deck waits below
+  ---
+  duration_ms: 0.255284
+  type: 'test'
+  ...
+# Subtest: the pilot never rescue-aims into a crusher lane
+ok 365 - the pilot never rescue-aims into a crusher lane
+  ---
+  duration_ms: 0.253824
+  type: 'test'
+  ...
+# Subtest: the pilot still rescue-aims when a mover holds the deck
+ok 366 - the pilot still rescue-aims when a mover holds the deck
+  ---
+  duration_ms: 0.339426
+  type: 'test'
+  ...
+# Subtest: the pilot skips a rescue deck with no clear touchdown
+ok 367 - the pilot skips a rescue deck with no clear touchdown
+  ---
+  duration_ms: 0.298605
+  type: 'test'
+  ...
+# Subtest: the pilot latches its rescue aim instead of flapping
+ok 368 - the pilot latches its rescue aim instead of flapping
+  ---
+  duration_ms: 0.321105
+  type: 'test'
+  ...
+# Subtest: the pilot never rescue-aims while rising
+ok 369 - the pilot never rescue-aims while rising
+  ---
+  duration_ms: 0.383666
+  type: 'test'
+  ...
+# Subtest: the pilot brakes when its touchdown sails past the deck edge
+ok 370 - the pilot brakes when its touchdown sails past the deck edge
+  ---
+  duration_ms: 0.250984
+  type: 'test'
+  ...
+# Subtest: the pilot offsets its touchdown off a rock on the deck
+ok 371 - the pilot offsets its touchdown off a rock on the deck
+  ---
+  duration_ms: 0.310255
+  type: 'test'
+  ...
+# Subtest: the pilot holds a fresh mover veto, then leaps over a stale one
+ok 372 - the pilot holds a fresh mover veto, then leaps over a stale one
+  ---
+  duration_ms: 0.379376
+  type: 'test'
+  ...
+# Subtest: the pilot aims at the deck center instead of anchoring over its end
+ok 373 - the pilot aims at the deck center instead of anchoring over its end
+  ---
+  duration_ms: 0.252324
+  type: 'test'
+  ...
+# Subtest: the airborne pilot dodges a bomb raining onto its head
+ok 374 - the airborne pilot dodges a bomb raining onto its head
+  ---
+  duration_ms: 0.239424
+  type: 'test'
+  ...
+# Subtest: the airborne pilot ignores a distant bomb overhead
+ok 375 - the airborne pilot ignores a distant bomb overhead
+  ---
+  duration_ms: 0.251474
+  type: 'test'
+  ...
+# Subtest: the pilot centers on a lift instead of walking off its edge
+ok 376 - the pilot centers on a lift instead of walking off its edge
+  ---
+  duration_ms: 0.258504
+  type: 'test'
+  ...
+# Subtest: the pilot doubles through a bonk veto when the killzone nears
+ok 377 - the pilot doubles through a bonk veto when the killzone nears
+  ---
+  duration_ms: 0.256024
+  type: 'test'
+  ...
+# Subtest: the pilot doubles under a low ceiling only when dying
+ok 378 - the pilot doubles under a low ceiling only when dying
+  ---
+  duration_ms: 0.318975
+  type: 'test'
+  ...
+# Subtest: the pilot doubles a walk-off at once instead of waiting out the fall
+ok 379 - the pilot doubles a walk-off at once instead of waiting out the fall
+  ---
+  duration_ms: 0.226404
+  type: 'test'
+  ...
+# Subtest: the pilot holds outside a warning column instead of walking in
+ok 380 - the pilot holds outside a warning column instead of walking in
+  ---
+  duration_ms: 0.259554
+  type: 'test'
+  ...
+# Subtest: the airborne pilot retreats from a warning column instead of holding
+ok 381 - the airborne pilot retreats from a warning column instead of holding
+  ---
+  duration_ms: 0.368307
+  type: 'test'
+  ...
+# Subtest: the pilot dismounts at once when a column hangs over the lift
+ok 382 - the pilot dismounts at once when a column hangs over the lift
+  ---
+  duration_ms: 0.659921
+  type: 'test'
+  ...
+# Subtest: the pilot doubles over a trap deck instead of landing on it
+ok 383 - the pilot doubles over a trap deck instead of landing on it
+  ---
+  duration_ms: 0.270044
+  type: 'test'
+  ...
+# Subtest: the pilot holds before a column when a landing waits below
+ok 384 - the pilot holds before a column when a landing waits below
+  ---
+  duration_ms: 0.227974
+  type: 'test'
+  ...
+# Subtest: the rising pilot backs out of a column without doubling
+ok 385 - the rising pilot backs out of a column without doubling
+  ---
+  duration_ms: 0.252104
+  type: 'test'
+  ...
+# Subtest: the pilot doubles out of a column evacuation without a landing
+ok 386 - the pilot doubles out of a column evacuation without a landing
+  ---
+  duration_ms: 0.217234
+  type: 'test'
+  ...
+# Subtest: the pilot brakes onto a mandatory deck with no fuel left
+ok 387 - the pilot brakes onto a mandatory deck with no fuel left
+  ---
+  duration_ms: 0.264425
+  type: 'test'
+  ...
+# Subtest: the airborne pilot dodges a bomb early instead of weaving under it
+ok 388 - the airborne pilot dodges a bomb early instead of weaving under it
+  ---
+  duration_ms: 0.229884
+  type: 'test'
+  ...
+# Subtest: the pilot dodges a drifting bomb by its aim point, not its body
+ok 389 - the pilot dodges a drifting bomb by its aim point, not its body
+  ---
+  duration_ms: 0.215673
+  type: 'test'
+  ...
+# Subtest: the pilot dodges aside instead of doubling into an overhead bomb
+ok 390 - the pilot dodges aside instead of doubling into an overhead bomb
+  ---
+  duration_ms: 0.239644
+  type: 'test'
+  ...
+# Subtest: the pilot evacuates a live ray plane even with an emitter-only snapshot
+ok 391 - the pilot evacuates a live ray plane even with an emitter-only snapshot
+  ---
+  duration_ms: 0.284255
+  type: 'test'
+  ...
+# Subtest: the pilot holds outside a live ray plane ahead
+ok 392 - the pilot holds outside a live ray plane ahead
+  ---
+  duration_ms: 0.264294
+  type: 'test'
+  ...
+# Subtest: the pilot doubles a doomed arc early instead of waiting out the fall
+ok 393 - the pilot doubles a doomed arc early instead of waiting out the fall
+  ---
+  duration_ms: 1.410614
+  type: 'test'
+  ...
+# Subtest: the spent-fuel pilot brakes onto a deep deck at normal gravity
+ok 394 - the spent-fuel pilot brakes onto a deep deck at normal gravity
+  ---
+  duration_ms: 0.236274
+  type: 'test'
+  ...
+# Subtest: the pilot runs off instead of jumping into a ceiling deck
+ok 395 - the pilot runs off instead of jumping into a ceiling deck
+  ---
+  duration_ms: 0.276555
+  type: 'test'
+  ...
+# Subtest: the pilot holds its double when the only lower deck is past reach
+ok 396 - the pilot holds its double when the only lower deck is past reach
+  ---
+  duration_ms: 0.228194
+  type: 'test'
+  ...
+# Subtest: the walk-off pilot holds its double under a drone in the rise arc
+ok 397 - the walk-off pilot holds its double under a drone in the rise arc
+  ---
+  duration_ms: 0.311196
+  type: 'test'
+  ...
+# Subtest: the doomed-arc pilot holds its double under a drone in the rise arc
+ok 398 - the doomed-arc pilot holds its double under a drone in the rise arc
+  ---
+  duration_ms: 0.239774
+  type: 'test'
+  ...
+# Subtest: the doomed-arc pilot holds its double when a beam crosses the arc
+ok 399 - the doomed-arc pilot holds its double when a beam crosses the arc
+  ---
+  duration_ms: 0.247824
+  type: 'test'
+  ...
+# Subtest: the rising pilot holds its line past a drone instead of veering
+ok 400 - the rising pilot holds its line past a drone instead of veering
+  ---
+  duration_ms: 0.248904
+  type: 'test'
+  ...
+# Subtest: the falling pilot holds its arc past a distant drone
+ok 401 - the falling pilot holds its arc past a distant drone
+  ---
+  duration_ms: 0.234204
+  type: 'test'
+  ...
+# Subtest: the pilot backs up for runway while a drone crosses overhead
+ok 402 - the pilot backs up for runway while a drone crosses overhead
+  ---
+  duration_ms: 0.339906
+  type: 'test'
+  ...
+# Subtest: the running pilot hops over a drone crossing overhead
+ok 403 - the running pilot hops over a drone crossing overhead
+  ---
+  duration_ms: 1.511876
+  type: 'test'
+  ...
+# Subtest: the running pilot stops instead of hopping into an overhead drone
+ok 404 - the running pilot stops instead of hopping into an overhead drone
+  ---
+  duration_ms: 0.260485
+  type: 'test'
+  ...
+# Subtest: the rising pilot brakes and holds fire under a misaligned chaser
+ok 405 - the rising pilot brakes and holds fire under a misaligned chaser
+  ---
+  duration_ms: 0.241974
+  type: 'test'
+  ...
+# Subtest: the rising pilot brakes and fires on an aligned chaser
+ok 406 - the rising pilot brakes and fires on an aligned chaser
+  ---
+  duration_ms: 0.214623
+  type: 'test'
+  ...
+# Subtest: the falling pilot steers off a drone instead of braking onto it
+ok 407 - the falling pilot steers off a drone instead of braking onto it
+  ---
+  duration_ms: 0.223763
+  type: 'test'
+  ...
+# Subtest: the airborne pilot holds a leap-over arc instead of pad-retreating
+ok 408 - the airborne pilot holds a leap-over arc instead of pad-retreating
+  ---
+  duration_ms: 0.232614
+  type: 'test'
+  ...
+# Subtest: the airborne pilot still rushes out of a piercing beam arc
+ok 409 - the airborne pilot still rushes out of a piercing beam arc
+  ---
+  duration_ms: 1.451275
+  type: 'test'
+  ...
+# Subtest: the rear duel timer survives ticks with no ahead target
+ok 410 - the rear duel timer survives ticks with no ahead target
+  ---
+  duration_ms: 0.340096
+  type: 'test'
+  ...
+# Subtest: the rear duel runs from an off-line chaser instead of standing
+ok 411 - the rear duel runs from an off-line chaser instead of standing
+  ---
+  duration_ms: 0.223644
+  type: 'test'
+  ...
+# Subtest: the front duel yields to a nearer chaser behind
+ok 412 - the front duel yields to a nearer chaser behind
+  ---
+  duration_ms: 0.213163
+  type: 'test'
+  ...
+# Subtest: the pilot holds a gap takeoff while a chase-dive converges
+ok 413 - the pilot holds a gap takeoff while a chase-dive converges
+  ---
+  duration_ms: 0.227854
+  type: 'test'
+  ...
+# Subtest: the pilot holds a takeoff while a drone sits in the rise column
+ok 414 - the pilot holds a takeoff while a drone sits in the rise column
+  ---
+  duration_ms: 0.233614
+  type: 'test'
+  ...
+# Subtest: the pilot holds a gap takeoff for a drone 50px ahead and high
+ok 415 - the pilot holds a gap takeoff for a drone 50px ahead and high
+  ---
+  duration_ms: 0.224074
+  type: 'test'
+  ...
+# Subtest: the pilot still jumps the gap past a settling chaser
+ok 416 - the pilot still jumps the gap past a settling chaser
+  ---
+  duration_ms: 0.220333
+  type: 'test'
+  ...
+# Subtest: the shield hold keeps flying when the arc lands short of the deck edge
+ok 417 - the shield hold keeps flying when the arc lands short of the deck edge
+  ---
+  duration_ms: 0.290825
+  type: 'test'
+  ...
+# Subtest: the evade abstains off-deck so the hunt closes onto the boss deck
+ok 418 - the evade abstains off-deck so the hunt closes onto the boss deck
+  ---
+  duration_ms: 0.523629
+  type: 'test'
+  ...
+# Subtest: a boss on the landing does not veto the gap jump or the dismount
+ok 419 - a boss on the landing does not veto the gap jump or the dismount
+  ---
+  duration_ms: 0.403147
+  type: 'test'
+  ...
+# Subtest: reconnection: reachable decks, safe checkpoints, crown in range
+ok 420 - reconnection: reachable decks, safe checkpoints, crown in range
+  ---
+  duration_ms: 9.708034
+  type: 'test'
+  ...
+# Subtest: pilot input maps onto the discrete action set
+ok 421 - pilot input maps onto the discrete action set
+  ---
+  duration_ms: 292.25665
+  type: 'test'
+  ...
+# Subtest: JEV is asked only when recovery changes the input or a hold lasts 1.5s
+ok 422 - JEV is asked only when recovery changes the input or a hold lasts 1.5s
+  ---
+  duration_ms: 0.279485
+  type: 'test'
+  ...
+# Subtest: a cruise stays with the pilot and a stall recovery asks JEV
+ok 423 - a cruise stays with the pilot and a stall recovery asks JEV
+  ---
+  duration_ms: 2.28383
+  type: 'test'
+  ...
+# Subtest: a nearby live hazard counts, a far or inactive one does not
+ok 424 - a nearby live hazard counts, a far or inactive one does not
+  ---
+  duration_ms: 0.243684
+  type: 'test'
+  ...
+# Subtest: a cached JEV action is reused only while the pilot still wants help
+ok 425 - a cached JEV action is reused only while the pilot still wants help
+  ---
+  duration_ms: 0.420687
+  type: 'test'
+  ...
+# Subtest: rl encoder sees the full board and degrades gracefully on partial steps
+ok 426 - rl encoder sees the full board and degrades gracefully on partial steps
+  ---
+  duration_ms: 16.372748
+  type: 'test'
+  ...
+# Subtest: rl demos match the contract and hold finite training vectors
+ok 427 - rl demos match the contract and hold finite training vectors
+  ---
+  duration_ms: 78.67483
+  type: 'test'
+  ...
+# Subtest: rl policy weights match the contract with finite parameters
+ok 428 - rl policy weights match the contract with finite parameters
+  ---
+  duration_ms: 20.720357
+  type: 'test'
+  ...
+# Subtest: temperature above 1 flattens the policy, below 1 sharpens it
+ok 429 - temperature above 1 flattens the policy, below 1 sharpens it
+  ---
+  duration_ms: 10.699972
+  type: 'test'
+  ...
+# Subtest: rl loop samples with exploratory temperature (T >= 1)
+ok 430 - rl loop samples with exploratory temperature (T >= 1)
+  ---
+  duration_ms: 1.137499
+  type: 'test'
+  ...
+# Subtest: rl loop speeds up without lengthening each action, and biases the frontier
+ok 431 - rl loop speeds up without lengthening each action, and biases the frontier
+  ---
+  duration_ms: 0.325506
+  type: 'test'
+  ...
+# Subtest: rl loop replays clears, exploits them at temperature 1, and can open every level
+ok 432 - rl loop replays clears, exploits them at temperature 1, and can open every level
+  ---
+  duration_ms: 0.654067
+  type: 'test'
+  ...
+# Subtest: rl trainer keeps a meaningful entropy bonus with an adaptive floor
+ok 433 - rl trainer keeps a meaningful entropy bonus with an adaptive floor
+  ---
+  duration_ms: 0.415758
+  type: 'test'
+  ...
+# Subtest: robot dance sync: reachable decks, safe checkpoints, crown in range
+ok 434 - robot dance sync: reachable decks, safe checkpoints, crown in range
+  ---
+  duration_ms: 9.106535
+  type: 'test'
+  ...
+# Subtest: ticker plunge: reachable decks, safe checkpoints, crown in range
+ok 435 - ticker plunge: reachable decks, safe checkpoints, crown in range
+  ---
+  duration_ms: 9.897908
+  type: 'test'
+  ...
+1..435
+# tests 435
+# suites 0
+# pass 435
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1464.423096

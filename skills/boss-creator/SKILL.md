@@ -11,11 +11,15 @@ A recolored lab tech, a bigger health pool, or a copied boarder wave is not a ne
 
 **Novelty against the roster.** Most shipped bosses share pace → telegraph → charge. That rule is owned. Before painting, name in the build brief which roster rule yours does _not_ use as its core, or how its core decision differs (positioning, timing window, adds, arena state). An encounter whose only novelty is HP, speed, or tint is `stale` by definition and the boss panel caps its fun at 2. Give the encounter one arena interaction no sibling has (a gate the fight opens/closes, a deck that moves, a hazard the boss arms) so the _space_ fights differently, not only the actor.
 
+**News boss themes.** When a news brief declares a boss theme (see the boss theme test in the news-to-level skill), this encounter is mandatory, and the actor is the story's dominant adversary — its silhouette, tell, and rule come from the article, not from the contra roster. News bosses usually ship with `Combat profile: contra` (phaser on) so the player fights the encounter; a phaser-off news boss must state its fight rule (bonk, armed arena hazard) in the brief, and the boss panel judges whether that answer plays. Disaster stories keep the boss abstract (the storm, the fire front) — never a victim.
+
 ## Look at the level
 
 Read that level's `LEVEL_DEFINITIONS` entry, `LEVEL_CONTENT`, background type, gravity, and hazards. Read how the crown is placed and how `resolveHazardContact` and, on Earthwatch, the phaser treat actors. Compare the last stretch of the other levels so this one adds a new idea.
 
 Write a short brief and keep going on routine choices. Name the level, the painted silhouette, the display size, and the body. Name the rule the player learns, the tell, the safe response, and what touching the crown does. The rule has to change the approach: a platform that only holds after a bonk, a shootable gate, a timed beam over the last gap, a moving deck that lines up with the crown. One idea, taught once, then pressed harder. Leave a window where a jump or a shot still works. Do not cover every legal landing.
+
+**Arena heights (contra levels).** The arena uses the level's tiers, not a flat pit: name in the brief which heights the fight occupies (boss tier, the player's firing tiers, any add tier), how the player changes height mid-fight (stairs, lift, drop-in), and how each height stays pressured — adds or a static hazard on the tier the boss is not covering, so camping one height is not the whole fight. Fire aims forward/up/diagonal (down from the air), so the boss and its adds must be shootable from a tier the player can stand on along a real aim line; a boss parked where no aim direction reaches it is a dodging gate, not a gunfight. The crown approach is covered at every height the arena offers (see the finale rules in [level-creator](../level-creator/SKILL.md)): changing tier must never walk around the encounter. Keep one safe height change available while the boss telegraphs — height pressure comes from the fight, not from a climb with no safe window.
 
 ## Paint it
 

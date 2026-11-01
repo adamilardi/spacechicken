@@ -377,6 +377,7 @@ test('concept gate requires the three artefacts, rows, inventory, and themed ene
             '',
             'Element inventory: rising water, sandbag stacks, rescue boats',
             'Signature elements: rising water',
+            'Boss theme: none — a flood rescue has no dominant adversary.',
             'Themed enemy: Digger Drone (enemies/digger.js).',
             '',
             '| Story fact | Gameplay it becomes | Why |',
@@ -405,6 +406,7 @@ test('concept gate requires the three artefacts, rows, inventory, and themed ene
     assert.equal(thin.passed, false);
     assert.ok(thin.missing.includes('novelty-ledger'));
     assert.ok(thin.missing.includes('themed-enemy'));
+    assert.ok(thin.missing.includes('boss-theme-decision'));
 });
 
 test('fix contract ranks structural flaws first with owner and recheck', async () => {
@@ -491,6 +493,48 @@ test('panel shot selection keeps opener and finale within the request cap', asyn
     assert.equal(picked.length, 4);
     assert.equal(picked[0].id, '01-beat');
     assert.equal(picked.at(-1).id, '06-beat');
+});
+
+test('agent confirmations never count as human confirmation', async () => {
+    const { confirmationReview } = await loadCritic();
+    const agent = confirmationReview({
+        confirmed: ['element:x'],
+        reviewer: 'agent human-review (screenshots opened)',
+        reasoning: 'saw it',
+    });
+    assert.deepEqual(agent.confirmed, []);
+    assert.deepEqual(agent.agentConfirmed, ['element:x']);
+    assert.equal(agent.reviewerType, 'agent');
+    const human = confirmationReview({
+        confirmed: ['element:x'],
+        reviewer: 'Ada',
+        reviewerType: 'human',
+        reasoning: 'opened 06-finale.jpg; crown deck visible',
+    });
+    assert.deepEqual(human.confirmed, ['element:x']);
+    assert.deepEqual(human.issues, []);
+});
+
+test('planBeats spends slots on signature beats before generic hazards', async () => {
+    const { planBeats, analyseLevel } = await loadCritic();
+    const { content, definition } = fakeLevel({
+        keys: ['aDeck', 'bDeck', 'cDeck'],
+        hazards: ['laser'],
+    });
+    content.dynamic = [
+        { type: 'laser', x: 1000, y: 400 },
+        { type: 'drip', x: 1600, y: 400 },
+        { type: 'roller', x: 2200, y: 400 },
+        { type: 'cosmicRay', x: 2800, y: 400 },
+        { type: 'drone', key: 'themedBot', x: 3400, y: 400 },
+    ];
+    content.props = [];
+    const beats = planBeats(analyseLevel(content, definition), content);
+    assert.ok(
+        beats.some((beat) => /drone/.test(beat.proves)),
+        'themed drone beat survives the cap'
+    );
+    assert.match(beats.at(-1).proves, /crown approach/);
 });
 
 test('unmatched human confirmations are reported for warning', async () => {

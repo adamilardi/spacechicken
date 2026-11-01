@@ -1,0 +1,350 @@
+{
+  "level": 24,
+  "run": "full",
+  "analysis": {
+    "title": "Clutch Crown",
+    "gravity": 300,
+    "worldWidth": 7000,
+    "backgroundType": "station",
+    "platformCount": 13,
+    "platformKeys": [
+      "bastionDeck",
+      "labDeck",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.46153846153846156,
+    "hazardTypes": [
+      "laser",
+      "drone",
+      "boss"
+    ],
+    "hazardCount": 6,
+    "hasBoss": true,
+    "movingCount": 0,
+    "propCount": 4,
+    "checkpoints": [
+      {
+        "x": 1500,
+        "y": 565
+      },
+      {
+        "x": 3100,
+        "y": 565
+      },
+      {
+        "x": 4700,
+        "y": 405
+      },
+      {
+        "x": 5500,
+        "y": 265
+      }
+    ],
+    "crownX": 6550,
+    "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.06,
+      0.186,
+      0.311,
+      0.311,
+      0.437,
+      0.509,
+      0.569,
+      0.65,
+      0.671,
+      0.721,
+      0.779,
+      0.786,
+      0.893
+    ],
+    "platformBands": [
+      10,
+      10,
+      10,
+      10,
+      9,
+      8,
+      8,
+      8,
+      7,
+      5,
+      5,
+      8,
+      6
+    ]
+  },
+  "flags": [],
+  "telemetry": {
+    "level": 24,
+    "outcome": "gate-open",
+    "durationSec": 44.1,
+    "deaths": 0,
+    "deathSpots": [],
+    "maxX": 6017,
+    "hazardTypesSeen": [
+      "laser",
+      "drone",
+      "boss"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-setpiece-countdownBoard",
+      "file": "02-setpiece-countdownBoard.jpg",
+      "proves": "set piece: countdownBoard at x=900"
+    },
+    {
+      "id": "03-hazard-laser",
+      "file": "03-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=1750"
+    },
+    {
+      "id": "04-hazard-drone",
+      "file": "04-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=2600"
+    },
+    {
+      "id": "05-hazard-boss",
+      "file": "05-hazard-boss.jpg",
+      "proves": "hazard beat: boss at x=6400"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.93,
+      "fairness": 1.87,
+      "readability": 2.25,
+      "novelty": 1.53,
+      "pacing": 1.81,
+      "theme": 2.09,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 2,
+      "fairness": 1.83,
+      "readability": 2.21,
+      "novelty": 1.57,
+      "pacing": 1.72,
+      "theme": 2.15,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 2.02,
+      "fairness": 1.93,
+      "readability": 2.08,
+      "novelty": 1.42,
+      "pacing": 1.87,
+      "theme": 2.21,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 2.19,
+      "fairness": 1.82,
+      "readability": 2.23,
+      "novelty": 1.51,
+      "pacing": 1.97,
+      "theme": 2.37,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": {
+    "briefHeadline": "Level 24 — Clutch Crown (news-to-level, boss theme)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/24.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "Champion King",
+          "claimed": true
+        },
+        {
+          "element": "chessboard ranks",
+          "claimed": true
+        },
+        {
+          "element": "knight piece",
+          "claimed": true
+        },
+        {
+          "element": "rapid clock",
+          "claimed": false
+        }
+      ],
+      "sceneryOnlyFacts": []
+    },
+    "sent": true,
+    "elements": [
+      {
+        "element": "Champion King",
+        "signature": true,
+        "noul": 0.89,
+        "verdict": "shown"
+      },
+      {
+        "element": "chessboard ranks",
+        "signature": true,
+        "noul": 0.68,
+        "verdict": "faint"
+      },
+      {
+        "element": "knight piece",
+        "signature": false,
+        "noul": 0.95,
+        "verdict": "shown"
+      },
+      {
+        "element": "rapid clock",
+        "signature": false,
+        "noul": 0.39,
+        "verdict": "missing"
+      }
+    ],
+    "rows": [
+      {
+        "fact": "Sindarov's attacking victory over the reigning star decided the showdown",
+        "mechanic": "Crown encounter: the Champion King boss guards the shielded crown on the top rank; the player fights it with the phaser (contra profile) while it knight-leaps to telegraphed squares",
+        "signature": true,
+        "choice": "supports",
+        "confidence": 0.3
+      },
+      {
+        "fact": "He overturned a 2.5-point deficit on the final day",
+        "mechanic": "Boss enrage at half HP is the final-day swing: leaps come faster and shorter-telegraphed, and a heavy comet pod waits at the arena door as the challenger's preparation",
+        "signature": false,
+        "choice": "unsupported",
+        "confidence": 0.92
+      },
+      {
+        "fact": "18 rapid games over three days against four elite rivals",
+        "mechanic": "Three stacked rank floors as the bracket: pawn boarder waves and file lasers on the lower ranks, checkpoints as rounds, rook drones on the middle rank",
+        "signature": false,
+        "choice": "unsupported",
+        "confidence": 0.5
+      },
+      {
+        "fact": "The Geneva title match against Gukesh is next",
+        "mechanic": "Crown is the showdown crown: win it and the road to Geneva opens (NEXT_LEVEL 1, outside the campaign chain)",
+        "signature": false,
+        "choice": "unsupported",
+        "confidence": 0.2
+      }
+    ],
+    "mechanicFidelity": 2.16,
+    "visualFidelity": 3.23,
+    "fidelityFlaw": "none",
+    "universeFit": 0.96,
+    "usage": {
+      "input_tokens": 12095,
+      "output_tokens": 352
+    },
+    "gate": {
+      "passed": false,
+      "shown": 2,
+      "contradicted": 0,
+      "unsupported": 3,
+      "needsHuman": [
+        "element:chessboard ranks",
+        "row:Sindarov's attacking victory over the reigning star decided the showdown",
+        "row:18 rapid games over three days against four elite rivals",
+        "row:The Geneva title match against Gukesh is next"
+      ],
+      "signatureMissing": [],
+      "signatureUnsupported": [],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": []
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "elementCount": 4,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 2,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "element \"rapid clock\" missing in shots (noul=0.39)",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "sleeping-finale",
+      "source": "quality",
+      "evidence": "4/4 personas named \"sleeping-finale\"; 06-finale.jpg (crown approach and finale pressure); crownX=6550",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add finale pressure within 900px of the crown on every route to it.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"sleeping-finale\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "element:chessboard ranks is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"element:chessboard ranks\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 4,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Sindarov's attacking victory over the reigning star decided the showdown is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:Sindarov's attacking victory over the reigning star decided the showdown\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:18 rapid games over three days against four elite rivals is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:18 rapid games over three days against four elite rivals\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    }
+  ],
+  "loop": 3,
+  "priorFlaw": "sleeping-finale",
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "sleeping-finale"
+  ],
+  "passed": false
+}

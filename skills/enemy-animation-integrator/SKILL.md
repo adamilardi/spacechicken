@@ -29,4 +29,6 @@ On death, retry, and shutdown, stop tweens and animations owned by that actor. D
 
 ## Verify
 
+**Review the integrated actor before claiming done.** Capture the level at gameplay size: first appearance, active behavior, and one moment with sibling hazards. Assess size vs player, silhouette clarity, palette distance from crossed backgrounds, and behavior read. Group stories add a motion verdict: watch the ensemble through one full beat in game — all actors in frame together, phase relationship readable, formation moment lands. Stills containing multiple actors prove presence, not synchrony; a themed behavior indistinguishable from the generic patrol it reuses fails here however good the sprite looks. Fix and re-capture before the critic sees it.
+
 Run `npm test`. In the browser, open the level that contains the actor and watch idle, the action, a bonk or a shot if that is the role, pause, and a retry. A debug teleport is not a playback check. Report the URL, what you saw, and any state you could not reach.

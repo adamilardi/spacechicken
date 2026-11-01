@@ -1,0 +1,29 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-clutch-crown/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-clutch-crown/champion-king.png",
+            "role": "actor: Champion King boss (key championKing)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha, resized to 150px gameplay height"
+        },
+        {
+            "asset_path": "assets/news-clutch-crown/knight-prop.png",
+            "role": "prop: knight piece (key knightProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "canvas:bastionDeck/labDeck/vaultDeck",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 24,
+    "requested_revisions": [],
+    "story": "Gukesh vs Sindarov: Everything You Need To Know About The 2026 World Chess Championship — World Chess, Oct 30 2026, https://worldchess.com/news/gukesh-vs-sindarov-everything-you-need-to-know-about-the-2026-world-chess-championship",
+    "unfilled_roles": []
+}
