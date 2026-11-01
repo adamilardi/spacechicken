@@ -70,23 +70,6 @@ export function newsPlateKey(id) {
     return NEWS_PLATE_KEYS[id] || null;
 }
 
-export function mechanicSnippet(id) {
-    const raw = LEVEL_CONTENT[id]?.instructions || '';
-    const dash = raw.indexOf(' - ');
-    const body = (dash >= 0 ? raw.slice(dash + 3) : raw).replace(/\s+/g, ' ').trim();
-    const dot = body.indexOf('. ');
-    const first = dot > 0 ? body.slice(0, dot + 1) : body;
-    return first.length > 148 ? `${first.slice(0, 145)}…` : first;
-}
-
-export function tickerLine() {
-    return NEWS_LEVEL_IDS.map((id) => {
-        const headline = LEVEL_CONTENT[id]?.news?.headline || '';
-        const title = LEVEL_DEFINITIONS[id]?.TITLE || `Level ${id}`;
-        return headline ? `${title.toUpperCase()} — ${headline}` : title.toUpperCase();
-    }).join('   •   BREAKING   •   ');
-}
-
 export const FEATURED_NEWS_ID = 19;
 
 const ACTION_SENTENCES = Object.freeze({
@@ -119,10 +102,6 @@ export function stageEnemyKey(id) {
     return STAGE_ENEMY_KEYS[id] || 'tickerBot';
 }
 
-export function heroDots(index, total) {
-    return Array.from({ length: total }, (_, i) => (i === index ? '●' : '○')).join(' ');
-}
-
 export class Overlays {
     constructor(scene, ui) {
         this.scene = scene;
@@ -139,7 +118,6 @@ export class Overlays {
         this.titleTickerBg = null;
         this.titleTickerText = null;
         this.titleTickerLive = null;
-        this.titleTickerTween = null;
         this.titleTagline = null;
         this.titleShadow = null;
         this.titleGlow = null;
@@ -150,17 +128,14 @@ export class Overlays {
         this.titleChickenTween = null;
         this.titleHeroBg = null;
         this.titleHeroThumb = null;
-        this.titleHeroLive = null;
         this.titleHeroKicker = null;
         this.titleHeroOutlet = null;
         this.titleHeroHeadline = null;
-        this.titleHeroArrow = null;
         this.titleHeroLevel = null;
         this.titleHeroMechanic = null;
         this.titleHeroPlay = null;
         this.titleHeroPrev = null;
         this.titleHeroNext = null;
-        this.titleHeroDots = null;
         this.titleHeroCounter = null;
         this.titleHeroIndex = Math.max(0, NEWS_LEVEL_IDS.indexOf(FEATURED_NEWS_ID));
         this.titleHeroTimer = null;
@@ -1103,13 +1078,11 @@ export class Overlays {
         this.ui.markUi(this.titleSubtitle);
 
         const canSelect = (this.scene.leaderboardManager?.getMaxUnlocked?.() || 1) > 1;
-        let prompt = this.ui.touchControlsEnabled
-            ? 'TAP TO START CAMPAIGN'
-            : 'PRESS SPACE TO START CAMPAIGN';
+        let prompt = this.ui.touchControlsEnabled ? 'TAP TO START' : 'PRESS SPACE TO START';
         if (canSelect) {
             prompt = this.ui.touchControlsEnabled
-                ? 'TAP ◀ ▶ · TAP TO START CAMPAIGN'
-                : '← → SELECT · SPACE STARTS CAMPAIGN';
+                ? 'TAP ◀ ▶ · TAP TO START'
+                : '← → SELECT · SPACE STARTS';
         }
         this.titlePrompt = this.scene.add
             .text(0, 0, prompt, {
@@ -1232,38 +1205,6 @@ export class Overlays {
         this.titleBackdrop = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.titleTickerBg = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.titleHeroBg = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
-    }
-
-    createTitleTicker(metrics) {
-        if (typeof this.scene.add.text !== 'function') return;
-        const size = Math.max(12, metrics.fonts.instructions - 1);
-        this.titleTickerLive = this.scene.add
-            .text(0, 0, '● LIVE', {
-                fontSize: `${size}px`,
-                fontFamily: HUD_FONT,
-                fill: '#ffffff',
-                fontStyle: 'bold',
-                align: 'center',
-            })
-            .setOrigin(0, 0.5);
-        this.titleTickerLive.setScrollFactor(0);
-        this.titleTickerLive.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
-        this.titleTickerLive.setPadding(10, 5, 10, 5);
-        this.titleTickerLive.setBackgroundColor('#e10600');
-        this.ui.styleHudText(this.titleTickerLive, 2);
-        this.ui.markUi(this.titleTickerLive);
-        this.titleTickerText = this.scene.add
-            .text(0, 0, tickerLine(), {
-                fontSize: `${size}px`,
-                fontFamily: HUD_FONT,
-                fill: '#ffffff',
-                fontStyle: 'bold',
-            })
-            .setOrigin(0, 0.5);
-        this.titleTickerText.setScrollFactor(0);
-        this.titleTickerText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
-        this.ui.styleHudText(this.titleTickerText, 2);
-        this.ui.markUi(this.titleTickerText);
     }
 
     createTitleMarks() {
@@ -1407,6 +1348,7 @@ export class Overlays {
             ? view
             : 'featured';
         this.layoutTitleScreen();
+        this.updateNewsRowHighlight();
     }
 
     heroObjects() {
@@ -1432,9 +1374,6 @@ export class Overlays {
         const view = this.titleView || 'featured';
         const show = (obj, on) => obj?.setVisible?.(on);
         for (const obj of this.heroObjects()) show(obj, view === 'featured');
-        if (this.titleHeroDots) this.titleHeroDots.setVisible(false);
-        if (this.titleHeroArrow) this.titleHeroArrow.setVisible(false);
-        if (this.titleHeroLive) this.titleHeroLive.setVisible(false);
         show(this.titleMoreButton, view === 'featured');
         show(this.titleCampaignButton, view === 'featured');
         show(this.titleSettingsButton, view === 'featured');
@@ -1563,8 +1502,6 @@ export class Overlays {
         };
         this.titleHeroPrev = nav('‹', -1);
         this.titleHeroNext = nav('›', 1);
-        this.titleHeroDots = mk('', Math.max(12, ins), '#ffe566', true);
-        this.titleHeroDots.setOrigin(0.5, 0.5);
     }
 
     featuredNewsId() {
@@ -1589,14 +1526,8 @@ export class Overlays {
             this.titleHeroCounter.setText(
                 `Story ${this.titleHeroIndex + 1} of ${NEWS_LEVEL_IDS.length}`
             );
-        if (this.titleHeroDots)
-            this.titleHeroDots.setText(heroDots(this.titleHeroIndex, NEWS_LEVEL_IDS.length));
         this.updateStageVisibility();
-        (this.titleNewsRows || []).forEach((row, i) => {
-            const active = NEWS_LEVEL_IDS[i] === id;
-            row.setBackgroundColor(active ? '#8c1d18' : '#14283e');
-            row.setStyle({ fill: active ? '#ffe566' : '#ffffff' });
-        });
+        this.updateNewsRowHighlight(id);
         if (animate && this.scene.tweens?.add && this.titleHeroHeadline) {
             this.titleHeroHeadline.setAlpha(0.25);
             this.scene.tweens.add({
@@ -1656,26 +1587,6 @@ export class Overlays {
             }
         }
         this.titleHeroTimer = null;
-    }
-
-    startTickerTween() {
-        if (!this.titleTickerText || !this.scene.tweens?.add) return;
-        if (this.titleTickerTween?.stop) this.titleTickerTween.stop();
-        const w = this.scene.getViewportWidth?.() || 800;
-        const tw = this.titleTickerText.width || 1200;
-        this.titleTickerText.setX(w + 90);
-        try {
-            this.titleTickerTween = this.scene.tweens.add({
-                targets: this.titleTickerText,
-                x: -tw - 20,
-                duration: Math.max(14000, (w + tw) * 9),
-                repeat: -1,
-                ease: 'Linear',
-                onRepeat: () => this.titleTickerText.setX(w + 90),
-            });
-        } catch {
-            this.titleTickerTween = null;
-        }
     }
 
     createTitleNewsSection(metrics) {
@@ -2151,19 +2062,34 @@ export class Overlays {
         this.positionDifficultyButton(metrics);
     }
 
-    layoutSecondaryRow(centerX, y) {
+    layoutSecondaryRow(centerX, y, metrics) {
         const btns = [
             this.titleMoreButton,
             this.titleCampaignButton,
             this.titleSettingsButton,
         ].filter(Boolean);
+        if (btns.length === 0) {
+            return;
+        }
+        btns.forEach((b) => b.setScale?.(1));
         const widths = btns.map((b) => b.displayWidth || b.width || 110);
-        const gap = 18;
-        const total = widths.reduce((a, b) => a + b, 0) + gap * Math.max(0, btns.length - 1);
+        let gap = 18;
+        const natural = widths.reduce((a, b) => a + b, 0) + gap * (btns.length - 1);
+        const available = Math.max(200, (metrics?.innerWidth || 800) - 16);
+        if (natural > available) {
+            gap = 8;
+            const tight = widths.reduce((a, b) => a + b, 0) + gap * (btns.length - 1);
+            const scale = Math.min(1, available / Math.max(1, tight));
+            if (scale < 1) {
+                btns.forEach((b) => b.setScale?.(Math.max(0.75, scale)));
+            }
+        }
+        const placed = btns.map((b) => b.displayWidth || b.width || 110);
+        const total = placed.reduce((a, b) => a + b, 0) + gap * (btns.length - 1);
         let x = centerX - total / 2;
         btns.forEach((b, i) => {
-            b.setPosition(x + widths[i] / 2, y);
-            x += widths[i] + gap;
+            b.setPosition(x + placed[i] / 2, y);
+            x += placed[i] + gap;
         });
     }
 
@@ -2183,35 +2109,8 @@ export class Overlays {
         }
         if (this.titleBackButton)
             this.titleBackButton.setPosition(frame.x + frame.w - 52, frame.y + 20);
-        if (view === 'featured') this.layoutSecondaryRow(centerX, frame.bottom + 22);
+        if (view === 'featured') this.layoutSecondaryRow(centerX, frame.bottom + 22, metrics);
         this.applyTitleView();
-    }
-
-    titleModeLift(metrics) {
-        if (!this.raceSetupButton) {
-            return 0;
-        }
-        let lift = 0;
-        if (!metrics.isCompact) {
-            lift = 96;
-        } else if (metrics.isPortrait) {
-            lift = 22;
-        }
-        if (this.jumpToggleButton) {
-            if (!metrics.isCompact) {
-                lift += 64;
-            } else if (metrics.isPortrait) {
-                lift += 40;
-            }
-        }
-        if (this.difficultyButton) {
-            if (!metrics.isCompact) {
-                lift += 16;
-            } else if (metrics.isPortrait) {
-                lift += 20;
-            }
-        }
-        return lift;
     }
 
     positionRaceSetupButton(metrics) {
@@ -2361,16 +2260,6 @@ export class Overlays {
             return 0;
         }
         button.style.left = '';
-        // Wide desktop: one row of mode buttons so the news wall fits.
-        if (
-            metrics.innerWidth >= 1000 &&
-            this.titleView !== 'settings' &&
-            this.raceSetupButton?.style.top
-        ) {
-            button.style.left = 'calc(50% - 322px)';
-            button.style.top = this.raceSetupButton.style.top;
-            return 0;
-        }
         const gapAbove = metrics.isTiny ? 6 : 10;
         const gapBelow = metrics.isTiny ? 6 : 10;
         const race = this.raceSetupButton;
@@ -2423,15 +2312,6 @@ export class Overlays {
             return 0;
         }
         button.style.left = '';
-        if (
-            metrics.innerWidth >= 1000 &&
-            this.titleView !== 'settings' &&
-            this.raceSetupButton?.style.top
-        ) {
-            button.style.left = 'calc(50% + 322px)';
-            button.style.top = this.raceSetupButton.style.top;
-            return 0;
-        }
         // Short landscape cannot stack three buttons under the prompt, so
         // difficulty sits beside the jump toggle in one row (already counted
         // by jumpSpace). Everywhere else it stacks below.
@@ -2502,34 +2382,73 @@ export class Overlays {
             return false;
         }
         const view = this.titleView || 'featured';
-        if (view !== 'settings') {
-            if (menu.back && view !== 'featured') {
+        if (view === 'settings') {
+            if (menu.confirm) {
                 this.setTitleView('featured');
                 return true;
             }
-            if (menu.confirm && view !== 'featured') {
-                this.setTitleView('featured');
+            if (menu.down) {
+                this.raceSetupButton?.click();
+                return true;
+            }
+            if (menu.up) {
+                this.jumpToggleButton?.click();
+                return true;
+            }
+            if (menu.back) {
+                this.difficultyButton?.click();
                 return true;
             }
             return false;
         }
-        if (menu.confirm) {
+        if (menu.back) {
+            if (view === 'featured') {
+                return false;
+            }
             this.setTitleView('featured');
             return true;
         }
-        if (menu.down) {
-            this.raceSetupButton?.click();
+        if (view === 'stories') {
+            if (menu.up || menu.down) {
+                this.cycleHero(menu.down ? 1 : -1);
+                return true;
+            }
+            if (menu.confirm) {
+                this.scene.startSelectedNewsRow?.();
+                return true;
+            }
+            return false;
+        }
+        if (menu.up || menu.down) {
+            this.cycleTitleView(menu.down ? 1 : -1);
             return true;
         }
-        if (menu.up) {
-            this.jumpToggleButton?.click();
-            return true;
-        }
-        if (menu.back) {
-            this.difficultyButton?.click();
-            return true;
+        if (menu.confirm) {
+            if (view === 'featured') {
+                this.scene.startFeaturedStory?.();
+                return true;
+            }
+            if (view === 'campaign') {
+                this.scene.startSelectedLevel?.();
+                return true;
+            }
         }
         return false;
+    }
+
+    cycleTitleView(direction) {
+        const order = ['featured', 'stories', 'campaign', 'settings'];
+        const current = order.indexOf(this.titleView);
+        const next = order[(current + direction + order.length) % order.length] || 'featured';
+        this.setTitleView(next);
+    }
+
+    updateNewsRowHighlight(activeId = this.featuredNewsId()) {
+        (this.titleNewsRows || []).forEach((row, index) => {
+            const active = NEWS_LEVEL_IDS[index] === activeId;
+            row?.setBackgroundColor?.(active ? '#8c1d18' : '#14283e');
+            row?.setStyle?.({ fill: active ? '#ffe566' : '#ffffff' });
+        });
     }
 
     handleFinishMenu(menu) {
@@ -2568,8 +2487,6 @@ export class Overlays {
             this.titlePromptTween.stop();
         }
         this.titlePromptTween = null;
-        if (this.titleTickerTween?.stop) this.titleTickerTween.stop();
-        this.titleTickerTween = null;
         if (this.titleChickenTween?.stop) this.titleChickenTween.stop();
         this.titleChickenTween = null;
         if (this.titleStageChickenTween?.stop) this.titleStageChickenTween.stop();
@@ -2594,17 +2511,14 @@ export class Overlays {
             this.titleChicken,
             this.titleHeroBg,
             this.titleHeroThumb,
-            this.titleHeroLive,
             this.titleHeroKicker,
             this.titleHeroOutlet,
             this.titleHeroHeadline,
-            this.titleHeroArrow,
             this.titleHeroLevel,
             this.titleHeroMechanic,
             this.titleHeroPlay,
             this.titleHeroPrev,
             this.titleHeroNext,
-            this.titleHeroDots,
             this.titleHeroCounter,
             this.titleMoreButton,
             this.titleCampaignButton,
@@ -2642,17 +2556,14 @@ export class Overlays {
         this.titleChicken = null;
         this.titleHeroBg = null;
         this.titleHeroThumb = null;
-        this.titleHeroLive = null;
         this.titleHeroKicker = null;
         this.titleHeroOutlet = null;
         this.titleHeroHeadline = null;
-        this.titleHeroArrow = null;
         this.titleHeroLevel = null;
         this.titleHeroMechanic = null;
         this.titleHeroPlay = null;
         this.titleHeroPrev = null;
         this.titleHeroNext = null;
-        this.titleHeroDots = null;
         this.titleHeroCounter = null;
         this.titleMoreButton = null;
         this.titleCampaignButton = null;

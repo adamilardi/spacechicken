@@ -223,7 +223,6 @@ export class UIManager {
             this.overlays.titleChicken,
             this.overlays.titleHeroBg,
             this.overlays.titleHeroThumb,
-            this.overlays.titleHeroLive,
             this.overlays.titleMoreButton,
             this.overlays.titleCampaignButton,
             this.overlays.titleSettingsButton,
@@ -235,13 +234,11 @@ export class UIManager {
             this.overlays.titleHeroKicker,
             this.overlays.titleHeroOutlet,
             this.overlays.titleHeroHeadline,
-            this.overlays.titleHeroArrow,
             this.overlays.titleHeroLevel,
             this.overlays.titleHeroMechanic,
             this.overlays.titleHeroPlay,
             this.overlays.titleHeroPrev,
             this.overlays.titleHeroNext,
-            this.overlays.titleHeroDots,
             this.overlays.titleHeroCounter,
             this.overlays.titleSubtitle,
             this.overlays.titlePrompt,
@@ -1235,10 +1232,6 @@ export class UIManager {
 
     placeTitleCluster(centerX, centerY, metrics) {
         this.overlays.placeTitleCluster(centerX, centerY, metrics);
-    }
-
-    titleModeLift(metrics) {
-        return this.overlays.titleModeLift(metrics);
     }
 
     positionRaceSetupButton(metrics) {

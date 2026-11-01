@@ -277,6 +277,8 @@ test('featured story is the default title action with an accurate action line', 
     assert.deepEqual(cycled, [1]);
 
     // Campaign keeps its own start, but only from the campaign view.
+    // (Fresh title session: the single-fire flag armed for the new case.)
+    scene.titleStartFired = false;
     scene.uiManager.overlays.titleView = 'campaign';
     scene.selectedLevel = 1;
     const campaignStarts = [];
@@ -1519,7 +1521,7 @@ test('title view buttons never fall through to campaign start', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const { InputController } = await importModule('InputController.js');
     const scene = new SpaceChicken();
-    scene.awaitingStart = true;
+    scene.selectedLevel = 1;
     let began = 0;
     scene.beginPlay = () => {
         began += 1;
@@ -1534,7 +1536,17 @@ test('title view buttons never fall through to campaign start', async () => {
     });
     controller.controls = { newsButtons: [button] };
     scene.inputController = controller;
-    scene.uiManager = { newsButtons: [button], raceSetupDialog: null };
+    scene.uiManager = {
+        newsButtons: [button],
+        raceSetupDialog: null,
+        overlays: { titleView: 'campaign' },
+    };
+    // Each case below is a separate title interaction; re-arm the title.
+    const retitle = () => {
+        scene.awaitingStart = true;
+        scene.titleStartFired = false;
+    };
+    retitle();
 
     // The press lands on the still-visible view button; its own pointerup
     // runs first and hides it (setTitleView), then the scene handler sees
@@ -1544,18 +1556,279 @@ test('title view buttons never fall through to campaign start', async () => {
     scene.onTitlePointerUp({ id: 7, x: 170, y: 122 });
     assert.equal(began, 0);
 
-    // A release over the now-hidden button is still a button hit even
-    // without a pointerdown snapshot (e.g. a drag onto it).
+    // A drag onto a button that was visible at press-down still guards,
+    // even though the button hid itself before the scene handler ran.
+    button.visible = true;
+    scene.onTitlePointerDown({ id: 8, x: 20, y: 20 });
+    button.visible = false;
     scene.onTitlePointerUp({ id: 8, x: 170, y: 122 });
     assert.equal(began, 0);
 
-    // Background taps still start, and visible news hits still guard.
-    scene.onTitlePointerDown({ id: 9, x: 20, y: 20 });
-    scene.onTitlePointerUp({ id: 9, x: 20, y: 20 });
+    // A button hidden since press-down (another view's UI) no longer
+    // swallows the release: it falls through to the view start.
+    scene.onTitlePointerDown({ id: 9, x: 170, y: 122 });
+    scene.onTitlePointerUp({ id: 9, x: 170, y: 122 });
     assert.equal(began, 1);
-    button.visible = true;
+    retitle();
+
+    // Releases with no tracked press fall back to visible buttons only.
     scene.onTitlePointerUp({ id: 10, x: 170, y: 122 });
-    assert.equal(began, 1);
+    assert.equal(began, 2);
+    retitle();
+    button.visible = true;
+    scene.onTitlePointerUp({ id: 11, x: 170, y: 122 });
+    assert.equal(began, 2);
+
+    // Background taps still start.
+    scene.onTitlePointerDown({ id: 12, x: 20, y: 20 });
+    scene.onTitlePointerUp({ id: 12, x: 20, y: 20 });
+    assert.equal(began, 3);
+});
+
+test('title tap and Space take the same view-aware start path', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { InputController } = await importModule('InputController.js');
+    const { NEWS_LEVEL_IDS } = await importModule('levels/index.js');
+    const blankTargets = () => ({
+        jump: false,
+        left: false,
+        right: false,
+        music: false,
+        leaderboard: false,
+        name: false,
+        selectPrev: false,
+        selectNext: false,
+        news: false,
+    });
+    function makeScene(view, heroIndex = 1) {
+        const scene = new SpaceChicken();
+        scene.awaitingStart = true;
+        scene.selectedLevel = 1;
+        scene.starts = [];
+        scene.startNewsLevel = (id) => {
+            scene.starts.push(id);
+        };
+        scene.beginPlay = () => {
+            scene.starts.push('campaign');
+        };
+        const controller = new InputController({
+            uiManager: { raceSetupDialog: null },
+            pointerTapTimes: new Map(),
+        });
+        controller.controls = { newsButtons: [] };
+        controller.fillPointerTargets = () => blankTargets();
+        controller.isOverUiControl = () => false;
+        scene.inputController = controller;
+        scene.uiManager = {
+            newsButtons: [],
+            raceSetupDialog: null,
+            updateGamepadStatus() {},
+            overlays: {
+                titleView: view,
+                titleHeroIndex: heroIndex,
+                featuredNewsId: () => NEWS_LEVEL_IDS[0],
+                cycleHero() {},
+            },
+        };
+        return scene;
+    }
+    function tap(scene) {
+        scene.onTitlePointerDown({ id: 1, x: 20, y: 20 });
+        scene.onTitlePointerUp({ id: 1, x: 20, y: 20 });
+    }
+    function space(scene) {
+        scene.updateTitleScreen({ spaceJustPressed: true, menu: {} });
+    }
+    // Featured: both play the featured story, never campaign level 1.
+    let tapScene = makeScene('featured');
+    tap(tapScene);
+    let spaceScene = makeScene('featured');
+    space(spaceScene);
+    assert.deepEqual(tapScene.starts, [NEWS_LEVEL_IDS[0]]);
+    assert.deepEqual(spaceScene.starts, [NEWS_LEVEL_IDS[0]]);
+    // Campaign: both start the selected campaign level.
+    tapScene = makeScene('campaign');
+    tap(tapScene);
+    spaceScene = makeScene('campaign');
+    space(spaceScene);
+    assert.deepEqual(tapScene.starts, ['campaign']);
+    assert.deepEqual(spaceScene.starts, ['campaign']);
+    // Stories: both start the highlighted row.
+    tapScene = makeScene('stories', 2);
+    tap(tapScene);
+    spaceScene = makeScene('stories', 2);
+    space(spaceScene);
+    assert.deepEqual(tapScene.starts, [NEWS_LEVEL_IDS[2]]);
+    assert.deepEqual(spaceScene.starts, [NEWS_LEVEL_IDS[2]]);
+    // Settings: neither starts.
+    tapScene = makeScene('settings');
+    tap(tapScene);
+    spaceScene = makeScene('settings');
+    space(spaceScene);
+    assert.deepEqual(tapScene.starts, []);
+    assert.deepEqual(spaceScene.starts, []);
+    // One tap fires one start even though two pointerup listeners and the
+    // poll path all observe it.
+    const once = makeScene('featured');
+    once.onTitlePointerDown({ id: 1, x: 20, y: 20 });
+    once.onTitlePointerUp({ id: 1, x: 20, y: 20 });
+    once.onTitlePointerUp({ id: 1, x: 20, y: 20 });
+    once.updateTitleScreen({ pointerStartTriggered: true, menu: {} });
+    assert.deepEqual(once.starts, [NEWS_LEVEL_IDS[0]]);
+});
+
+test('keyboard arrows, Enter and Escape drive title menus', async () => {
+    const { InputController } = await importModule('InputController.js');
+    const controller = new InputController({
+        uiManager: null,
+        pointerTapTimes: new Map(),
+    });
+    const upArrow = {};
+    const downArrow = {};
+    const wKey = {};
+    const sKey = {};
+    const enterKey = {};
+    const escKey = {};
+    const scene = {
+        cursors: { up: upArrow, down: downArrow },
+        wasd: { W: wKey, S: sKey },
+        enterKey,
+        escKey,
+    };
+    const keyboard = global.Phaser.Input.Keyboard;
+    const realJustDown = keyboard.JustDown;
+    try {
+        keyboard.JustDown = (key) => key === upArrow || key === enterKey;
+        const state = { menu: {} };
+        controller.pollKeyboardMenu(scene, state);
+        assert.equal(state.menu.up, true);
+        assert.equal(state.menu.confirm, true);
+        assert.equal(state.menu.down, undefined);
+        assert.equal(state.menu.back, undefined);
+        keyboard.JustDown = (key) => key === wKey || key === sKey || key === escKey;
+        const state2 = { menu: {} };
+        controller.pollKeyboardMenu(scene, state2);
+        assert.equal(state2.menu.up, true);
+        assert.equal(state2.menu.down, true);
+        assert.equal(state2.menu.back, true);
+        keyboard.JustDown = (key) => key === downArrow;
+        const state3 = { menu: {} };
+        controller.pollKeyboardMenu(scene, state3);
+        assert.equal(state3.menu.down, true);
+        assert.equal(state3.menu.up, undefined);
+    } finally {
+        keyboard.JustDown = realJustDown;
+    }
+});
+
+test('title views cycle and story rows start from menu input', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const { NEWS_LEVEL_IDS } = await importModule('levels/index.js');
+    const starts = [];
+    const scene = {
+        awaitingStart: true,
+        startFeaturedStory: () => starts.push('featured'),
+        startSelectedLevel: () => starts.push('campaign'),
+        startNewsLevel: (id) => starts.push(id),
+    };
+    const overlays = new Overlays(scene, { setHudVisible() {} });
+    scene.startSelectedNewsRow = () => starts.push(NEWS_LEVEL_IDS[overlays.titleHeroIndex]);
+    overlays.layoutTitleScreen = () => {};
+    overlays.titleHeroIndex = 0;
+    overlays.titleHeroHeadline = { setText() {}, setAlpha() {} };
+    overlays.titleNewsRows = NEWS_LEVEL_IDS.map(() => ({
+        background: null,
+        fill: null,
+        setBackgroundColor(color) {
+            this.background = color;
+        },
+        setStyle({ fill }) {
+            this.fill = fill;
+        },
+    }));
+    // Featured: up/down cycle views, confirm starts the feature.
+    overlays.titleView = 'featured';
+    assert.equal(overlays.handleMenuInput({ menu: { down: true } }), true);
+    assert.equal(overlays.titleView, 'stories');
+    assert.equal(overlays.handleMenuInput({ menu: { back: true } }), true);
+    assert.equal(overlays.titleView, 'featured');
+    assert.equal(overlays.handleMenuInput({ menu: { up: true } }), true);
+    assert.equal(overlays.titleView, 'settings');
+    overlays.titleView = 'featured';
+    assert.equal(overlays.handleMenuInput({ menu: { confirm: true } }), true);
+    assert.deepEqual(starts, ['featured']);
+    // Campaign: up/down cycle views, confirm starts the selection.
+    overlays.titleView = 'campaign';
+    assert.equal(overlays.handleMenuInput({ menu: { down: true } }), true);
+    assert.equal(overlays.titleView, 'settings');
+    overlays.titleView = 'campaign';
+    assert.equal(overlays.handleMenuInput({ menu: { up: true } }), true);
+    assert.equal(overlays.titleView, 'stories');
+    overlays.titleView = 'campaign';
+    assert.equal(overlays.handleMenuInput({ menu: { confirm: true } }), true);
+    assert.deepEqual(starts, ['featured', 'campaign']);
+    // Stories: up/down move the row highlight, confirm starts that row.
+    overlays.titleView = 'stories';
+    overlays.titleHeroIndex = 0;
+    assert.equal(overlays.handleMenuInput({ menu: { down: true } }), true);
+    assert.equal(overlays.titleHeroIndex, 1);
+    assert.equal(overlays.titleView, 'stories');
+    assert.equal(overlays.handleMenuInput({ menu: { confirm: true } }), true);
+    assert.deepEqual(starts, ['featured', 'campaign', NEWS_LEVEL_IDS[1]]);
+    assert.equal(overlays.titleNewsRows[1].background, '#8c1d18');
+    assert.equal(overlays.titleNewsRows[1].fill, '#ffe566');
+    assert.equal(overlays.titleNewsRows[0].background, '#14283e');
+    assert.equal(overlays.titleNewsRows[0].fill, '#ffffff');
+    // Back always returns to the featured view.
+    assert.equal(overlays.handleMenuInput({ menu: { back: true } }), true);
+    assert.equal(overlays.titleView, 'featured');
+});
+
+test('title secondary row shrinks to fit narrow portrait screens', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    function mockButton(width) {
+        return {
+            width,
+            scale: 1,
+            x: 0,
+            y: 0,
+            get displayWidth() {
+                return this.width * this.scale;
+            },
+            setScale(scale) {
+                this.scale = scale;
+            },
+            setPosition(x, y) {
+                this.x = x;
+                this.y = y;
+            },
+        };
+    }
+    function mockOverlays() {
+        const overlays = new Overlays({}, { setHudVisible() {} });
+        overlays.titleMoreButton = mockButton(140);
+        overlays.titleCampaignButton = mockButton(140);
+        overlays.titleSettingsButton = mockButton(140);
+        return overlays;
+    }
+    // Narrow portrait: all three stay on screen, slightly shrunk.
+    const narrow = mockOverlays();
+    narrow.layoutSecondaryRow(160, 100, { innerWidth: 320 });
+    for (const button of [
+        narrow.titleMoreButton,
+        narrow.titleCampaignButton,
+        narrow.titleSettingsButton,
+    ]) {
+        assert.ok(button.x >= 8 && button.x <= 312, `button at ${button.x} stays on screen`);
+        assert.ok(button.scale < 1, 'row shrinks to fit');
+    }
+    // Wide screens keep full size, centered.
+    const wide = mockOverlays();
+    wide.layoutSecondaryRow(400, 100, { innerWidth: 800 });
+    assert.equal(wide.titleMoreButton.scale, 1);
+    assert.equal(wide.titleCampaignButton.scale, 1);
+    assert.equal(wide.titleSettingsButton.scale, 1);
+    assert.equal(wide.titleCampaignButton.x, 400);
 });
 
 test('short landscape title keeps a compact real hero at 844x390', async () => {

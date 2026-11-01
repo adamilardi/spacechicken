@@ -555,6 +555,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.branchKey2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
         this.muteKey = this.input.keyboard.addKey(KEY_CODES.M);
         this.boardKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        this.escKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
         this.debugSkipKey = this.debugMode
             ? this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N)
             : null;
@@ -884,6 +886,7 @@ export class SpaceChicken extends Phaser.Scene {
 
     startSession() {
         if (this.awaitingStart) {
+            this.titleStartFired = false;
             if (this.uiManager) {
                 const maxUnlocked = this.leaderboardManager?.getMaxUnlocked?.() || 1;
                 this.uiManager.showTitleScreen(
@@ -903,13 +906,20 @@ export class SpaceChicken extends Phaser.Scene {
     // handler for the same release. View buttons (More stories / Campaign /
     // Settings / Back) hide themselves inside that first dispatch via
     // setTitleView, so a hit test at pointerup time no longer sees them and
-    // the release would fall through to beginPlay. Snapshot the hit while
-    // the button is still visible at pointerdown, and keep a
-    // visibility-independent geometry check at pointerup for releases that
-    // land on a button without a matching snapshot (e.g. a drag onto it).
+    // the release would fall through to the title start. Snapshot the press
+    // and the visible buttons while the button is still visible at
+    // pointerdown. At pointerup the release guards against the buttons that
+    // were visible when the press began (covering both direct presses and
+    // drags onto a button), while buttons hidden since press-down — another
+    // view's UI — no longer swallow the release.
     onTitlePointerDown(pointer) {
         if (!this.titleUiPressIds) this.titleUiPressIds = new Set();
+        if (!this.titleDownButtons) this.titleDownButtons = new Map();
         this.titleUiPressIds.delete(pointer?.id);
+        this.titleDownButtons.set(
+            pointer?.id,
+            (this.uiManager?.newsButtons || []).filter((button) => button?.visible !== false)
+        );
         if (!this.awaitingStart || !this.inputController) {
             return;
         }
@@ -922,20 +932,23 @@ export class SpaceChicken extends Phaser.Scene {
         }
     }
 
-    isPointerOverTitleButton(pointer) {
+    isPointerOverTitleButton(pointer, downButtons) {
         const x = pointer?.x ?? pointer?.worldX;
         const y = pointer?.y ?? pointer?.worldY;
         if (x == null || y == null || !this.inputController?.isPointerOverGameObject) {
             return false;
         }
-        return (this.uiManager?.newsButtons || []).some((button) =>
-            this.inputController.isPointerOverGameObject(x, y, button)
-        );
+        const buttons =
+            downButtons ??
+            (this.uiManager?.newsButtons || []).filter((button) => button?.visible !== false);
+        return buttons.some((button) => this.inputController.isPointerOverGameObject(x, y, button));
     }
 
     onTitlePointerUp(pointer) {
         const pressOnUi = this.titleUiPressIds?.has(pointer?.id) || false;
         this.titleUiPressIds?.delete(pointer?.id);
+        const downButtons = this.titleDownButtons?.get(pointer?.id);
+        this.titleDownButtons?.delete(pointer?.id);
         if (
             this.uiManager?.raceSetupDialog?.open ||
             pointer?.event?.target?.closest?.('button, dialog')
@@ -944,7 +957,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (!this.awaitingStart) {
             return;
         }
-        if (pressOnUi || this.isPointerOverTitleButton(pointer)) {
+        if (pressOnUi || this.isPointerOverTitleButton(pointer, downButtons)) {
             return;
         }
         if (this.inputController) {
@@ -964,7 +977,38 @@ export class SpaceChicken extends Phaser.Scene {
                 return;
             }
         }
-        this.beginPlay();
+        this.startFromTitle();
+    }
+
+    startFromTitle() {
+        // Single-fire, view-aware title start: background taps, Space/keys,
+        // and the pointer poll all converge here so a tap and Space agree.
+        // Two pointerup listeners (scene input + title dim) plus the poll
+        // can observe one tap; the fired flag keeps exactly one start.
+        if (!this.awaitingStart || this.titleStartFired) {
+            return;
+        }
+        this.titleStartFired = true;
+        const view = this.uiManager?.overlays?.titleView || 'featured';
+        if (view === 'campaign') {
+            this.startSelectedLevel();
+        } else if (view === 'featured') {
+            this.startFeaturedStory();
+        } else if (view === 'stories') {
+            this.startSelectedNewsRow();
+        }
+        // Settings has no default start action: taps/keys there do nothing.
+    }
+
+    startSelectedNewsRow() {
+        if (!this.awaitingStart) {
+            return;
+        }
+        const index = this.uiManager?.overlays?.titleHeroIndex || 0;
+        const id = NEWS_LEVEL_IDS[index] || NEWS_LEVEL_IDS[0];
+        if (id) {
+            this.startNewsLevel(id);
+        }
     }
 
     beginPlay() {
@@ -2418,11 +2462,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (!startTriggered) {
             return;
         }
-        if (view === 'campaign') {
-            this.startSelectedLevel();
-        } else if (view === 'featured') {
-            this.startFeaturedStory();
-        }
+        this.startFromTitle();
     }
 
     titleSelectLeft(inputState) {
