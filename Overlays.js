@@ -55,6 +55,53 @@ export function formatNewsRow(id, title, outlet) {
     return `${id} · ${title}${outletSuffix}`;
 }
 
+const NEWS_PLATE_KEYS = Object.freeze({
+    17: 'tickerBg',
+    18: 'fearBg',
+    19: 'hubbleBg',
+    20: 'danceBg',
+    21: 'phobosBg',
+    22: 'falconBg',
+    23: 'tracersBg',
+    24: 'clutchBg',
+});
+
+export function newsPlateKey(id) {
+    return NEWS_PLATE_KEYS[id] || null;
+}
+
+export const FEATURED_NEWS_ID = 19;
+
+const ACTION_SENTENCES = Object.freeze({
+    17: 'Time the laser audits and dodge the panic drones across the server decks.',
+    18: 'Bonk the Bear Raiders to bounce up the VIX needle and dodge the falling candles.',
+    19: 'Sink through the decay dip, then ride the reboost lifts past the Servicer Tugs.',
+    20: 'Cross the formation grid on the shared beat as the Dancer Bots patrol in waves.',
+    21: 'Ride the launch shaft up and loop the crater field past the Survey Orbiters.',
+    22: 'Climb the launch tower past the Starlink Sprites, then fall carefully down the descent shaft.',
+    23: 'Bonk the Reconnection Sprites to snap across the broken field lines.',
+    24: 'Run the bracket, fire on the pawn waves, and face the Champion King.',
+});
+
+export function actionSentence(id) {
+    return ACTION_SENTENCES[id] || 'Jump, dodge, and chase the golden crown.';
+}
+
+const STAGE_ENEMY_KEYS = Object.freeze({
+    17: 'tickerBot',
+    18: 'bearRaider',
+    19: 'servicerTug',
+    20: 'dancerBot',
+    21: 'surveyOrbiter',
+    22: 'starlinkSprite',
+    23: 'spriteBot',
+    24: 'championKing',
+});
+
+export function stageEnemyKey(id) {
+    return STAGE_ENEMY_KEYS[id] || 'tickerBot';
+}
+
 export class Overlays {
     constructor(scene, ui) {
         this.scene = scene;
@@ -67,6 +114,43 @@ export class Overlays {
         this.titleGamepadStatus = null;
         this.titleNewsHeader = null;
         this.titleNewsRows = [];
+        this.titleBackdrop = null;
+        this.titleTickerBg = null;
+        this.titleTickerText = null;
+        this.titleTickerLive = null;
+        this.titleTagline = null;
+        this.titleShadow = null;
+        this.titleGlow = null;
+        this.titleGlowTween = null;
+        this.titlePlayTween = null;
+        this.titleCrown = null;
+        this.titleChicken = null;
+        this.titleChickenTween = null;
+        this.titleHeroBg = null;
+        this.titleHeroThumb = null;
+        this.titleHeroKicker = null;
+        this.titleHeroOutlet = null;
+        this.titleHeroHeadline = null;
+        this.titleHeroLevel = null;
+        this.titleHeroMechanic = null;
+        this.titleHeroPlay = null;
+        this.titleHeroPrev = null;
+        this.titleHeroNext = null;
+        this.titleHeroCounter = null;
+        this.titleHeroIndex = Math.max(0, NEWS_LEVEL_IDS.indexOf(FEATURED_NEWS_ID));
+        this.titleHeroTimer = null;
+        this.titleView = 'featured';
+        this.titleMini = false;
+        this.titleMoreButton = null;
+        this.titleCampaignButton = null;
+        this.titleSettingsButton = null;
+        this.titleBackButton = null;
+        this.titleSettingsHeader = null;
+        this.titleStageChicken = null;
+        this.titleStageEnemy = null;
+        this.titleStageCrown = null;
+        this.titleStageChickenTween = null;
+        this.titleStageEnemyTween = null;
         this.titlePromptTween = null;
         this.selectPrevButton = null;
         this.selectNextButton = null;
@@ -321,9 +405,10 @@ export class Overlays {
     // Title-screen DOM buttons float above the canvas (z-index 30), so they
     // would cover the board on the title page. Hidden while it is open.
     setTitleButtonsVisible(visible) {
+        const inSettings = (this.titleView || 'featured') === 'settings';
         for (const button of [this.raceSetupButton, this.jumpToggleButton, this.difficultyButton]) {
             if (button?.style) {
-                button.style.display = visible ? '' : 'none';
+                button.style.display = visible && inSettings ? '' : 'none';
             }
         }
     }
@@ -913,7 +998,7 @@ export class Overlays {
             })
             .setOrigin(0.5);
         button.setScrollFactor(0);
-        button.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        button.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         button.setPadding(14, 8, 14, 8);
         button.setBackgroundColor('#17334b');
         this.ui.styleHudText(button, 4);
@@ -932,36 +1017,53 @@ export class Overlays {
         const width = this.scene.getViewportWidth();
         const height = this.scene.getViewportHeight();
         if (typeof this.scene.add.rectangle === 'function') {
-            this.titleDim = this.scene.add.rectangle(0, 0, width, height, 0x04060d, 0.58);
+            this.titleDim = this.scene.add.rectangle(0, 0, width, height, 0x030712, 0.78);
             this.titleDim.setOrigin(0, 0);
         } else {
             this.titleDim = this.scene.add.graphics();
-            this.titleDim.fillStyle(0x04060d, 0.58);
+            this.titleDim.fillStyle(0x030712, 0.78);
             this.titleDim.fillRect(0, 0, width, height);
         }
         this.titleDim.setScrollFactor(0);
-        this.titleDim.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 2);
+        this.titleDim.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         if (typeof this.titleDim.setInteractive === 'function') {
             this.titleDim.setInteractive();
             this.titleDim.on('pointerup', (pointer) => this.scene.onTitlePointerUp(pointer));
         }
         this.ui.markUi(this.titleDim);
-
+        this.createTitleGraphics();
         const metrics = this.ui.getLayoutMetrics();
+        this.createTitleMarks();
+        this.createTitleEpic(metrics);
         this.titleText = this.scene.add
             .text(0, 0, 'SPACE CHICKEN', {
                 fontSize: `${metrics.fonts.title}px`,
                 fontFamily: BANNER_FONT,
-                fill: '#fff1a6',
+                fill: '#fff6c9',
                 fontStyle: 'bold',
                 align: 'center',
             })
             .setOrigin(0.5);
         this.titleText.setScrollFactor(0);
-        this.titleText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.titleText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.ui.styleHudText(this.titleText, 8);
         this.ui.markUi(this.titleText);
+        this.titleTagline = this.scene.add
+            .text(0, 0, "Don't just read the news. Play it.", {
+                fontSize: `${Math.max(13, metrics.fonts.instructions)}px`,
+                fontFamily: HUD_FONT,
+                fill: '#8ce4ff',
+                fontStyle: 'bold',
+                align: 'center',
+            })
+            .setOrigin(0.5);
+        this.titleTagline.setScrollFactor(0);
+        this.titleTagline.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.titleTagline.setPadding(0);
+        this.ui.styleHudText(this.titleTagline, 3);
+        this.ui.markUi(this.titleTagline);
 
+        this.createTitleHero(metrics);
         this.titleSubtitle = this.scene.add
             .text(0, 0, subtitle || 'Dawn Run', {
                 fontSize: `${metrics.fonts.subtitle}px`,
@@ -971,18 +1073,16 @@ export class Overlays {
             })
             .setOrigin(0.5);
         this.titleSubtitle.setScrollFactor(0);
-        this.titleSubtitle.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.titleSubtitle.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.ui.styleHudText(this.titleSubtitle, 4);
         this.ui.markUi(this.titleSubtitle);
 
         const canSelect = (this.scene.leaderboardManager?.getMaxUnlocked?.() || 1) > 1;
-        let prompt = this.ui.touchControlsEnabled
-            ? 'TAP TO START'
-            : 'PRESS SPACE OR GAMEPAD A TO START';
+        let prompt = this.ui.touchControlsEnabled ? 'TAP TO START' : 'PRESS SPACE TO START';
         if (canSelect) {
             prompt = this.ui.touchControlsEnabled
-                ? 'TAP ◀ ▶ · TAP MIDDLE TO START'
-                : '← → SELECT · SPACE START';
+                ? 'TAP ◀ ▶ · TAP TO START'
+                : '← → SELECT · SPACE STARTS';
         }
         this.titlePrompt = this.scene.add
             .text(0, 0, prompt, {
@@ -993,26 +1093,26 @@ export class Overlays {
             })
             .setOrigin(0.5);
         this.titlePrompt.setScrollFactor(0);
-        this.titlePrompt.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.titlePrompt.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.titlePrompt.setPadding(16, 10, 16, 10);
-        this.titlePrompt.setBackgroundColor('#17334b');
+        this.titlePrompt.setBackgroundColor('#1b2f4a');
         this.ui.styleHudText(this.titlePrompt, 4);
         this.ui.markUi(this.titlePrompt);
         const controls = this.ui.touchControlsEnabled
-            ? 'MOVE  Hold the arrows\nJUMP  Tap JUMP; tap again in air\nMODES  Gold button for a 2-player race\nJUMPS  Tap the jump button for fine control\nDIFFICULTY  Tap the button for hard mode\nGOAL  Reach the golden crown'
-            : 'MOVE  ← / → or A / D\nJUMP  Space / K / ↑ / W; press again in air\nFIRE  J or F, hold on gun levels\nPAUSE  Esc / P or gamepad Start\nMODES  Gold button or D-pad ↓\nJUMPS  T, D-pad ↑, or the jump button\nDIFFICULTY  H, gamepad B, or the button';
+            ? 'ARROWS move · JUMP boost · Crown wins  ·  Tap a headline above to play it now'
+            : '←→ move · SPACE jump · J fire · ESC pause  ·  Click a headline to play it now';
         this.titleControls = this.scene.add
             .text(0, 0, controls, {
                 fontSize: `${metrics.fonts.instructions}px`,
                 fontFamily: HUD_FONT,
-                fill: '#e0efff',
+                fill: '#9fb3c8',
                 align: 'center',
-                lineSpacing: 5,
+                lineSpacing: 4,
             })
             .setOrigin(0.5, 0);
         this.titleControls.setScrollFactor(0);
-        this.titleControls.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-        this.ui.styleHudText(this.titleControls, 3);
+        this.titleControls.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.ui.styleHudText(this.titleControls, 2);
         this.ui.markUi(this.titleControls);
 
         this.titleGamepadStatus = this.scene.add
@@ -1024,7 +1124,7 @@ export class Overlays {
             })
             .setOrigin(0.5, 0);
         this.titleGamepadStatus.setScrollFactor(0);
-        this.titleGamepadStatus.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.titleGamepadStatus.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.ui.styleHudText(this.titleGamepadStatus, 3);
         this.ui.markUi(this.titleGamepadStatus);
         if (canSelect) {
@@ -1032,29 +1132,461 @@ export class Overlays {
             this.selectNextButton = this.ui.markUi(this.createSelectChevron('▶', 1, metrics));
         }
         this.createTitleNewsSection(metrics);
+        this.createTitleSecondary(metrics);
         this.updateGamepadStatus();
+        this.updateHero(false);
+        this.startHeroTimer();
 
         this.ui.playerNameText.setOrigin(0.5);
-        this.ui.playerNameText.setPadding(12, 8, 12, 8);
-        this.ui.playerNameText.setBackgroundColor('#17334b');
+        this.ui.playerNameText.setPadding(4, 2, 4, 2);
+        this.ui.playerNameText.setBackgroundColor();
         this.ui.playerNameText.setDepth(GAME_CONSTANTS.LEADERBOARD_BUTTON_DEPTH);
-        this.ui.playerNameText.setVisible(true);
+        this.ui.playerNameText.setVisible(false);
         this.ui.updatePlayerName(this.ui.playerName);
         if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
             this.titlePromptTween = this.scene.tweens.add({
                 targets: this.titlePrompt,
-                alpha: { from: 0.72, to: 1 },
+                alpha: { from: 0.78, to: 1 },
                 duration: GAME_CONSTANTS.TITLE_PROMPT_PULSE_MS,
                 yoyo: true,
                 repeat: -1,
                 ease: 'Sine.easeInOut',
             });
+            if (this.titleChicken) {
+                this.titleChickenTween = this.scene.tweens.add({
+                    targets: this.titleChicken,
+                    y: '+=7',
+                    duration: 1100,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+            }
+            if (this.titleGlow) {
+                this.titleGlowTween = this.scene.tweens.add({
+                    targets: this.titleGlow,
+                    alpha: { from: 0.22, to: 0.42 },
+                    scale: { from: 6, to: 7.5 },
+                    duration: 1300,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+            }
+            if (this.titleHeroPlay) {
+                this.titlePlayTween = this.scene.tweens.add({
+                    targets: this.titleHeroPlay,
+                    scale: { from: 1, to: 1.045 },
+                    duration: 850,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+            }
         }
         this.ui.setHudVisible(false);
+        this.ui.setTouchControlsVisible?.(false);
         this.createRaceSetup();
         this.createJumpToggle();
         this.createDifficulty();
+        this.titleView = 'featured';
         this.layoutTitleScreen();
+    }
+
+    createTitleGraphics() {
+        if (typeof this.scene.add.graphics !== 'function') return;
+        const mk = (depth) => {
+            const g = this.scene.add.graphics();
+            g.setScrollFactor(0);
+            g.setDepth(depth);
+            this.ui.markUi(g);
+            return g;
+        };
+        this.titleBackdrop = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.titleTickerBg = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.titleHeroBg = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
+    }
+
+    createTitleMarks() {
+        if (typeof this.scene.add.image !== 'function') return;
+        if (this.scene.textures?.exists?.('crown')) {
+            this.titleCrown = this.scene.add.image(0, 0, 'crown');
+            this.titleCrown.setScrollFactor(0);
+            this.titleCrown.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.titleCrown.setScale(1.15);
+            this.ui.markUi(this.titleCrown);
+        }
+        if (this.scene.textures?.exists?.('chicken1')) {
+            this.titleChicken = this.scene.add.image(0, 0, 'chicken1');
+            this.titleChicken.setScrollFactor(0);
+            this.titleChicken.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.titleChicken.setScale(2.6);
+            this.ui.markUi(this.titleChicken);
+        }
+    }
+
+    createTitleEpic(metrics) {
+        if (typeof this.scene.add.text === 'function') {
+            this.titleShadow = this.scene.add
+                .text(0, 0, 'SPACE CHICKEN', {
+                    fontSize: `${metrics.fonts.title}px`,
+                    fontFamily: BANNER_FONT,
+                    fill: '#e10600',
+                    fontStyle: 'bold',
+                    align: 'center',
+                })
+                .setOrigin(0.5);
+            this.titleShadow.setScrollFactor(0);
+            this.titleShadow.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.titleShadow.setAlpha(0.85);
+            this.ui.markUi(this.titleShadow);
+        }
+        if (
+            typeof this.scene.add.image === 'function' &&
+            this.scene.textures?.exists?.('particleSoft')
+        ) {
+            this.titleGlow = this.scene.add.image(0, 0, 'particleSoft');
+            this.titleGlow.setScrollFactor(0);
+            this.titleGlow.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.titleGlow.setTint(0xffc93c);
+            this.titleGlow.setAlpha(0.32);
+            this.titleGlow.setScale(7);
+            if (this.titleGlow.setBlendMode && typeof Phaser !== 'undefined')
+                this.titleGlow.setBlendMode(Phaser.BlendModes.ADD);
+            this.ui.markUi(this.titleGlow);
+        }
+    }
+
+    createTitleStage() {
+        if (typeof this.scene.add.image !== 'function') return;
+        const mkImg = (key, fallback) => {
+            const use = this.scene.textures?.exists?.(key) ? key : fallback;
+            if (!use || !this.scene.textures?.exists?.(use)) return null;
+            const img = this.scene.add.image(0, 0, use);
+            img.setScrollFactor(0);
+            img.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            img.setOrigin(0.5, 1);
+            this.ui.markUi(img);
+            return img;
+        };
+        this.titleStageChicken = mkImg('chicken_jetpack1', 'chicken1');
+        this.titleStageEnemy = mkImg('servicerTug', 'tickerBot');
+        if (this.scene.textures?.exists?.('crown')) {
+            this.titleStageCrown = this.scene.add.image(0, 0, 'crown');
+            this.titleStageCrown.setScrollFactor(0);
+            this.titleStageCrown.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.titleStageCrown.setOrigin(0.5, 1);
+            this.ui.markUi(this.titleStageCrown);
+        }
+        if (this.scene.tweens?.add) {
+            if (this.titleStageChicken)
+                this.titleStageChickenTween = this.scene.tweens.add({
+                    targets: this.titleStageChicken,
+                    y: '-=7',
+                    duration: 820,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+            if (this.titleStageEnemy)
+                this.titleStageEnemyTween = this.scene.tweens.add({
+                    targets: this.titleStageEnemy,
+                    x: '+=30',
+                    duration: 1500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                });
+        }
+    }
+
+    createTitleSecondary(metrics) {
+        const depth = GAME_CONSTANTS.OVERLAY_DEPTH;
+        const mkBtn = (label, view) => {
+            const b = this.scene.add
+                .text(0, 0, label, {
+                    fontSize: `${Math.max(13, metrics.fonts.instructions - 1)}px`,
+                    fontFamily: HUD_FONT,
+                    fill: '#cfe7ff',
+                    align: 'center',
+                })
+                .setOrigin(0.5);
+            b.setScrollFactor(0);
+            b.setDepth(depth);
+            b.setPadding(10, 7, 10, 7);
+            this.ui.styleHudText(b, 2);
+            if (typeof b.setInteractive === 'function') {
+                b.setInteractive({ useHandCursor: true });
+                b.on('pointerup', () => this.setTitleView(view));
+                b.on('pointerover', () => b.setStyle({ fill: '#ffe566' }));
+                b.on('pointerout', () => b.setStyle({ fill: '#cfe7ff' }));
+            }
+            this.ui.markUi(b);
+            return b;
+        };
+        this.titleMoreButton = mkBtn('More stories', 'stories');
+        this.titleCampaignButton = mkBtn('Campaign', 'campaign');
+        this.titleSettingsButton = mkBtn('Settings', 'settings');
+        this.titleBackButton = mkBtn('← Back', 'featured');
+        this.titleSettingsHeader = this.scene.add
+            .text(0, 0, 'SETTINGS', {
+                fontSize: `${Math.max(15, metrics.fonts.instructions + 1)}px`,
+                fontFamily: HUD_FONT,
+                fill: '#ffe566',
+                fontStyle: 'bold',
+                align: 'center',
+            })
+            .setOrigin(0.5, 0);
+        this.titleSettingsHeader.setScrollFactor(0);
+        this.titleSettingsHeader.setDepth(depth);
+        this.ui.styleHudText(this.titleSettingsHeader, 3);
+        this.ui.markUi(this.titleSettingsHeader);
+    }
+
+    setTitleView(view) {
+        this.titleView = ['featured', 'stories', 'campaign', 'settings'].includes(view)
+            ? view
+            : 'featured';
+        this.layoutTitleScreen();
+        this.updateNewsRowHighlight();
+    }
+
+    heroObjects() {
+        return [
+            this.titleHeroBg,
+            this.titleHeroThumb,
+            this.titleHeroKicker,
+            this.titleHeroOutlet,
+            this.titleHeroHeadline,
+            this.titleHeroLevel,
+            this.titleHeroMechanic,
+            this.titleHeroPlay,
+            this.titleHeroPrev,
+            this.titleHeroNext,
+            this.titleHeroCounter,
+            this.titleStageChicken,
+            this.titleStageEnemy,
+            this.titleStageCrown,
+        ];
+    }
+
+    applyTitleView() {
+        const view = this.titleView || 'featured';
+        const show = (obj, on) => obj?.setVisible?.(on);
+        for (const obj of this.heroObjects()) show(obj, view === 'featured');
+        show(this.titleMoreButton, view === 'featured');
+        show(this.titleCampaignButton, view === 'featured');
+        show(this.titleSettingsButton, view === 'featured');
+        show(this.titleBackButton, view !== 'featured');
+        show(this.titleSettingsHeader, view === 'settings');
+        show(this.titleNewsHeader, view === 'stories');
+        for (const row of this.titleNewsRows || []) show(row, view === 'stories');
+        show(this.titleSubtitle, view === 'campaign');
+        show(this.selectPrevButton, view === 'campaign');
+        show(this.selectNextButton, view === 'campaign');
+        show(this.titlePrompt, view === 'campaign');
+        if (this.titleControls) this.titleControls.setVisible(false);
+        if (this.titleGamepadStatus) this.titleGamepadStatus.setVisible(false);
+        if (this.titleTickerLive) this.titleTickerLive.setVisible(false);
+        if (this.titleTickerText) this.titleTickerText.setVisible(false);
+        this.titleTickerBg?.clear?.();
+        const inSettings = view === 'settings';
+        for (const btn of [this.raceSetupButton, this.jumpToggleButton, this.difficultyButton]) {
+            if (btn?.style) btn.style.display = inSettings ? '' : 'none';
+        }
+        if (this.ui.playerNameText) this.ui.playerNameText.setVisible(inSettings);
+        if (view === 'featured' && this.titleHeroThumb) this.updateStageVisibility();
+    }
+
+    updateStageVisibility() {
+        const id = this.featuredNewsId();
+        const plate = newsPlateKey(id);
+        if (this.titleHeroThumb) {
+            const has = Boolean(plate && this.scene.textures?.exists?.(plate));
+            this.titleHeroThumb.setVisible(has);
+            if (has) this.titleHeroThumb.setTexture(plate);
+        }
+        const enemyKey = stageEnemyKey(id);
+        if (this.titleStageEnemy && this.scene.textures?.exists?.(enemyKey))
+            this.titleStageEnemy.setTexture(enemyKey);
+    }
+
+    createTitleHero(metrics) {
+        const depth = GAME_CONSTANTS.OVERLAY_DEPTH;
+        const mk = (str, size, fill, bold = false) => {
+            const t = this.scene.add
+                .text(0, 0, str, {
+                    fontSize: `${size}px`,
+                    fontFamily: HUD_FONT,
+                    fill,
+                    fontStyle: bold ? 'bold' : 'normal',
+                    align: 'left',
+                })
+                .setOrigin(0, 0);
+            t.setScrollFactor(0);
+            t.setDepth(depth);
+            this.ui.styleHudText(t, 3);
+            this.ui.markUi(t);
+            return t;
+        };
+        const ins = metrics.fonts.instructions;
+        this.titleHeroKicker = mk('FEATURED STORY', Math.max(11, ins - 2), '#8ce4ff', true);
+        this.titleHeroCounter = mk('', Math.max(11, ins - 2), '#8ce4ff', true);
+        this.titleHeroCounter.setOrigin(1, 0);
+        this.titleHeroOutlet = mk('', Math.max(12, ins - 1), '#9fb3c8');
+        this.titleHeroHeadline = mk('', Math.max(16, ins + 2), '#ffffff', true);
+        this.titleHeroHeadline.setWordWrapWidth(400, true);
+        this.titleHeroLevel = mk('', Math.max(15, ins + 1), '#ffe566', true);
+        this.titleHeroMechanic = mk('', Math.max(13, ins - 1), '#e8f1ff');
+        this.titleHeroMechanic.setWordWrapWidth(400, true);
+        if (typeof this.scene.add.image === 'function') {
+            this.titleHeroThumb = this.scene.add.image(0, 0, 'tickerBg');
+            this.titleHeroThumb.setScrollFactor(0);
+            this.titleHeroThumb.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            this.titleHeroThumb.setOrigin(0, 0);
+            this.ui.markUi(this.titleHeroThumb);
+            if (!this.scene.textures?.exists?.('tickerBg')) this.titleHeroThumb.setVisible(false);
+        }
+        this.createTitleStage();
+        this.titleHeroPlay = this.scene.add
+            .text(0, 0, '▶  PLAY THIS STORY', {
+                fontSize: `${Math.max(15, ins + 1)}px`,
+                fontFamily: HUD_FONT,
+                fill: '#111827',
+                fontStyle: 'bold',
+                align: 'center',
+            })
+            .setOrigin(0, 0.5);
+        this.titleHeroPlay.setScrollFactor(0);
+        this.titleHeroPlay.setDepth(depth);
+        this.titleHeroPlay.setPadding(16, 10, 16, 10);
+        this.titleHeroPlay.setBackgroundColor('#ffe566');
+        // Dark text on gold: HUD stroke/shadow smears it, so keep it flat.
+        this.titleHeroPlay.setStroke?.('#ffe566', 0);
+        this.titleHeroPlay.setShadow?.(0, 0, '#000000', 0, false, false);
+        if (typeof this.titleHeroPlay.setInteractive === 'function') {
+            this.titleHeroPlay.setInteractive({ useHandCursor: true });
+            this.titleHeroPlay.on('pointerup', () => {
+                const id = NEWS_LEVEL_IDS[this.titleHeroIndex];
+                if (id) this.scene.startNewsLevel(id);
+            });
+            this.titleHeroPlay.on('pointerover', () =>
+                this.titleHeroPlay.setBackgroundColor('#fff0a0')
+            );
+            this.titleHeroPlay.on('pointerout', () =>
+                this.titleHeroPlay.setBackgroundColor('#ffe566')
+            );
+        }
+        this.ui.markUi(this.titleHeroPlay);
+        const nav = (label, dir) => {
+            const b = this.scene.add
+                .text(0, 0, label, {
+                    fontSize: `${Math.max(18, ins + 4)}px`,
+                    fontFamily: HUD_FONT,
+                    fill: '#ffffff',
+                    fontStyle: 'bold',
+                    align: 'center',
+                })
+                .setOrigin(0.5);
+            b.setScrollFactor(0);
+            b.setDepth(depth);
+            b.setPadding(10, 6, 10, 6);
+            b.setBackgroundColor('#1b3a5c');
+            this.ui.styleHudText(b, 3);
+            if (typeof b.setInteractive === 'function') {
+                b.setInteractive({ useHandCursor: true });
+                b.on('pointerup', () => this.cycleHero(dir));
+            }
+            this.ui.markUi(b);
+            return b;
+        };
+        this.titleHeroPrev = nav('‹', -1);
+        this.titleHeroNext = nav('›', 1);
+    }
+
+    featuredNewsId() {
+        return NEWS_LEVEL_IDS[this.titleHeroIndex] || NEWS_LEVEL_IDS[0];
+    }
+
+    updateHero(animate = true) {
+        const id = this.featuredNewsId();
+        if (!id || !this.titleHeroHeadline) return;
+        const title = LEVEL_DEFINITIONS[id]?.TITLE || `Level ${id}`;
+        const news = LEVEL_CONTENT[id]?.news || {};
+        const outlet = news.outlet || 'News wire';
+        if (this.titleHeroOutlet) this.titleHeroOutlet.setText(`Source: ${outlet}`);
+        if (this.titleHeroHeadline) {
+            const raw = news.headline || title;
+            this.titleHeroHeadline.setText(raw.length > 110 ? `${raw.slice(0, 107)}…` : raw);
+        }
+        if (this.titleHeroLevel)
+            this.titleHeroLevel.setText(`LEVEL ${id} · ${title.toUpperCase()}`);
+        if (this.titleHeroMechanic) this.titleHeroMechanic.setText(actionSentence(id));
+        if (this.titleHeroCounter)
+            this.titleHeroCounter.setText(
+                `Story ${this.titleHeroIndex + 1} of ${NEWS_LEVEL_IDS.length}`
+            );
+        this.updateStageVisibility();
+        this.updateNewsRowHighlight(id);
+        if (animate && this.scene.tweens?.add && this.titleHeroHeadline) {
+            this.titleHeroHeadline.setAlpha(0.25);
+            this.scene.tweens.add({
+                targets: [this.titleHeroHeadline, this.titleHeroLevel, this.titleHeroMechanic],
+                alpha: { from: 0.25, to: 1 },
+                duration: 260,
+                ease: 'Sine.easeOut',
+            });
+        }
+        this.layoutTitleScreen();
+    }
+
+    cycleHero(dir) {
+        if (!NEWS_LEVEL_IDS.length) return;
+        this.titleHeroIndex =
+            (this.titleHeroIndex + dir + NEWS_LEVEL_IDS.length) % NEWS_LEVEL_IDS.length;
+        this.updateHero(true);
+        this.restartHeroTimer();
+    }
+
+    startHeroTimer() {
+        this.stopHeroTimer();
+        if (!this.scene.time?.addEvent || NEWS_LEVEL_IDS.length < 2) return;
+        try {
+            this.titleHeroTimer = this.scene.time.addEvent({
+                delay: 6000,
+                loop: true,
+                callback: () => this.cycleHero(1),
+            });
+        } catch {
+            this.titleHeroTimer = null;
+        }
+    }
+
+    restartHeroTimer() {
+        if (this.titleHeroTimer?.reset) {
+            try {
+                this.titleHeroTimer.reset({
+                    delay: 6000,
+                    loop: true,
+                    callback: () => this.cycleHero(1),
+                });
+                return;
+            } catch {
+                /* fall through */
+            }
+        }
+        this.startHeroTimer();
+    }
+
+    stopHeroTimer() {
+        if (this.titleHeroTimer?.remove) {
+            try {
+                this.titleHeroTimer.remove(false);
+            } catch {
+                /* noop */
+            }
+        }
+        this.titleHeroTimer = null;
     }
 
     createTitleNewsSection(metrics) {
@@ -1064,7 +1596,7 @@ export class Overlays {
             return;
         }
         this.titleNewsHeader = this.scene.add
-            .text(0, 0, 'NEWS LEVELS', {
+            .text(0, 0, 'MORE STORIES', {
                 fontSize: `${metrics.fonts.instructions}px`,
                 fontFamily: HUD_FONT,
                 fill: '#ffe566',
@@ -1073,7 +1605,7 @@ export class Overlays {
             })
             .setOrigin(0.5, 0);
         this.titleNewsHeader.setScrollFactor(0);
-        this.titleNewsHeader.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
+        this.titleNewsHeader.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.ui.styleHudText(this.titleNewsHeader, 3);
         this.ui.markUi(this.titleNewsHeader);
         for (const id of NEWS_LEVEL_IDS) {
@@ -1081,20 +1613,28 @@ export class Overlays {
             const outlet = LEVEL_CONTENT[id]?.news?.outlet || '';
             const row = this.scene.add
                 .text(0, 0, formatNewsRow(id, title, outlet), {
-                    fontSize: `${metrics.fonts.instructions}px`,
+                    fontSize: `${Math.max(12, metrics.fonts.instructions - 1)}px`,
                     fontFamily: HUD_FONT,
                     fill: '#ffffff',
                     align: 'center',
                 })
                 .setOrigin(0.5, 0);
             row.setScrollFactor(0);
-            row.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH - 1);
-            row.setPadding(14, 6, 14, 6);
-            row.setBackgroundColor('#17334b');
+            row.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            row.setPadding(10, 4, 10, 4);
+            row.setBackgroundColor('#14283e');
             this.ui.styleHudText(row, 3);
             if (typeof row.setInteractive === 'function') {
                 row.setInteractive({ useHandCursor: true });
                 row.on('pointerup', () => this.scene.startNewsLevel(id));
+                row.on('pointerover', () => {
+                    const idx = NEWS_LEVEL_IDS.indexOf(id);
+                    if (idx >= 0 && idx !== this.titleHeroIndex) {
+                        this.titleHeroIndex = idx;
+                        this.updateHero(true);
+                        this.restartHeroTimer();
+                    }
+                });
             }
             this.ui.markUi(row);
             this.titleNewsRows.push(row);
@@ -1237,11 +1777,6 @@ export class Overlays {
         const width = metrics.width;
         const height = metrics.height;
         const centerX = insets.left + metrics.innerWidth / 2;
-        const verticalRatio = metrics.isPortrait ? 0.46 : metrics.isCompact ? 0.38 : 0.48;
-        const centerY =
-            insets.top +
-            metrics.innerHeight * verticalRatio +
-            (metrics.isCompact && !metrics.isPortrait ? 18 : 0);
         const maxTitleWidth = Math.max(160, metrics.innerWidth - 24);
         this.ui.applyFontSize(this.titleText, metrics.fonts.title);
         if (typeof this.titleText.setWordWrapWidth === 'function') {
@@ -1260,6 +1795,8 @@ export class Overlays {
         this.ui.applyFontSize(this.titlePrompt, metrics.fonts.prompt);
         this.ui.applyFontSize(this.titleControls, metrics.fonts.instructions);
         this.ui.applyFontSize(this.titleGamepadStatus, metrics.fonts.instructions);
+        if (this.titleTagline)
+            this.ui.applyFontSize(this.titleTagline, Math.max(13, metrics.fonts.instructions));
         if (this.titlePrompt?.setWordWrapWidth) {
             this.titlePrompt.setWordWrapWidth(maxTitleWidth, true);
         }
@@ -1271,188 +1808,309 @@ export class Overlays {
                 this.titleDim.setPosition(0, 0);
             } else if (typeof this.titleDim.clear === 'function') {
                 this.titleDim.clear();
-                this.titleDim.fillStyle(0x04060d, 0.58);
+                this.titleDim.fillStyle(0x030712, 0.78);
                 this.titleDim.fillRect(0, 0, width, height);
             }
         }
-        this.placeTitleCluster(centerX, centerY, metrics);
-        this.fitTitleClusterToScreen(centerX, centerY, metrics, insets);
+        this.placeTitleCluster(centerX, metrics);
     }
 
-    fitTitleClusterToScreen(centerX, centerY, metrics, insets) {
-        const rows = this.titleNewsRows || [];
-        const last = rows[rows.length - 1];
-        if (!this.titleNewsHeader || !last || !last.visible) {
-            return;
-        }
-        if (!metrics.isPortrait && metrics.innerWidth >= 1000) {
-            return;
-        }
-        const floor = insets.top + metrics.innerHeight - 8;
-        const overflow = last.y + (last.displayHeight || 0) - floor;
-        if (overflow <= 0) {
-            return;
-        }
-        const titleTop = this.titleText.y - (this.titleText.displayHeight || 0) / 2;
-        const lift = Math.min(overflow, Math.max(0, titleTop - insets.top - 40));
-        if (lift <= 0) {
-            return;
-        }
-        this.placeTitleCluster(centerX, centerY - lift, metrics);
-    }
-
-    placeTitleCluster(centerX, centerY, metrics) {
-        const titleOffset = metrics.isCompact ? 36 : 46;
-        const modeLift = this.titleModeLift(metrics);
-        this.titleText.setPosition(centerX, centerY - titleOffset - modeLift);
-        if (this.titleSubtitle) {
-            const subtitleY =
-                this.titleText.y +
-                (this.titleText.displayHeight || this.titleText.height || 40) * 0.5 +
-                (metrics.isCompact ? 14 : 18);
-            this.titleSubtitle.setPosition(centerX, subtitleY);
-        }
-        if (this.selectPrevButton && this.selectNextButton && this.titleSubtitle) {
-            const half =
-                (this.titleSubtitle.displayWidth || this.titleSubtitle.width || 200) / 2 + 64;
-            this.selectPrevButton.setPosition(centerX - half, this.titleSubtitle.y);
-            this.selectNextButton.setPosition(centerX + half, this.titleSubtitle.y);
-        }
-        if (this.titlePrompt) {
-            const subtitleBottom = this.titleSubtitle
-                ? this.titleSubtitle.y + this.titleSubtitle.displayHeight / 2
-                : centerY + 8;
-            this.titlePrompt.setPosition(
-                centerX,
-                subtitleBottom + 14 + this.titlePrompt.displayHeight / 2
-            );
-        }
-        const shortLandscape = metrics.isCompact && !metrics.isPortrait;
-        if (this.titleControls && this.titlePrompt) {
-            const belowPrompt = this.titlePrompt.y + this.titlePrompt.displayHeight / 2;
-            const raceSpace = this.positionRaceSetupButton(metrics);
-            const jumpSpace = this.positionJumpToggleButton(metrics);
-            const difficultySpace = this.positionDifficultyButton(metrics);
-            const modeSpace = raceSpace + jumpSpace + difficultySpace;
-            const fallbackGap = metrics.isTiny ? 12 : 20;
-            this.titleControls.setPosition(centerX, belowPrompt + (modeSpace || fallbackGap));
-            this.titleControls.setVisible(!shortLandscape);
-        }
-        if (this.titleGamepadStatus && this.titleControls) {
-            const gap = metrics.isTiny ? 8 : 14;
-            this.titleGamepadStatus.setPosition(
-                centerX,
-                this.titleControls.y + this.titleControls.displayHeight + gap
-            );
-            this.titleGamepadStatus.setVisible(!shortLandscape);
-        }
-        this.positionTitleNewsSection(centerX, centerY, metrics, shortLandscape);
-    }
-
-    positionTitleNewsSection(centerX, centerY, metrics, shortLandscape) {
-        if (!this.titleNewsHeader) {
-            return;
-        }
+    paintTitleChrome(metrics) {
         const insets = this.ui.getSafeAreaInsets();
+        if (this.titleBackdrop?.clear) {
+            const g = this.titleBackdrop;
+            g.clear();
+            g.fillStyle(0x04070f, 1);
+            g.fillRect(0, 0, metrics.width, metrics.height);
+            for (let i = 0; i < 70; i++) {
+                const sx = (i * 173 + 41) % Math.max(1, metrics.width);
+                const sy = (i * 97 + 23) % Math.max(1, metrics.height);
+                g.fillStyle(i % 5 === 0 ? 0xffe566 : 0xffffff, i % 3 === 0 ? 0.5 : 0.22);
+                g.fillCircle(sx, sy, i % 7 === 0 ? 2 : 1);
+            }
+            g.fillStyle(0xffc93c, 0.05);
+            g.fillCircle(metrics.width / 2, insets.top + 120, 210);
+            g.fillStyle(0xe10600, 0.045);
+            g.fillCircle(metrics.width / 2, insets.top + 120, 300);
+            g.fillStyle(0xe10600, 1);
+            g.fillRect(0, insets.top, metrics.width, 3);
+        }
+    }
+
+    layoutTitleChicken(centerX, metrics) {
+        if (!this.titleChicken) return;
+        const tw = this.titleText.displayWidth || 320;
+        const shortLandscape = metrics.isCompact && !metrics.isPortrait;
+        const wide = metrics.innerWidth >= 700 && !metrics.isPortrait;
+        const portrait = metrics.isPortrait && metrics.innerWidth >= 340;
+        const show = !shortLandscape && (wide || portrait);
+        this.titleChicken.setVisible(show);
+        if (wide) {
+            this.titleChicken.setPosition(centerX + tw / 2 + 58, this.titleText.y + 2);
+            this.titleChicken.setScale(metrics.isCompact ? 2.2 : 3.0);
+        } else if (portrait) {
+            this.titleChicken.setPosition(centerX + tw / 2 + 22, this.titleText.y + 2);
+            this.titleChicken.setScale(1.7);
+        }
+        if (this.titleGlow) {
+            this.titleGlow.setVisible(show);
+            if (show) this.titleGlow.setPosition(this.titleChicken.x, this.titleChicken.y);
+        }
+    }
+
+    layoutTitleHeader(centerX, metrics) {
+        const insets = this.ui.getSafeAreaInsets();
+        const shortLandscape = metrics.isCompact && !metrics.isPortrait;
+        this.paintTitleChrome(metrics);
+        let y = insets.top + (shortLandscape ? 8 : 14);
+        // Name lives in Settings now; the header keeps a clear band under
+        // the top HUD row (leaderboard/music) on small screens.
+        if (metrics.innerWidth < 700 && !shortLandscape) y += 30;
+        const titleH = this.titleText.displayHeight || this.titleText.height || 48;
+        if (this.titleCrown) {
+            const tw = this.titleText.displayWidth || this.titleText.width || 320;
+            if (metrics.innerWidth >= 560) {
+                this.titleCrown.setPosition(centerX - tw / 2 - 30, y + titleH / 2 - 2);
+                this.titleCrown.setScale(metrics.isCompact ? 0.95 : 1.2);
+                this.titleCrown.setVisible(true);
+            } else {
+                this.titleCrown.setPosition(centerX, y + 10);
+                this.titleCrown.setVisible(!shortLandscape);
+                if (!shortLandscape) y += 20;
+            }
+        }
+        this.titleText.setPosition(centerX, y + titleH / 2);
+        this.titleShadow?.setPosition(centerX + 5, y + titleH / 2 + 5);
+        if (this.titleShadow) {
+            this.ui.applyFontSize(this.titleShadow, metrics.fonts.title);
+            this.titleShadow.setVisible(true);
+        }
+        y += titleH + 6;
+        this.layoutTitleChicken(centerX, metrics);
+        if (this.titleTagline) {
+            this.titleTagline.setPosition(centerX, y + 12);
+            this.titleTagline.setVisible(true);
+            y += 26;
+        }
+        return y;
+    }
+
+    heroSize(metrics) {
+        const shortLandscape = metrics.isCompact && !metrics.isPortrait;
+        const w = Math.max(300, Math.min(metrics.innerWidth - 24, metrics.isPortrait ? 680 : 780));
+        // Short landscape keeps a compact-but-real hero: tall enough for the
+        // preview thumb beside the headline/mechanic plus the play row, and
+        // clamped so the card + secondary row still fit the inner height.
+        let h = shortLandscape
+            ? Math.max(176, Math.min(216, metrics.innerHeight - 168))
+            : metrics.isTiny
+              ? 272
+              : metrics.isCompact
+                ? 306
+                : 322;
+        if (metrics.isPortrait && metrics.innerWidth < 600) h = 300;
+        return { w, h, shortLandscape };
+    }
+
+    paintCardFrame(heroX, heroTop, heroW, heroH) {
+        const g = this.titleHeroBg;
+        if (!g?.clear) return;
+        g.clear();
+        g.fillStyle(0x0b1628, 0.97);
+        if (typeof g.fillRoundedRect === 'function')
+            g.fillRoundedRect(heroX, heroTop, heroW, heroH, 16);
+        else g.fillRect(heroX, heroTop, heroW, heroH);
+        g.fillStyle(0xe10600, 1);
+        if (typeof g.fillRoundedRect === 'function')
+            g.fillRoundedRect(heroX, heroTop, heroW, 7, { tl: 16, tr: 16, bl: 0, br: 0 });
+        else g.fillRect(heroX, heroTop, heroW, 7);
+        g.lineStyle(1, 0x3d5478, 0.9);
+        if (typeof g.strokeRoundedRect === 'function')
+            g.strokeRoundedRect(heroX, heroTop, heroW, heroH, 16);
+        else g.strokeRect(heroX, heroTop, heroW, heroH);
+    }
+
+    layoutStage(heroX, stageY, stageW, stageH, pad, compact = false) {
+        const floorY = stageY + stageH - 6;
+        if (this.titleHeroThumb) {
+            this.titleHeroThumb.setPosition(heroX + pad, stageY);
+            this.titleHeroThumb.setDisplaySize(stageW, stageH);
+            this.titleHeroThumb.setAlpha(0.9);
+        }
+        const place = (img, x, size) => {
+            if (!img) return;
+            img.setPosition(x, floorY);
+            const s = size / Math.max(1, img.width || size);
+            img.setScale(s, s);
+            img.setVisible(true);
+        };
+        place(this.titleStageChicken, heroX + pad + (compact ? 30 : 42), compact ? 34 : 46);
+        place(this.titleStageEnemy, heroX + pad + stageW * 0.52, compact ? 54 : 78);
+        place(this.titleStageCrown, heroX + pad + stageW - (compact ? 30 : 42), compact ? 26 : 36);
+        const g = this.titleHeroBg;
+        if (g?.fillStyle) {
+            g.fillStyle(0x8ce4ff, 0.35);
+            g.fillRect(heroX + pad, floorY, stageW, 3);
+        }
+    }
+
+    layoutHeroCard(centerX, heroTop, metrics) {
+        if (!this.titleHeroBg) return { bottom: heroTop, heroX: centerX, heroW: 0 };
+        const { w: heroW, h: heroH, shortLandscape } = this.heroSize(metrics);
+        const heroX = centerX - heroW / 2;
+        this.paintCardFrame(heroX, heroTop, heroW, heroH);
+        const pad = metrics.isTiny ? 12 : 16;
+        const textX = heroX + pad;
+        const textW = heroW - pad * 2;
+        const mini = shortLandscape;
+        this.titleMini = mini;
+        let y = heroTop + 12;
+        this.titleHeroKicker?.setPosition(textX, y);
+        this.titleHeroCounter?.setPosition(heroX + heroW - pad, heroTop + 12);
+        y += 24;
+        if (mini) {
+            // Compact-but-real hero: a scaled preview thumb on the left with
+            // the stage sprites on it, headline/level/mechanic on the right.
+            const thumbW = Math.min(280, Math.floor(textW * 0.38));
+            const thumbH = Math.max(84, Math.min(118, heroH - 98));
+            this.layoutStage(heroX, y, thumbW, thumbH, pad, true);
+            const colX = textX + thumbW + 14;
+            const colW = Math.max(180, heroX + heroW - pad - colX);
+            let cy = y;
+            this.titleHeroOutlet?.setPosition(colX, cy);
+            cy += Math.max(16, (this.titleHeroOutlet?.displayHeight || 16) + 4);
+            if (this.titleHeroHeadline) {
+                this.titleHeroHeadline.setWordWrapWidth(colW, true);
+                this.titleHeroHeadline.setPosition(colX, cy);
+                cy += (this.titleHeroHeadline.displayHeight || 36) + 6;
+            }
+            this.titleHeroLevel?.setPosition(colX, cy);
+            cy += (this.titleHeroLevel?.displayHeight || 22) + 4;
+            if (this.titleHeroMechanic) {
+                this.titleHeroMechanic.setWordWrapWidth(colW, true);
+                this.titleHeroMechanic.setPosition(colX, cy);
+            }
+        } else {
+            const stageH = metrics.isCompact ? 88 : 108;
+            this.layoutStage(heroX, y, textW, stageH, pad);
+            y += stageH + 10;
+            this.titleHeroOutlet?.setPosition(textX, y);
+            y += Math.max(16, (this.titleHeroOutlet?.displayHeight || 16) + 4);
+            if (this.titleHeroHeadline) {
+                this.titleHeroHeadline.setWordWrapWidth(textW, true);
+                this.titleHeroHeadline.setPosition(textX, y);
+                y += (this.titleHeroHeadline.displayHeight || 36) + 6;
+            }
+            this.titleHeroLevel?.setPosition(textX, y);
+            y += (this.titleHeroLevel?.displayHeight || 22) + 4;
+            if (this.titleHeroMechanic) {
+                this.titleHeroMechanic.setWordWrapWidth(textW, true);
+                this.titleHeroMechanic.setPosition(textX, y);
+            }
+        }
+        const btnY = heroTop + heroH - 24;
+        this.titleHeroPlay?.setPosition(textX, btnY);
+        this.titleHeroNext?.setPosition(heroX + heroW - pad - 18, btnY);
+        this.titleHeroPrev?.setPosition(heroX + heroW - pad - 62, btnY);
+        return { bottom: heroTop + heroH, heroX, heroW };
+    }
+
+    layoutStoriesPanel(frame, metrics) {
+        const pad = 16;
         const rows = this.titleNewsRows || [];
         this.ui.applyFontSize(this.titleNewsHeader, metrics.fonts.instructions);
-        for (const row of rows) {
-            this.ui.applyFontSize(row, metrics.fonts.instructions);
-        }
-        if (!metrics.isPortrait && metrics.innerWidth >= 1000 && !shortLandscape) {
-            // Side column in the dead space right of the centered cluster:
-            // the 720p cluster already fills the screen height.
-            const columnWidth = metrics.innerWidth * 0.34;
-            for (const row of rows) {
-                row.setWordWrapWidth?.(columnWidth, true);
-            }
-            const widest = rows.reduce(
-                (max, row) => Math.max(max, row.displayWidth || row.width || 0),
-                0
-            );
-            const columnX = insets.left + metrics.innerWidth - 16 - widest / 2;
-            const rowGap = 6;
-            const blockHeight =
-                this.titleNewsHeader.displayHeight +
-                rowGap +
-                rows.reduce((sum, row) => sum + (row.displayHeight || 0) + rowGap, 0);
-            let rowY = centerY - blockHeight / 2;
-            this.titleNewsHeader.setPosition(columnX, rowY);
-            this.titleNewsHeader.setVisible(true);
-            rowY += this.titleNewsHeader.displayHeight + rowGap;
-            for (const row of rows) {
-                row.setPosition(columnX, rowY);
-                row.setVisible(true);
-                rowY += row.displayHeight + rowGap;
-            }
-            return;
-        }
-        const gap = metrics.isTiny ? 8 : 14;
-        const statusBottom =
-            this.titleGamepadStatus && this.titleControls
-                ? this.titleGamepadStatus.y + this.titleGamepadStatus.displayHeight
-                : this.titlePrompt
-                  ? this.titlePrompt.y + this.titlePrompt.displayHeight / 2
-                  : 0;
-        this.titleNewsHeader.setPosition(centerX, statusBottom + gap);
-        this.titleNewsHeader.setVisible(!shortLandscape);
-        const headerBottom = this.titleNewsHeader.y + this.titleNewsHeader.displayHeight + 6;
-        const floor = insets.top + metrics.innerHeight - 8;
-        const stackedHeight = rows.reduce((sum, row) => sum + (row.displayHeight || 0) + 6, 0);
-        const columns = newsColumnsFor(rows.length, stackedHeight, floor - headerBottom);
-        if (columns === 1) {
-            let rowY = headerBottom;
-            for (const row of rows) {
-                row.setPosition(centerX, rowY);
-                row.setVisible(!shortLandscape);
-                rowY += row.displayHeight + 6;
-            }
-            return;
-        }
-        // Portrait overflow: two columns so every news level stays on
-        // screen and tappable instead of stacking past the viewport floor.
-        const columnGap = 12;
-        const columnWidth = (metrics.innerWidth - columnGap) / 2;
-        for (const row of rows) {
-            row.setWordWrapWidth?.(columnWidth, true);
-        }
-        const perColumn = Math.ceil(rows.length / columns);
-        for (let column = 0; column < columns; column += 1) {
-            const columnX = insets.left + columnWidth * (column + 0.5) + column * columnGap;
-            let rowY = headerBottom;
-            for (const row of rows.slice(column * perColumn, (column + 1) * perColumn)) {
-                row.setPosition(columnX, rowY);
-                row.setVisible(!shortLandscape);
-                rowY += row.displayHeight + 6;
+        for (const row of rows)
+            this.ui.applyFontSize(row, Math.max(11, metrics.fonts.instructions - 2));
+        this.titleNewsHeader.setPosition(frame.centerX, frame.y + 28);
+        const top = frame.y + 56;
+        const columns = metrics.innerWidth >= 700 ? 2 : 1;
+        const totalW = frame.w - pad * 2;
+        const colW = (totalW - (columns - 1) * 10) / columns;
+        for (const row of rows) row.setWordWrapWidth?.(colW, true);
+        const perCol = Math.ceil(rows.length / columns);
+        for (let c = 0; c < columns; c++) {
+            const colX = frame.x + pad + colW * (c + 0.5) + c * 10;
+            let rowY = top;
+            for (const row of rows.slice(c * perCol, (c + 1) * perCol)) {
+                row.setPosition(colX, rowY);
+                rowY += (row.displayHeight || 26) + 8;
             }
         }
     }
 
-    titleModeLift(metrics) {
-        if (!this.raceSetupButton) {
-            return 0;
+    layoutCampaignPanel(frame, metrics) {
+        const cy = frame.y + frame.h * 0.32;
+        if (this.titleSubtitle) this.titleSubtitle.setPosition(frame.centerX, cy);
+        if (this.selectPrevButton && this.selectNextButton && this.titleSubtitle) {
+            const half =
+                (this.titleSubtitle.displayWidth || this.titleSubtitle.width || 200) / 2 + 56;
+            this.selectPrevButton.setPosition(frame.centerX - half, this.titleSubtitle.y);
+            this.selectNextButton.setPosition(frame.centerX + half, this.titleSubtitle.y);
         }
-        let lift = 0;
-        if (!metrics.isCompact) {
-            lift = 96;
-        } else if (metrics.isPortrait) {
-            lift = 22;
+        if (this.titlePrompt) this.titlePrompt.setPosition(frame.centerX, cy + 72);
+        void metrics;
+    }
+
+    layoutSettingsPanel(frame, metrics) {
+        this.titleSettingsHeader?.setPosition(frame.centerX, frame.y + 26);
+        this.settingsNameY = frame.y + 62;
+        if (this.ui.playerNameText)
+            this.ui.playerNameText.setPosition(frame.centerX, this.settingsNameY);
+        if (this.titlePrompt) this.titlePrompt.setPosition(frame.centerX, frame.y + 78);
+        this.positionRaceSetupButton(metrics);
+        this.positionJumpToggleButton(metrics);
+        this.positionDifficultyButton(metrics);
+    }
+
+    layoutSecondaryRow(centerX, y, metrics) {
+        const btns = [
+            this.titleMoreButton,
+            this.titleCampaignButton,
+            this.titleSettingsButton,
+        ].filter(Boolean);
+        if (btns.length === 0) {
+            return;
         }
-        if (this.jumpToggleButton) {
-            if (!metrics.isCompact) {
-                lift += 64;
-            } else if (metrics.isPortrait) {
-                lift += 40;
+        btns.forEach((b) => b.setScale?.(1));
+        const widths = btns.map((b) => b.displayWidth || b.width || 110);
+        let gap = 18;
+        const natural = widths.reduce((a, b) => a + b, 0) + gap * (btns.length - 1);
+        const available = Math.max(200, (metrics?.innerWidth || 800) - 16);
+        if (natural > available) {
+            gap = 8;
+            const tight = widths.reduce((a, b) => a + b, 0) + gap * (btns.length - 1);
+            const scale = Math.min(1, available / Math.max(1, tight));
+            if (scale < 1) {
+                btns.forEach((b) => b.setScale?.(Math.max(0.75, scale)));
             }
         }
-        if (this.difficultyButton) {
-            if (!metrics.isCompact) {
-                lift += 16;
-            } else if (metrics.isPortrait) {
-                lift += 20;
-            }
+        const placed = btns.map((b) => b.displayWidth || b.width || 110);
+        const total = placed.reduce((a, b) => a + b, 0) + gap * (btns.length - 1);
+        let x = centerX - total / 2;
+        btns.forEach((b, i) => {
+            b.setPosition(x + placed[i] / 2, y);
+            x += placed[i] + gap;
+        });
+    }
+
+    placeTitleCluster(centerX, metrics) {
+        const afterHeader = this.layoutTitleHeader(centerX, metrics);
+        const panelTop = afterHeader + 8;
+        const { w, h } = this.heroSize(metrics);
+        const frame = { x: centerX - w / 2, y: panelTop, w, h, centerX, bottom: panelTop + h };
+        const view = this.titleView || 'featured';
+        if (view === 'featured') {
+            this.layoutHeroCard(centerX, panelTop, metrics);
+        } else {
+            this.paintCardFrame(frame.x, frame.y, frame.w, frame.h);
+            if (view === 'stories') this.layoutStoriesPanel(frame, metrics);
+            if (view === 'campaign') this.layoutCampaignPanel(frame, metrics);
+            if (view === 'settings') this.layoutSettingsPanel(frame, metrics);
         }
-        return lift;
+        if (this.titleBackButton)
+            this.titleBackButton.setPosition(frame.x + frame.w - 52, frame.y + 20);
+        if (view === 'featured') this.layoutSecondaryRow(centerX, frame.bottom + 22, metrics);
+        this.applyTitleView();
     }
 
     positionRaceSetupButton(metrics) {
@@ -1460,8 +2118,8 @@ export class Overlays {
         if (!button || !this.titlePrompt) {
             return 0;
         }
-        const gapAbove = metrics.isTiny ? 8 : 14;
-        const gapBelow = metrics.isTiny ? 8 : 12;
+        const gapAbove = metrics.isTiny ? 8 : 10;
+        const gapBelow = metrics.isTiny ? 8 : 8;
         const top = this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2 + gapAbove;
         button.style.top = `${Math.round(top)}px`;
         const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 50 : 68);
@@ -1723,19 +2381,74 @@ export class Overlays {
         if (!this.scene.awaitingStart) {
             return false;
         }
-        if (menu.down) {
-            this.raceSetupButton?.click();
-            return true;
-        }
-        if (menu.up) {
-            this.jumpToggleButton?.click();
-            return true;
+        const view = this.titleView || 'featured';
+        if (view === 'settings') {
+            if (menu.confirm) {
+                this.setTitleView('featured');
+                return true;
+            }
+            if (menu.down) {
+                this.raceSetupButton?.click();
+                return true;
+            }
+            if (menu.up) {
+                this.jumpToggleButton?.click();
+                return true;
+            }
+            if (menu.back) {
+                this.difficultyButton?.click();
+                return true;
+            }
+            return false;
         }
         if (menu.back) {
-            this.difficultyButton?.click();
+            if (view === 'featured') {
+                return false;
+            }
+            this.setTitleView('featured');
             return true;
         }
+        if (view === 'stories') {
+            if (menu.up || menu.down) {
+                this.cycleHero(menu.down ? 1 : -1);
+                return true;
+            }
+            if (menu.confirm) {
+                this.scene.startSelectedNewsRow?.();
+                return true;
+            }
+            return false;
+        }
+        if (menu.up || menu.down) {
+            this.cycleTitleView(menu.down ? 1 : -1);
+            return true;
+        }
+        if (menu.confirm) {
+            if (view === 'featured') {
+                this.scene.startFeaturedStory?.();
+                return true;
+            }
+            if (view === 'campaign') {
+                this.scene.startSelectedLevel?.();
+                return true;
+            }
+        }
         return false;
+    }
+
+    cycleTitleView(direction) {
+        const order = ['featured', 'stories', 'campaign', 'settings'];
+        const current = order.indexOf(this.titleView);
+        const next = order[(current + direction + order.length) % order.length] || 'featured';
+        this.setTitleView(next);
+    }
+
+    updateNewsRowHighlight(activeId = this.featuredNewsId()) {
+        (this.titleNewsRows || []).forEach((row, index) => {
+            const active = NEWS_LEVEL_IDS[index] === activeId;
+            row?.setBackgroundColor?.(active ? '#8c1d18' : '#14283e');
+            row?.setStyle?.({ fill: active ? '#ffe566' : '#ffffff' });
+        });
     }
 
     handleFinishMenu(menu) {
@@ -1769,13 +2482,52 @@ export class Overlays {
         this.jumpToggleButton = null;
         this.difficultyButton?.remove();
         this.difficultyButton = null;
+        this.stopHeroTimer();
         if (this.titlePromptTween && typeof this.titlePromptTween.stop === 'function') {
             this.titlePromptTween.stop();
         }
         this.titlePromptTween = null;
+        if (this.titleChickenTween?.stop) this.titleChickenTween.stop();
+        this.titleChickenTween = null;
+        if (this.titleStageChickenTween?.stop) this.titleStageChickenTween.stop();
+        this.titleStageChickenTween = null;
+        if (this.titleStageEnemyTween?.stop) this.titleStageEnemyTween.stop();
+        this.titleStageEnemyTween = null;
+        if (this.titleGlowTween?.stop) this.titleGlowTween.stop();
+        this.titleGlowTween = null;
+        if (this.titlePlayTween?.stop) this.titlePlayTween.stop();
+        this.titlePlayTween = null;
         [
             this.titleDim,
+            this.titleBackdrop,
+            this.titleTickerBg,
+            this.titleTickerText,
+            this.titleTickerLive,
             this.titleText,
+            this.titleShadow,
+            this.titleGlow,
+            this.titleTagline,
+            this.titleCrown,
+            this.titleChicken,
+            this.titleHeroBg,
+            this.titleHeroThumb,
+            this.titleHeroKicker,
+            this.titleHeroOutlet,
+            this.titleHeroHeadline,
+            this.titleHeroLevel,
+            this.titleHeroMechanic,
+            this.titleHeroPlay,
+            this.titleHeroPrev,
+            this.titleHeroNext,
+            this.titleHeroCounter,
+            this.titleMoreButton,
+            this.titleCampaignButton,
+            this.titleSettingsButton,
+            this.titleBackButton,
+            this.titleSettingsHeader,
+            this.titleStageChicken,
+            this.titleStageEnemy,
+            this.titleStageCrown,
             this.titleSubtitle,
             this.titlePrompt,
             this.titleControls,
@@ -1792,7 +2544,36 @@ export class Overlays {
         this.selectPrevButton = null;
         this.selectNextButton = null;
         this.titleDim = null;
+        this.titleBackdrop = null;
+        this.titleTickerBg = null;
+        this.titleTickerText = null;
+        this.titleTickerLive = null;
         this.titleText = null;
+        this.titleShadow = null;
+        this.titleGlow = null;
+        this.titleTagline = null;
+        this.titleCrown = null;
+        this.titleChicken = null;
+        this.titleHeroBg = null;
+        this.titleHeroThumb = null;
+        this.titleHeroKicker = null;
+        this.titleHeroOutlet = null;
+        this.titleHeroHeadline = null;
+        this.titleHeroLevel = null;
+        this.titleHeroMechanic = null;
+        this.titleHeroPlay = null;
+        this.titleHeroPrev = null;
+        this.titleHeroNext = null;
+        this.titleHeroCounter = null;
+        this.titleMoreButton = null;
+        this.titleCampaignButton = null;
+        this.titleSettingsButton = null;
+        this.titleBackButton = null;
+        this.titleSettingsHeader = null;
+        this.titleStageChicken = null;
+        this.titleStageEnemy = null;
+        this.titleStageCrown = null;
+        this.titleView = 'featured';
         this.titleSubtitle = null;
         this.titlePrompt = null;
         this.titleControls = null;
@@ -1800,6 +2581,7 @@ export class Overlays {
         this.titleNewsHeader = null;
         this.titleNewsRows = [];
         if (!this.ui.destroyed && this.ui.playerNameText) {
+            this.ui.playerNameText.setVisible(true);
             this.ui.playerNameText.setOrigin(1, 0.5);
             this.ui.playerNameText.setPadding(0);
             this.ui.playerNameText.setBackgroundColor();
@@ -1808,6 +2590,8 @@ export class Overlays {
         }
         if (!this.ui.destroyed) {
             this.ui.setHudVisible(true);
+            if (this.ui.touchControlsEnabled && !this.scene.player2Camera)
+                this.ui.setTouchControlsVisible?.(true);
         }
     }
 

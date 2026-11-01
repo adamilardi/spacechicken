@@ -51,7 +51,25 @@ export class UIManager {
     }
 
     get newsButtons() {
-        return this.overlays.titleNewsRows || [];
+        const rows = this.overlays.titleNewsRows || [];
+        const hero = [
+            this.overlays.titleHeroPlay,
+            this.overlays.titleHeroPrev,
+            this.overlays.titleHeroNext,
+            this.overlays.titleMoreButton,
+            this.overlays.titleCampaignButton,
+            this.overlays.titleSettingsButton,
+            this.overlays.titleBackButton,
+        ].filter(Boolean);
+        return [...rows, ...hero];
+    }
+
+    get heroButtons() {
+        return [
+            this.overlays.titleHeroPlay,
+            this.overlays.titleHeroPrev,
+            this.overlays.titleHeroNext,
+        ].filter(Boolean);
     }
 
     get raceSetupDialog() {
@@ -193,7 +211,35 @@ export class UIManager {
             this.leftButton,
             this.rightButton,
             this.overlays.titleDim,
+            this.overlays.titleBackdrop,
+            this.overlays.titleTickerBg,
+            this.overlays.titleTickerText,
+            this.overlays.titleTickerLive,
             this.overlays.titleText,
+            this.overlays.titleShadow,
+            this.overlays.titleGlow,
+            this.overlays.titleTagline,
+            this.overlays.titleCrown,
+            this.overlays.titleChicken,
+            this.overlays.titleHeroBg,
+            this.overlays.titleHeroThumb,
+            this.overlays.titleMoreButton,
+            this.overlays.titleCampaignButton,
+            this.overlays.titleSettingsButton,
+            this.overlays.titleBackButton,
+            this.overlays.titleSettingsHeader,
+            this.overlays.titleStageChicken,
+            this.overlays.titleStageEnemy,
+            this.overlays.titleStageCrown,
+            this.overlays.titleHeroKicker,
+            this.overlays.titleHeroOutlet,
+            this.overlays.titleHeroHeadline,
+            this.overlays.titleHeroLevel,
+            this.overlays.titleHeroMechanic,
+            this.overlays.titleHeroPlay,
+            this.overlays.titleHeroPrev,
+            this.overlays.titleHeroNext,
+            this.overlays.titleHeroCounter,
             this.overlays.titleSubtitle,
             this.overlays.titlePrompt,
             this.overlays.titleControls,
@@ -812,7 +858,19 @@ export class UIManager {
         const nameX = this.overlays.titleText
             ? insets.left + metrics.innerWidth / 2
             : width - insets.right - padding;
-        const nameY = topRightBottom + 8 + this.playerNameText.displayHeight * 0.5;
+        const title = this.overlays.titleText;
+        const nameHalf = this.playerNameText.displayHeight * 0.5;
+        const inSettings =
+            this.overlays.titleView === 'settings' &&
+            typeof this.overlays.settingsNameY === 'number';
+        const nameY = inSettings
+            ? this.overlays.settingsNameY
+            : title && title.y > 0
+              ? Math.max(
+                    insets.top + nameHalf + 4,
+                    title.y - (title.displayHeight || 0) * 0.5 - nameHalf - 4
+                )
+              : topRightBottom + 8 + nameHalf;
         this.playerNameText.setPosition(nameX, nameY);
         this.playerNameText.setWordWrapWidth?.(
             this.overlays.titleText
@@ -987,7 +1045,7 @@ export class UIManager {
         this.timerText.setText(`Time: ${display}`);
     }
 
-    updateCompetitionTarget(record, fullRecord = null, online = true) {
+    updateCompetitionTarget(record, _fullRecord = null, online = true) {
         const personalBest = this.scene.leaderboardManager?.getPersonalBest?.(this.scene.level);
         const recordText = record ? formatElapsedTime(record.time) : online ? 'open' : 'offline';
         const bestText =
@@ -1002,20 +1060,9 @@ export class UIManager {
                 : '';
         this.targetText?.setText(`Record ${recordText} · Best ${bestText}${gap}`);
         if (this.overlays.titleSubtitle) {
-            const metrics = this.getLayoutMetrics();
-            const fullBest = this.scene.leaderboardManager?.getPersonalBest?.(0);
-            const fullBestText = fullBest === null ? 'none yet' : formatElapsedTime(fullBest);
-            const fullRecordText = fullRecord
-                ? `Run #1 ${formatElapsedTime(fullRecord.time)}`
-                : online
-                  ? 'Claim full-run #1'
-                  : 'Full-run board offline';
-            const challenge = `${fullRecordText} · Best ${fullBestText}`;
-            this.overlays.titleSubtitle.setText(
-                metrics.isCompact && !metrics.isPortrait
-                    ? challenge
-                    : `${this.scene.levelConfig.title}\n${challenge}`
-            );
+            // Issue #8: no empty-score/offline status on the title hero.
+            // The full-run challenge lives in the leaderboard, not here.
+            this.overlays.titleSubtitle.setText(this.scene.levelConfig.title);
             this.overlays.layoutTitleScreen();
         }
         this.layoutUI();
@@ -1185,10 +1232,6 @@ export class UIManager {
 
     placeTitleCluster(centerX, centerY, metrics) {
         this.overlays.placeTitleCluster(centerX, centerY, metrics);
-    }
-
-    titleModeLift(metrics) {
-        return this.overlays.titleModeLift(metrics);
     }
 
     positionRaceSetupButton(metrics) {

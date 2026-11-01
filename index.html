@@ -100,20 +100,18 @@
                 gap: 2px;
                 min-width: min(280px, calc(100vw - 32px));
                 max-width: min(460px, calc(100vw - 32px));
-                min-height: 68px;
-                padding: 10px 22px;
-                border: 2px solid #ffe566;
-                border-radius: 16px;
-                background: #1b4e86;
+                min-height: 56px;
+                padding: 8px 22px;
+                border: 1px solid #33415e;
+                border-radius: 10px;
+                background: #0d1b2e;
                 color: #fff8d6;
                 line-height: 1.15;
                 text-align: center;
-                box-shadow:
-                    0 0 0 4px rgba(255, 229, 102, 0.4),
-                    0 12px 28px rgba(0, 0, 0, 0.55);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
             }
             #race-setup-button:hover {
-                background: #2463a6;
+                background: #13263f;
             }
             #jump-toggle-button {
                 position: fixed;
@@ -127,20 +125,18 @@
                 gap: 2px;
                 min-width: min(280px, calc(100vw - 32px));
                 max-width: min(460px, calc(100vw - 32px));
-                min-height: 60px;
+                min-height: 56px;
                 padding: 8px 22px;
-                border: 2px solid #8ce4ff;
-                border-radius: 16px;
-                background: #17334b;
+                border: 1px solid #33415e;
+                border-radius: 10px;
+                background: #0d1b2e;
                 color: #eaf6ff;
                 line-height: 1.15;
                 text-align: center;
-                box-shadow:
-                    0 0 0 4px rgba(140, 228, 255, 0.25),
-                    0 12px 28px rgba(0, 0, 0, 0.55);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
             }
             #jump-toggle-button:hover {
-                background: #1f4a6e;
+                background: #13263f;
             }
             .jump-toggle-kicker {
                 color: #8ce4ff;
@@ -163,20 +159,18 @@
                 gap: 2px;
                 min-width: min(280px, calc(100vw - 32px));
                 max-width: min(460px, calc(100vw - 32px));
-                min-height: 60px;
+                min-height: 56px;
                 padding: 8px 22px;
-                border: 2px solid #ff8a7a;
-                border-radius: 16px;
-                background: #3d1620;
+                border: 1px solid #33415e;
+                border-radius: 10px;
+                background: #0d1b2e;
                 color: #ffe9e4;
                 line-height: 1.15;
                 text-align: center;
-                box-shadow:
-                    0 0 0 4px rgba(255, 138, 122, 0.25),
-                    0 12px 28px rgba(0, 0, 0, 0.55);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
             }
             #difficulty-button:hover {
-                background: #5a1f2c;
+                background: #13263f;
             }
             .difficulty-kicker {
                 color: #ff8a7a;
@@ -227,6 +221,19 @@
                 .difficulty-kicker {
                     font-size: 11px;
                 }
+                .difficulty-mode {
+                    font-size: 15px;
+                }
+            }
+            @media (max-width: 480px) {
+                #race-setup-button,
+                #jump-toggle-button,
+                #difficulty-button {
+                    min-height: 48px;
+                    padding: 6px 14px;
+                }
+                .race-setup-mode,
+                .jump-toggle-mode,
                 .difficulty-mode {
                     font-size: 15px;
                 }

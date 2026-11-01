@@ -152,9 +152,11 @@ export class InputController {
         return this.gamepad.pollGamepad(state);
     }
 
-    // Keyboard menu edges: B toggles the board, arrows/A/D turn its pages.
-    // Only the leaderboard and finish screens read menu keys, so running
-    // with the arrows never leaks anywhere else while the board is closed.
+    // Keyboard menu edges: B toggles the board, arrows/A/D turn its pages,
+    // arrows/WASD move through title views and story rows, Enter confirms,
+    // Escape goes back. Menu keys only act on menu screens (title,
+    // leaderboard, finish, race setup); every menu handler returns false
+    // during play, so running with the arrows never leaks into the game.
     pollKeyboardMenu(scene, state) {
         if (!scene || !state || !state.menu) {
             return;
@@ -168,6 +170,18 @@ export class InputController {
         }
         if (justDown(scene.cursors?.right) || justDown(scene.wasd?.D)) {
             state.menu.right = true;
+        }
+        if (justDown(scene.cursors?.up) || justDown(scene.wasd?.W)) {
+            state.menu.up = true;
+        }
+        if (justDown(scene.cursors?.down) || justDown(scene.wasd?.S)) {
+            state.menu.down = true;
+        }
+        if (justDown(scene.enterKey)) {
+            state.menu.confirm = true;
+        }
+        if (justDown(scene.escKey)) {
+            state.menu.back = true;
         }
     }
 
