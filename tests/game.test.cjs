@@ -309,13 +309,14 @@ test('title news rows start their level without unlocks', async () => {
 
 test('news level completion does not unlock campaign levels', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { LevelConfig } = await importModule('LevelConfig.js');
     const scene = new SpaceChicken();
     const unlocks = [];
     let queued = null;
     scene.player = { x: 100, y: 100 };
     scene.player2 = null;
     scene.level = 17;
-    scene.levelConfig = { nextLevel: 1 };
+    scene.levelConfig = new LevelConfig(17);
     scene.debugMode = false;
     scene.startTime = performance.now();
     scene.audioManager = { playCollectSound() {}, duckMusic() {} };
@@ -345,7 +346,28 @@ test('news level completion does not unlock campaign levels', async () => {
     };
     scene.collectGem(scene.player);
     assert.deepEqual(unlocks, [], 'news completion must not advance campaign unlocks');
-    assert.ok(queued, 'news completion still hands off to its next level');
+    assert.equal(queued?.level, 18, 'story completion hands off to the next story');
+});
+
+test('story levels chain to the next story in order', async () => {
+    const { LevelConfig } = await importModule('LevelConfig.js');
+    const expected = {
+        17: 18,
+        18: 19,
+        19: 20,
+        20: 21,
+        21: 22,
+        22: 23,
+        23: 24,
+        24: 25,
+    };
+    for (const [id, next] of Object.entries(expected)) {
+        assert.equal(
+            new LevelConfig(Number(id)).nextLevel,
+            next,
+            `story ${id} hands off to ${next}`
+        );
+    }
 });
 
 const ALL_LEVEL_IDS = Array.from({ length: 24 }, (_, i) => i + 1);

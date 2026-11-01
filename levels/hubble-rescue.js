@@ -12,7 +12,7 @@ export const level = {
         CROWN_X: 5650,
         CROWN_Y: 214,
         BOMB_SPEED: 190,
-        NEXT_LEVEL: 1,
+        NEXT_LEVEL: 20,
     },
     content: {
         instructions:

@@ -14,7 +14,7 @@ export const level = {
         BOMB_SPEED: 190,
         PHASER: true,
         CROWN_SHIELD: true,
-        NEXT_LEVEL: 1,
+        NEXT_LEVEL: 25,
     },
     content: {
         instructions:
