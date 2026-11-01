@@ -174,6 +174,20 @@
   "fixes": [
     {
       "rank": 1,
+      "priority": 1,
+      "flaw": "death-cluster-x2066",
+      "source": "investigation",
+      "gatedOn": "INV-1",
+      "evidence": "2 deaths cluster near x=2066 (spots 2019, 2113); secondary 2-cluster at x~904 (drone beat x=900); lone death x=2469; no checkpoints (spawn replay, ~2000px per hotspot death); no death cause, input history, phase data, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
+      "owner": "scripts/level-critic.mjs",
+      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.",
+      "recheck": "INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.",
+      "confidence": "n/a",
+      "limitations": "Attribution entry, not a design finding: stored telemetry observes the hotspot (2 deaths near x=2066) but supports no cause.",
+      "alternativeCause": "None named yet: mistimed encounter, unfair hotspot, and policy defect are all live hypotheses pending the INV-1 capture."
+    },
+    {
+      "rank": 2,
       "priority": 2,
       "flaw": "flat",
       "source": "quality",
@@ -184,20 +198,6 @@
       "confidence": "medium",
       "limitations": "Corroborated by vote count plus cross-run repeat plus deck flag, but the panel judged staged stills (JPG binaries not retained) and no route-connectivity/waiting-time telemetry is stored; four personas judging one summary are four model perspectives, not four playtests.",
       "alternativeCause": "Paint-driven read: the panel may be naming the single-key look rather than played repetition -- the decks descend steadily (bands 11 to 5). If the INV-1 hotspot explains the low fun/fairness scores, the monotony read still needs route-decision evidence."
-    },
-    {
-      "rank": 2,
-      "priority": 1,
-      "flaw": "death-cluster-x2066",
-      "source": "capture",
-      "gatedOn": "INV-1",
-      "evidence": "2 deaths cluster near x=2066 (spots 2019, 2113); secondary 2-cluster at x~904 (drone beat x=900); lone death x=2469; no checkpoints (spawn replay, ~2000px per hotspot death); no death cause, input history, phase data, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
-      "owner": "scripts/level-critic.mjs",
-      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.",
-      "recheck": "INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.",
-      "confidence": "n/a",
-      "limitations": "Attribution entry, not a design finding: stored telemetry observes the hotspot (2 deaths near x=2066) but supports no cause.",
-      "alternativeCause": "None named yet: mistimed encounter, unfair hotspot, and policy defect are all live hypotheses pending the INV-1 capture."
     },
     {
       "rank": 3,

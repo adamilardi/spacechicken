@@ -46,14 +46,14 @@
 
 Fix only the top fix, then re-run the full critic. One fix per loop.
 
-1. [flat] (quality) owner: skills/level-creator/SKILL.md
-   - Evidence: 4/4 personas named "flat" (all iterate; corroborated: 4 votes ≥ 2, repeated across 2 runs, supporting flat-deck flag); panel judged 5 staged stills of played sections (pilot reached x=2483 of crown x=2550); cited still 02-hazard-rover.jpg (rover beat x=535) locates the read, not a cause; route telemetry (connectivity, waiting time, repeated decisions) not stored
-   - Smallest fix: Diagnose repetitive play from route evidence, not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the single-key look as art direction.
-   - Recheck: Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.
-2. [death-cluster-x2066] (capture/attribution, see INV-1 — no level edit) owner: scripts/level-critic.mjs
+1. [death-cluster-x2066] (investigation, see INV-1 — no level edit) owner: scripts/level-critic.mjs
    - Evidence: 2 deaths cluster near x=2066 (spots 2019, 2113); secondary 2-cluster at x≈904 (drone beat x=900); lone death x=2469; no checkpoints (spawn replay, ~2000px per hotspot death); no death cause, input history, phase data, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)
    - Smallest fix: Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.
    - Recheck: INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.
+2. [flat] (quality) owner: skills/level-creator/SKILL.md
+   - Evidence: 4/4 personas named "flat" (all iterate; corroborated: 4 votes ≥ 2, repeated across 2 runs, supporting flat-deck flag); panel judged 5 staged stills of played sections (pilot reached x=2483 of crown x=2550); cited still 02-hazard-rover.jpg (rover beat x=535) locates the read, not a cause; route telemetry (connectivity, waiting time, repeated decisions) not stored
+   - Smallest fix: Diagnose repetitive play from route evidence, not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the single-key look as art direction.
+   - Recheck: Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.
 3. [flat-deck] (mechanical visual-variety heuristic — non-blocking) owner: skills/level-creator/SKILL.md
    - Evidence: 1 deck key(s) (`cliff`), dominant share 1.00 across 7 decks (paint heuristic; never a quality proof)
    - Smallest fix: Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.

@@ -156,6 +156,20 @@
   "fixes": [
     {
       "rank": 1,
+      "priority": 1,
+      "flaw": "pilot-stall",
+      "source": "investigation",
+      "gatedOn": "INV-1",
+      "evidence": "timeout at maxX 301 of crown x=2050 after 90s; 1 death at x=141; hazardTypesSeen [laser, drone]; no death cause, input history, position trace, or gameplay frames retained; repeatedFlaws empty across 2 runs",
+      "owner": "scripts/level-critic.mjs",
+      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the stall (bot-policy defect vs reproducible design block) before any geometry or encounter change.",
+      "recheck": "INV-1 answered with retained death events, input/position traces, and gameplay frames; attribution recorded.",
+      "confidence": "n/a",
+      "limitations": "Attribution entry, not a design finding: stored telemetry observes the stall (maxX 301, 90s, 1 death) but supports no cause.",
+      "alternativeCause": "None named yet: bot-policy defect and design block are both live hypotheses pending the INV-1 capture."
+    },
+    {
+      "rank": 2,
       "priority": 2,
       "flaw": "stale",
       "source": "quality",
@@ -167,20 +181,6 @@
       "confidence": "low",
       "limitations": "Corroborated by vote count alone: no supporting mechanical flag, no named comparator sibling, no repeat across runs (repeatedFlaws empty), and the pilot played only 15% of the route, so 3 of the 4 judged stills depict unplayed sections. Staged stills only (no gameplay frames, JPG binaries not retained); four personas judging one summary are four model perspectives, not four playtests.",
       "alternativeCause": "Pilot stall artifact: the panel may be reading thin evidence (one played still plus staged stills of never-reached sections) rather than a played signature decision. If INV-1 shows the pilot cannot progress for policy reasons, the stale read of the unplayed majority still needs a fresh capture with real route coverage."
-    },
-    {
-      "rank": 2,
-      "priority": 1,
-      "flaw": "pilot-stall",
-      "source": "capture",
-      "gatedOn": "INV-1",
-      "evidence": "timeout at maxX 301 of crown x=2050 after 90s; 1 death at x=141; hazardTypesSeen [laser, drone]; no death cause, input history, position trace, or gameplay frames retained; repeatedFlaws empty across 2 runs",
-      "owner": "scripts/level-critic.mjs",
-      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the stall (bot-policy defect vs reproducible design block) before any geometry or encounter change.",
-      "recheck": "INV-1 answered with retained death events, input/position traces, and gameplay frames; attribution recorded.",
-      "confidence": "n/a",
-      "limitations": "Attribution entry, not a design finding: stored telemetry observes the stall (maxX 301, 90s, 1 death) but supports no cause.",
-      "alternativeCause": "None named yet: bot-policy defect and design block are both live hypotheses pending the INV-1 capture."
     }
   ],
   "loop": 1,

@@ -290,7 +290,7 @@
       "rank": 3,
       "priority": 3,
       "flaw": "death-cluster-x3805",
-      "source": "capture",
+      "source": "investigation",
       "gatedOn": "INV-1",
       "evidence": "three tied 2-clusters -- dominant x~3805 (spots 3781, 3829; fixed tie-break), x~1865 (spots 1805, 1924), x~4330 (spots 4296, 4363; within 70px of the drone beat x=4300); singles at 284, 1508, 5302, 9917; timeout at maxX 9925 after 280.1s (1075px short); no death cause, input history, position trace, phase data, replay time, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
       "owner": "scripts/level-critic.mjs",

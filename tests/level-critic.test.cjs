@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
@@ -196,6 +197,8 @@ test('quality gate refuses unsent screenshots and clone flaws', async () => {
     );
     assert.equal(panelPassed(reports, [], true), true);
     assert.equal(panelPassed(reports, [], false), false);
+    assert.equal(panelPassed(reports, [], undefined), false);
+    assert.equal(panelPassed(reports, [], 1), false);
     assert.equal(panelPassed(reports, [{ id: 'clone-suspect', detail: 'x' }], true), false);
     const rework = [...reports.slice(0, 3), report('speedrunner', { verdict: 'rework' })];
     assert.equal(panelPassed(rework, [], true), false);
@@ -800,6 +803,11 @@ test('full beat sheets and inventories batch without dropping evidence', async (
     const chunks = batchInventory(inventory, 6);
     assert.equal(chunks.length, 2);
     assert.deepEqual(chunks.flat(), inventory);
+    // Non-positive batch sizes must throw instead of hanging the loop.
+    assert.throws(() => batchPanelShots(beats, 0), /positive/);
+    assert.throws(() => batchPanelShots(beats, -2), /positive/);
+    assert.throws(() => batchInventory(inventory, 0), /positive/);
+    assert.throws(() => batchInventory(inventory, -2), /positive/);
     // Visibility is existential: shown in any batch counts as shown.
     const merged = mergeFidelityBatches([
         {
@@ -1042,4 +1050,34 @@ test('news novelty floor separates clones from genuine departures', async () => 
         ),
         false
     );
+});
+
+test('committed reviews keep ranks, priorities, and fix sources consistent', async () => {
+    const knownSources = new Set([
+        'quality',
+        'investigation',
+        'mechanical',
+        'concept',
+        'fidelity',
+        'infrastructure',
+    ]);
+    for (let level = 1; level <= 24; level++) {
+        const file = path.join(projectRoot, 'docs/level-reviews', `level-${level}.json`);
+        assert.ok(fs.existsSync(file), `level-${level}.json is committed`);
+        const { fixes } = JSON.parse(fs.readFileSync(file, 'utf8'));
+        assert.ok(Array.isArray(fixes) && fixes.length > 0, `L${level} has a fix contract`);
+        fixes.forEach((fix, index) => {
+            assert.equal(fix.rank, index + 1, `L${level} ranks run sequentially`);
+            assert.ok(
+                knownSources.has(fix.source),
+                `L${level} rank ${fix.rank} uses a generator source, got ${fix.source}`
+            );
+            if (index > 0) {
+                assert.ok(
+                    fix.priority >= fixes[index - 1].priority,
+                    `L${level} rank order follows priority order`
+                );
+            }
+        });
+    }
 });

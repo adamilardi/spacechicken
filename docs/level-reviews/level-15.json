@@ -286,7 +286,7 @@
       "rank": 3,
       "priority": 3,
       "flaw": "death-cluster-x4483",
-      "source": "capture",
+      "source": "investigation",
       "gatedOn": "INV-1",
       "evidence": "dominant 3-cluster near x~4483 (spots 4425, 4506, 4517; fixed chaining r=200); singles at 5855, 10013; no blind/cheap vote (repeatedFlaws holds only flat); gate-open at maxX 12269, crown approach x=12269-12400 unverified; no death cause, input history, position/tier trace, phase data, replay time, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
       "owner": "scripts/level-critic.mjs",

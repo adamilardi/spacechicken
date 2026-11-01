@@ -287,7 +287,7 @@
       "rank": 3,
       "priority": 3,
       "flaw": "death-cluster-x2941",
-      "source": "capture",
+      "source": "investigation",
       "gatedOn": "INV-1",
       "evidence": "7 deaths cluster near x=2941 (spots 2855, 2897, 2953, 2961, 2965, 2975, 2983); nearest staged still 04-hazard-bonk.jpg (x=2800, binary not retained); secondary 4-cluster x~3334, pair x~8908, singles at 2465, 3701, 5358, 7457, 11737; no death cause, input history, phase data, replay time, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
       "owner": "scripts/level-critic.mjs",

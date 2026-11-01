@@ -286,7 +286,7 @@
       "rank": 3,
       "priority": 3,
       "flaw": "death-spread-x7603-9979",
-      "source": "capture",
+      "source": "investigation",
       "gatedOn": "INV-1",
       "evidence": "three singles at 7603, 8770, 9979 (no cluster under fixed chaining r=200; tie-break names x=9979, count 1, never corroborating); fairness means 1.37-1.43 with no blind/cheap vote; gate-open at maxX 12288, crown approach x=12288-12400 unverified; no death cause, input history, position/tier trace, phase data, replay time, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
       "owner": "scripts/level-critic.mjs",

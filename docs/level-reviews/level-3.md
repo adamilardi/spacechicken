@@ -46,13 +46,13 @@
 
 Fix only the top fix, then re-run the full critic. One fix per loop.
 
-1. [stale] (quality, gated on INV-1) owner: skills/level-creator/SKILL.md
-   - Evidence: 3/4 personas named "stale" (all iterate; corroborated by vote count under the fixed rules); panel judged 4 staged stills but the pilot traversed only x≤301, so stills at x=520, 900, 1850 show unplayed sections; no named comparator sibling stored; timeout at maxX 301 of crown x=2050; single death at x=141 (no cluster)
-   - Smallest fix: Resolve INV-1 first (capture the stall cause and the x=141 encounter; no level edit before that). Then, only on captured route evidence: replace the signature decision with a verb no named sibling teaches the same way, with teach/press/twist beats — cite the comparator sibling and the route/mechanic evidence in the build report.
-   - Recheck: Re-run the full critic with route coverage past x=301: route evidence (not paint) must show the new signature decision in play, the comparator citation must be recorded, "stale" must be gone, and no new structural flaw may appear.
-2. [pilot-stall] (capture/attribution, see INV-1 — no level edit) owner: scripts/level-critic.mjs
+1. [pilot-stall] (investigation, see INV-1 — no level edit) owner: scripts/level-critic.mjs
    - Evidence: timeout at maxX 301 of crown x=2050 after 90s; 1 death at x=141; hazardTypesSeen [laser, drone]; no death cause, input history, position trace, or gameplay frames retained; repeatedFlaws empty across 2 runs
    - Smallest fix: Not a level edit. Run the INV-1 capture above and attribute the stall (bot-policy defect vs reproducible design block) before any geometry or encounter change.
    - Recheck: INV-1 answered with retained death events, input/position traces, and gameplay frames; attribution recorded.
+2. [stale] (quality, gated on INV-1) owner: skills/level-creator/SKILL.md
+   - Evidence: 3/4 personas named "stale" (all iterate; corroborated by vote count under the fixed rules); panel judged 4 staged stills but the pilot traversed only x≤301, so stills at x=520, 900, 1850 show unplayed sections; no named comparator sibling stored; timeout at maxX 301 of crown x=2050; single death at x=141 (no cluster)
+   - Smallest fix: Resolve INV-1 first (capture the stall cause and the x=141 encounter; no level edit before that). Then, only on captured route evidence: replace the signature decision with a verb no named sibling teaches the same way, with teach/press/twist beats — cite the comparator sibling and the route/mechanic evidence in the build report.
+   - Recheck: Re-run the full critic with route coverage past x=301: route evidence (not paint) must show the new signature decision in play, the comparator citation must be recorded, "stale" must be gone, and no new structural flaw may appear.
 
 Evidence: docs/level-reviews/evidence/level-3/shots.json

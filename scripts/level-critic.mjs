@@ -708,7 +708,7 @@ export function panelPassed(reports, flags, screenshotsSent, options = {}) {
         !(flags || []).some(
             (flag) => flag.id === 'clone-suspect' || flag.id === 'skeleton-rhyme'
         ) &&
-        screenshotsSent !== false
+        screenshotsSent === true
     );
 }
 
@@ -977,6 +977,9 @@ export function attributeFailure({ telemetry = null, repeated = false } = {}) {
 // shots each) that together cover every beat. Panels must batch, never
 // silently drop beats past the cap.
 export function batchPanelShots(shots, max = 4) {
+    if (!(max > 0)) {
+        throw new Error(`batchPanelShots needs a positive batch size, got ${max}`);
+    }
     const list = shots || [];
     const batches = [];
     for (let i = 0; i < list.length; i += max) {
@@ -988,6 +991,9 @@ export function batchPanelShots(shots, max = 4) {
 // Split an element inventory or fact→mechanic table into request-sized
 // chunks (at most `size` each) that together cover every entry.
 export function batchInventory(items, size = 6) {
+    if (!(size > 0)) {
+        throw new Error(`batchInventory needs a positive batch size, got ${size}`);
+    }
     const list = items || [];
     const batches = [];
     for (let i = 0; i < list.length; i += size) {
@@ -1835,7 +1841,7 @@ async function recordDeaths(page, sample, ctx) {
         x: ctx.prevX,
         y: 400,
         capture: 'gameplay',
-        proves: `gameplay frame at death ${ctx.deathFrames} (x=${ctx.prevX}, cause ${sample.lastDeathKind || 'unknown'})`,
+        proves: `gameplay frame at death ${ctx.deathFrames} (x=${ctx.prevX}, cause ${sample.lastDeathKind || 'unknown'}); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow`,
     });
 }
 

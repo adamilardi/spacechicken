@@ -173,6 +173,20 @@
   "fixes": [
     {
       "rank": 1,
+      "priority": 1,
+      "flaw": "death-cluster-x1281",
+      "source": "investigation",
+      "gatedOn": "INV-1",
+      "evidence": "3 deaths cluster near x=1281 (spots 1277, 1280, 1287), just past deck ~1221; checkpoint x=920 (~360px replay per hotspot death); nearest still 02-hazard-laser.jpg 421px away (staged, binary not retained); no death cause, input history, phase data, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
+      "owner": "scripts/level-critic.mjs",
+      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.",
+      "recheck": "INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.",
+      "confidence": "n/a",
+      "limitations": "Attribution entry, not a design finding: stored telemetry observes the hotspot (3 deaths near x=1281) but supports no cause.",
+      "alternativeCause": "None named yet: mistimed encounter, unfair hotspot, and policy defect are all live hypotheses pending the INV-1 capture."
+    },
+    {
+      "rank": 2,
       "priority": 2,
       "flaw": "flat",
       "source": "quality",
@@ -183,20 +197,6 @@
       "confidence": "medium",
       "limitations": "Corroborated by vote count plus cross-run repeat plus deck flag, but the panel judged three staged stills (JPG binaries not retained) and no route-connectivity/waiting-time telemetry is stored; four personas judging one summary are four model perspectives, not four playtests.",
       "alternativeCause": "Paint-driven read: the panel may be naming the single-key look rather than played repetition -- the level cleared in 49.7s with real height changes (bands 12,5,6,6,7,6,5,3). If the INV-1 hotspot explains the low fun/fairness scores, the monotony read still needs route-decision evidence."
-    },
-    {
-      "rank": 2,
-      "priority": 1,
-      "flaw": "death-cluster-x1281",
-      "source": "capture",
-      "gatedOn": "INV-1",
-      "evidence": "3 deaths cluster near x=1281 (spots 1277, 1280, 1287), just past deck ~1221; checkpoint x=920 (~360px replay per hotspot death); nearest still 02-hazard-laser.jpg 421px away (staged, binary not retained); no death cause, input history, phase data, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
-      "owner": "scripts/level-critic.mjs",
-      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.",
-      "recheck": "INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.",
-      "confidence": "n/a",
-      "limitations": "Attribution entry, not a design finding: stored telemetry observes the hotspot (3 deaths near x=1281) but supports no cause.",
-      "alternativeCause": "None named yet: mistimed encounter, unfair hotspot, and policy defect are all live hypotheses pending the INV-1 capture."
     },
     {
       "rank": 3,

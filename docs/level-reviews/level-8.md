@@ -54,7 +54,7 @@ Fix only the top fix, then re-run the full critic. One fix per loop.
    - Evidence: 4/4 personas named "flat" (all iterate; corroborated: 4 votes ≥ 2, repeated across 2 runs, supporting flat-deck flag); panel judged 6 staged stills of played sections (pilot reached maxX 11775); cited still 02-hazard-boarder.jpg (boarder beat x=700) locates the read, not a cause; data support: 17 of 25 decks in band 10; route telemetry (connectivity, waiting time, repeated decisions) not stored
    - Smallest fix: Diagnose repetitive play from route evidence, not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the two-key look as art direction.
    - Recheck: Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.
-3. [death-cluster-x2941] (capture/attribution, see INV-1 — no level edit) owner: scripts/level-critic.mjs
+3. [death-cluster-x2941] (investigation, see INV-1 — no level edit) owner: scripts/level-critic.mjs
    - Evidence: 7 deaths cluster near x=2941 (spots 2855, 2897, 2953, 2961, 2965, 2975, 2983); nearest staged still 04-hazard-bonk.jpg (x=2800, binary not retained); secondary 4-cluster x≈3334, pair x≈8908, singles at 2465, 3701, 5358, 7457, 11737; no death cause, input history, phase data, replay time, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)
    - Smallest fix: Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.
    - Recheck: INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.

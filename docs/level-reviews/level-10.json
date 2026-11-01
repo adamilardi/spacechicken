@@ -291,7 +291,7 @@
       "rank": 3,
       "priority": 3,
       "flaw": "death-cluster-x11407",
-      "source": "capture",
+      "source": "investigation",
       "gatedOn": "INV-1",
       "evidence": "3 deaths cluster near x=11407 (spots 11290, 11459, 11473; adjacent single at 11491); nearest staged still 04-hazard-bonk.jpg (x=11250, binary not retained); pairs at x~6896 and x~10887; singles at 5566, 8563, 11491; timeout at maxX 11537 after 310.1s (413px short); no death cause, input history, position trace, phase data, replay time, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
       "owner": "scripts/level-critic.mjs",

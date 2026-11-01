@@ -47,14 +47,14 @@
 
 Fix only the top fix, then re-run the full critic. One fix per loop.
 
-1. [flat] (quality, gated on INV-1) owner: skills/level-creator/SKILL.md
-   - Evidence: 4/4 personas named "flat" (all iterate; corroborated by vote count: 4 votes ≥ 2, repeated across 2 runs, supporting flat-deck flag); panel judged 5 staged stills but the pilot traversed only x≤2055, so stills at x=2400, 2800 show unplayed sections; timeout at maxX 2055 of crown x=3000; single death at x=357 (no cluster)
-   - Smallest fix: Resolve INV-1 first (capture the stall cause and the x≈2000–2061 frontier encounter; no level edit before that). Then, only on captured route evidence: diagnose repetitive play from route evidence, not paint — add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the single-key look as art direction.
-   - Recheck: Re-run the full critic with route coverage past x=2055: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.
-2. [pilot-stall] (capture/attribution, see INV-1 — no level edit) owner: scripts/level-critic.mjs
+1. [pilot-stall] (investigation, see INV-1 — no level edit) owner: scripts/level-critic.mjs
    - Evidence: timeout at maxX 2055 of crown x=3000 after 90.1s (945px short); frontier at x≈2000–2061 (roller beat x=2000, deck 4 at x≈2061); 1 death at x=357 (no cluster); hazardTypesSeen [rock, beetle, dust_devil, boulder, laser, hopper]; no input history, position trace, death cause, phase data, or gameplay frames retained; repeatedFlaws ["flat"] across 2 runs (no per-run retention)
    - Smallest fix: Not a level edit. Run the INV-1 capture and attribute the stall (bot-policy defect vs reproducible design block) before any geometry or encounter change.
    - Recheck: INV-1 answered with retained input/position traces, death events, and gameplay frames; attribution recorded.
+2. [flat] (quality, gated on INV-1) owner: skills/level-creator/SKILL.md
+   - Evidence: 4/4 personas named "flat" (all iterate; corroborated by vote count: 4 votes ≥ 2, repeated across 2 runs, supporting flat-deck flag); panel judged 5 staged stills but the pilot traversed only x≤2055, so stills at x=2400, 2800 show unplayed sections; timeout at maxX 2055 of crown x=3000; single death at x=357 (no cluster)
+   - Smallest fix: Resolve INV-1 first (capture the stall cause and the x≈2000–2061 frontier encounter; no level edit before that). Then, only on captured route evidence: diagnose repetitive play from route evidence, not paint — add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the single-key look as art direction.
+   - Recheck: Re-run the full critic with route coverage past x=2055: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.
 3. [flat-deck] (mechanical visual-variety heuristic — non-blocking) owner: skills/level-creator/SKILL.md
    - Evidence: 1 deck key(s) (`mesa`), dominant share 1.00 across 7 decks (paint heuristic; never a quality proof)
    - Smallest fix: Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.

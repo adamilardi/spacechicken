@@ -171,6 +171,20 @@
   "fixes": [
     {
       "rank": 1,
+      "priority": 1,
+      "flaw": "pilot-stall",
+      "source": "investigation",
+      "gatedOn": "INV-1",
+      "evidence": "timeout at maxX 2055 of crown x=3000 after 90.1s (945px short); frontier at x~2000-2061 (roller beat x=2000, deck 4 at x~2061); 1 death at x=357 (no cluster); hazardTypesSeen [rock, beetle, dust_devil, boulder, laser, hopper]; no input history, position trace, death cause, phase data, or gameplay frames retained; repeatedFlaws [flat] across 2 runs (no per-run retention)",
+      "owner": "scripts/level-critic.mjs",
+      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the stall (bot-policy defect vs reproducible design block) before any geometry or encounter change.",
+      "recheck": "INV-1 answered with retained input/position traces, death events, and gameplay frames; attribution recorded.",
+      "confidence": "n/a",
+      "limitations": "Attribution entry, not a design finding: stored telemetry observes the stall (maxX 2055, 90.1s, 1 death) but supports no cause.",
+      "alternativeCause": "None named yet: bot-policy defect and design block are both live hypotheses pending the INV-1 capture."
+    },
+    {
+      "rank": 2,
       "priority": 2,
       "flaw": "flat",
       "source": "quality",
@@ -182,20 +196,6 @@
       "confidence": "low",
       "limitations": "Corroborated by vote count plus cross-run repeat plus deck flag, but the panel judged staged stills (JPG binaries not retained), 2 of the 5 stills depict unplayed sections, and no route-connectivity/waiting-time telemetry is stored; four personas judging one summary are four model perspectives, not four playtests.",
       "alternativeCause": "Stall artifact: the panel may be reading thin evidence (3 played stills plus staged stills of never-reached sections) and the timeout-shortened telemetry rather than a played repeated stretch. If INV-1 shows the pilot cannot progress for policy reasons, the flat read still needs a fresh capture with real route coverage."
-    },
-    {
-      "rank": 2,
-      "priority": 1,
-      "flaw": "pilot-stall",
-      "source": "capture",
-      "gatedOn": "INV-1",
-      "evidence": "timeout at maxX 2055 of crown x=3000 after 90.1s (945px short); frontier at x~2000-2061 (roller beat x=2000, deck 4 at x~2061); 1 death at x=357 (no cluster); hazardTypesSeen [rock, beetle, dust_devil, boulder, laser, hopper]; no input history, position trace, death cause, phase data, or gameplay frames retained; repeatedFlaws [flat] across 2 runs (no per-run retention)",
-      "owner": "scripts/level-critic.mjs",
-      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the stall (bot-policy defect vs reproducible design block) before any geometry or encounter change.",
-      "recheck": "INV-1 answered with retained input/position traces, death events, and gameplay frames; attribution recorded.",
-      "confidence": "n/a",
-      "limitations": "Attribution entry, not a design finding: stored telemetry observes the stall (maxX 2055, 90.1s, 1 death) but supports no cause.",
-      "alternativeCause": "None named yet: bot-policy defect and design block are both live hypotheses pending the INV-1 capture."
     },
     {
       "rank": 3,
