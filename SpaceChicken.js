@@ -298,6 +298,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.crownGlow = null;
         this.killZoneFallY = 0;
         this.hasStartedPlay = false;
+        this.titleUiPressIds = new Set();
         this.selectedLevel = 1;
         this.uiCamera = null;
         this.playCameraZoom = 1;
@@ -890,6 +891,7 @@ export class SpaceChicken extends Phaser.Scene {
                 );
             }
             if (this.input?.on) {
+                this.input.on('pointerdown', this.onTitlePointerDown, this);
                 this.input.on('pointerup', this.onTitlePointerUp, this);
             }
             return;
@@ -897,13 +899,52 @@ export class SpaceChicken extends Phaser.Scene {
         this.beginPlay();
     }
 
+    // Phaser dispatches a bound button's own `pointerup` before this scene
+    // handler for the same release. View buttons (More stories / Campaign /
+    // Settings / Back) hide themselves inside that first dispatch via
+    // setTitleView, so a hit test at pointerup time no longer sees them and
+    // the release would fall through to beginPlay. Snapshot the hit while
+    // the button is still visible at pointerdown, and keep a
+    // visibility-independent geometry check at pointerup for releases that
+    // land on a button without a matching snapshot (e.g. a drag onto it).
+    onTitlePointerDown(pointer) {
+        if (!this.titleUiPressIds) this.titleUiPressIds = new Set();
+        this.titleUiPressIds.delete(pointer?.id);
+        if (!this.awaitingStart || !this.inputController) {
+            return;
+        }
+        const targets = this.inputController.fillPointerTargets(
+            pointer,
+            this.inputController.controls
+        );
+        if (this.inputController.isOverUiControl(targets)) {
+            this.titleUiPressIds.add(pointer?.id);
+        }
+    }
+
+    isPointerOverTitleButton(pointer) {
+        const x = pointer?.x ?? pointer?.worldX;
+        const y = pointer?.y ?? pointer?.worldY;
+        if (x == null || y == null || !this.inputController?.isPointerOverGameObject) {
+            return false;
+        }
+        return (this.uiManager?.newsButtons || []).some((button) =>
+            this.inputController.isPointerOverGameObject(x, y, button)
+        );
+    }
+
     onTitlePointerUp(pointer) {
+        const pressOnUi = this.titleUiPressIds?.has(pointer?.id) || false;
+        this.titleUiPressIds?.delete(pointer?.id);
         if (
             this.uiManager?.raceSetupDialog?.open ||
             pointer?.event?.target?.closest?.('button, dialog')
         )
             return;
         if (!this.awaitingStart) {
+            return;
+        }
+        if (pressOnUi || this.isPointerOverTitleButton(pointer)) {
             return;
         }
         if (this.inputController) {
@@ -933,6 +974,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.hasStartedPlay = true;
         const wasWaiting = this.awaitingStart;
         this.awaitingStart = false;
+        this.input?.off?.('pointerdown', this.onTitlePointerDown, this);
         this.input?.off?.('pointerup', this.onTitlePointerUp, this);
         this.startTime = performance.now();
         this.uiManager?.updatePlayerName?.(this.playerName);
@@ -2337,6 +2379,18 @@ export class SpaceChicken extends Phaser.Scene {
         return this.jumpCount > 0 || this.maxAirSpeedY >= GAME_CONSTANTS.LAND_MIN_SPEED_Y;
     }
 
+    startFeaturedStory() {
+        if (!this.awaitingStart) {
+            return;
+        }
+        const id =
+            this.uiManager?.overlays?.featuredNewsId?.() ||
+            (NEWS_LEVEL_IDS.includes(19) ? 19 : NEWS_LEVEL_IDS[0]);
+        if (id) {
+            this.startNewsLevel(id);
+        }
+    }
+
     updateTitleScreen(inputState) {
         this.uiManager?.updateGamepadStatus?.();
         const startTriggered = this.isJumpInput(inputState) || inputState.pointerStartTriggered;
@@ -2345,11 +2399,15 @@ export class SpaceChicken extends Phaser.Scene {
             const isGrounded = this.updateGroundedState();
             this.updatePlayerAnimation(isGrounded);
         }
-        if (this.titleSelectLeft(inputState)) {
-            this.cycleTitleSelection(-1);
-        }
-        if (this.titleSelectRight(inputState)) {
-            this.cycleTitleSelection(1);
+        const view = this.uiManager?.overlays?.titleView || 'featured';
+        const left = this.titleSelectLeft(inputState);
+        const right = this.titleSelectRight(inputState);
+        if (view === 'campaign') {
+            if (left) this.cycleTitleSelection(-1);
+            if (right) this.cycleTitleSelection(1);
+        } else if (view === 'featured') {
+            if (left) this.uiManager?.overlays?.cycleHero?.(-1);
+            if (right) this.uiManager?.overlays?.cycleHero?.(1);
         }
         if (this.jumpToggleKey && Phaser.Input.Keyboard.JustDown(this.jumpToggleKey)) {
             this.toggleJumpMode();
@@ -2357,8 +2415,13 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.difficultyKey && Phaser.Input.Keyboard.JustDown(this.difficultyKey)) {
             this.toggleDifficulty();
         }
-        if (startTriggered) {
+        if (!startTriggered) {
+            return;
+        }
+        if (view === 'campaign') {
             this.startSelectedLevel();
+        } else if (view === 'featured') {
+            this.startFeaturedStory();
         }
     }
 
@@ -2420,6 +2483,7 @@ export class SpaceChicken extends Phaser.Scene {
 
     startSelectedLevel() {
         if (this.selectedLevel > 1) {
+            this.input?.off?.('pointerdown', this.onTitlePointerDown, this);
             this.input?.off?.('pointerup', this.onTitlePointerUp, this);
             this.scene.restart({
                 level: this.selectedLevel,
@@ -2916,6 +2980,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.events.off('addedtoscene', this.addedToSceneHandler, this);
             this.addedToSceneHandler = null;
         }
+        this.input?.off?.('pointerdown', this.onTitlePointerDown, this);
         this.input?.off?.('pointerup', this.onTitlePointerUp, this);
         if (this.raceFinaleEvent?.remove) {
             this.raceFinaleEvent.remove(false);

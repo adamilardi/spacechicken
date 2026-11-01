@@ -244,6 +244,48 @@ test('news rows label the level and outlet', async () => {
     assert.equal(formatNewsRow(18, 'Fear Spike', ''), '18 · Fear Spike');
 });
 
+test('featured story is the default title action with an accurate action line', async () => {
+    const { FEATURED_NEWS_ID, actionSentence } = await importModule('Overlays.js');
+    const { NEWS_LEVEL_IDS } = await importModule('levels/index.js');
+    assert.ok(NEWS_LEVEL_IDS.includes(FEATURED_NEWS_ID));
+    assert.equal(FEATURED_NEWS_ID, 19);
+    for (const id of NEWS_LEVEL_IDS) {
+        const line = actionSentence(id);
+        assert.ok(line && line.endsWith('.'), `level ${id} has one action sentence`);
+        assert.ok(line.length <= 120, `level ${id} action line stays brief`);
+    }
+    assert.match(actionSentence(19), /lift/i);
+
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.awaitingStart = true;
+    scene.player = null;
+    const launched = [];
+    const cycled = [];
+    scene.startNewsLevel = (id) => launched.push(id);
+    scene.uiManager = {
+        updateGamepadStatus() {},
+        overlays: {
+            titleView: 'featured',
+            featuredNewsId: () => FEATURED_NEWS_ID,
+            cycleHero: (dir) => cycled.push(dir),
+        },
+    };
+    scene.updateTitleScreen({ pointerStartTriggered: true, menu: {} });
+    assert.deepEqual(launched, [FEATURED_NEWS_ID]);
+    scene.updateTitleScreen({ pointerStartTriggered: false, menu: { right: true } });
+    assert.deepEqual(cycled, [1]);
+
+    // Campaign keeps its own start, but only from the campaign view.
+    scene.uiManager.overlays.titleView = 'campaign';
+    scene.selectedLevel = 1;
+    const campaignStarts = [];
+    scene.startSelectedLevel = () => campaignStarts.push(scene.selectedLevel);
+    scene.updateTitleScreen({ pointerStartTriggered: true, menu: {} });
+    assert.deepEqual(campaignStarts, [1]);
+    assert.deepEqual(launched, [FEATURED_NEWS_ID]);
+});
+
 test('title news rows start their level without unlocks', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();
@@ -727,6 +769,7 @@ test('jump style persists and toggles from the title screen', async () => {
 test('title menu up toggles jump style while down opens race setup', async () => {
     const { Overlays } = await importModule('Overlays.js');
     const overlays = new Overlays({ awaitingStart: true }, { setHudVisible() {} });
+    overlays.titleView = 'settings';
     const clicks = [];
     overlays.raceSetupButton = { click: () => clicks.push('race') };
     overlays.jumpToggleButton = { click: () => clicks.push('jump') };
@@ -1201,6 +1244,7 @@ test('hard mode marks the hud level text and level banner', async () => {
 test('title menu back toggles difficulty', async () => {
     const { Overlays } = await importModule('Overlays.js');
     const overlays = new Overlays({ awaitingStart: true }, { setHudVisible() {} });
+    overlays.titleView = 'settings';
     const clicks = [];
     overlays.difficultyButton = { click: () => clicks.push('difficulty') };
     assert.equal(overlays.handleMenuInput({ menu: { back: true } }), true);
@@ -1469,6 +1513,194 @@ test('chevron taps cycle instead of starting', async () => {
         false
     );
     assert.equal(controller.detectTitleStart([{ justDown: true, x: 10, y: 10 }], {}), true);
+});
+
+test('title view buttons never fall through to campaign start', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const { InputController } = await importModule('InputController.js');
+    const scene = new SpaceChicken();
+    scene.awaitingStart = true;
+    let began = 0;
+    scene.beginPlay = () => {
+        began += 1;
+    };
+    const button = {
+        visible: true,
+        getBounds: () => ({ x: 100, y: 100, width: 140, height: 44 }),
+    };
+    const controller = new InputController({
+        uiManager: { raceSetupDialog: null },
+        pointerTapTimes: new Map(),
+    });
+    controller.controls = { newsButtons: [button] };
+    scene.inputController = controller;
+    scene.uiManager = { newsButtons: [button], raceSetupDialog: null };
+
+    // The press lands on the still-visible view button; its own pointerup
+    // runs first and hides it (setTitleView), then the scene handler sees
+    // the same release. It must change view only, never beginPlay.
+    scene.onTitlePointerDown({ id: 7, x: 170, y: 122 });
+    button.visible = false;
+    scene.onTitlePointerUp({ id: 7, x: 170, y: 122 });
+    assert.equal(began, 0);
+
+    // A release over the now-hidden button is still a button hit even
+    // without a pointerdown snapshot (e.g. a drag onto it).
+    scene.onTitlePointerUp({ id: 8, x: 170, y: 122 });
+    assert.equal(began, 0);
+
+    // Background taps still start, and visible news hits still guard.
+    scene.onTitlePointerDown({ id: 9, x: 20, y: 20 });
+    scene.onTitlePointerUp({ id: 9, x: 20, y: 20 });
+    assert.equal(began, 1);
+    button.visible = true;
+    scene.onTitlePointerUp({ id: 10, x: 170, y: 122 });
+    assert.equal(began, 1);
+});
+
+test('short landscape title keeps a compact real hero at 844x390', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const { computeLayoutMetrics } = await importModule('HudLayout.js');
+    const metrics = computeLayoutMetrics(844, 390, { top: 0, bottom: 0, left: 0, right: 0 });
+    assert.equal(metrics.isCompact, true);
+    assert.equal(metrics.isPortrait, false);
+
+    const fakeText = (displayWidth = 120, displayHeight = 20) => ({
+        x: 0,
+        y: 0,
+        width: displayWidth,
+        height: displayHeight,
+        displayWidth,
+        displayHeight,
+        visible: true,
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+            return this;
+        },
+        setVisible(v) {
+            this.visible = v;
+            return this;
+        },
+        setWordWrapWidth() {
+            return this;
+        },
+        setScale() {
+            return this;
+        },
+    });
+    const fakeImage = (width = 1920, height = 1280) => ({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        displayWidth: width,
+        displayHeight: height,
+        visible: true,
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+            return this;
+        },
+        setDisplaySize(w, h) {
+            this.displayWidth = w;
+            this.displayHeight = h;
+            return this;
+        },
+        setAlpha() {
+            return this;
+        },
+        setVisible(v) {
+            this.visible = v;
+            return this;
+        },
+        setScale() {
+            return this;
+        },
+        setTexture() {
+            return this;
+        },
+    });
+
+    const overlays = new Overlays(
+        { textures: { exists: () => true } },
+        {
+            getLayoutMetrics: () => metrics,
+            getSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+            applyFontSize() {},
+            styleHudText() {},
+            markUi: (o) => o,
+            playerNameText: null,
+        }
+    );
+    overlays.titleText = fakeText(320, 34);
+    overlays.titleCrown = fakeImage(40, 40);
+    overlays.titleChicken = fakeImage(60, 60);
+    overlays.titleTagline = fakeText(260, 16);
+    overlays.titleHeroBg = {
+        clear() {},
+        fillStyle() {},
+        fillRoundedRect() {},
+        fillRect() {},
+        lineStyle() {},
+        strokeRoundedRect() {},
+        strokeRect() {},
+    };
+    overlays.titleHeroThumb = fakeImage();
+    overlays.titleHeroKicker = fakeText(110, 16);
+    overlays.titleHeroCounter = fakeText(90, 16);
+    overlays.titleHeroOutlet = fakeText(150, 16);
+    overlays.titleHeroHeadline = fakeText(300, 38);
+    overlays.titleHeroLevel = fakeText(200, 20);
+    overlays.titleHeroMechanic = fakeText(300, 32);
+    overlays.titleHeroPlay = fakeText(170, 36);
+    overlays.titleHeroPrev = fakeText(36, 36);
+    overlays.titleHeroNext = fakeText(36, 36);
+    overlays.titleStageChicken = fakeImage(100, 100);
+    overlays.titleStageEnemy = fakeImage(100, 100);
+    overlays.titleStageCrown = fakeImage(60, 60);
+    overlays.titleMoreButton = fakeText(110, 28);
+    overlays.titleCampaignButton = fakeText(110, 28);
+    overlays.titleSettingsButton = fakeText(110, 28);
+    overlays.titleBackButton = fakeText(80, 28);
+    overlays.titleNewsHeader = fakeText(140, 20);
+    overlays.titleSubtitle = fakeText(200, 24);
+    overlays.selectPrevButton = fakeText(36, 36);
+    overlays.selectNextButton = fakeText(36, 36);
+    overlays.titlePrompt = fakeText(280, 24);
+    overlays.titleSettingsHeader = fakeText(120, 20);
+
+    const { w: heroW, h: heroH } = overlays.heroSize(metrics);
+    assert.ok(heroH >= 190, `compact hero stays real (h=${heroH})`);
+    overlays.placeTitleCluster(422, metrics);
+
+    const heroX = 422 - heroW / 2;
+    const heroTop = overlays.titleHeroThumb.y - 36;
+    // Premise and mechanic survive short landscape.
+    assert.equal(overlays.titleTagline.visible, true);
+    assert.equal(overlays.titleHeroMechanic.visible, true);
+    // The preview is a scaled thumb inside the card, not the native art.
+    const thumb = overlays.titleHeroThumb;
+    assert.equal(thumb.visible, true);
+    assert.ok(thumb.displayWidth < 1920, 'thumb is scaled down');
+    assert.ok(thumb.x >= heroX && thumb.x + thumb.displayWidth <= heroX + heroW);
+    assert.ok(thumb.y >= heroTop && thumb.y + thumb.displayHeight <= heroTop + heroH);
+    // Headline sits beside the thumb, never underneath it.
+    assert.ok(overlays.titleHeroHeadline.x >= thumb.x + thumb.displayWidth);
+    assert.equal(overlays.titleStageChicken.visible, true);
+    // Play fits inside the card below the mechanic; secondary row on-screen.
+    const play = overlays.titleHeroPlay;
+    assert.equal(play.visible, true);
+    assert.ok(play.y - play.displayHeight / 2 >= overlays.titleHeroMechanic.y);
+    assert.ok(play.y + play.displayHeight / 2 <= heroTop + heroH);
+    for (const b of [
+        overlays.titleMoreButton,
+        overlays.titleCampaignButton,
+        overlays.titleSettingsButton,
+    ]) {
+        assert.equal(b.visible, true);
+        assert.ok(b.y + b.displayHeight / 2 <= 390, 'secondary action on-screen');
+    }
 });
 
 test('remote leaderboard requests include all configured levels', async () => {
@@ -2901,9 +3133,21 @@ test('title start consumes the first press without jumping', async () => {
     scene.jumpRequested = false;
     scene.muteKey = null;
     scene.physics = { world: { isPaused: false } };
+    // Issue #8: the first press now launches the featured story, still
+    // without jumping. Campaign remains available from its own view.
+    let launched = null;
+    scene.uiManager = {
+        updateGamepadStatus() {},
+        overlays: { titleView: 'featured', featuredNewsId: () => 19, cycleHero() {} },
+    };
+    scene.startNewsLevel = (id) => {
+        launched = id;
+        scene.awaitingStart = false;
+    };
 
     scene.update();
-    assert.equal(began, 1);
+    assert.equal(launched, 19);
+    assert.equal(began, 0);
     assert.equal(jumps, 0);
 });
 
