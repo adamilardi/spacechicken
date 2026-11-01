@@ -63,3 +63,24 @@ export const LEVEL_IDS = Object.freeze(LEVELS.map((entry) => entry.id));
 export const NEWS_LEVEL_IDS = Object.freeze(
     LEVELS.filter((entry) => entry.content && entry.content.news).map((entry) => entry.id)
 );
+
+// The campaign section shows two named campaigns: the platformer voyage
+// (1-7, ending as the chicken earns its phaser) and the contra assault
+// (8-16, phaser run-and-gun including the Iron Vault branch off 12).
+export const CAMPAIGNS = Object.freeze([
+    {
+        id: 'starlight-voyage',
+        name: 'Starlight Voyage',
+        levels: Object.freeze([1, 2, 3, 4, 5, 6, 7]),
+    },
+    {
+        id: 'iron-front',
+        name: 'Iron Front',
+        levels: Object.freeze([8, 9, 10, 11, 12, 13, 14, 15, 16]),
+    },
+]);
+
+export function campaignForLevel(level) {
+    const id = Number(level);
+    return CAMPAIGNS.find((campaign) => campaign.levels.includes(id)) || null;
+}

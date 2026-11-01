@@ -1,5 +1,5 @@
 import { GAME_CONSTANTS, KEY_CODES } from './Constants.js';
-import { LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS } from './levels/index.js';
+import { LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS, campaignForLevel } from './levels/index.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
@@ -2445,7 +2445,11 @@ export class SpaceChicken extends Phaser.Scene {
             best === null || best === undefined
                 ? 'Best none yet'
                 : `Best ${formatElapsedTime(best)}`;
-        return `LEVEL ${this.selectedLevel} · ${title}\n${bestLine}`;
+        const campaign = campaignForLevel(this.selectedLevel);
+        const head = campaign
+            ? `${campaign.name.toUpperCase()} · LEVEL ${this.selectedLevel} · ${title}`
+            : `LEVEL ${this.selectedLevel} · ${title}`;
+        return `${head}\n${bestLine}`;
     }
 
     startNewsLevel(level) {

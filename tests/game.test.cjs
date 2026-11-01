@@ -1493,7 +1493,7 @@ test('title selection cycles within unlocked levels and starts them', async () =
     scene.uiManager = { showTitleLevelSelection: (text) => labels.push(text) };
     scene.cycleTitleSelection(1);
     assert.equal(scene.selectedLevel, 2);
-    assert.deepEqual(labels, ['LEVEL 2 · Arcade Orbit\nBest none yet']);
+    assert.deepEqual(labels, ['STARLIGHT VOYAGE · LEVEL 2 · Arcade Orbit\nBest none yet']);
     scene.cycleTitleSelection(-1);
     scene.cycleTitleSelection(-1);
     assert.equal(scene.selectedLevel, 1);
@@ -1512,6 +1512,25 @@ test('title selection cycles within unlocked levels and starts them', async () =
     scene.scene = { restart: (data) => restarts.push(data) };
     scene.startSelectedLevel();
     assert.deepEqual(restarts, [{ level: 5, deathCount: 0, coopMode: scene.coopMode }]);
+});
+
+test('campaign section names the platformer and contra campaigns', async () => {
+    const { campaignForLevel } = await importModule('levels/index.js');
+    for (let id = 1; id <= 7; id += 1) {
+        assert.equal(campaignForLevel(id).name, 'Starlight Voyage');
+    }
+    for (let id = 8; id <= 16; id += 1) {
+        assert.equal(campaignForLevel(id).name, 'Iron Front');
+    }
+    assert.equal(campaignForLevel(17), null);
+
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.leaderboardManager = { getPersonalBest: () => null };
+    scene.selectedLevel = 8;
+    assert.equal(scene.titleSelectionLabel(), 'IRON FRONT · LEVEL 8 · Colony Drop\nBest none yet');
+    scene.selectedLevel = 17;
+    assert.equal(scene.titleSelectionLabel(), 'LEVEL 17 · Ticker Plunge\nBest none yet');
 });
 
 test('chevron taps cycle instead of starting', async () => {
