@@ -1601,6 +1601,227 @@ test('campaign section names the platformer and contra campaigns', async () => {
     assert.equal(scene.titleSelectionLabel(), 'LEVEL 17 · Ticker Plunge\nBest none yet');
 });
 
+test('campaign rows label levels and locks', async () => {
+    const { formatCampaignRow } = await importModule('Overlays.js');
+    assert.equal(formatCampaignRow(1, 'Dawn Run', false), '1 · Dawn Run');
+    assert.equal(formatCampaignRow(12, 'Crimson Womb', false), '12 · Crimson Womb');
+    assert.equal(formatCampaignRow(8, 'Colony Drop', true), '8 · Colony Drop · LOCKED');
+});
+
+test('campaign rows start unlocked levels and ignore locked ones', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.awaitingStart = true;
+    scene.selectedLevel = 1;
+    scene.leaderboardManager = { getMaxUnlocked: () => 5 };
+    const restarts = [];
+    scene.input = { off: () => {} };
+    scene.scene = { restart: (data) => restarts.push(data) };
+
+    scene.startCampaignLevel(3);
+    assert.equal(scene.selectedLevel, 3);
+    assert.equal(restarts.length, 1);
+    assert.equal(restarts[0].level, 3);
+
+    scene.startCampaignLevel(8);
+    scene.startCampaignLevel(17);
+    scene.startCampaignLevel(99);
+    assert.equal(scene.selectedLevel, 3);
+    assert.equal(restarts.length, 1);
+
+    scene.awaitingStart = false;
+    scene.startCampaignLevel(2);
+    assert.equal(scene.selectedLevel, 3);
+    assert.equal(restarts.length, 1);
+});
+
+test('campaign tabs switch the visible sub-campaign', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    let highlighted = 0;
+    let laidOut = 0;
+    scene.uiManager = {
+        overlays: {
+            campaignTab: 'starlight-voyage',
+            updateCampaignHighlight: () => {
+                highlighted += 1;
+            },
+            layoutTitleScreen: () => {
+                laidOut += 1;
+            },
+        },
+    };
+    scene.selectCampaignTab('iron-front');
+    assert.equal(scene.uiManager.overlays.campaignTab, 'iron-front');
+    assert.equal(highlighted, 1);
+    assert.equal(laidOut, 1);
+    scene.selectCampaignTab('nope');
+    assert.equal(scene.uiManager.overlays.campaignTab, 'iron-front');
+    assert.equal(highlighted, 1);
+});
+
+test('campaign view groups levels under sub-campaign tabs', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const makeText = (str) => ({
+        text: str,
+        x: 0,
+        y: 0,
+        displayWidth: 120,
+        displayHeight: 24,
+        visible: true,
+        bg: null,
+        style: null,
+        handlers: {},
+        setOrigin() {
+            return this;
+        },
+        setScrollFactor() {
+            return this;
+        },
+        setDepth() {
+            return this;
+        },
+        setPadding() {
+            return this;
+        },
+        setBackgroundColor(color) {
+            this.bg = color;
+            return this;
+        },
+        setStyle(style) {
+            this.style = style;
+            return this;
+        },
+        setText(text) {
+            this.text = text;
+            return this;
+        },
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+            return this;
+        },
+        setVisible(visible) {
+            this.visible = visible;
+            return this;
+        },
+        setWordWrapWidth() {
+            return this;
+        },
+        setInteractive() {
+            return this;
+        },
+        on(event, fn) {
+            this.handlers[event] = fn;
+            return this;
+        },
+    });
+    const calls = [];
+    const scene = {
+        selectedLevel: 3,
+        leaderboardManager: { getMaxUnlocked: () => 5 },
+        selectCampaignTab: (id) => calls.push(['tab', id]),
+        startCampaignLevel: (id) => calls.push(['row', id]),
+        add: { text: (x, y, str) => makeText(str) },
+    };
+    const overlays = new Overlays(scene, {
+        styleHudText() {},
+        markUi: (object) => object,
+        applyFontSize() {},
+    });
+    overlays.createTitleCampaignSection({ fonts: { instructions: 16 } });
+    assert.deepEqual(
+        overlays.titleCampaignTabs.map((tab) => tab.text),
+        ['STARLIGHT VOYAGE · 1-7', 'IRON FRONT · 8-16']
+    );
+    assert.equal(overlays.titleCampaignRows.length, 16);
+    assert.equal(overlays.campaignTab, 'starlight-voyage');
+
+    overlays.titleCampaignTabs[1].handlers.pointerup();
+    overlays.titleCampaignRows[0].handlers.pointerup();
+    assert.deepEqual(calls, [
+        ['tab', 'iron-front'],
+        ['row', 1],
+    ]);
+
+    const rowById = Object.fromEntries(
+        overlays.titleCampaignRows.map((row) => [row.campaignLevel, row])
+    );
+    assert.equal(rowById[3].text, '3 · Orbital Gauntlet');
+    assert.equal(rowById[3].bg, '#8c1d18');
+    assert.equal(rowById[6].text, '6 · Red Reach · LOCKED');
+    assert.equal(rowById[6].bg, '#14283e');
+
+    overlays.titleSubtitle = makeText('');
+    overlays.layoutTitleScreen = () => {};
+    scene.selectedLevel = 9;
+    overlays.showTitleLevelSelection('LEVEL 9');
+    assert.equal(overlays.campaignTab, 'iron-front');
+    assert.equal(rowById[9].bg, '#8c1d18');
+
+    overlays.titlePrompt = makeText('');
+    overlays.selectPrevButton = makeText('');
+    overlays.selectNextButton = makeText('');
+    const frame = { x: 0, y: 100, w: 700, h: 322, centerX: 350, bottom: 422 };
+    overlays.layoutCampaignPanel(frame, { fonts: { instructions: 16, prompt: 14 } });
+    for (const tab of overlays.titleCampaignTabs) {
+        assert.ok(tab.y >= frame.y && tab.y < frame.bottom, 'tab inside card');
+    }
+    assert.deepEqual(
+        overlays.titleCampaignTabs.map((tab) => tab.x),
+        [frame.centerX, frame.centerX]
+    );
+    assert.ok(
+        overlays.titleCampaignTabs[0].y < overlays.titleCampaignTabs[1].y,
+        'tabs stack vertically'
+    );
+    const placed = overlays.titleCampaignRows.filter((row) => row.y > 0);
+    assert.deepEqual(
+        placed.map((row) => row.campaignLevel),
+        [8, 9, 10, 11, 12, 13, 14, 15, 16]
+    );
+    for (const row of placed) {
+        assert.ok(row.y >= frame.y && row.y < frame.bottom, 'row inside card');
+    }
+    // Nine rows overflow one column, so they deal row-major: 8,9 share a row.
+    assert.equal(rowById[8].y, rowById[9].y);
+    assert.ok(rowById[8].x < rowById[9].x);
+    assert.ok(rowById[10].y > rowById[8].y);
+    assert.equal(overlays.titlePrompt.y, frame.bottom - 20);
+
+    scene.selectedLevel = 1;
+    overlays.campaignTab = 'starlight-voyage';
+    overlays.layoutCampaignPanel(frame, { fonts: { instructions: 16, prompt: 14 } });
+    // Seven rows also overflow here, dealt row-major like iron.
+    assert.equal(rowById[1].y, rowById[2].y);
+    assert.ok(rowById[1].x < rowById[2].x);
+    assert.ok(rowById[3].y > rowById[1].y);
+
+    const tall = { x: 0, y: 100, w: 700, h: 600, centerX: 350, bottom: 700 };
+    overlays.layoutCampaignPanel(tall, { fonts: { instructions: 16, prompt: 14 } });
+    const voyageRows = [1, 2, 3, 4, 5, 6, 7].map((id) => rowById[id]);
+    assert.ok(
+        voyageRows.every((row) => row.x === tall.centerX),
+        'seven rows fit one centered column when tall enough'
+    );
+    assert.deepEqual(
+        voyageRows.map((row) => row.y),
+        [...voyageRows.map((row) => row.y)].sort((a, b) => a - b)
+    );
+    scene.selectedLevel = 9;
+    overlays.campaignTab = 'iron-front';
+    overlays.layoutCampaignPanel(frame, { fonts: { instructions: 16, prompt: 14 } });
+
+    overlays.titleView = 'campaign';
+    overlays.titleNewsRows = [];
+    overlays.applyTitleView();
+    assert.equal(overlays.titleSubtitle.visible, false);
+    assert.equal(overlays.selectPrevButton.visible, false);
+    assert.ok(overlays.titleCampaignTabs.every((tab) => tab.visible));
+    assert.ok(placed.every((row) => row.visible));
+    assert.equal(rowById[1].visible, false);
+});
+
 test('chevron taps cycle instead of starting', async () => {
     const { InputController } = await importModule('InputController.js');
     const chevron = {

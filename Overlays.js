@@ -1,5 +1,12 @@
 import { GAME_CONSTANTS } from './Constants.js';
-import { LEVEL_CONTENT, LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS } from './levels/index.js';
+import {
+    CAMPAIGNS,
+    LEVEL_CONTENT,
+    LEVEL_DEFINITIONS,
+    LEVEL_IDS,
+    NEWS_LEVEL_IDS,
+    campaignForLevel,
+} from './levels/index.js';
 import {
     DIFFICULTY_LABEL,
     formatElapsedTime,
@@ -53,6 +60,10 @@ export function newsColumnsFor(count, stackedHeight, availableHeight) {
 export function formatNewsRow(id, title, outlet) {
     const outletSuffix = outlet ? ` (${outlet})` : '';
     return `${id} · ${title}${outletSuffix}`;
+}
+
+export function formatCampaignRow(id, title, locked) {
+    return locked ? `${id} · ${title} · LOCKED` : `${id} · ${title}`;
 }
 
 const NEWS_PLATE_KEYS = Object.freeze({
@@ -114,6 +125,9 @@ export class Overlays {
         this.titleGamepadStatus = null;
         this.titleNewsHeader = null;
         this.titleNewsRows = [];
+        this.titleCampaignTabs = [];
+        this.titleCampaignRows = [];
+        this.campaignTab = 'starlight-voyage';
         this.titleBackdrop = null;
         this.titleTickerBg = null;
         this.titleTickerText = null;
@@ -1082,7 +1096,7 @@ export class Overlays {
         let prompt = this.ui.touchControlsEnabled ? 'TAP TO START' : 'PRESS SPACE TO START';
         if (canSelect) {
             prompt = this.ui.touchControlsEnabled
-                ? 'TAP ◀ ▶ · TAP TO START'
+                ? 'TAP A LEVEL TO START'
                 : '← → SELECT · SPACE STARTS';
         }
         this.titlePrompt = this.scene.add
@@ -1133,6 +1147,7 @@ export class Overlays {
             this.selectNextButton = this.ui.markUi(this.createSelectChevron('▶', 1, metrics));
         }
         this.createTitleNewsSection(metrics);
+        this.createTitleCampaignSection(metrics);
         this.createTitleSecondary(metrics);
         this.updateGamepadStatus();
         this.updateHero(false);
@@ -1382,10 +1397,14 @@ export class Overlays {
         show(this.titleSettingsHeader, view === 'settings');
         show(this.titleNewsHeader, view === 'stories');
         for (const row of this.titleNewsRows || []) show(row, view === 'stories');
-        show(this.titleSubtitle, view === 'campaign');
-        show(this.selectPrevButton, view === 'campaign');
-        show(this.selectNextButton, view === 'campaign');
+        show(this.titleSubtitle, false);
+        show(this.selectPrevButton, false);
+        show(this.selectNextButton, false);
         show(this.titlePrompt, view === 'campaign');
+        for (const tab of this.titleCampaignTabs || []) show(tab, view === 'campaign');
+        for (const row of this.titleCampaignRows || []) {
+            show(row, view === 'campaign' && row?.campaignId === this.campaignTab);
+        }
         if (this.titleControls) this.titleControls.setVisible(false);
         if (this.titleGamepadStatus) this.titleGamepadStatus.setVisible(false);
         if (this.titleTickerLive) this.titleTickerLive.setVisible(false);
@@ -1661,6 +1680,101 @@ export class Overlays {
         }
     }
 
+    createTitleCampaignSection(metrics) {
+        this.titleCampaignTabs = [];
+        this.titleCampaignRows = [];
+        const selected = this.scene?.selectedLevel;
+        this.campaignTab = campaignForLevel(selected)?.id || 'starlight-voyage';
+        const fontSize = Math.max(12, metrics.fonts.instructions - 1);
+        for (const campaign of CAMPAIGNS) {
+            const levels = campaign.levels;
+            const tab = this.scene.add
+                .text(
+                    0,
+                    0,
+                    `${campaign.name.toUpperCase()} · ${levels[0]}-${levels[levels.length - 1]}`,
+                    {
+                        fontSize: `${fontSize}px`,
+                        fontFamily: HUD_FONT,
+                        fill: '#ffffff',
+                        fontStyle: 'bold',
+                        align: 'center',
+                    }
+                )
+                .setOrigin(0.5, 0);
+            tab.setScrollFactor(0);
+            tab.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+            tab.setPadding(10, 6, 10, 6);
+            tab.setBackgroundColor('#1b3a5c');
+            this.ui.styleHudText(tab, 3);
+            tab.campaignId = campaign.id;
+            if (typeof tab.setInteractive === 'function') {
+                tab.setInteractive({ useHandCursor: true });
+                tab.on('pointerup', () => this.scene.selectCampaignTab(campaign.id));
+            }
+            this.ui.markUi(tab);
+            this.titleCampaignTabs.push(tab);
+        }
+        for (const campaign of CAMPAIGNS) {
+            for (const id of campaign.levels) {
+                const title = LEVEL_DEFINITIONS[id]?.TITLE || `Level ${id}`;
+                const row = this.scene.add
+                    .text(0, 0, formatCampaignRow(id, title, false), {
+                        fontSize: `${fontSize}px`,
+                        fontFamily: HUD_FONT,
+                        fill: '#ffffff',
+                        align: 'center',
+                    })
+                    .setOrigin(0.5, 0);
+                row.setScrollFactor(0);
+                row.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
+                row.setPadding(10, 4, 10, 4);
+                row.setBackgroundColor('#14283e');
+                this.ui.styleHudText(row, 3);
+                row.campaignLevel = id;
+                row.campaignId = campaign.id;
+                if (typeof row.setInteractive === 'function') {
+                    row.setInteractive({ useHandCursor: true });
+                    row.on('pointerup', () => this.scene.startCampaignLevel(id));
+                }
+                this.ui.markUi(row);
+                this.titleCampaignRows.push(row);
+            }
+        }
+        this.updateCampaignHighlight();
+    }
+
+    followCampaignTab() {
+        const followed = campaignForLevel(this.scene?.selectedLevel);
+        if (followed) {
+            this.campaignTab = followed.id;
+        }
+    }
+
+    updateCampaignHighlight() {
+        const selected = this.scene?.selectedLevel;
+        const max = this.scene?.leaderboardManager?.getMaxUnlocked?.() || 1;
+        for (const tab of this.titleCampaignTabs || []) {
+            const active = tab?.campaignId === this.campaignTab;
+            tab?.setBackgroundColor?.(active ? '#8c1d18' : '#1b3a5c');
+            tab?.setStyle?.({ fill: active ? '#ffe566' : '#ffffff' });
+        }
+        for (const row of this.titleCampaignRows || []) {
+            if (!row) {
+                continue;
+            }
+            const id = row.campaignLevel;
+            const locked = !(Number.isFinite(id) && id <= max);
+            const title = LEVEL_DEFINITIONS[id]?.TITLE || `Level ${id}`;
+            row.setText?.(formatCampaignRow(id, title, locked));
+            const active = row.campaignId === this.campaignTab && id === selected;
+            row.setBackgroundColor?.(active ? '#8c1d18' : '#14283e');
+            row.setStyle?.({
+                fill: active ? '#ffe566' : locked ? '#5a6b82' : '#ffffff',
+            });
+        }
+    }
+
     showBranchChoice(options, onPick, subtitle = null) {
         if (this.ui.destroyed || !Array.isArray(options) || options.length < 2) {
             return;
@@ -1765,6 +1879,8 @@ export class Overlays {
             return;
         }
         this.titleSubtitle.setText(text);
+        this.followCampaignTab();
+        this.updateCampaignHighlight();
         this.layoutTitleScreen();
     }
 
@@ -2059,16 +2175,49 @@ export class Overlays {
     }
 
     layoutCampaignPanel(frame, metrics) {
-        const cy = frame.y + frame.h * 0.32;
-        if (this.titleSubtitle) this.titleSubtitle.setPosition(frame.centerX, cy);
-        if (this.selectPrevButton && this.selectNextButton && this.titleSubtitle) {
-            const half =
-                (this.titleSubtitle.displayWidth || this.titleSubtitle.width || 200) / 2 + 56;
-            this.selectPrevButton.setPosition(frame.centerX - half, this.titleSubtitle.y);
-            this.selectNextButton.setPosition(frame.centerX + half, this.titleSubtitle.y);
+        const tabs = this.titleCampaignTabs || [];
+        const rows = (this.titleCampaignRows || []).filter(
+            (row) => row && row.campaignId === this.campaignTab
+        );
+        for (const tab of tabs) {
+            this.ui.applyFontSize(tab, Math.max(11, metrics.fonts.instructions - 1));
         }
-        if (this.titlePrompt) this.titlePrompt.setPosition(frame.centerX, cy + 72);
-        void metrics;
+        for (const row of rows) {
+            this.ui.applyFontSize(row, Math.max(11, metrics.fonts.instructions - 2));
+        }
+        const pad = 16;
+        const tabH = tabs[0]?.displayHeight || 30;
+        tabs.forEach((tab, i) => {
+            tab.setWordWrapWidth?.(frame.w - pad * 2, true);
+            tab.setPosition(frame.centerX, frame.y + 18 + i * (tabH + 6));
+        });
+        const top = frame.y + 18 + tabs.length * (tabH + 6) + 8;
+        const footerH = (this.titlePrompt?.displayHeight || 24) + 26;
+        const availH = Math.max(60, frame.bottom - footerH - top);
+        const pitch = rows.reduce((most, row) => Math.max(most, row.displayHeight || 24), 0) + 6;
+        const columns = newsColumnsFor(rows.length, rows.length * pitch, availH);
+        const totalW = frame.w - pad * 2;
+        const colW = (totalW - (columns - 1) * 10) / columns;
+        for (const row of rows) row.setWordWrapWidth?.(colW, true);
+        // One column when it fits; otherwise deal row-major across two so the
+        // numbers still read left-to-right (1,2 / 3,4) instead of snaking.
+        const lanes =
+            columns === 1
+                ? [rows]
+                : [rows.filter((_, i) => i % 2 === 0), rows.filter((_, i) => i % 2 === 1)];
+        lanes.forEach((lane, c) => {
+            const colX = columns === 1 ? frame.centerX : frame.x + pad + colW * (c + 0.5) + c * 10;
+            let rowY = top;
+            for (const row of lane) {
+                row.setPosition(colX, rowY);
+                rowY += (row.displayHeight || 26) + 6;
+            }
+        });
+        if (this.titlePrompt) {
+            this.ui.applyFontSize(this.titlePrompt, metrics.fonts.prompt);
+            this.titlePrompt.setPosition(frame.centerX, frame.bottom - 20);
+        }
+        this.updateCampaignHighlight();
     }
 
     layoutSettingsPanel(frame, metrics) {
@@ -2554,6 +2703,8 @@ export class Overlays {
             this.titleGamepadStatus,
             this.titleNewsHeader,
             ...(this.titleNewsRows || []),
+            ...(this.titleCampaignTabs || []),
+            ...(this.titleCampaignRows || []),
             this.selectPrevButton,
             this.selectNextButton,
         ].forEach((element) => {
@@ -2601,6 +2752,8 @@ export class Overlays {
         this.titleGamepadStatus = null;
         this.titleNewsHeader = null;
         this.titleNewsRows = [];
+        this.titleCampaignTabs = [];
+        this.titleCampaignRows = [];
         if (!this.ui.destroyed && this.ui.playerNameText) {
             this.ui.playerNameText.setVisible(true);
             this.ui.playerNameText.setOrigin(1, 0.5);

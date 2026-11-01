@@ -1,5 +1,11 @@
 import { GAME_CONSTANTS, KEY_CODES } from './Constants.js';
-import { LEVEL_DEFINITIONS, LEVEL_IDS, NEWS_LEVEL_IDS, campaignForLevel } from './levels/index.js';
+import {
+    CAMPAIGNS,
+    LEVEL_DEFINITIONS,
+    LEVEL_IDS,
+    NEWS_LEVEL_IDS,
+    campaignForLevel,
+} from './levels/index.js';
 import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
@@ -2455,6 +2461,32 @@ export class SpaceChicken extends Phaser.Scene {
             ? `${campaign.name.toUpperCase()} · LEVEL ${this.selectedLevel} · ${title}`
             : `LEVEL ${this.selectedLevel} · ${title}`;
         return `${head}\n${bestLine}`;
+    }
+
+    selectCampaignTab(campaignId) {
+        const overlays = this.uiManager?.overlays;
+        if (!overlays || !CAMPAIGNS.some((campaign) => campaign.id === campaignId)) {
+            return;
+        }
+        overlays.campaignTab = campaignId;
+        overlays.updateCampaignHighlight?.();
+        overlays.layoutTitleScreen?.();
+    }
+
+    startCampaignLevel(level) {
+        if (!this.awaitingStart) {
+            return;
+        }
+        const id = Math.floor(Number(level) || 0);
+        if (!campaignForLevel(id)) {
+            return;
+        }
+        const max = this.leaderboardManager?.getMaxUnlocked?.() || 1;
+        if (id > max) {
+            return;
+        }
+        this.selectedLevel = id;
+        this.startSelectedLevel();
     }
 
     startNewsLevel(level) {

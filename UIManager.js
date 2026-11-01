@@ -52,6 +52,10 @@ export class UIManager {
 
     get newsButtons() {
         const rows = this.overlays.titleNewsRows || [];
+        const campaign = [
+            ...(this.overlays.titleCampaignTabs || []),
+            ...(this.overlays.titleCampaignRows || []),
+        ];
         const hero = [
             this.overlays.titleHeroPlay,
             this.overlays.titleHeroPrev,
@@ -62,7 +66,7 @@ export class UIManager {
             this.overlays.titleSettingsButton,
             this.overlays.titleBackButton,
         ].filter(Boolean);
-        return [...rows, ...hero];
+        return [...rows, ...campaign, ...hero];
     }
 
     get raceSetupDialog() {
