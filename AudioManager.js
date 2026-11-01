@@ -31,92 +31,12 @@ export class AudioManager {
         this.music.audioUnlockInProgress = false;
     }
 
-    canUseWebAudio(...args) {
-        return this.voice.canUseWebAudio(...args);
-    }
-
-    getAudioDestination(...args) {
-        return this.voice.getAudioDestination(...args);
-    }
-
-    setAudioParam(...args) {
-        return this.voice.setAudioParam(...args);
-    }
-
     setupAudioPipeline(options = {}) {
         return this.voice.setupAudioPipeline(options, this.music);
     }
 
-    stopTrackedSources(...args) {
-        return this.voice.stopTrackedSources(...args);
-    }
-
-    stopAllEffects(...args) {
-        return this.voice.stopAllEffects(...args);
-    }
-
-    safeDisconnect(...args) {
-        return this.voice.safeDisconnect(...args);
-    }
-
-    applyEnvelope(...args) {
-        return this.voice.applyEnvelope(...args);
-    }
-
-    createVoiceChain(...args) {
-        return this.voice.createVoiceChain(...args);
-    }
-
-    trackSources(...args) {
-        return this.voice.trackSources(...args);
-    }
-
-    playTone(...args) {
-        return this.voice.playTone(...args);
-    }
-
-    createNoiseBuffer(...args) {
-        return this.voice.createNoiseBuffer(...args);
-    }
-
-    playNoise(...args) {
-        return this.voice.playNoise(...args);
-    }
-
-    playKick(...args) {
-        return this.voice.playKick(...args);
-    }
-
-    playSnare(...args) {
-        return this.voice.playSnare(...args);
-    }
-
-    playHat(...args) {
-        return this.voice.playHat(...args);
-    }
-
-    setupMusicDelay(...args) {
-        return this.music.setupMusicDelay(...args);
-    }
-
-    applyMusicSpace(...args) {
-        return this.music.applyMusicSpace(...args);
-    }
-
     installAudioUnlockHandler(...args) {
         return this.music.installAudioUnlockHandler(...args);
-    }
-
-    removeAudioUnlockHandler(...args) {
-        return this.music.removeAudioUnlockHandler(...args);
-    }
-
-    fadeMusicBus(...args) {
-        return this.music.fadeMusicBus(...args);
-    }
-
-    startBackgroundMusic(...args) {
-        return this.music.startBackgroundMusic(...args);
     }
 
     pumpMusicScheduler(...args) {
@@ -127,24 +47,12 @@ export class AudioManager {
         return this.music.scheduleBackgroundPattern(...args);
     }
 
-    scheduleMusicEvent(...args) {
-        return this.music.scheduleMusicEvent(...args);
-    }
-
-    stopBackgroundMusic(...args) {
-        return this.music.stopBackgroundMusic(...args);
-    }
-
     duckMusic(...args) {
         return this.music.duckMusic(...args);
     }
 
     getMusicDefinitionForLevel(...args) {
         return this.music.getMusicDefinitionForLevel(...args);
-    }
-
-    computePatternDuration(...args) {
-        return this.music.computePatternDuration(...args);
     }
 
     configureLevelMusic(...args) {
@@ -155,20 +63,12 @@ export class AudioManager {
         return this.music.loadMusicPreference(...args);
     }
 
-    saveMusicPreference(...args) {
-        return this.music.saveMusicPreference(...args);
-    }
-
     setMusicMuted(...args) {
         return this.music.setMusicMuted(...args);
     }
 
     toggleMusicMute(...args) {
         return this.music.toggleMusicMute(...args);
-    }
-
-    updateMusicToggleVisual(...args) {
-        return this.music.updateMusicToggleVisual(...args);
     }
 
     playBonkSound(...args) {
@@ -213,10 +113,6 @@ export class AudioManager {
 
     maybePlayFootstep(...args) {
         return this.sfx.maybePlayFootstep(...args);
-    }
-
-    playFootstep(...args) {
-        return this.sfx.playFootstep(...args);
     }
 
     playWaveSound(...args) {

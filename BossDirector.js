@@ -234,10 +234,6 @@ export class BossDirector {
         return this.scene?.bossesGroup?.getChildren?.() || [];
     }
 
-    liveBosses() {
-        return this.bosses().filter((boss) => boss?.active && !boss.bossDefeated);
-    }
-
     nearestChicken(boss) {
         const scene = this.scene;
         const chickens = [scene.player, scene.player2].filter(

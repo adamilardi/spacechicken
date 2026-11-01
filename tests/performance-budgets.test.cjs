@@ -155,14 +155,14 @@ test('texture and scene-resource budgets guard phone memory', async () => {
     const { checkTextureBudget, checkSceneResources, PERFORMANCE_BUDGETS } =
         await import('../PerformanceBudgets.js');
 
-    assert.equal(checkTextureBudget(22.18).pass, true);
-    assert.equal(checkTextureBudget(29.9).pass, true);
+    assert.equal(checkTextureBudget(205.64).pass, true);
+    assert.equal(checkTextureBudget(219.9).pass, true);
     const over = checkTextureBudget(PERFORMANCE_BUDGETS.textureMiB + 1);
     assert.equal(over.pass, false);
     assert.equal(checkTextureBudget(Number.NaN).pass, false);
 
     assert.deepEqual(
-        checkSceneResources({ objects: 68, dynamicBodies: 3, particles: 9, textures: 31 }),
+        checkSceneResources({ objects: 68, dynamicBodies: 3, particles: 9, textures: 150 }),
         { pass: true, reasons: [] }
     );
     const leaked = checkSceneResources({

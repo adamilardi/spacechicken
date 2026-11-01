@@ -1596,10 +1596,6 @@ export class SpaceChicken extends Phaser.Scene {
         return this.combat.baseWeaponOf(chicken);
     }
 
-    weaponOf(chicken, now) {
-        return this.combat.weaponOf(chicken, now);
-    }
-
     applyStartWeapons() {
         this.combat.applyStartWeapons();
     }
@@ -1624,24 +1620,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.combat.updateCombat(inputState);
     }
 
-    player2WantsPhaser() {
-        return this.combat.player2WantsPhaser();
-    }
-
     tryFirePhaser(chicken, now) {
         this.combat.tryFirePhaser(chicken, now);
-    }
-
-    spawnPlayerBolt(chicken, aim, def, fanY) {
-        return this.combat.spawnPlayerBolt(chicken, aim, def, fanY);
-    }
-
-    stepPhaserBolts() {
-        this.combat.stepPhaserBolts();
-    }
-
-    recycleBolt(bolt) {
-        this.combat.recycleBolt(bolt);
     }
 
     phaserHitsBoarder(bolt, alien) {
@@ -1654,10 +1634,6 @@ export class SpaceChicken extends Phaser.Scene {
 
     touchBoarder(_chicken, alien) {
         this.boarders.touchBoarder(_chicken, alien);
-    }
-
-    holdDisarmedBoarders() {
-        return this.boarders.holdDisarmedBoarders();
     }
 
     updateBoarders() {
@@ -1679,18 +1655,6 @@ export class SpaceChicken extends Phaser.Scene {
         if (crownGuardsDefeated(this.boardersGroup, this.bossesGroup)) {
             this.breakCrownShield();
         }
-    }
-
-    stepBoarder(alien, targets, allies, options) {
-        this.boarders.stepBoarder(alien, targets, allies, options);
-    }
-
-    updateBoarderAggro(alien, target, homeX, homeY, options) {
-        this.boarders.updateBoarderAggro(alien, target, homeX, homeY, options);
-    }
-
-    showBoarderAggro(alien) {
-        this.boarders.showBoarderAggro(alien);
     }
 
     updateBombTrails() {
@@ -1723,36 +1687,12 @@ export class SpaceChicken extends Phaser.Scene {
         this.boarders.haltBoarders();
     }
 
-    boarderHome(alien) {
-        return this.boarders.boarderHome(alien);
-    }
-
-    boarderWaveNumber(alien) {
-        return this.boarders.boarderWaveNumber(alien);
-    }
-
-    leadChickenX() {
-        return this.boarders.leadChickenX();
-    }
-
     updateBoarderWaves() {
         this.boarders.updateBoarderWaves();
     }
 
-    releaseBoarderWave(wave) {
-        return this.boarders.releaseBoarderWave(wave);
-    }
-
-    stowBoarder(alien) {
-        this.boarders.stowBoarder(alien);
-    }
-
     resetBoarders() {
         this.boarders.resetBoarders();
-    }
-
-    armBoarders() {
-        this.boarders.armBoarders();
     }
 
     failFromHazard(reason = 'hazard') {

@@ -184,14 +184,19 @@ export const PERFORMANCE_BUDGETS = Object.freeze({
     hardwareMaxStallRate: 0.05,
     hardwareMinFps: 55,
     // Retained-resource ceilings (see docs/performance-review.md).
-    textureMiB: 30,
+    // Recalibrated 2026-11-01 at 205.64 MiB / 150 textures: the title screen
+    // now preloads all news plates and actors (~178 MiB shared), plus the
+    // current level's baked backdrops (~22 MiB, still evicted per level).
+    // Kept tight so one stuck level backdrop (~22 MiB) still trips the
+    // gate; raise deliberately when content grows.
+    textureMiB: 220,
     maxSceneObjects: 400,
     maxPhysicsBodies: 60,
     maxLiveParticles: 64,
-    // Measured 70 with 10 levels: 4 current-level backdrops plus preloaded
-    // sprite frames, actors, weapons, and buttons. Kept tight so per-visit
-    // leaks still trip the gate; raise deliberately when content grows.
-    maxTextures: 80,
+    // Measured 150 with 24 levels: news art, current-level backdrops, and
+    // preloaded sprite frames. Kept tight so per-visit leaks still trip the
+    // gate; raise deliberately when content grows.
+    maxTextures: 170,
     // HUD timer rasterization cadence: 20Hz.
     timerBucketMs: 50,
 });

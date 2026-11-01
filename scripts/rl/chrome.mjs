@@ -72,10 +72,6 @@ export function resolveChromePath() {
     return undefined;
 }
 
-export function defaultHeadless() {
-    return process.env.HEADLESS !== '0';
-}
-
 /**
  * @returns {import('playwright').LaunchOptions} Linux fallback (software rendering)
  */

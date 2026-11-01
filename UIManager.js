@@ -64,14 +64,6 @@ export class UIManager {
         return [...rows, ...hero];
     }
 
-    get heroButtons() {
-        return [
-            this.overlays.titleHeroPlay,
-            this.overlays.titleHeroPrev,
-            this.overlays.titleHeroNext,
-        ].filter(Boolean);
-    }
-
     get raceSetupDialog() {
         return this.overlays.raceSetupDialog;
     }
@@ -1021,14 +1013,6 @@ export class UIManager {
         this.overlays.layoutLeaderboard();
     }
 
-    leaderboardTop(metrics, insets) {
-        return this.overlays.leaderboardTop(metrics, insets);
-    }
-
-    drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets) {
-        this.overlays.drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets);
-    }
-
     updateTimer(elapsed) {
         if (!this.timerText) {
             return;
@@ -1144,10 +1128,6 @@ export class UIManager {
         this.overlays.displayLeaderboard();
     }
 
-    leaderboardPageCount() {
-        return this.overlays.leaderboardPageCount();
-    }
-
     showGameOver(finalTime) {
         this.overlays.leaderboardPage = this.overlays.fullRunSummary ? 0 : this.scene.level;
         this.overlays.finishLevelTime = finalTime;
@@ -1165,28 +1145,8 @@ export class UIManager {
         this.layoutUI();
     }
 
-    createFinishScreen(raceWinner) {
-        this.overlays.createFinishScreen(raceWinner);
-    }
-
-    createFinishButton(label, level) {
-        return this.overlays.createFinishButton(label, level);
-    }
-
-    updateFinishSummary() {
-        this.overlays.updateFinishSummary();
-    }
-
-    setFinishVisible(visible) {
-        this.overlays.setFinishVisible(visible);
-    }
-
     layoutFinishScreen() {
         this.overlays.layoutFinishScreen();
-    }
-
-    createSelectChevron(label, direction, metrics) {
-        return this.overlays.createSelectChevron(label, direction, metrics);
     }
 
     showTitleScreen(subtitle) {
@@ -1199,10 +1159,6 @@ export class UIManager {
 
     pickBranch(index) {
         return this.overlays.pickBranch(index);
-    }
-
-    hideBranchChoice() {
-        this.overlays.hideBranchChoice();
     }
 
     showTitleLevelSelection(text) {
@@ -1230,22 +1186,6 @@ export class UIManager {
         this.overlays.layoutTitleScreen();
     }
 
-    placeTitleCluster(centerX, centerY, metrics) {
-        this.overlays.placeTitleCluster(centerX, centerY, metrics);
-    }
-
-    positionRaceSetupButton(metrics) {
-        return this.overlays.positionRaceSetupButton(metrics);
-    }
-
-    setRaceSetupLabel() {
-        this.overlays.setRaceSetupLabel();
-    }
-
-    createRaceSetup() {
-        this.overlays.createRaceSetup();
-    }
-
     updateJumpToggleLabel() {
         this.overlays.setJumpToggleLabel();
     }
@@ -1256,10 +1196,6 @@ export class UIManager {
 
     handleMenuInput(input) {
         return this.overlays.handleMenuInput(input);
-    }
-
-    handleFinishMenu(menu) {
-        return this.overlays.handleFinishMenu(menu);
     }
 
     hideTitleScreen() {

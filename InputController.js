@@ -144,10 +144,6 @@ export class InputController {
         return state;
     }
 
-    readGamepads() {
-        return this.gamepad.readGamepads();
-    }
-
     pollGamepad(state) {
         return this.gamepad.pollGamepad(state);
     }
@@ -183,10 +179,6 @@ export class InputController {
         if (justDown(scene.escKey)) {
             state.menu.back = true;
         }
-    }
-
-    pollWeaponSwitch(state, pads) {
-        return this.gamepad.pollWeaponSwitch(state, pads);
     }
 
     // Aim is held intent, resolved into a direction by CombatSystem.

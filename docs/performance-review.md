@@ -43,7 +43,9 @@ Finish screens used to return before stepping particle lifetimes, and stopping g
 
 Before eviction, visiting all four levels retained 43 textures totaling **96.67 MiB** of estimated RGBA data. Keeping only the current level’s backdrop textures reduced this to **31 textures / 22.18 MiB** in the same level-2 end state, a **77% reduction**. Shared sprites remain cached. The current layout remains cached for retries; returning to another level rebakes that background from its cached layout. This trades cross-level reuse for lower retained canvas/GPU memory. Single-level texture figures in the runtime table remain unchanged.
 
-Two complete level cycles after the fix retained 68 non-particle scene objects, 3 dynamic physics bodies, 2 cameras, and 5 scene timers at each snapshot. Particle sprites varied from 9 to 1 as expected and stayed within the pool budget. Garbage-collected JS heap went from 7,189,292 to 7,237,932 bytes (0.7%); background pixel storage is not included in that heap number. The browser check enforces a <30 MiB texture budget in this end state.
+Two complete level cycles after the fix retained 68 non-particle scene objects, 3 dynamic physics bodies, 2 cameras, and 5 scene timers at each snapshot. Particle sprites varied from 9 to 1 as expected and stayed within the pool budget. Garbage-collected JS heap went from 7,189,292 to 7,237,932 bytes (0.7%); background pixel storage is not included in that heap number. The browser check enforced a <30 MiB texture budget in this end state.
+
+Recalibrated November 1, 2026, after the news-title rework: the same two-cycle check now retains **150 textures / 205.64 MiB**, identical across both cycles and across phone and desktop viewports, so nothing accumulates. The growth is content, not a leak: the featured-story title preloads all news plates and actors (~178 MiB shared), while only the current level's baked backdrops (~22 MiB) stay resident — per-level eviction still works. The budget is now **<220 MiB / ≤170 textures**, deliberately tight so one stuck level backdrop (~22 MiB) still trips the gate. `verify-polish.mjs` and the device matrix both enforce `PerformanceBudgets.js`, the single source of truth.
 
 Restarts are checked after visiting every level, including textures, children, physics bodies, cameras, scene timers, and garbage-collected JavaScript heap. This catches accumulating resources across level cycles, but is not a multi-hour soak test.
 
@@ -63,7 +65,7 @@ measure real frame pacing, so they gate what emulation can prove:
 
 - Update/render submission: mean ≤ 6 ms, no single sample > 30 ms.
 - No hard freeze: no frame gap > 2000 ms, run stays alive.
-- Textures < 30 MiB estimated RGBA, ≤ 60 textures, ≤ 400 scene objects,
+- Textures < 220 MiB estimated RGBA, ≤ 170 textures, ≤ 400 scene objects,
   ≤ 60 physics bodies, live particles within the 64-sprite pool.
 - HUD timer rasterizes at ≤ 20 Hz (50 ms buckets).
 

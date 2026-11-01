@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { checkTextureBudget } from '../PerformanceBudgets.js';
 
 const require = createRequire(import.meta.url);
 const { createServer } = require('../server.cjs');
@@ -37,7 +38,7 @@ try {
                 level: s.level,
                 awaiting: s.awaitingStart,
                 coop: s.coopMode,
-                board: s.uiManager.leaderboardVisible,
+                board: s.uiManager.overlays.leaderboardVisible,
                 finish: s.gameOver,
                 particles: s.effectsManager.live.size,
             };
@@ -52,9 +53,15 @@ try {
         }, index);
         await page.waitForTimeout(300);
     };
+    // Title views gate the DOM buttons, so dpad-up first: it wraps the fresh
+    // featured view to settings, revealing #race-setup-button for the click.
+    const openRaceSetup = async () => {
+        await press(12);
+        await page.locator('#race-setup-button').click();
+    };
     await page.goto(`${origin}/?debug=1&seed=42`);
     await page.waitForFunction(() => window.__spaceChickenDebug?.ready());
-    await page.locator('#race-setup-button').click();
+    await openRaceSetup();
     assert.equal(await page.locator('#race-setup-dialog').evaluate((d) => d.open), true);
     assert.equal((await scene()).awaiting, true);
     await page.screenshot({ path: `${out}/race-phone.png` });
@@ -64,7 +71,7 @@ try {
         () => window.SPACE_CHICKEN_GAME.scene.getScenes(false)[0].coopMode === 'keyboard'
     );
     assert.equal((await scene()).awaiting, true);
-    await page.locator('#race-setup-button').click();
+    await openRaceSetup();
     await page.locator('[data-mode="controllers"]').click();
     assert.equal(await page.locator('#race-setup-dialog').evaluate((d) => d.open), true);
     await page.locator('[data-mode="solo"]').click();
@@ -124,9 +131,17 @@ try {
     );
     assert.equal((await scene()).level, 1, 'selected new game returns to title');
     await page.setViewportSize({ width: 844, height: 390 });
-    await page.locator('#race-setup-button').click();
+    await openRaceSetup();
     await page.screenshot({ path: `${out}/race-landscape.png` });
     await press(1);
+    // Dpad cannot reach the campaign view from settings (up/down press the
+    // settings buttons), so select it directly; pad-A then starts level 1,
+    // where the gem completes the run exactly as the old title A did.
+    await page.evaluate(() =>
+        window.SPACE_CHICKEN_GAME.scene
+            .getScenes(true)[0]
+            .uiManager.overlays.setTitleView('campaign')
+    );
     await press(0);
     await page.evaluate(() => window.SPACE_CHICKEN_GAME.scene.getScenes(true)[0].collectGem());
     await page.waitForTimeout(2200);
@@ -183,7 +198,11 @@ try {
     for (const key of ['textures', 'objects', 'bodies', 'cameras', 'timers'])
         assert.equal(snapshots[0][key], snapshots[1][key], `${key} stable through level restarts`);
     assert.ok(snapshots[1].particleSprites < 128, 'particle pool stays bounded');
-    assert.ok(snapshots[1].textureMiB < 30, 'visited backdrops do not accumulate');
+    const textureHealth = checkTextureBudget(Math.round(snapshots[1].textureMiB * 100) / 100);
+    assert.ok(
+        textureHealth.pass,
+        `visited backdrops do not accumulate: ${textureHealth.reasons.join(' | ')}`
+    );
     assert.ok(snapshots[1].heapBytes < snapshots[0].heapBytes * 1.2, 'retained heap stays bounded');
     assert.deepEqual(errors, []);
     await writeFile(`${out}/stability.json`, JSON.stringify(snapshots, null, 2));

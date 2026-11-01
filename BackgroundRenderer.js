@@ -558,12 +558,6 @@ export class BackgroundRenderer {
         }
     }
 
-    renderPolygons(polygons) {
-        (polygons || []).forEach((polygon) => {
-            this.renderPolygon(polygon.points, polygon.fill, polygon.alpha, polygon.stroke);
-        });
-    }
-
     renderAtmosphericRibbons(ribbons) {
         (ribbons || []).forEach((ribbon) => {
             const points = ribbon.points;

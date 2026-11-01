@@ -1,4 +1,4 @@
-import { createChickenFrames, drawJetpack } from './sprites/chicken.js';
+import { createChickenFrames } from './sprites/chicken.js';
 import { DECK_SPRITES, createLiftPlatform, createStationPanel } from './sprites/decks.js';
 import { ENEMY_SPRITES, createDrone, createRover } from './sprites/enemies.js';
 import {
@@ -11,17 +11,7 @@ import {
 } from './sprites/hazards.js';
 import { GUN_SPRITES } from './sprites/guns.js';
 import { PROP_SPRITES, createCrown } from './sprites/props.js';
-import {
-    createJumpBtn,
-    createLeftBtn,
-    createMusicToggleButtons,
-    createParticleTextures,
-    createPhaserBtn,
-    createRightBtn,
-    createVirtualButtons,
-    createWeaponBtn,
-    drawCircularControl,
-} from './sprites/chrome.js';
+import { createParticleTextures, createVirtualButtons } from './sprites/chrome.js';
 
 export class SpriteFactory {
     constructor(scene) {
@@ -41,10 +31,6 @@ export class SpriteFactory {
 
     createChickenFrames() {
         createChickenFrames(this);
-    }
-
-    drawJetpack(ctx, frame) {
-        drawJetpack(this, ctx, frame);
     }
 
     createCrown() {
@@ -93,34 +79,6 @@ export class SpriteFactory {
 
     createVirtualButtons() {
         createVirtualButtons(this);
-    }
-
-    drawCircularControl(ctx, size, fillStyle, strokeStyle) {
-        drawCircularControl(this, ctx, size, fillStyle, strokeStyle);
-    }
-
-    createPhaserBtn() {
-        createPhaserBtn(this);
-    }
-
-    createWeaponBtn() {
-        createWeaponBtn(this);
-    }
-
-    createLeftBtn() {
-        createLeftBtn(this);
-    }
-
-    createRightBtn() {
-        createRightBtn(this);
-    }
-
-    createJumpBtn() {
-        createJumpBtn(this);
-    }
-
-    createMusicToggleButtons() {
-        createMusicToggleButtons(this);
     }
 
     createExpeditionSprites() {

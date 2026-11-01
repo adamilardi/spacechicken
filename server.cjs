@@ -75,4 +75,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { createServer, PUBLIC_FILES };
+module.exports = { createServer };
