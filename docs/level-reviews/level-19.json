@@ -337,56 +337,88 @@
   "newsFloorFailures": [
     "novelty mean 0.57 < news floor 1.5"
   ],
+  "statuses": {
+    "captureValidity": "partial: timeout run (150.2s, 12 deaths, no page errors), screenshots sent, 6 beat stills retained in-repo and tracked at HEAD, but retained names do not match the judged manifest for the middle beats (only 01-opener and 06-finale align; judged drone beat x=3250 has no retained counterpart; a roller still is retained without a manifest entry); no death cause/phase/input, no gameplay frames (staged beat shots; shots.json predates capture-kind labels), no per-run retention (the clone repeat rests on the repeatedFlaws label intersection only)",
+    "routeCoverage": "partial (main route): timeout at maxX 5270 with crownX 5650 — final 380px (finale approach plus crown) unplayed; 06-finale still (x=5450) is a staged still of an unreached section; alternate branches/tiers unrecorded in stored telemetry, so off-route sections stay unverified",
+    "mechanical": "blocked: skeleton-rhyme (code-measured three-way similarity-1.0 skeleton match across 17/19/20; paired comparison in review). L19 holds as the reference; L17 and L20 own their differentiation.",
+    "quality": "ITERATE/REWORK: 4/4 clone votes (1 rework + 3 iterate; repeated across 2 runs as a label; model opinion: four personas judging run summaries are four model perspectives, not four playtests), corroborated by the named-comparator mechanical flag with 4/4 clone repeated on all three skeleton-sharing levels. Stored setpiece-shot citation struck as stale/non-causal; paired verdict: L19 holds, L17 and L20 differentiate.",
+    "fidelity": "FAIL (kept separate from quality): one non-signature element missing-reading, one faint, two rows unsupported (one signature); 4 needs-human items; 7th inventory element (altitude gate 600km) never judged; stored human.json is batch-agent observation (reviewerType agent), which clears nothing; panel/agent conflict on the RFI envelopes open.",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "What kills the pilot 9x across x=4900-5250 (5-death cluster at x=4916: spots 4889, 4905, 4907, 4935, 4942; 4-death cluster at x=5237: spots 5220, 5235, 5241, 5251) and stalls the run at maxX 5270, 380px short of the crown? Stored evidence has no death causes/events, no input trace, no hazard-phase data, and no gameplay frames (nearest manifest still 06-finale at x=5450 is 534px off and itself beyond maxX; all stills staged), and per-run retention is absent — so a bot-policy defect cannot be distinguished from a reproducible design problem. The 2-cluster at x=2905 and the lone death at x=3707 are too thin for a diagnosis on their own.",
+      "status": "open",
+      "smallestNextStep": "Bounded rerun with death events and gameplay death frames retained: record hazard id/cause/phase, input history, and camera visibility at x=4916/5237 and whether the hotspots repeat across fresh starts/phases. The same rerun refreshes the stale shot manifest and re-judges the full 7-element inventory. Only propose a level edit if the hotspots repeat in captured play.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/19.md node scripts/level-critic.mjs 19"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
       "priority": 1,
-      "flaw": "clone",
-      "source": "quality",
-      "evidence": "4/4 personas named \"clone\"; 02-setpiece-rfiEnvelope.jpg (set piece: rfiEnvelope at x=950)",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+      "flaw": "navigation:late-death-clusters",
+      "source": "investigation",
+      "evidence": "timeout 150.2s at maxX 5270, crown x=5650 unverified (final 380px unplayed); 5 deaths cluster near x=4916 (spots x=4889, 4905, 4907, 4935, 4942) plus 4 near x=5237; nearest manifest beat 06-finale.jpg x=5450 (534px off; staged still of an unreached section); no death causes/inputs/phases, no gameplay frames, no per-run retention",
+      "owner": "investigation (capture rerun)",
+      "smallestFix": "Investigate before editing: bounded capture rerun with death events and gameplay death frames retained; record hazard id/cause/phase, input history, and camera visibility at x=4916/5237 across fresh starts/phases; only propose a level edit if the hotspots repeat.",
+      "recheck": "Re-run the full critic twice from fresh starts: no recurring death cluster at x=4916/5237 and maxX must pass x=5270 to the crown on both runs.",
+      "confidence": "low",
+      "limitations": "Uncorroborated single-capture hotspot: timeout run with no death causes/events, inputs, phases, gameplay frames, or per-run retention. Four personas judging one summary are four model perspectives, not four playtests.",
+      "alternativeCause": "Pilot mistiming on one phase, or unrepeated single-run noise; needs a phase-varied repeat."
     },
     {
       "rank": 2,
       "priority": 1,
-      "flaw": "skeleton-rhyme",
-      "source": "mechanical",
-      "evidence": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints",
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "4/4 personas named \"clone\" (1 rework + 3 iterate; repeated across 2 runs as a label) AND three-way deck layout similarity 1 across levels 17/19/20: identical world width 6000 and identical 14-value deck-x sequence under new paints (issHull/stationPanel/vaultDeck here), 4/4 clone with repetition on all three levels, novelty mean 0.57 < 1.5 floor; full side-by-side in the re-derivation section of level-19.md (single cause shared with skeleton-rhyme; the stored setpiece-shot citation is struck as stale/non-causal)",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
+      "smallestFix": "No edit ordered on L19: it holds as the reference (concept PASS with claimed identity; deepest verified traversal of the triple, maxX 5270). L17 owns its differentiation (see level-17 review); L20 owns the 19-20 leg after its navigation investigation (see level-20 review). This review orders no redesign on L17 or L20.",
+      "recheck": "The skeleton-rhyme pairs clear on the L17/L20 reruns; no persona may name clone of L19 from new route/mechanic evidence.",
+      "confidence": "medium",
+      "limitations": "Corroborated panel claim with an exact code-measured comparator; single-route bot capture, finale stretch unverified (see INV-1).",
+      "alternativeCause": "Shared news-level format (checkpoint spine, crown position) explains part of the resemblance; the full 14-value x-list identity exceeds format into duplication."
     },
     {
       "rank": 3,
-      "priority": 2,
-      "flaw": "missing-elements",
-      "source": "fidelity",
-      "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.45 visual=3.49",
-      "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
+      "priority": 1,
+      "flaw": "skeleton-rhyme",
+      "source": "mechanical",
+      "evidence": "deck layout similarity 1 to level 17 (Ticker Plunge): same width and deck x sequence under new paints (level 20 shares the same x-list; three-way match)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "No re-lay ordered on L19 (holds as reference). Clears when L17 and L20 differentiate their deck sequences.",
+      "recheck": "Re-run the full critic on L17/L20 after their differentiation; the skeleton-rhyme pairs with L19 must be gone.",
+      "confidence": "high",
+      "limitations": "Code-measured from level data; the panel must confirm or rebut from the numbers.",
+      "alternativeCause": "None for the measurement; whether the shared skeleton reads as duplicate experience is the panel question, answered affirmatively by 4/4 clone votes on all three levels."
     },
     {
       "rank": 4,
       "priority": 2,
       "flaw": "missing-elements",
       "source": "fidelity",
-      "evidence": "element \"capture net\" missing in shots (noul=0.14)",
+      "evidence": "\"capture net\" missing-reading is non-signature (noul=0.14; location coverage unknown — judged beats cover x=150/950/1400 plus the staged finale, so this is \"not visible in judged shots\", not proven missing); reboost flame faint (0.49); decay row unsupported (0.34); signature RFI row unsupported (0.40); contractor row supports (0.73) but needs-human; signatureMissing is empty so the stock \"missing signature elements\" text does not apply; 7th inventory element \"altitude gate 600km\" never judged; panel/agent conflict on RFI envelopes (shown 0.94 vs agent \"absent — no art\")",
       "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+      "smallestFix": "Human confirmations first (fix 5), then targeted art/mechanic work only for human-confirmed gaps; re-judge the full 7-element inventory with a beat covering each element's location. Do not build on the panel-alone missing-reading.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass with every inventory element judged from a beat covering its location.",
+      "confidence": "low",
+      "limitations": "Staged stills only; each panel judged 4 of 6 beats with the x=1400-5450 stretch otherwise unseen; single-route bot capture.",
+      "alternativeCause": "Elements may exist outside the judged beats; rows may read clearly to a human in the retained stills."
     },
     {
       "rank": 5,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
-      "evidence": "element:reboost flame is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "evidence": "element:reboost flame AND row:decay AND row:RFI AND row:contractor are low-confidence (needs-human); stored human.json is batch-agent observation (reviewerType agent under the fixed confirmationReview), which clears nothing; RFI-envelope panel/agent conflict open; judged 02/03 still names do not match retained JPG names, so the human must first resolve which retained still shows x=950/1400",
       "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"element:reboost flame\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "smallestFix": "A human confirms or overrides each low-confidence item, adjudicates the RFI-envelope conflict against the retained stills, and records the judgments in human.json with a human reviewer name.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate.",
+      "confidence": "medium",
+      "limitations": "Low-confidence model judgment; only a human check resolves it.",
+      "alternativeCause": "Items may read clearly to a human in the retained stills; the panels saw staged beat shots (2 of 6 beats omitted), not gameplay frames."
     }
   ],
   "loop": 2,

@@ -8,18 +8,11 @@
 // Exit: 0 pass (or mechanical pass with --static), 2 iterate/rework, 1 error.
 // Skill contract: skills/game-critic/SKILL.md.
 import { createRequire } from 'node:module';
-import {
-    mkdirSync,
-    readFileSync,
-    writeFileSync,
-    existsSync,
-    readdirSync,
-    unlinkSync,
-} from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { openAsBlob } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { choice, image, score, TypeSafeClient } from '@typesafe-ai/sdk';
 import { readTypeSafeApiKey } from './jev-playtest.mjs';
 
@@ -292,6 +285,7 @@ function cloneFlags(analysis, allAnalyses, selfId) {
         if (similarity >= 0.75) {
             flags.push({
                 id: 'clone-suspect',
+                kind: 'clone',
                 detail: `skeleton similarity ${similarity} to level ${id} (${other.title || 'untitled'})`,
             });
         }
@@ -303,6 +297,7 @@ function cloneFlags(analysis, allAnalyses, selfId) {
     if (bestRhyme && analysis.platformCount >= 8) {
         flags.push({
             id: 'skeleton-rhyme',
+            kind: 'clone',
             detail: `deck layout similarity ${bestRhyme.layout} to level ${bestRhyme.id} (${bestRhyme.title || 'untitled'}): same width and deck x sequence under new paints`,
         });
     }
@@ -315,6 +310,7 @@ function finaleFlags(analysis) {
         return [
             {
                 id: 'sleeping-finale',
+                kind: 'finale',
                 detail: 'no hazard within 900px before the crown and no crown gate',
             },
         ];
@@ -323,6 +319,7 @@ function finaleFlags(analysis) {
         return [
             {
                 id: 'finale-invisible',
+                kind: 'finale',
                 detail: 'finale hazards exist within 900px of the crown but none can appear in a frozen finale still (timed beam off-phase or outside the crown frame); the panel will read a sleeping finale',
             },
         ];
@@ -338,7 +335,8 @@ export function mechanicalFlags(analysis, allAnalyses, selfId) {
     ) {
         flags.push({
             id: 'flat-deck',
-            detail: `${analysis.platformKeys.length} deck key(s), dominant share ${analysis.dominantKeyShare.toFixed(2)} across ${analysis.platformCount} decks`,
+            kind: 'visual-variety',
+            detail: `${analysis.platformKeys.length} deck key(s), dominant share ${analysis.dominantKeyShare.toFixed(2)} across ${analysis.platformCount} decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)`,
         });
     }
     flags.push(...cloneFlags(analysis, allAnalyses, selfId));
@@ -349,12 +347,14 @@ export function mechanicalFlags(analysis, allAnalyses, selfId) {
     if (analysis.backgroundType && sameBackground.length >= 2) {
         flags.push({
             id: 'background-recycled',
+            kind: 'visual-variety',
             detail: `background type '${analysis.backgroundType}' already used by levels ${sameBackground.map(([id]) => id).join(', ')}; build report must claim a new composition device`,
         });
     }
     if (analysis.worldWidth > 3000 && analysis.hazardTypes.length < 2) {
         flags.push({
             id: 'low-hazard-variety',
+            kind: 'gameplay',
             detail: `hazard types [${analysis.hazardTypes.join(', ')}] over ${analysis.worldWidth}px`,
         });
     }
@@ -366,6 +366,7 @@ export function mechanicalFlags(analysis, allAnalyses, selfId) {
             if (points[i] - points[i - 1] > 2500) {
                 flags.push({
                     id: 'checkpoint-desert',
+                    kind: 'route',
                     detail: `no checkpoint between x=${points[i - 1]} and x=${points[i]}`,
                 });
                 break;
@@ -640,6 +641,18 @@ export const FLAW_OPTIONS = {
 };
 export const STRUCTURAL_FLAWS = new Set(['blind', 'cheap', 'unreadable', 'clone']);
 
+// Rubric version bound to every report. Bump when the gate, the flaw enum,
+// or the fix-contract shape changes; stored PASSes from older rubrics need
+// a consistency check before they certify a later revision.
+export const RUBRIC_VERSION = '2026-11-01-evidence-validity';
+
+// Panel outcomes that prove a full traversal. Gate-open (boss shield down)
+// and reached-crown-area do not verify the crown approach, and a timeout
+// never certifies the unplayed stretch.
+export function isCompletedCrownRoute(outcome) {
+    return outcome === 'crown-collected';
+}
+
 // Quality gate v2, anchored to shipped level 1 (fun mean 1.5, fairness mean 2.6,
 // novelty mean 0.9): AI judges score conservatively, so absolute 2.5 floors are
 // unreachable even for shipped levels. The gate instead asks: can any judge name
@@ -693,12 +706,9 @@ export function panelPassed(reports, flags, screenshotsSent, options = {}) {
         means.fairness >= 1.5 &&
         newsOk &&
         !(flags || []).some(
-            (flag) =>
-                flag.id === 'clone-suspect' ||
-                flag.id === 'flat-deck' ||
-                flag.id === 'skeleton-rhyme'
+            (flag) => flag.id === 'clone-suspect' || flag.id === 'skeleton-rhyme'
         ) &&
-        screenshotsSent !== false
+        screenshotsSent === true
     );
 }
 
@@ -707,6 +717,527 @@ export function nextLoopInfo(priorReport) {
     return {
         loop: (priorReport.loop || 1) + 1,
         priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
+    };
+}
+
+// The three-iteration rule tracks design revisions, not calibration reruns.
+// A rerun against an unchanged level (phase-varied repeat, panel reroll)
+// keeps the loop and bumps calibrationRuns; only a changed level advances
+// the loop. nextLoopInfo stays for static-run callers.
+export function nextRevisionLoop(priorReport, { designChanged = false } = {}) {
+    if (!priorReport || (priorReport.passed && !priorReport.stalePass)) {
+        return { loop: 1, priorFlaw: null, calibrationRuns: 0 };
+    }
+    if (priorReport.stalePass) {
+        return {
+            loop: priorReport.loop || 1,
+            priorFlaw: priorReport.fixes?.[0]?.flaw || 'stale-pass',
+            calibrationRuns: 0,
+            stalePass: true,
+        };
+    }
+    if (!designChanged) {
+        return {
+            loop: priorReport.loop || 1,
+            priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
+            calibrationRuns: (priorReport.calibrationRuns || 0) + 1,
+        };
+    }
+    return {
+        loop: (priorReport.loop || 1) + 1,
+        priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
+        calibrationRuns: 0,
+    };
+}
+
+// Short stable hash of the level geometry the critic judged. Compared
+// against the prior report to tell a design revision (loop advances) from
+// a calibration rerun (loop holds).
+export function analysisHash(analysis) {
+    const basis = {
+        worldWidth: analysis?.worldWidth ?? 0,
+        crownX: analysis?.crownX ?? 0,
+        gravity: analysis?.gravity ?? null,
+        backgroundType: analysis?.backgroundType ?? null,
+        platformKeys: [...(analysis?.platformKeys || [])].sort(),
+        platformCount: analysis?.platformCount ?? 0,
+        hazardTypes: [...(analysis?.hazardTypes || [])].sort(),
+        hazardCount: analysis?.hazardCount ?? 0,
+        deckLayout: analysis?.deckLayout || [],
+    };
+    return createHash('sha256').update(JSON.stringify(basis)).digest('hex').slice(0, 12);
+}
+
+export function sha256FileSync(filePath) {
+    return createHash('sha256').update(readFileSync(filePath)).digest('hex');
+}
+
+// Revision of a script file bound into the report, so a stored PASS names
+// the pilot and critic code that produced it.
+export function revisionHashOfFile(filePath) {
+    try {
+        return sha256FileSync(filePath).slice(0, 12);
+    } catch {
+        return 'unrecorded';
+    }
+}
+
+// Provenance bound to every report: which level revision, pilot, critic,
+// rubric, and model produced it, which runs it covers, and what capture
+// configuration ran. A stored PASS is only meaningful with this block.
+export function buildProvenance({
+    levelId = null,
+    analysis = null,
+    runIds = [],
+    captureConfig = {},
+    model = 'jev-latest',
+} = {}) {
+    return {
+        level: levelId,
+        analysisHash: analysis ? analysisHash(analysis) : null,
+        pilotRevision: revisionHashOfFile(path.join(ROOT, 'scripts/pilot-brain.mjs')),
+        criticRevision: revisionHashOfFile(path.join(ROOT, 'scripts/level-critic.mjs')),
+        rubricVersion: RUBRIC_VERSION,
+        model,
+        runIds: [...runIds],
+        captureConfig: {
+            viewport: { width: 1280, height: 720 },
+            pollMs: 150,
+            ...captureConfig,
+        },
+        capturedAt: new Date().toISOString(),
+    };
+}
+
+// A stored PASS is inconsistent when its human-confirmed claims rest on
+// agent evidence: confirmationReview rejects agent confirmations, so a
+// report that counted them as human proof must be revalidated, not
+// relabelled. Returns { consistent, issues }.
+export function validateStoredPass(report, humanRaw) {
+    const issues = [];
+    if (!report?.passed) return { consistent: true, issues };
+    const claimed = report.fidelity?.humanConfirmed || [];
+    if (claimed.length) {
+        const review = confirmationReview(humanRaw);
+        if (review.reviewerType !== 'human') {
+            issues.push(
+                `stored PASS claims ${claimed.length} human confirmation(s) but evidence human.json has reviewerType "${review.reviewerType || 'missing'}": treat as inconsistent/stale and revalidate`
+            );
+        }
+        const unmatched = unmatchedConfirmations(review.confirmed, {
+            elements: (report.fidelity?.elements || []).map((entry) => entry.element),
+            mappings: (report.fidelity?.rows || []).map((row) => ({ fact: row.fact })),
+        });
+        for (const key of unmatched) {
+            issues.push(`stored PASS confirmation matches no current claim: "${key}"`);
+        }
+    }
+    if ((report.loop || 1) > 3 && !report.handoff) {
+        issues.push(
+            `stored PASS at loop ${report.loop} has no handoff record explaining the stop-rule history`
+        );
+    }
+    if (!isCompletedCrownRoute(report.telemetry?.outcome)) {
+        issues.push(
+            `stored PASS has no completed crown route (outcome: ${report.telemetry?.outcome || 'none'}): route coverage is partial`
+        );
+    }
+    return { consistent: issues.length === 0, issues };
+}
+
+// ---------- Runs: judge the distribution, never the best run ----------
+
+// Immutable append: a second pass must never erase a first failure. Runs
+// carry runId, outcome, telemetry summary, shots, and flaw votes.
+export function appendRun(runs, run) {
+    return [...(runs || []), { ...(run || {}) }];
+}
+
+// Flaws named in at least two distinct runs (any persona). A hotspot is
+// only unfair after it repeats across fresh starts/phases.
+export function repeatedFlawsAcrossRuns(runs) {
+    const seenIn = new Map();
+    for (const run of runs || []) {
+        const flaws = new Set(
+            (run?.flaws || run?.reports?.map((report) => report.flaw) || []).filter(
+                (flaw) => flaw && flaw !== 'none'
+            )
+        );
+        for (const flaw of flaws) {
+            seenIn.set(flaw, (seenIn.get(flaw) || 0) + 1);
+        }
+    }
+    return [...seenIn.entries()].filter(([, count]) => count >= 2).map(([flaw]) => flaw);
+}
+
+// ---------- Death clusters: judge the hotspot, not the first death ----------
+
+// Largest cluster of death x-positions within `radius` of each other.
+// Ties break toward the most recent cluster in array order. A lone death
+// is not a cluster: single deaths return count 1 and never corroborate.
+export function dominantDeathCluster(deathSpots, radius = 200) {
+    const spots = (deathSpots || []).filter((x) => Number.isFinite(x));
+    if (!spots.length) return null;
+    const indexed = spots.map((x, index) => ({ x, index })).sort((a, b) => a.x - b.x);
+    const clusters = [];
+    for (const spot of indexed) {
+        const current = clusters.at(-1);
+        if (current && spot.x - current.spots[0].x <= radius) {
+            current.spots.push(spot);
+        } else {
+            clusters.push({ spots: [spot] });
+        }
+    }
+    let best = clusters[0];
+    for (const cluster of clusters) {
+        if (cluster.spots.length > best.spots.length) best = cluster;
+        else if (cluster.spots.length === best.spots.length) {
+            const clusterLast = Math.max(...cluster.spots.map((spot) => spot.index));
+            const bestLast = Math.max(...best.spots.map((spot) => spot.index));
+            if (clusterLast > bestLast) best = cluster;
+        }
+    }
+    const xs = best.spots.map((spot) => spot.x);
+    return {
+        center: Math.round(xs.reduce((sum, x) => sum + x, 0) / xs.length),
+        count: xs.length,
+        spots: xs,
+    };
+}
+
+// Mechanical flags that corroborate a panel flaw vote. A clone vote with
+// no clone-similarity flag, or a flat vote with no deck evidence, is an
+// uncorroborated claim routed to investigation, not a level edit.
+export const FLAW_SUPPORTING_FLAGS = {
+    clone: ['clone-suspect', 'skeleton-rhyme'],
+    flat: ['flat-deck'],
+    stale: ['clone-suspect', 'skeleton-rhyme', 'background-recycled'],
+    'sleeping-finale': ['sleeping-finale', 'finale-invisible'],
+    'empty-route': ['checkpoint-desert'],
+    'off-theme': ['background-recycled'],
+    unreadable: ['flat-deck'],
+};
+
+export function isCorroboratedFlaw(
+    flaw,
+    { voteCount = 0, repeatedFlaws = [], telemetry = null, flags = [] } = {}
+) {
+    if ((voteCount || 0) >= 2) return true;
+    if ((repeatedFlaws || []).includes(flaw)) return true;
+    if (flaw === 'blind' || flaw === 'cheap') {
+        const cluster = dominantDeathCluster(telemetry?.deathSpots);
+        if (cluster && cluster.count >= 2) return true;
+    }
+    const supporting = FLAW_SUPPORTING_FLAGS[flaw] || [];
+    const flagIds = new Set((flags || []).map((flag) => flag.id));
+    return supporting.some((id) => flagIds.has(id));
+}
+
+// Attribution for a failed capture: separate a bot-policy defect (spread
+// deaths, stalls no hazard explains), a capture defect (errors, no
+// evidence), and a reproducible design problem (a repeated cluster).
+// Anything else is insufficient evidence, named as such.
+export function attributeFailure({ telemetry = null, repeated = false } = {}) {
+    if (!telemetry || (telemetry.errors || []).length) {
+        return {
+            attribution: 'capture-defect',
+            reason: 'no usable telemetry or page errors during capture; fix capture before judging the level',
+        };
+    }
+    const cluster = dominantDeathCluster(telemetry.deathSpots);
+    if (cluster && cluster.count >= 2) {
+        return repeated
+            ? {
+                  attribution: 'suspected-design-problem',
+                  reason: `${cluster.count} deaths cluster near x=${cluster.center}; repeats across runs`,
+              }
+            : {
+                  attribution: 'insufficient-evidence',
+                  reason: `${cluster.count} deaths cluster near x=${cluster.center} but the hotspot has not repeated across fresh starts/phases yet`,
+              };
+    }
+    if ((telemetry.deaths || 0) > 0) {
+        return {
+            attribution: 'bot-policy-defect',
+            reason: 'deaths are spread with no hotspot; pilot skill or policy, not a proven level defect',
+        };
+    }
+    if (telemetry.outcome === 'timeout') {
+        return {
+            attribution: 'insufficient-evidence',
+            reason: `timeout at x=${telemetry.maxX || 0} with no deaths; stall needs input history and phase-varied repeats before it names a design flaw`,
+        };
+    }
+    return { attribution: 'insufficient-evidence', reason: 'no failure to attribute' };
+}
+
+// ---------- Evidence batching: judge everything, in capped requests ----------
+
+// Split the full beat sheet into request-sized batches (at most `max`
+// shots each) that together cover every beat. Panels must batch, never
+// silently drop beats past the cap.
+export function batchPanelShots(shots, max = 4) {
+    if (!(max > 0)) {
+        throw new Error(`batchPanelShots needs a positive batch size, got ${max}`);
+    }
+    const list = shots || [];
+    const batches = [];
+    for (let i = 0; i < list.length; i += max) {
+        batches.push(list.slice(i, i + max));
+    }
+    return batches;
+}
+
+// Split an element inventory or fact→mechanic table into request-sized
+// chunks (at most `size` each) that together cover every entry.
+export function batchInventory(items, size = 6) {
+    if (!(size > 0)) {
+        throw new Error(`batchInventory needs a positive batch size, got ${size}`);
+    }
+    const list = items || [];
+    const batches = [];
+    for (let i = 0; i < list.length; i += size) {
+        batches.push(list.slice(i, i + size));
+    }
+    return batches;
+}
+
+// Merge fidelity judgments across evidence batches. Visibility is
+// existential: an element shown in any batch is shown. Row verdicts take
+// the strongest claim (contradicts beats supports beats unsupported);
+// scalar fidelities average across batches. evidenceSeen records exactly
+// which shots every judgment saw.
+export function mergeFidelityBatches(batches) {
+    const list = batches || [];
+    const byElement = new Map();
+    for (const batch of list) {
+        for (const entry of batch?.elements || []) {
+            const prior = byElement.get(entry.element);
+            if (!prior || (entry.noul ?? 0) > (prior.noul ?? 0)) {
+                byElement.set(entry.element, { ...entry });
+            }
+        }
+    }
+    const elements = [...byElement.values()].map((entry) => ({
+        ...entry,
+        verdict: elementVerdict(entry.noul ?? 0),
+    }));
+    const rowRank = { contradicts: 3, supports: 2, unsupported: 1 };
+    const byFact = new Map();
+    for (const batch of list) {
+        for (const row of batch?.rows || []) {
+            const prior = byFact.get(row.fact);
+            const rank = rowRank[row.choice] || 0;
+            const priorRank = rowRank[prior?.choice] || 0;
+            if (
+                !prior ||
+                rank > priorRank ||
+                (rank === priorRank && (row.confidence ?? 0) > (prior.confidence ?? 0))
+            ) {
+                byFact.set(row.fact, { ...row });
+            }
+        }
+    }
+    const mean = (key) =>
+        list.length ? list.reduce((sum, batch) => sum + (batch?.[key] ?? 0), 0) / list.length : 0;
+    const flawRank = [
+        'tasteless',
+        'wrong-story',
+        'scenery-only',
+        'missing-elements',
+        'palette-swap',
+        'none',
+        'unsupported',
+    ];
+    let fidelityFlaw = 'unsupported';
+    for (const batch of list) {
+        const candidate = batch?.fidelityFlaw || 'unsupported';
+        if (flawRank.indexOf(candidate) < flawRank.indexOf(fidelityFlaw)) {
+            fidelityFlaw = candidate;
+        }
+    }
+    const universeFit = list.length
+        ? Math.max(...list.map((batch) => batch?.universeFit ?? 0))
+        : null;
+    const evidenceSeen = [...new Set(list.flatMap((batch) => batch?.shotIds || []))];
+    return {
+        elements,
+        rows: [...byFact.values()],
+        mechanicFidelity: mean('mechanicFidelity'),
+        visualFidelity: mean('visualFidelity'),
+        fidelityFlaw,
+        universeFit,
+        evidenceSeen,
+    };
+}
+
+// Merge one persona's judgments across shot batches: scores average, the
+// flaw is the most frequent non-none vote (structural flaws win ties),
+// the verdict is the worst across batches. evidenceSeen names the shots.
+export function mergePersonaBatches(personaReports) {
+    const list = personaReports || [];
+    if (!list.length) return null;
+    const mean = (key) => list.reduce((sum, report) => sum + (report[key] || 0), 0) / list.length;
+    const votes = new Map();
+    for (const report of list) {
+        const flaw = report.flaw || 'none';
+        if (flaw !== 'none') votes.set(flaw, (votes.get(flaw) || 0) + 1);
+    }
+    let flaw = 'none';
+    let best = 0;
+    for (const [candidate, count] of votes) {
+        if (
+            count > best ||
+            (count === best && STRUCTURAL_FLAWS.has(candidate) && !STRUCTURAL_FLAWS.has(flaw))
+        ) {
+            flaw = candidate;
+            best = count;
+        }
+    }
+    const verdictRank = { rework: 3, iterate: 2, ship: 1 };
+    let verdict = 'ship';
+    for (const report of list) {
+        if ((verdictRank[report.verdict] || 0) > (verdictRank[verdict] || 0)) {
+            verdict = report.verdict;
+        }
+    }
+    return {
+        persona: list[0].persona,
+        name: list[0].name,
+        fun: mean('fun'),
+        fairness: mean('fairness'),
+        readability: mean('readability'),
+        novelty: mean('novelty'),
+        pacing: mean('pacing'),
+        theme: mean('theme'),
+        flaw,
+        verdict,
+        evidenceSeen: [...new Set(list.flatMap((report) => report.shotIds || []))],
+    };
+}
+
+// ---------- Evidence-validity stage ----------
+
+// Separate statuses for capture validity, completion/route coverage,
+// mechanical checks, quality, fidelity, and overall release eligibility.
+// `Run: full` means the pipeline ran; only routeCoverage complete means a
+// full traversal happened. Unplayed branches/tiers stay unverified.
+export function assessCaptureValidity({ telemetry = null, analysis = null } = {}) {
+    if (!telemetry || (telemetry.errors || []).length) {
+        return {
+            status: 'invalid',
+            detail: 'no usable capture; telemetry missing or page errors during the run',
+        };
+    }
+    if (isCompletedCrownRoute(telemetry.outcome)) {
+        return { status: 'valid', detail: `full traversal to the crown (${telemetry.outcome})` };
+    }
+    return {
+        status: 'partial',
+        detail: `${telemetry.outcome} at x=${telemetry.maxX || 0} of crown x=${analysis?.crownX ?? '?'}: local findings stand, whole-level verdicts do not`,
+    };
+}
+
+export function assessRouteCoverage({ telemetry = null, analysis = null } = {}) {
+    const visitedBranches = telemetry?.routeBranches || [];
+    const visitedTiers = telemetry?.tiersVisited || [];
+    if (isCompletedCrownRoute(telemetry?.outcome)) {
+        return {
+            status: 'complete',
+            detail: `crown collected; branches visited: ${visitedBranches.join(', ') || 'unrecorded'}; tiers visited: ${visitedTiers.join(', ') || 'unrecorded'}`,
+            visitedBranches,
+            visitedTiers,
+            unverified: [],
+        };
+    }
+    return {
+        status: 'partial',
+        detail: `no completed crown route (outcome: ${telemetry?.outcome || 'none'}); sections past x=${telemetry?.maxX || 0} are unverified`,
+        visitedBranches,
+        visitedTiers,
+        unverified: [`x>${telemetry?.maxX || 0} to crown x=${analysis?.crownX ?? '?'}`],
+    };
+}
+
+export function assessMechanicalStatus({ flags = [] } = {}) {
+    const blocking = flags.filter(
+        (flag) => flag.id === 'clone-suspect' || flag.id === 'skeleton-rhyme'
+    );
+    if (blocking.length) {
+        return {
+            status: 'blocked',
+            detail: `blocking flags: ${blocking.map((flag) => flag.id).join(', ')}`,
+        };
+    }
+    if (flags.length) {
+        return {
+            status: 'flags-raised',
+            detail: `non-blocking flags: ${flags.map((flag) => flag.id).join(', ')}`,
+        };
+    }
+    return { status: 'clear', detail: 'no mechanical flags' };
+}
+
+export function assessQualityStatus(
+    { reports = [], flags = [], screenshotsSent = false } = {},
+    { news = false } = {}
+) {
+    if (!reports.length || screenshotsSent === false) {
+        return { status: 'unjudged', detail: 'quality panel did not run or saw no shots' };
+    }
+    if (panelPassed(reports, flags, screenshotsSent, { news })) {
+        return { status: 'pass', detail: 'quality panel passed' };
+    }
+    return { status: 'fail', detail: 'quality panel did not pass' };
+}
+
+export function assessFidelityStatus({ fidelity = null, isNewsLevel = false } = {}) {
+    if (!isNewsLevel) {
+        return { status: 'not-applicable', detail: 'campaign level; no fidelity gate' };
+    }
+    if (!fidelity) return { status: 'unjudged', detail: 'fidelity panel did not run' };
+    if (fidelity.gate?.passed) return { status: 'pass', detail: 'fidelity gate passed' };
+    return { status: 'fail', detail: 'fidelity gate did not pass' };
+}
+
+export function assessEvidenceValidity({
+    telemetry = null,
+    runs = [],
+    analysis = null,
+    flags = [],
+    reports = [],
+    fidelity = null,
+    screenshotsSent = false,
+    concept = null,
+    isNewsLevel = false,
+} = {}) {
+    const captureValidity = assessCaptureValidity({ telemetry, analysis });
+    const routeCoverage = assessRouteCoverage({ telemetry, analysis });
+    const mechanical = assessMechanicalStatus({ flags });
+    const quality = assessQualityStatus({ reports, flags, screenshotsSent }, { news: isNewsLevel });
+    const fidelityStatus = assessFidelityStatus({ fidelity, isNewsLevel });
+    const blockers = [];
+    if (captureValidity.status === 'invalid') blockers.push('capture invalid');
+    if (routeCoverage.status !== 'complete') {
+        blockers.push(`no completed crown route (${telemetry?.outcome || 'none'})`);
+    }
+    if (mechanical.status === 'blocked') blockers.push(mechanical.detail);
+    if (quality.status !== 'pass') blockers.push(`quality ${quality.status}`);
+    if (fidelityStatus.status !== 'pass' && fidelityStatus.status !== 'not-applicable') {
+        blockers.push(`fidelity ${fidelityStatus.status}`);
+    }
+    if (isNewsLevel && concept && !concept.passed) blockers.push('concept gate failed');
+    if ((runs || []).length < 1 && telemetry) blockers.push('no retained runs');
+    return {
+        captureValidity,
+        routeCoverage,
+        mechanical,
+        quality,
+        fidelity: fidelityStatus,
+        releaseEligibility: {
+            eligible: blockers.length === 0,
+            blockers,
+        },
     };
 }
 
@@ -811,14 +1342,14 @@ const FIX_OWNERS = {
 };
 
 const FIX_ACTIONS = {
-    flat: 'Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.',
+    flat: 'Diagnose repetitive play from route evidence (connectivity, height changes, encounter choices, waiting time, repeated decisions), not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the look as art direction.',
     clone: 'Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.',
     stale: 'Replace the signature decision with a verb no sibling teaches the same way, with teach/press/twist beats.',
     sponge: 'Cut or compress the lowest-decision stretch so length carries new decisions.',
     'empty-route': 'Pay or threaten the empty line: a hazard, a bonk, or a bypass that matters.',
     'sleeping-finale': 'Add finale pressure within 900px of the crown on every route to it.',
     'finale-invisible':
-        'Make finale pressure visible in a frozen still: put a body hazard (roller, drone, crusher) on the crown deck or a mostly-on beam across the crown approach. A timed vertical laser alone photographs as empty deck.',
+        'Re-shoot the finale across timing phases first: if telemetry shows real pressure on the crown deck, fix visibility (a body hazard or mostly-on beam the still can show); never add hazards merely to satisfy a frozen still.',
     'skeleton-rhyme':
         'Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.',
     blind: 'Make the landing/hazard readable in time: move the hazard off the blind landing or add a tell/landmark before the drop.',
@@ -827,7 +1358,8 @@ const FIX_ACTIONS = {
         'Repaint for contrast at gameplay size: solid, decorative, and lethal must read apart without the instructions.',
     'off-theme':
         'Re-theme the actor/look so fiction, hazards, and objective reinforce the story; a palette swap does not count.',
-    'flat-deck': 'Use at least three platform reads with no key above 80% of decks.',
+    'flat-deck':
+        'Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.',
     'clone-suspect':
         'Change deck/hazard sequence and background composition until skeleton similarity drops below the clone threshold.',
     'background-recycled':
@@ -856,42 +1388,127 @@ function shotEvidence(shots, flaw, telemetry, analysis) {
         return `${finale.file} (${finale.proves}); crownX=${analysis?.crownX ?? '?'}`;
     }
     if ((flaw === 'blind' || flaw === 'cheap') && telemetry?.deathSpots?.length) {
-        const spots = telemetry.deathSpots.slice(0, 4).join(', ');
-        const near = list.find((shot) =>
-            telemetry.deathSpots.some((x) => Math.abs((shot.x || 0) - x) <= 700)
-        );
-        return `deathSpots x=${spots}${near ? `; nearest shot ${near.file}` : ''}`;
+        // Cite the dominant death cluster, not the first death: the fix
+        // belongs at the hotspot that killed repeatedly.
+        const cluster = dominantDeathCluster(telemetry.deathSpots);
+        const near = cluster
+            ? list.find((shot) => Math.abs((shot.x || 0) - cluster.center) <= 700)
+            : null;
+        const gameplay = near?.capture === 'gameplay' ? ' (gameplay frame)' : ' (staged still)';
+        return cluster && cluster.count >= 2
+            ? `${cluster.count} deaths cluster near x=${cluster.center} (spots x=${cluster.spots.join(', ')})${near ? `; nearest shot ${near.file}${gameplay}` : ''}`
+            : `lone death at x=${telemetry.deathSpots[0]} (no cluster; uncorroborated)${near ? `; nearest shot ${near.file}${gameplay}` : ''}`;
     }
     if (mid) return `${mid.file} (${mid.proves})`;
     return list[0] ? `${list[0].file} (${list[0].proves})` : 'telemetry only; no shot captured';
 }
 
-// Ranked, machine-readable fix contract: the maker skills consume fixes[0]
-// only, one fix per loop, then re-run the full critic. Rank 0 is reserved
-// for rework-grade fidelity failures (tasteless / wrong-story).
-function recheckFor(flaw) {
-    return `Re-run the full critic (npm run critic:level); "${flaw}" must be gone and no new structural flaw may appear.`;
+// Rechecks measure behavior, not model labels: each recheck names the
+// observable before/after the next run must show.
+function recheckFor(flaw, ctx = {}) {
+    const cluster = ctx.cluster || dominantDeathCluster(ctx.telemetry?.deathSpots);
+    if ((flaw === 'blind' || flaw === 'cheap') && cluster && cluster.count >= 2) {
+        return `Re-run the full critic twice from fresh starts: deaths near x=${cluster.center} must not recur as a cluster and maxX must pass x=${cluster.center} on both runs.`;
+    }
+    if (flaw === 'sleeping-finale' || flaw === 'finale-invisible') {
+        return `Re-run the full critic: the finale still must show pressure and telemetry must confirm a hazard within 900px of the crown on the taken route.`;
+    }
+    if (flaw === 'clone' || flaw === 'clone-suspect' || flaw === 'skeleton-rhyme') {
+        return `Re-run the full critic: the clone-similarity flag must clear and no persona may name clone from the new route/mechanic evidence.`;
+    }
+    if (flaw === 'flat' || flaw === 'flat-deck') {
+        return `Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.`;
+    }
+    return `Re-run the full critic (npm run critic:level); "${flaw}" must be gone from telemetry and shots, and no new structural flaw may appear.`;
 }
 
-function fixesFromFlags(add, flags) {
+// Evidence-linked diagnosis for one finding: observed behavior, location,
+// evidence id, confidence and limitations, a plausible alternative cause,
+// the smallest change, and a measurable acceptance. When the fields are
+// unavailable the finding becomes an investigation, never a level edit.
+export function diagnoseFinding({
+    flaw,
+    source = 'quality',
+    voteCount = 0,
+    telemetry = null,
+    analysis = null,
+    shots = [],
+    flags = [],
+    repeatedFlaws = [],
+    evidence = '',
+} = {}) {
+    const cluster = dominantDeathCluster(telemetry?.deathSpots);
+    const corroborated = isCorroboratedFlaw(flaw, { voteCount, repeatedFlaws, telemetry, flags });
+    const attribution = attributeFailure({
+        telemetry,
+        repeated: (repeatedFlaws || []).includes(flaw),
+    });
+    const nearestShot =
+        cluster && cluster.count >= 2
+            ? (shots || []).find((shot) => Math.abs((shot.x || 0) - cluster.center) <= 700)
+            : null;
+    const location =
+        cluster && cluster.count >= 2
+            ? `x=${cluster.center} (${cluster.count}-death cluster)`
+            : telemetry?.outcome === 'timeout'
+              ? `stall near x=${telemetry.maxX || 0} (outcome: timeout)`
+              : `crown x=${analysis?.crownX ?? '?'}`;
+    const alternativeCause =
+        attribution.attribution === 'suspected-design-problem'
+            ? 'Pilot mistiming on one phase; confirm by repeating across fresh starts/phases.'
+            : attribution.attribution === 'bot-policy-defect'
+              ? 'Pilot skill or policy failure; a human play observation or a policy fix, not a level edit.'
+              : attribution.attribution === 'capture-defect'
+                ? 'Capture or infrastructure failure; no level conclusion is supported.'
+                : 'Unrepeated hotspot or single-run noise; needs a phase-varied repeat.';
+    return {
+        observedBehavior:
+            evidence ||
+            `${voteCount || 0}/4 personas named "${flaw}" (${source}); telemetry outcome ${telemetry?.outcome || 'none'}, deaths ${telemetry?.deaths ?? 0}, maxX ${telemetry?.maxX ?? 0}.`,
+        location,
+        evidenceId: nearestShot ? nearestShot.file : (shots || [])[0]?.file || 'telemetry-only',
+        confidence: corroborated ? 'medium' : 'low',
+        limitations: corroborated
+            ? 'Single-route bot capture; unplayed branches/tiers stay unverified.'
+            : `Uncorroborated: ${attribution.reason}. Four personas judging one summary are four model perspectives, not four playtests.`,
+        alternativeCause,
+        smallestFix: corroborated
+            ? FIX_ACTIONS[flaw] || `Fix the named flaw: ${flaw}.`
+            : `Investigate before editing: re-run the capture across fresh starts/phases, record the input trace and the encounter at ${location}, and only propose a level edit if the flaw repeats.`,
+        acceptance: recheckFor(flaw, { telemetry, cluster }),
+        corroborated,
+        attribution: attribution.attribution,
+    };
+}
+
+function fixesFromFlags(add, flags, ctx = {}) {
     for (const flag of flags || []) {
+        const visualHeuristic = flag.kind === 'visual-variety';
         add(
-            flag.id === 'clone-suspect' || flag.id === 'flat-deck' || flag.id === 'skeleton-rhyme'
+            flag.id === 'clone-suspect' || flag.id === 'skeleton-rhyme'
                 ? 1
                 : flag.id === 'finale-invisible'
                   ? 2
-                  : 3,
+                  : visualHeuristic
+                    ? 3
+                    : 3,
             flag.id,
             'mechanical',
             flag.detail,
             FIX_OWNERS[flag.id] || 'skills/level-creator/SKILL.md',
             FIX_ACTIONS[flag.id] || `Resolve mechanical flag ${flag.id}.`,
-            recheckFor(flag.id)
+            recheckFor(flag.id, ctx),
+            {
+                confidence: visualHeuristic ? 'low' : 'high',
+                limitations: visualHeuristic
+                    ? 'Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag.'
+                    : 'Code-measured from level data; the panel must confirm or rebut from the numbers.',
+            }
         );
     }
 }
 
-function fixesFromPanel(add, reports, shots, telemetry, analysis) {
+function fixesFromPanel(add, reports, shots, telemetry, analysis, ctx = {}) {
     const flawCounts = new Map();
     for (const report of reports || []) {
         if (report.flaw && report.flaw !== 'none') {
@@ -899,26 +1516,45 @@ function fixesFromPanel(add, reports, shots, telemetry, analysis) {
         }
     }
     for (const [flaw, count] of flawCounts) {
+        const corroborated = isCorroboratedFlaw(flaw, {
+            voteCount: count,
+            repeatedFlaws: ctx.repeatedFlaws || [],
+            telemetry,
+            flags: ctx.flags || [],
+        });
+        const evidence = `${count}/4 personas named "${flaw}"; ${shotEvidence(shots, flaw, telemetry, analysis)}`;
+        const diagnosis = diagnoseFinding({
+            flaw,
+            source: corroborated ? 'quality' : 'investigation',
+            voteCount: count,
+            telemetry,
+            analysis,
+            shots,
+            flags: ctx.flags || [],
+            repeatedFlaws: ctx.repeatedFlaws || [],
+            evidence,
+        });
+        // Uncorroborated panel claims route to investigation: a single
+        // blind vote with no repeating hotspot is instrument noise until
+        // a repeat or a death cluster says otherwise. Never invent a
+        // clone finding from rework verdicts alone (no comparator, no
+        // route/mechanic evidence).
         add(
             STRUCTURAL_FLAWS.has(flaw) ? 1 : 2,
             flaw,
-            'quality',
-            `${count}/4 personas named "${flaw}"; ${shotEvidence(shots, flaw, telemetry, analysis)}`,
-            FIX_OWNERS[flaw] || 'skills/level-creator/SKILL.md',
-            FIX_ACTIONS[flaw] || `Fix the named flaw: ${flaw}.`,
-            recheckFor(flaw)
-        );
-    }
-    const reworks = (reports || []).filter((report) => report.verdict === 'rework').length;
-    if (reworks > 0 && !flawCounts.has('clone')) {
-        add(
-            1,
-            'clone',
-            'quality',
-            `${reworks} rework verdict(s) without a named clone flaw`,
-            FIX_OWNERS.clone,
-            FIX_ACTIONS.clone,
-            recheckFor('clone')
+            corroborated ? 'quality' : 'investigation',
+            evidence,
+            corroborated
+                ? FIX_OWNERS[flaw] || 'skills/level-creator/SKILL.md'
+                : 'investigation (capture/panel rerun)',
+            diagnosis.smallestFix,
+            diagnosis.acceptance,
+            {
+                confidence: diagnosis.confidence,
+                limitations: diagnosis.limitations,
+                alternativeCause: diagnosis.alternativeCause,
+                diagnosis,
+            }
         );
     }
 }
@@ -929,15 +1565,28 @@ function fixesFromConcept(add, concept) {
         ...(concept.missing || []),
         ...(concept.sceneryOnlyFacts || []).map((fact) => `scenery-only:${fact}`),
     ];
+    // A missing concept prerequisite outranks redesign fixes: resolve the
+    // concept/evidence dependency before spending on panels or rebuilds.
     add(
-        2,
+        0,
         'concept:incomplete-brief',
         'concept',
         `build brief fails the concept gate: missing ${missing.join(', ')}`,
         'skills/level-creator/SKILL.md',
         `Complete the missing concept artefacts in the build brief (${missing.join(', ')}), then re-run npm run critic:concept.`,
-        'Concept gate passes (npm run critic:concept) before any art or build spend.'
+        'Concept gate passes (npm run critic:concept) before any art or build spend.',
+        {
+            confidence: 'high',
+            limitations: 'Code-measured from the brief; no model judgment involved.',
+        }
     );
+}
+
+// needsHuman keys that name missing evidence or infrastructure, not work
+// for a human reviewer. Panel unavailability is an infrastructure issue:
+// retry the panel, do not ask a human to stand in for it.
+export function isInfrastructureKey(key) {
+    return /^(panel-unavailable|fidelity-panel-unavailable|no-screenshots)$/.test(key || '');
 }
 
 function fixesFromFidelity(add, fidelity) {
@@ -969,7 +1618,22 @@ function fixesFromFidelity(add, fidelity) {
         );
     }
     for (const key of fidelity.gate.needsHuman || []) {
-        if (/^(panel-unavailable|fidelity-panel-unavailable|no-screenshots)$/.test(key)) continue;
+        if (isInfrastructureKey(key)) {
+            add(
+                0,
+                key,
+                'infrastructure',
+                `${key}: the fidelity panel never judged this level (no key, images off, size limit, or no screenshots captured)`,
+                'infrastructure (panel/capture rerun)',
+                'Restore the evidence path and re-run the full critic: set TYPESAFE_API_KEY, re-capture the beat sheet, and confirm the panel runs. Do not ask a human to stand in for the missing panel.',
+                'Re-run the full critic; the fidelity panel must run and judge the full beat sheet.',
+                {
+                    confidence: 'high',
+                    limitations: 'Infrastructure state, not a level flaw.',
+                }
+            );
+            continue;
+        }
         add(
             4,
             'needs-human',
@@ -977,7 +1641,11 @@ function fixesFromFidelity(add, fidelity) {
             `${key} is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/`,
             'human reviewer (docs/level-reviews/evidence/human.json)',
             `Confirm or override "${key}" against the screenshot and record it in human.json.`,
-            'Re-run the full critic; needsHuman must be empty for the fidelity gate.'
+            'Re-run the full critic; needsHuman must be empty for the fidelity gate.',
+            {
+                confidence: 'medium',
+                limitations: 'Low-confidence model judgment; only a human check resolves it.',
+            }
         );
     }
     if (fidelity.gate.universeVerdict === 'missing') {
@@ -993,6 +1661,54 @@ function fixesFromFidelity(add, fidelity) {
     }
 }
 
+// Deduplicate findings with a common cause: repeated missing-elements
+// entries merge into one, and one flaw named from several sources keeps
+// the strongest entry with combined evidence. Never drops a blocker.
+export function dedupeFixes(fixes) {
+    const byFlaw = new Map();
+    for (const fix of fixes || []) {
+        const key = `${fix.flaw}`;
+        const prior = byFlaw.get(key);
+        if (!prior) {
+            byFlaw.set(key, { ...fix });
+            continue;
+        }
+        const mergedEvidence =
+            prior.evidence === fix.evidence
+                ? prior.evidence
+                : `${prior.evidence} AND ${fix.evidence}`;
+        const winner = fix.priority < prior.priority ? fix : prior;
+        byFlaw.set(key, { ...winner, evidence: mergedEvidence });
+    }
+    return [...byFlaw.values()];
+}
+
+// One justified next action from a ranked contract: the top fix plus the
+// confidence/impact/dependency reason it leads. Infrastructure and concept
+// prerequisites always lead because nothing downstream is meaningful
+// without evidence and a brief.
+export function recommendNextAction(fixes) {
+    const [top] = fixes || [];
+    if (!top) return null;
+    const why =
+        top.source === 'infrastructure'
+            ? 'missing evidence or panel infrastructure blocks every other judgment; restore it first'
+            : top.source === 'concept'
+              ? 'the concept prerequisite gates all art and build spend'
+              : top.source === 'investigation'
+                ? 'the top claim is uncorroborated; a bounded rerun decides whether a level edit exists at all'
+                : top.confidence === 'high'
+                  ? 'code-measured with a named comparator and a behavioral recheck'
+                  : 'highest-confidence corroborated finding with a behavioral recheck';
+    return {
+        flaw: top.flaw,
+        source: top.source,
+        owner: top.owner,
+        smallestFix: top.smallestFix,
+        justification: `${top.flaw} leads (${why}).`,
+    };
+}
+
 export function buildFixContract({
     reports = [],
     flags = [],
@@ -1001,17 +1717,48 @@ export function buildFixContract({
     telemetry = null,
     analysis = null,
     shots = [],
+    repeatedFlaws = [],
+    panelUnavailable = false,
 } = {}) {
     const fixes = [];
-    const add = (priority, flaw, source, evidence, owner, smallestFix, recheck) => {
-        fixes.push({ priority, flaw, source, evidence, owner, smallestFix, recheck });
+    const add = (priority, flaw, source, evidence, owner, smallestFix, recheck, extra = {}) => {
+        fixes.push({
+            priority,
+            flaw,
+            source,
+            evidence,
+            owner,
+            smallestFix,
+            recheck,
+            confidence: extra.confidence || 'medium',
+            limitations: extra.limitations || '',
+            ...(extra.alternativeCause ? { alternativeCause: extra.alternativeCause } : {}),
+            ...(extra.diagnosis ? { diagnosis: extra.diagnosis } : {}),
+        });
     };
-    fixesFromFlags(add, flags);
-    fixesFromPanel(add, reports, shots, telemetry, analysis);
+    if (panelUnavailable) {
+        add(
+            0,
+            'panel-unavailable',
+            'infrastructure',
+            'quality panel never ran (no API key or request failure); at most a mechanical pass is meaningful',
+            'infrastructure (panel/capture rerun)',
+            'Restore the panel path and re-run the full critic with TYPESAFE_API_KEY set.',
+            'Re-run the full critic; the quality panel must judge the full beat sheet.',
+            { confidence: 'high', limitations: 'Infrastructure state, not a level flaw.' }
+        );
+    }
+    const ctx = { telemetry, analysis, shots, flags, repeatedFlaws };
+    fixesFromFlags(add, flags, ctx);
+    fixesFromPanel(add, reports, shots, telemetry, analysis, ctx);
     fixesFromConcept(add, concept);
     fixesFromFidelity(add, fidelity);
-    fixes.sort((a, b) => a.priority - b.priority || a.flaw.localeCompare(b.flaw));
-    return fixes.slice(0, 5).map((fix, index) => ({ rank: index + 1, ...fix }));
+    const deduped = dedupeFixes(fixes);
+    deduped.sort((a, b) => a.priority - b.priority || a.flaw.localeCompare(b.flaw));
+    // The contract keeps the complete blocker list: maker skills consume
+    // fixes[0] only, but the remaining blockers stay visible for the loop
+    // after, instead of hiding past a truncation.
+    return deduped.map((fix, index) => ({ rank: index + 1, ...fix }));
 }
 
 // ---------- Capture: pilot telemetry + screenshot beat sheet ----------
@@ -1022,21 +1769,206 @@ function sampleLevel() {
         level: snap.level,
         ready: snap.ready,
         deaths: snap.deaths,
-        player: snap.player ? { x: Math.round(snap.player.x), y: Math.round(snap.player.y) } : null,
+        lastDeathKind: snap.lastDeathKind ?? null,
+        player: snap.player
+            ? {
+                  x: Math.round(snap.player.x),
+                  y: Math.round(snap.player.y),
+                  grounded: Boolean(snap.player.grounded),
+              }
+            : null,
+        botInput: window.__spaceChickenBotInput ? { ...window.__spaceChickenBotInput } : null,
         crownShield: snap.crown?.shielded,
-        hazards: (snap.hazards || []).map((h) => h.type),
+        hazards: (snap.hazards || []).map((h) => ({
+            id: h.id,
+            type: h.type,
+            x: Math.round(h.x || 0),
+            phase: h.phase || null,
+            timeUntilPhaseChangeMs: h.timeUntilPhaseChangeMs ?? null,
+        })),
+        hazardSchedules: (snap.hazardSchedules || []).map((schedule) => ({
+            id: schedule.id,
+            type: schedule.type,
+            phase: schedule.phase,
+            warningDurationMs: schedule.warningDurationMs ?? null,
+        })),
+        awaitingBranch: Boolean(snap.awaitingBranch),
+        branchOptions: snap.branchOptions || null,
     };
 }
 
-export async function captureEvidence(levelId, analysis, content = null) {
+function nearestHazardTo(hazards, x) {
+    return (hazards || [])
+        .filter((hazard) => Math.abs((hazard.x || 0) - x) <= 300)
+        .sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x))[0];
+}
+
+async function recordDeaths(page, sample, ctx) {
+    const { telemetry, shots, evidenceDir, filePrefix } = ctx;
+    if (ctx.deaths0 == null) {
+        ctx.deaths0 = sample.deaths || 0;
+        ctx.prevDeaths = ctx.deaths0;
+    }
+    telemetry.deaths = (sample.deaths || 0) - ctx.deaths0;
+    // The poll may catch the pilot already respawned, so the death
+    // spot is the last position BEFORE the death counter moved.
+    if ((sample.deaths || 0) <= ctx.prevDeaths || ctx.prevX == null) return;
+    const nearest = nearestHazardTo(sample.hazards, ctx.prevX);
+    for (let d = ctx.prevDeaths; d < (sample.deaths || 0); d += 1) {
+        telemetry.deathSpots.push(ctx.prevX);
+        telemetry.deathEvents.push({
+            x: ctx.prevX,
+            cause: sample.lastDeathKind || null,
+            hazardId: nearest?.id || null,
+            hazardType: nearest?.type || null,
+            hazardPhase: nearest?.phase || null,
+            tSec: ctx.elapsedSec(),
+            replaySec: null,
+        });
+    }
+    ctx.pendingReplay = { x: ctx.prevX, tSec: ctx.elapsedSec() };
+    ctx.prevDeaths = sample.deaths || 0;
+    // Gameplay frame at the death: real play evidence, not a
+    // staged still. Capped so a death spiral cannot flood disk.
+    if (ctx.deathFrames >= 6) return;
+    ctx.deathFrames += 1;
+    const file = `${filePrefix}death-${ctx.deathFrames}.jpg`;
+    await page.screenshot({ path: path.join(evidenceDir, file), type: 'jpeg', quality: 72 });
+    shots.push({
+        id: `${filePrefix}death-${ctx.deathFrames}`,
+        file,
+        path: path.join(evidenceDir, file),
+        x: ctx.prevX,
+        y: 400,
+        capture: 'gameplay',
+        proves: `gameplay frame at death ${ctx.deathFrames} (x=${ctx.prevX}, cause ${sample.lastDeathKind || 'unknown'}); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow`,
+    });
+}
+
+function flushStall(ctx, now = Date.now()) {
+    if (ctx.stallSince != null && ctx.stallX != null && now - ctx.stallSince >= 1500) {
+        ctx.telemetry.stalls.push({
+            x: ctx.stallX,
+            durationSec: Math.round((now - ctx.stallSince) / 100) / 10,
+        });
+    }
+}
+
+function recordProgress(sample, ctx) {
+    const { telemetry } = ctx;
+    if (!sample.player) return;
+    telemetry.maxX = Math.max(telemetry.maxX, sample.player.x);
+    // Stall: under 8px of progress across polls. Named with its
+    // stretch so the fix can find the encounter, not the paint.
+    if (ctx.stallX == null || Math.abs(sample.player.x - ctx.stallX) > 8) {
+        flushStall(ctx);
+        ctx.stallX = sample.player.x;
+        ctx.stallSince = Date.now();
+    }
+    if (ctx.pendingReplay && sample.player.x >= ctx.pendingReplay.x) {
+        const event = telemetry.deathEvents.at(-1);
+        if (event) {
+            event.replaySec = Math.round((ctx.elapsedSec() - ctx.pendingReplay.tSec) * 10) / 10;
+        }
+        ctx.pendingReplay = null;
+    }
+    if (sample.player.grounded) ctx.tiers.add(Math.round(sample.player.y / 60));
+    ctx.prevX = sample.player.x;
+}
+
+function recordHazards(sample, ctx) {
+    const { telemetry } = ctx;
+    for (const hazard of sample.hazards || []) {
+        if (hazard.type) ctx.seen.add(hazard.type);
+        if (hazard.id && hazard.phase) {
+            if (!ctx.phasesSeen.has(hazard.id)) ctx.phasesSeen.set(hazard.id, new Set());
+            ctx.phasesSeen.get(hazard.id).add(hazard.phase);
+        }
+    }
+    for (const schedule of sample.hazardSchedules || []) {
+        if (
+            schedule.type &&
+            schedule.warningDurationMs != null &&
+            telemetry.telegraphMs[schedule.type] == null
+        ) {
+            telemetry.telegraphMs[schedule.type] = schedule.warningDurationMs;
+        }
+    }
+    if (sample.awaitingBranch && sample.branchOptions) {
+        ctx.branchesSeen.add(sample.branchOptions.join('>'));
+    }
+}
+
+function finalizePilotTelemetry(ctx, analysis) {
+    const { telemetry } = ctx;
+    flushStall(ctx);
+    telemetry.durationSec = ctx.elapsedSec();
+    telemetry.hazardTypesSeen = [...ctx.seen];
+    telemetry.hazardPhasesSeen = Object.fromEntries(
+        [...ctx.phasesSeen.entries()].map(([id, phases]) => [id, [...phases]])
+    );
+    telemetry.tiersVisited = [...ctx.tiers].sort((a, b) => a - b);
+    telemetry.branchOptionsSeen = [...ctx.branchesSeen];
+    if (telemetry.outcome === 'timeout' && telemetry.gateOpened) {
+        telemetry.outcome = 'gate-open';
+    } else if (telemetry.outcome === 'timeout' && telemetry.maxX > (analysis?.crownX || 0) - 200) {
+        telemetry.outcome = 'reached-crown-area';
+    }
+}
+
+async function captureBeatSheet(
+    page,
+    { levelId, analysis, content, evidenceDir, filePrefix, shots }
+) {
+    // Re-enter the level under review first: a crown-collect during the
+    // pilot run advances to NEXT_LEVEL, and beats shot there would judge
+    // the wrong level.
+    await page.evaluate((id) => window.__spaceChickenDebug.goToLevel(id), levelId);
+    await page.waitForFunction(() => window.__spaceChickenDebug?.ready(), null, {
+        timeout: 20000,
+    });
+    await page.waitForTimeout(800);
+    for (const beat of planBeats(analysis, content)) {
+        await page.evaluate(
+            ([x, y]) => window.__spaceChickenDebug.teleport(x, y),
+            [beat.x, beat.y]
+        );
+        await page.evaluate(() => {
+            const scene = window.SPACE_CHICKEN_GAME?.scene.getScenes(true)[0];
+            scene?.physics?.world?.pause();
+            // Freeze tweens and the clock too: beats must capture a
+            // deterministic world, or crusher phases and dive cycles
+            // differ run to run and the vision verdicts go flaky.
+            scene?.tweens?.pauseAll();
+            if (scene?.time) {
+                scene.time.paused = true;
+            }
+        });
+        await page.waitForTimeout(650);
+        const file = `${filePrefix}${beat.id}.jpg`;
+        await page.screenshot({
+            path: path.join(evidenceDir, file),
+            type: 'jpeg',
+            quality: 72,
+        });
+        shots.push({
+            ...beat,
+            file,
+            path: path.join(evidenceDir, file),
+            capture: 'staged-teleport',
+        });
+    }
+}
+
+export async function captureEvidence(levelId, analysis, content = null, options = {}) {
     const { createServer } = require(path.join(ROOT, 'server.cjs'));
     const { chromium } = await import(path.join(ROOT, 'node_modules/playwright/index.mjs'));
     const { buildPilotSource } = await import('./pilot-brain.mjs');
     const evidenceDir = path.join(ROOT, 'docs/level-reviews/evidence', `level-${levelId}`);
     mkdirSync(evidenceDir, { recursive: true });
-    for (const stale of readdirSync(evidenceDir)) {
-        if (stale.endsWith('.jpg')) unlinkSync(path.join(evidenceDir, stale));
-    }
+    // Never delete earlier JPGs: each run keeps its evidence. Later runs
+    // take a run prefix so filenames never collide with run 1.
+    const filePrefix = options.runLabel ? `run${options.runLabel}-` : '';
     const server = createServer();
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     const port = server.address().port;
@@ -1050,8 +1982,17 @@ export async function captureEvidence(levelId, analysis, content = null) {
         durationSec: 0,
         deaths: 0,
         deathSpots: [],
+        deathEvents: [],
+        stalls: [],
+        inputHistory: [],
         maxX: 0,
+        tiersVisited: [],
+        routeBranches: [],
+        branchOptionsSeen: [],
+        gateOpened: false,
         hazardTypesSeen: [],
+        hazardPhasesSeen: {},
+        telegraphMs: {},
         errors: [],
     };
     const shots = [];
@@ -1068,83 +2009,72 @@ export async function captureEvidence(levelId, analysis, content = null) {
         // Pilot plays from spawn with real input; teleports below only
         // position the camera for the beat sheet after the play sample.
         const start = Date.now();
-        const seen = new Set();
-        let deaths0 = null;
-        let prevDeaths = 0;
-        let prevX = null;
+        const ctx = {
+            telemetry,
+            shots,
+            evidenceDir,
+            filePrefix,
+            elapsedSec: () => Math.round((Date.now() - start) / 100) / 10,
+            seen: new Set(),
+            phasesSeen: new Map(),
+            tiers: new Set(),
+            branchesSeen: new Set(),
+            deaths0: null,
+            prevDeaths: 0,
+            prevX: null,
+            pendingReplay: null,
+            deathFrames: 0,
+            stallX: null,
+            stallSince: null,
+            polls: 0,
+        };
         const budgetMs = pilotBudgetSec(analysis?.worldWidth) * 1000;
         while (Date.now() - start < budgetMs) {
             const sample = await page.evaluate(sampleLevel);
-            if (deaths0 == null) {
-                deaths0 = sample.deaths || 0;
-                prevDeaths = deaths0;
+            ctx.polls += 1;
+            await recordDeaths(page, sample, ctx);
+            recordProgress(sample, ctx);
+            recordHazards(sample, ctx);
+            if (ctx.polls % 4 === 0 && sample.botInput) {
+                telemetry.inputHistory.push({ tSec: ctx.elapsedSec(), input: sample.botInput });
             }
-            telemetry.deaths = (sample.deaths || 0) - deaths0;
-            // The poll may catch the pilot already respawned, so the death
-            // spot is the last position BEFORE the death counter moved.
-            if ((sample.deaths || 0) > prevDeaths && prevX != null) {
-                for (let d = prevDeaths; d < (sample.deaths || 0); d += 1) {
-                    telemetry.deathSpots.push(prevX);
-                }
-                prevDeaths = sample.deaths || 0;
-            }
-            if (sample.player) {
-                telemetry.maxX = Math.max(telemetry.maxX, sample.player.x);
-                prevX = sample.player.x;
-            }
-            for (const type of sample.hazards || []) seen.add(type);
             if (sample.level !== levelId) {
                 telemetry.outcome = 'crown-collected';
+                if (sample.level != null) telemetry.routeBranches.push(sample.level);
                 break;
             }
+            // Past the boss shield is not past the level: keep playing to
+            // the crown. Gate-open alone never counts as a completed route.
             if (analysis?.hasBoss && sample.crownShield === false) {
-                telemetry.outcome = 'gate-open';
-                break;
+                telemetry.gateOpened = true;
             }
             await page.waitForTimeout(150);
         }
-        telemetry.durationSec = Math.round((Date.now() - start) / 100) / 10;
-        telemetry.hazardTypesSeen = [...seen];
-        if (telemetry.outcome === 'timeout' && telemetry.maxX > (analysis?.crownX || 0) - 200) {
-            telemetry.outcome = 'reached-crown-area';
-        }
-        // Beat sheet: opener, mid set piece, finale. Re-enter the level under
-        // review first: a crown-collect during the pilot run advances to
-        // NEXT_LEVEL, and beats shot there would judge the wrong level.
-        await page.evaluate((id) => window.__spaceChickenDebug.goToLevel(id), levelId);
-        await page.waitForFunction(() => window.__spaceChickenDebug?.ready(), null, {
-            timeout: 20000,
+        finalizePilotTelemetry(ctx, analysis);
+        // Beat sheet: opener, mid set piece, finale.
+        await captureBeatSheet(page, {
+            levelId,
+            analysis,
+            content,
+            evidenceDir,
+            filePrefix,
+            shots,
         });
-        await page.waitForTimeout(800);
-        const beats = planBeats(analysis, content);
-        for (const beat of beats) {
-            await page.evaluate(
-                ([x, y]) => window.__spaceChickenDebug.teleport(x, y),
-                [beat.x, beat.y]
-            );
-            await page.evaluate(() => {
-                const scene = window.SPACE_CHICKEN_GAME?.scene.getScenes(true)[0];
-                scene?.physics?.world?.pause();
-                // Freeze tweens and the clock too: beats must capture a
-                // deterministic world, or crusher phases and dive cycles
-                // differ run to run and the vision verdicts go flaky.
-                scene?.tweens?.pauseAll();
-                if (scene?.time) {
-                    scene.time.paused = true;
-                }
-            });
-            await page.waitForTimeout(650);
-            const file = `${beat.id}.jpg`;
-            await page.screenshot({
-                path: path.join(evidenceDir, file),
-                type: 'jpeg',
-                quality: 72,
-            });
-            shots.push({ ...beat, file, path: path.join(evidenceDir, file) });
-        }
+        const manifestShots = shots.map((shot) => ({
+            id: shot.id,
+            file: shot.file,
+            x: shot.x ?? null,
+            y: shot.y ?? null,
+            proves: shot.proves,
+            capture: shot.capture || 'staged-teleport',
+            hash: revisionHashOfFile(shot.path),
+        }));
         writeFileSync(
-            path.join(evidenceDir, 'shots.json'),
-            `${JSON.stringify({ level: levelId, shots }, null, 2)}\n`
+            path.join(
+                evidenceDir,
+                `shots${options.runLabel ? `-run${options.runLabel}` : ''}.json`
+            ),
+            `${JSON.stringify({ level: levelId, runLabel: options.runLabel || 1, shots: manifestShots }, null, 2)}\n`
         );
     } finally {
         await browser.close();
@@ -1156,7 +2086,7 @@ export async function captureEvidence(levelId, analysis, content = null) {
 // ---------- Jev panels ----------
 
 function qualityQuestions(persona) {
-    const head = `You are ${persona.name}. ${persona.profile} Judge ONLY the level described in state.level from state.telemetry, state.mechanicalFlags, and the screenshots referenced in state.shots. The telemetry comes from a mid-skill bot pilot. telemetry.deathSpots lists the x-position of each death: deaths clustered within ~200px suggest a cheap spot, spread-out deaths suggest pilot skill, so judge cheapness by that pattern and flags, not raw counts. Judge the level in its campaign role: levels 1-3 are teaching levels and levels 8-16 are contra stages; a short teaching level is not a failed contra stage, but no role excuses clones, blind deaths, or a sleeping finale for its size. If telemetry.maxX never neared state.level.crownX, the finale is untested: name what blocked progress instead of 'sleeping-finale'. Finale pressure is judged from BOTH the finale still and the data: state.level.finaleHazardCount counts hazards within 900px of the crown and state.level.finaleVisible says whether a frozen still can show one; a timed beam caught off-phase in one still is not a sleeping finale when the data shows pressure on the crown deck, and an empty still with finaleVisible=false is a visibility flaw in the level, not proof the crown is unguarded in play. If state.screenshotsSent is false, cap readability at 2 and say the visual evidence was missing. Score as this persona, not as the designer.`;
+    const head = `You are ${persona.name}. ${persona.profile} Judge ONLY the level described in state.level from state.telemetry, state.mechanicalFlags, and the screenshots referenced in state.shots. The telemetry comes from a mid-skill bot pilot. telemetry.deathSpots lists the x-position of each death: deaths clustered within ~200px suggest a cheap spot, spread-out deaths suggest pilot skill, so judge cheapness by that pattern and flags, not raw counts. Judge the level in its campaign role: levels 1-3 are teaching levels and levels 8-16 are contra stages; a short teaching level is not a failed contra stage, but no role excuses clones, blind deaths, or a sleeping finale for its size. If telemetry.maxX never neared state.level.crownX, the finale is untested: name what blocked progress instead of 'sleeping-finale'. Finale pressure is judged from BOTH the finale still and the data: state.level.finaleHazardCount counts hazards within 900px of the crown and state.level.finaleVisible says whether a frozen still can show one; a timed beam caught off-phase in one still is not a sleeping finale when the data shows pressure on the crown deck, and an empty still with finaleVisible=false is a visibility flaw in the level, not proof the crown is unguarded in play. Shots carry a capture kind: gameplay frames show real play; staged-teleport stills show teleported camera positions, never play. Mechanic claims (rides, bonks, synchrony, formation flying) need telemetry or motion, not stills. "Not visible in the judged shots" is not "missing from the game": only call an element missing when the beat sheet covered its location and it still does not read. If state.screenshotsSent is false, cap readability at 2 and say the visual evidence was missing. Score as this persona, not as the designer.`;
     return {
         fun: score(`${head} How FUN is this level?`, SCORE_LEVELS.fun),
         fairness: score(`${head} How FAIR is this level?`, SCORE_LEVELS.fairness),
@@ -1205,64 +2135,88 @@ export async function runQualityPanel(
     client,
     { levelId, analysis, telemetry, flags, roster, shots = [] }
 ) {
-    const shotState = [];
-    for (const shot of selectPanelShots(shots, 4)) {
-        shotState.push({
-            beat: shot.id,
-            proves: shot.proves,
-            image: image(await openAsBlob(shot.path)),
-        });
-    }
-    const screenshotsSent = shotState.length > 0;
+    // The full beat sheet is judged in request-sized batches (at most 4
+    // shots each): every beat reaches a persona, and each merged report
+    // records exactly which shots it saw in evidenceSeen.
+    const batches = batchPanelShots(shots, 4);
+    if (!batches.length) batches.push([]);
     const reports = [];
     for (const persona of PERSONAS) {
-        const response = await client.systemOne(
-            {
-                state: {
-                    level: { id: levelId, ...analysis },
-                    telemetry,
-                    mechanicalFlags: flags,
-                    roster,
-                    screenshotsSent,
-                    shots: shotState,
-                    persona: { id: persona.id, profile: persona.profile },
-                },
-                questions: qualityQuestions(persona),
-            },
-            {
-                timeout: 30000,
-                retry: { maxRetries: 1 },
-                headers: screenshotsSent ? { 'TypeSafe-Danger-Zone-Images': 'true' } : undefined,
+        const perBatch = [];
+        for (const [batchIndex, batch] of batches.entries()) {
+            const shotState = [];
+            for (const shot of batch) {
+                shotState.push({
+                    beat: shot.id,
+                    proves: shot.proves,
+                    capture: shot.capture || 'staged-teleport',
+                    image: image(await openAsBlob(shot.path)),
+                });
             }
-        );
-        const answers = response.answers;
-        reports.push({
-            persona: persona.id,
-            name: persona.name,
-            fun: answers.fun.score,
-            fairness: answers.fairness.score,
-            readability: answers.readability.score,
-            novelty: answers.novelty.score,
-            pacing: answers.pacing.score,
-            theme: answers.theme.score,
-            flaw: answers.flaw.choice,
-            verdict: answers.verdict.choice,
-        });
-        console.log(
-            `${persona.name}: fun=${answers.fun.score.toFixed(1)} fair=${answers.fairness.score.toFixed(1)} novel=${answers.novelty.score.toFixed(1)} flaw=${answers.flaw.choice} -> ${answers.verdict.choice}`
-        );
+            const screenshotsSent = shotState.length > 0;
+            const response = await client.systemOne(
+                {
+                    state: {
+                        level: { id: levelId, ...analysis },
+                        telemetry,
+                        mechanicalFlags: flags,
+                        roster,
+                        screenshotsSent,
+                        shotBatch: `${batchIndex + 1}/${batches.length}`,
+                        shots: shotState,
+                        persona: { id: persona.id, profile: persona.profile },
+                    },
+                    questions: qualityQuestions(persona),
+                },
+                {
+                    timeout: 30000,
+                    retry: { maxRetries: 1 },
+                    headers: screenshotsSent
+                        ? { 'TypeSafe-Danger-Zone-Images': 'true' }
+                        : undefined,
+                }
+            );
+            const answers = response.answers;
+            perBatch.push({
+                persona: persona.id,
+                name: persona.name,
+                fun: answers.fun.score,
+                fairness: answers.fairness.score,
+                readability: answers.readability.score,
+                novelty: answers.novelty.score,
+                pacing: answers.pacing.score,
+                theme: answers.theme.score,
+                flaw: answers.flaw.choice,
+                verdict: answers.verdict.choice,
+                shotIds: batch.map((shot) => shot.id),
+            });
+            console.log(
+                `${persona.name} [${batchIndex + 1}/${batches.length}]: fun=${answers.fun.score.toFixed(1)} fair=${answers.fairness.score.toFixed(1)} novel=${answers.novelty.score.toFixed(1)} flaw=${answers.flaw.choice} -> ${answers.verdict.choice}`
+            );
+        }
+        reports.push(mergePersonaBatches(perBatch));
     }
     return reports;
 }
 
 // Send screenshots to the fidelity panel over raw HTTP with base64 assets.
 // The SDK has an image() helper now, but this path is proven and stays.
-export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shots, telemetry }) {
-    const picked = selectPanelShots(shots, 4);
-    if (!picked.length) return { sent: false, reason: 'no screenshots captured' };
+// One request judges one shot batch (at most 4) against one question
+// chunk (at most 6 elements / 6 rows); every shot batch crosses every
+// question chunk so each element is judged against the full beat sheet.
+async function sendFidelityBatch({
+    apiKey,
+    baseURL,
+    brief,
+    codeChecks,
+    shots,
+    elements,
+    rows,
+    telemetry,
+}) {
     const assets = {};
     const shotState = [];
-    for (const shot of picked) {
+    for (const shot of shots) {
         const blob = await openAsBlob(shot.path);
         const buffer = Buffer.from(await blob.arrayBuffer());
         const ref = `${randomUUID()}-shot`;
@@ -1271,17 +2225,22 @@ export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shot
             format: 'jpg',
             data_base64: buffer.toString('base64'),
         };
-        shotState.push({ beat: shot.id, proves: shot.proves, image: ref });
+        shotState.push({
+            beat: shot.id,
+            proves: shot.proves,
+            capture: shot.capture || 'staged-teleport',
+            image: ref,
+        });
     }
     const elementQuestions = {};
-    (brief.elements || []).slice(0, 6).forEach((element, index) => {
+    (elements || []).forEach((element, index) => {
         elementQuestions[`element_${index}`] = {
             type: 'noul',
-            instructions: `Is the story element "${element}" recognisably visible in \`shots\` at gameplay size, without reading the level instructions? Judge only what the screenshots show.`,
+            instructions: `Is the story element "${element}" recognisably visible in \`shots\` at gameplay size, without reading the level instructions? Judge only what the screenshots show. Shots marked capture gameplay show real play; staged-teleport stills show teleported camera positions. "Not visible in these shots" is not "missing from the game".`,
         };
     });
     const rowQuestions = {};
-    (brief.mappings || []).slice(0, 6).forEach((row, index) => {
+    (rows || []).forEach((row, index) => {
         rowQuestions[`row_${index}`] = {
             type: 'choice',
             instructions: `The brief claims this news fact became this mechanic: fact="${row.fact}" mechanic="${row.mechanic}". Do the screenshots in \`shots\` plus the telemetry support that the mechanic is really in play, contradict it, or leave it unsupported? A mechanic present in data but never visible or encountered is unsupported.`,
@@ -1356,13 +2315,13 @@ export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shot
     const marked = withSignatureMarks(brief);
     const markByElement = new Map(marked.elements.map((entry) => [entry.element, entry.signature]));
     const markByFact = new Map(marked.rows.map((entry) => [entry.fact, entry.signature]));
-    const elements = (brief.elements || []).slice(0, 6).map((element, index) => ({
+    const judgedElements = (elements || []).map((element, index) => ({
         element,
         signature: Boolean(markByElement.get(element)),
         noul: answers[`element_${index}`]?.noul ?? 0,
         verdict: elementVerdict(answers[`element_${index}`]?.noul ?? 0),
     }));
-    const rows = (brief.mappings || []).slice(0, 6).map((row, index) => ({
+    const judgedRows = (rows || []).map((row, index) => ({
         fact: row.fact,
         mechanic: row.mechanic,
         signature: Boolean(markByFact.get(row.fact) || row.signature),
@@ -1371,60 +2330,177 @@ export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shot
     }));
     return {
         sent: true,
-        elements,
-        rows,
+        elements: judgedElements,
+        rows: judgedRows,
         mechanicFidelity: answers.mechanic_fidelity?.score ?? 0,
         visualFidelity: answers.visual_fidelity?.score ?? 0,
         fidelityFlaw: answers.fidelity_flaw?.choice || 'unsupported',
         universeFit: answers.universe_fit?.noul ?? null,
+        shotIds: shots.map((shot) => shot.id),
         usage: payload.usage || null,
+    };
+}
+
+export async function sendScreenshots({ apiKey, baseURL, brief, codeChecks, shots, telemetry }) {
+    const shotBatches = batchPanelShots(shots, 4);
+    if (!shotBatches.length) return { sent: false, reason: 'no screenshots captured' };
+    // Question chunks zip by index (the shorter list cycles); each chunk
+    // then crosses every shot batch so no element or row goes unjudged.
+    const elementChunks = batchInventory(brief.elements || [], 6);
+    const rowChunks = batchInventory(brief.mappings || [], 6);
+    const chunkCount = Math.max(elementChunks.length, rowChunks.length, 1);
+    const questionChunks = [];
+    for (let i = 0; i < chunkCount; i += 1) {
+        questionChunks.push({
+            elements: elementChunks.length ? elementChunks[i % elementChunks.length] : [],
+            rows: rowChunks.length ? rowChunks[i % rowChunks.length] : [],
+        });
+    }
+    const batchResults = [];
+    const usages = [];
+    for (const shotBatch of shotBatches) {
+        for (const chunk of questionChunks) {
+            const judged = await sendFidelityBatch({
+                apiKey,
+                baseURL,
+                brief,
+                codeChecks,
+                shots: shotBatch,
+                elements: chunk.elements,
+                rows: chunk.rows,
+                telemetry,
+            });
+            batchResults.push(judged);
+            if (judged.usage) usages.push(judged.usage);
+        }
+    }
+    const merged = mergeFidelityBatches(batchResults);
+    return {
+        sent: true,
+        ...merged,
+        evidenceTotal: (shots || []).length,
+        usage: usages,
     };
 }
 
 // ---------- Reports + main ----------
 
-export function renderReport(report) {
+function renderHeaderLines(report) {
+    const statuses = report.statuses || null;
+    const qualityLine = statuses
+        ? `Quality gate: ${statuses.quality.status.toUpperCase()} (${statuses.quality.detail})`
+        : `Quality gate: ${report.passed ? 'PASS' : 'ITERATE/REWORK'} (legacy report: combined verdict, not the quality panel alone)`;
     const lines = [
         `# Level critic — level ${report.level} (${report.analysis?.title || 'untitled'})`,
         '',
-        `- Run: ${report.run}`,
+        `- Run: ${report.run} (pipeline ran; only Route coverage below says how far play reached)`,
         `- Screenshots sent to critic: ${report.screenshotsSent}`,
         `- Mechanical flags: ${report.flags.length ? report.flags.map((f) => `${f.id} (${f.detail})`).join('; ') : 'none'}`,
         `- Telemetry: ${report.telemetry ? JSON.stringify(report.telemetry) : 'static run, no capture'}`,
-        `- Quality gate: ${report.passed ? 'PASS' : 'ITERATE/REWORK'}`,
-        `- Loop: ${report.loop ?? 1}${report.priorFlaw ? ` (prior top flaw: ${report.priorFlaw})` : ''}${report.loopExceeded ? ' — LOOP LIMIT REACHED: hand to the user, do not lower the gate' : ''}`,
+        `- ${qualityLine}`,
+    ];
+    if (statuses) {
+        lines.push(...renderStatusLines(statuses));
+    }
+    return lines;
+}
+
+function renderStatusLines(statuses) {
+    return [
+        `- Capture validity: ${statuses.captureValidity.status} — ${statuses.captureValidity.detail}`,
+        `- Route coverage: ${statuses.routeCoverage.status} — ${statuses.routeCoverage.detail}`,
+        `- Mechanical checks: ${statuses.mechanical.status} — ${statuses.mechanical.detail}`,
+        `- Fidelity: ${statuses.fidelity.status} — ${statuses.fidelity.detail}`,
+        `- Release eligibility: ${statuses.releaseEligibility.eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}${statuses.releaseEligibility.blockers.length ? ` (blockers: ${statuses.releaseEligibility.blockers.join('; ')})` : ''}`,
+    ];
+}
+
+function renderLoopLines(report) {
+    const lines = [
+        `- Loop: ${report.loop ?? 1}${report.priorFlaw ? ` (prior top flaw: ${report.priorFlaw})` : ''}${report.calibrationRuns ? `; calibration reruns at this loop: ${report.calibrationRuns}` : ''}${report.loopExceeded ? ' — LOOP LIMIT REACHED: hand to the user, do not lower the gate' : ''}`,
         `- Pilot runs: ${report.pilotRuns ?? (report.telemetry ? 1 : 0)}${report.repeatedFlaws?.length ? `; repeated flaws across runs: ${report.repeatedFlaws.join(', ')}` : ''}`,
     ];
+    if (report.runs?.length > 1) {
+        for (const run of report.runs) {
+            lines.push(
+                `  - run ${run.runLabel}: ${run.telemetry?.outcome || 'unknown'} in ${run.telemetry?.durationSec ?? '?'}s, deaths ${run.telemetry?.deaths ?? '?'}, maxX ${run.telemetry?.maxX ?? '?'}; flaws: ${(run.flaws || []).join(', ') || 'none'}`
+            );
+        }
+    }
+    if (report.provenance) {
+        const provenance = report.provenance;
+        lines.push(
+            `- Provenance: rubric ${provenance.rubricVersion}, pilot ${provenance.pilotRevision}, critic ${provenance.criticRevision}, model ${provenance.model}, level ${provenance.analysisHash}, runs [${(provenance.runIds || []).join(', ')}]`
+        );
+    }
+    if (report.priorStalePassIssues?.length) {
+        lines.push(
+            `- Prior stored PASS was stale; revalidating at this loop: ${report.priorStalePassIssues.join('; ')}`
+        );
+    }
+    if (report.nextAction) {
+        lines.push(
+            `- Next action: [${report.nextAction.flaw}] ${report.nextAction.smallestFix} (${report.nextAction.justification})`
+        );
+    }
     if (report.concept) {
         lines.push(
             `- Concept gate: ${report.concept.passed ? 'PASS' : `FAIL (missing: ${[...(report.concept.missing || []), ...(report.concept.sceneryOnlyFacts || []).map((fact) => `scenery-only:${fact}`)].join(', ') || 'none'})`}`
         );
     }
-    if (report.reports?.length) {
-        lines.push('', '## Quality panel', '');
-        for (const entry of report.reports) {
-            lines.push(
-                `- ${entry.name}: fun=${entry.fun.toFixed(1)} fair=${entry.fairness.toFixed(1)} read=${entry.readability.toFixed(1)} novel=${entry.novelty.toFixed(1)} pace=${entry.pacing.toFixed(1)} theme=${entry.theme.toFixed(1)} flaw=${entry.flaw} -> ${entry.verdict}`
-            );
-        }
-        const means = panelMeans(report.reports);
-        lines.push(
-            `- Means: fun=${means.fun.toFixed(2)} fair=${means.fairness.toFixed(2)} read=${means.readability.toFixed(2)} novel=${means.novelty.toFixed(2)} pace=${means.pacing.toFixed(2)} theme=${means.theme.toFixed(2)}`
-        );
-        if (report.newsFloorFailures?.length) {
-            lines.push(`- News floor failures: ${report.newsFloorFailures.join('; ')}`);
-        }
-    } else {
-        lines.push(
+    return lines;
+}
+
+function renderQualityLines(report) {
+    if (!report.reports?.length) {
+        return [
             '',
             '## Quality panel',
             '',
-            '- unavailable (no API key or static run); mechanical pass only.'
+            '- unavailable (no API key or static run); mechanical pass only.',
+        ];
+    }
+    const lines = ['', '## Quality panel', ''];
+    for (const entry of report.reports) {
+        lines.push(
+            `- ${entry.name}: fun=${entry.fun.toFixed(1)} fair=${entry.fairness.toFixed(1)} read=${entry.readability.toFixed(1)} novel=${entry.novelty.toFixed(1)} pace=${entry.pacing.toFixed(1)} theme=${entry.theme.toFixed(1)} flaw=${entry.flaw} -> ${entry.verdict}${entry.evidenceSeen?.length ? ` (saw: ${entry.evidenceSeen.join(', ')})` : ''}`
         );
     }
-    lines.push(...renderFidelityLines(report));
-    lines.push(...renderFixLines(report));
-    return lines.join('\n');
+    const means = panelMeans(report.reports);
+    lines.push(
+        `- Means: fun=${means.fun.toFixed(2)} fair=${means.fairness.toFixed(2)} read=${means.readability.toFixed(2)} novel=${means.novelty.toFixed(2)} pace=${means.pacing.toFixed(2)} theme=${means.theme.toFixed(2)}`
+    );
+    if (report.newsFloorFailures?.length) {
+        lines.push(`- News floor failures: ${report.newsFloorFailures.join('; ')}`);
+    }
+    return lines;
+}
+
+export function renderReport(report) {
+    return [
+        ...renderHeaderLines(report),
+        ...renderLoopLines(report),
+        ...renderQualityLines(report),
+        ...renderFidelityLines(report),
+        ...renderFixLines(report),
+    ].join('\n');
+}
+
+function fidelityElementLine(entry) {
+    const verdict =
+        entry.verdict ||
+        (entry.claimed === undefined
+            ? 'unjudged'
+            : entry.claimed
+              ? 'claimed-in-data (not judged)'
+              : 'unclaimed-in-data');
+    const noul = entry.noul == null ? '' : ` (noul=${entry.noul.toFixed(2)})`;
+    return `- Element "${entry.element}"${entry.signature ? ' [signature]' : ''}: ${verdict}${noul}`;
+}
+
+function fidelityRowLine(row) {
+    const confidence = row.confidence == null ? '' : ` (confidence=${row.confidence.toFixed(2)})`;
+    return `- Row "${row.fact}"${row.signature ? ' [signature]' : ''} -> ${row.choice}${confidence}`;
 }
 
 function renderFidelityLines(report) {
@@ -1432,25 +2508,18 @@ function renderFidelityLines(report) {
     const lines = ['', '## News fidelity', ''];
     lines.push(`- Brief: ${report.fidelity.briefHeadline || 'missing'}`);
     lines.push(`- Gate: ${report.fidelity.gate?.passed ? 'PASS' : 'FAIL'}`);
-    for (const entry of report.fidelity.elements || []) {
-        const verdict =
-            entry.verdict ||
-            (entry.claimed === undefined
-                ? 'unjudged'
-                : entry.claimed
-                  ? 'claimed-in-data (not judged)'
-                  : 'unclaimed-in-data');
-        const noul = entry.noul == null ? '' : ` (noul=${entry.noul.toFixed(2)})`;
+    if (report.fidelity.evidenceSeen || report.fidelity.evidenceTotal != null) {
+        const seen = (report.fidelity.evidenceSeen || []).length;
+        const total = report.fidelity.evidenceTotal ?? seen;
         lines.push(
-            `- Element "${entry.element}"${entry.signature ? ' [signature]' : ''}: ${verdict}${noul}`
+            `- Evidence judged: ${seen} of ${total} shots (${(report.fidelity.evidenceSeen || []).join(', ') || 'none'}); "missing" below means not visible in the judged evidence, not proven missing from the game`
         );
     }
+    for (const entry of report.fidelity.elements || []) {
+        lines.push(fidelityElementLine(entry));
+    }
     for (const row of report.fidelity.rows || []) {
-        const confidence =
-            row.confidence == null ? '' : ` (confidence=${row.confidence.toFixed(2)})`;
-        lines.push(
-            `- Row "${row.fact}"${row.signature ? ' [signature]' : ''} -> ${row.choice}${confidence}`
-        );
+        lines.push(fidelityRowLine(row));
     }
     if (report.fidelity.universeFit != null || report.fidelity.gate?.universeVerdict) {
         lines.push(
@@ -1557,7 +2626,7 @@ async function evaluatePanels(ctx) {
             };
         }
         const mechanicalOnly = !ctx.flags.some(
-            (flag) => flag.id === 'clone-suspect' || flag.id === 'flat-deck'
+            (flag) => flag.id === 'clone-suspect' || flag.id === 'skeleton-rhyme'
         );
         return { ...state, passed: ctx.isStatic ? mechanicalOnly && ctx.conceptOk : false };
     }
@@ -1644,6 +2713,219 @@ async function evaluatePanels(ctx) {
     return { ...state, passed };
 }
 
+function runConceptGate(args, briefPath) {
+    const rawId = Number(args.find((arg) => /^\d+$/.test(arg)));
+    const conceptPath =
+        briefPath || (Number.isFinite(rawId) && rawId > 0 ? `docs/level-builds/${rawId}.md` : null);
+    if (!conceptPath) {
+        throw new Error('usage: node scripts/level-critic.mjs --concept --brief <build-note.md>');
+    }
+    const resolved = path.isAbsolute(conceptPath) ? conceptPath : path.join(ROOT, conceptPath);
+    const concept = assessConcept(readFileSync(resolved, 'utf8'));
+    console.log(`concept brief: ${resolved}`);
+    console.log(
+        concept.passed
+            ? 'CONCEPT: PASS'
+            : `CONCEPT: FAIL missing=[${concept.missing.join(', ')}] sceneryOnly=[${concept.sceneryOnlyFacts.join(', ')}]`
+    );
+    process.exitCode = concept.passed ? 0 : 2;
+}
+
+// News brief resolution: explicit path, else build report, else selection.
+function resolveNewsBrief(briefPath, levelId) {
+    let brief = null;
+    let briefSource = null;
+    let briefRaw = null;
+    const candidates = [briefPath, path.join(ROOT, 'docs/level-builds', `${levelId}.md`)].filter(
+        Boolean
+    );
+    for (const candidate of candidates) {
+        const resolved = path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate);
+        if (existsSync(resolved)) {
+            briefRaw = readFileSync(resolved, 'utf8');
+            brief = parseNewsBrief(briefRaw);
+            briefSource = resolved;
+            if (brief.elements.length || brief.mappings.length) break;
+        }
+    }
+    return { brief, briefSource, briefRaw };
+}
+
+function buildRunRecord({ runLabel, pilotRevision, startedAt, telemetry, shots, panel }) {
+    return {
+        runId: randomUUID(),
+        runLabel,
+        pilotRevision,
+        seed: null,
+        phaseNote: 'pilot unseeded; timing phase varies run to run',
+        startedAt,
+        telemetry,
+        shots: shots.map(({ id, file, proves, capture }) => ({ id, file, proves, capture })),
+        flaws: (panel?.reports || []).map((report) => report.flaw).filter(Boolean),
+        verdicts: (panel?.reports || []).map((report) => report.verdict).filter(Boolean),
+        screenshotsSent: panel?.screenshotsSent ?? false,
+    };
+}
+
+function loadPriorReport(reportPath, { isStatic, humanRaw }) {
+    let priorReport = null;
+    try {
+        priorReport = JSON.parse(readFileSync(reportPath, 'utf8'));
+    } catch {
+        return { priorReport: null, priorStalePassIssues: [] };
+    }
+    // A stored PASS that rests on agent confirmations or a partial route
+    // is stale: revalidate at the same loop instead of certifying it.
+    const priorStalePassIssues = [];
+    if (priorReport?.passed && !isStatic) {
+        const stored = validateStoredPass(priorReport, humanRaw);
+        if (!stored.consistent) {
+            for (const issue of stored.issues) {
+                priorStalePassIssues.push(issue);
+                console.warn(`warning: prior stored PASS is stale: ${issue}`);
+            }
+            priorReport = { ...priorReport, stalePass: true };
+        }
+    }
+    return { priorReport, priorStalePassIssues };
+}
+
+function computeLoopInfo({ isStatic, priorReport, analysis }) {
+    const currentHash = analysisHash(analysis);
+    const priorHash = priorReport?.provenance?.analysisHash
+        ? priorReport.provenance.analysisHash
+        : priorReport?.analysis
+          ? analysisHash(priorReport.analysis)
+          : null;
+    const designChanged = priorHash ? priorHash !== currentHash : true;
+    // Static checks are free verification; only full runs advance the loop,
+    // and only design revisions advance it (calibration reruns hold it).
+    if (isStatic && priorReport && !priorReport.passed) {
+        return {
+            loop: priorReport.loop || 1,
+            priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
+            calibrationRuns: priorReport.calibrationRuns || 0,
+        };
+    }
+    return nextRevisionLoop(priorReport, { designChanged: designChanged && !isStatic });
+}
+
+function assembleReport({
+    levelId,
+    isStatic,
+    apiKey,
+    analysis,
+    flags,
+    telemetry,
+    runs,
+    shots,
+    screenshotsSent,
+    reports,
+    fidelity,
+    concept,
+    isNewsLevel,
+    loopInfo,
+    priorStalePassIssues,
+    pilotRuns,
+    repeatedFlaws,
+    passed,
+}) {
+    const fixes = buildFixContract({
+        reports,
+        flags,
+        fidelity,
+        concept: isNewsLevel ? concept : null,
+        telemetry,
+        analysis,
+        shots,
+        repeatedFlaws,
+        panelUnavailable: !isStatic && !apiKey,
+    });
+    const statuses = assessEvidenceValidity({
+        telemetry,
+        runs,
+        analysis,
+        flags,
+        reports,
+        fidelity,
+        screenshotsSent,
+        concept: isNewsLevel ? concept : null,
+        isNewsLevel,
+    });
+    // Release eligibility is the ship verdict: panels plus a completed
+    // crown route on valid capture. `passed` stays the panel-gate result
+    // so the Quality gate line reports what the panel actually said.
+    const releaseEligible = !isStatic && apiKey ? statuses.releaseEligibility.eligible : false;
+    const loopExceeded = loopInfo.loop > 3;
+    return {
+        level: levelId,
+        run: isStatic ? 'static' : apiKey ? 'full' : 'mechanical-only',
+        analysis,
+        flags,
+        telemetry,
+        runs,
+        shots: shots.map(({ id, file, proves, capture }) => ({ id, file, proves, capture })),
+        screenshotsSent,
+        reports,
+        fidelity,
+        concept: isNewsLevel ? concept : null,
+        newsFloorFailures: isNewsLevel && reports.length ? newsFloorFailures(reports) : [],
+        fixes,
+        nextAction: recommendNextAction(fixes),
+        statuses,
+        provenance: buildProvenance({
+            levelId,
+            analysis,
+            runIds: runs.map((run) => run.runId),
+            captureConfig: {
+                budgetSec: pilotBudgetSec(analysis?.worldWidth),
+                runCount: runs.length,
+            },
+        }),
+        loop: loopInfo.loop,
+        priorFlaw: loopInfo.priorFlaw,
+        calibrationRuns: loopInfo.calibrationRuns || 0,
+        loopExceeded,
+        handoff: loopExceeded
+            ? {
+                  handedOff: true,
+                  remainingFlaw: fixes[0]?.flaw || null,
+                  evidence: fixes[0]?.evidence || null,
+                  owner: fixes[0]?.owner || null,
+                  note: 'Three design revisions failed; handed to the user. Do not lower the gate to escape the loop.',
+              }
+            : null,
+        priorStalePassIssues,
+        pilotRuns,
+        repeatedFlaws,
+        passed,
+        releaseEligible,
+    };
+}
+
+function writeCriticReport(levelId, report) {
+    mkdirSync(path.join(ROOT, 'docs/level-reviews'), { recursive: true });
+    writeFileSync(
+        path.join(ROOT, 'docs/level-reviews', `level-${levelId}.json`),
+        `${JSON.stringify(report, null, 2)}\n`
+    );
+    writeFileSync(
+        path.join(ROOT, 'docs/level-reviews', `level-${levelId}.md`),
+        renderReport(report)
+    );
+    console.log(`critic report: docs/level-reviews/level-${levelId}.md`);
+    const { passed, releaseEligible } = report;
+    const shipVerdict = releaseEligible || (report.run === 'static' && passed);
+    console.log(
+        shipVerdict
+            ? 'CRITIC: PASS'
+            : passed
+              ? 'CRITIC: PANELS PASSED, ROUTE UNVERIFIED'
+              : 'CRITIC: ITERATE'
+    );
+    process.exitCode = shipVerdict ? 0 : 2;
+}
+
 // eslint-disable-next-line complexity -- orchestrates static/capture/panel stages in order
 async function main() {
     const args = process.argv.slice(2).filter((arg) => arg !== '--');
@@ -1652,24 +2934,7 @@ async function main() {
     const briefPath =
         (briefFlagIndex >= 0 ? args[briefFlagIndex + 1] : null) || process.env.NEWS_BRIEF || null;
     if (args.includes('--concept')) {
-        const rawId = Number(args.find((arg) => /^\d+$/.test(arg)));
-        const conceptPath =
-            briefPath ||
-            (Number.isFinite(rawId) && rawId > 0 ? `docs/level-builds/${rawId}.md` : null);
-        if (!conceptPath) {
-            throw new Error(
-                'usage: node scripts/level-critic.mjs --concept --brief <build-note.md>'
-            );
-        }
-        const resolved = path.isAbsolute(conceptPath) ? conceptPath : path.join(ROOT, conceptPath);
-        const concept = assessConcept(readFileSync(resolved, 'utf8'));
-        console.log(`concept brief: ${resolved}`);
-        console.log(
-            concept.passed
-                ? 'CONCEPT: PASS'
-                : `CONCEPT: FAIL missing=[${concept.missing.join(', ')}] sceneryOnly=[${concept.sceneryOnlyFacts.join(', ')}]`
-        );
-        process.exitCode = concept.passed ? 0 : 2;
+        runConceptGate(args, briefPath);
         return;
     }
     const levelId = Number(args.find((arg) => /^\d+$/.test(arg)));
@@ -1700,9 +2965,17 @@ async function main() {
     let screenshotsSent = false;
     let reports = [];
     let fidelity = null;
+    // Immutable runs: every capture is retained with its seeds/phases,
+    // pilot revision, inputs, outcomes, death events, and evidence paths.
+    // A second pass never replaces the first.
+    let runs = [];
+    const pilotRevision = revisionHashOfFile(path.join(ROOT, 'scripts/pilot-brain.mjs'));
 
     let humanConfirmed = [];
+    let humanRaw = null;
+    let firstRunAt = null;
     if (!isStatic) {
+        firstRunAt = new Date().toISOString();
         const captured = await captureEvidence(levelId, analysis, content);
         telemetry = captured.telemetry;
         shots = captured.shots;
@@ -1710,25 +2983,18 @@ async function main() {
             throw new Error(`page errors during capture: ${telemetry.errors.join(' | ')}`);
         }
         humanConfirmed = loadHumanConfirmations(captured.evidenceDir);
-    }
-
-    // News brief resolution: explicit path, else build report, else selection.
-    let brief = null;
-    let briefSource = null;
-    let briefRaw = null;
-    const briefCandidates = [
-        briefPath,
-        path.join(ROOT, 'docs/level-builds', `${levelId}.md`),
-    ].filter(Boolean);
-    for (const candidate of briefCandidates) {
-        const resolved = path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate);
-        if (existsSync(resolved)) {
-            briefRaw = readFileSync(resolved, 'utf8');
-            brief = parseNewsBrief(briefRaw);
-            briefSource = resolved;
-            if (brief.elements.length || brief.mappings.length) break;
+        try {
+            humanRaw = JSON.parse(
+                readFileSync(path.join(captured.evidenceDir, 'human.json'), 'utf8')
+            );
+        } catch {
+            humanRaw = null;
         }
     }
+
+    const resolvedBrief = resolveNewsBrief(briefPath, levelId);
+    let brief = resolvedBrief.brief;
+    const { briefSource, briefRaw } = resolvedBrief;
     const isNewsLevel = isNewsLevelFor(content, brief);
     if (isNewsLevel && !brief) {
         brief = parseNewsBrief('');
@@ -1770,11 +3036,24 @@ async function main() {
     fidelity = panel.fidelity;
     screenshotsSent = panel.screenshotsSent;
     passed = panel.passed;
+    if (telemetry) {
+        runs = appendRun(
+            runs,
+            buildRunRecord({
+                runLabel: 1,
+                pilotRevision,
+                startedAt: firstRunAt,
+                telemetry,
+                shots,
+                panel,
+            })
+        );
+    }
     if (!passed && !isStatic && apiKey && reports.length) {
         // A lone flaw on one pilot run is instrument noise: capture and
-        // judge a second run, and surface only flaws that repeat.
-        const firstFlaws = new Set(reports.map((report) => report.flaw));
-        const captured = await captureEvidence(levelId, analysis, content);
+        // judge a second run, and record which flaws repeat. The first
+        // run stays in runs[] untouched.
+        const captured = await captureEvidence(levelId, analysis, content, { runLabel: 2 });
         telemetry = captured.telemetry;
         shots = captured.shots;
         if (telemetry.errors?.length) {
@@ -1786,72 +3065,47 @@ async function main() {
         fidelity = panel.fidelity;
         screenshotsSent = panel.screenshotsSent;
         passed = panel.passed;
-        repeatedFlaws = [
-            ...new Set(
-                reports
-                    .map((report) => report.flaw)
-                    .filter((flaw) => firstFlaws.has(flaw) && flaw !== 'none')
-            ),
-        ];
+        runs = appendRun(
+            runs,
+            buildRunRecord({
+                runLabel: 2,
+                pilotRevision,
+                startedAt: new Date().toISOString(),
+                telemetry,
+                shots,
+                panel,
+            })
+        );
+        repeatedFlaws = repeatedFlawsAcrossRuns(runs);
     }
 
     const reportPath = path.join(ROOT, 'docs/level-reviews', `level-${levelId}.json`);
-    let priorReport = null;
-    try {
-        priorReport = JSON.parse(readFileSync(reportPath, 'utf8'));
-    } catch {
-        // First critic run for this level.
-    }
-    // Static checks are free verification; only full runs advance the loop.
-    const loopInfo =
-        isStatic && priorReport && !priorReport.passed
-            ? {
-                  loop: priorReport.loop || 1,
-                  priorFlaw: priorReport.fixes?.[0]?.flaw || priorReport.priorFlaw || null,
-              }
-            : nextLoopInfo(priorReport);
-    const fixes = buildFixContract({
-        reports,
-        flags,
-        fidelity,
-        concept: isNewsLevel ? concept : null,
-        telemetry,
-        analysis,
-        shots,
+    const { priorReport, priorStalePassIssues } = loadPriorReport(reportPath, {
+        isStatic,
+        humanRaw,
     });
-
-    const report = {
-        level: levelId,
-        run: isStatic ? 'static' : apiKey ? 'full' : 'mechanical-only',
+    const loopInfo = computeLoopInfo({ isStatic, priorReport, analysis });
+    const report = assembleReport({
+        levelId,
+        isStatic,
+        apiKey,
         analysis,
         flags,
         telemetry,
-        shots: shots.map(({ id, file, proves }) => ({ id, file, proves })),
+        runs,
+        shots,
         screenshotsSent,
         reports,
         fidelity,
-        concept: isNewsLevel ? concept : null,
-        newsFloorFailures: isNewsLevel && reports.length ? newsFloorFailures(reports) : [],
-        fixes,
-        loop: loopInfo.loop,
-        priorFlaw: loopInfo.priorFlaw,
-        loopExceeded: loopInfo.loop > 3,
+        concept,
+        isNewsLevel,
+        loopInfo,
+        priorStalePassIssues,
         pilotRuns,
         repeatedFlaws,
         passed,
-    };
-    mkdirSync(path.join(ROOT, 'docs/level-reviews'), { recursive: true });
-    writeFileSync(
-        path.join(ROOT, 'docs/level-reviews', `level-${levelId}.json`),
-        `${JSON.stringify(report, null, 2)}\n`
-    );
-    writeFileSync(
-        path.join(ROOT, 'docs/level-reviews', `level-${levelId}.md`),
-        renderReport(report)
-    );
-    console.log(`critic report: docs/level-reviews/level-${levelId}.md`);
-    console.log(passed ? 'CRITIC: PASS' : 'CRITIC: ITERATE');
-    process.exitCode = passed ? 0 : 2;
+    });
+    writeCriticReport(levelId, report);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

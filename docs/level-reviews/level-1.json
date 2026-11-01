@@ -116,16 +116,37 @@
   "fidelity": null,
   "concept": null,
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "valid: full run, crown collected in 23.5s, 0 deaths, no page errors, screenshots sent, 3/3 beats retained",
+    "routeCoverage": "crown route complete (maxX 1799 vs crownX 1800, outcome crown-collected); single-route bot capture, unplayed branches/tiers unverified",
+    "mechanical": "PASS: no flags; finale check exempts this level by rule (crownX 1800 <= 2000), so finaleHazardCount=0 raises no mechanical flag",
+    "quality": "ITERATE: 4/4 sleeping-finale votes repeated across 2 pilot runs (model opinion, medium confidence by repetition; no mechanical corroboration); prescription gated on campaign-role rationale INV-1",
+    "fidelity": "n/a: not a news level (fidelity/concept null)",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "Campaign-role rationale: does Dawn Run ship with no finale by design (tutorial role, easy ending intentional) or does its role demand escalation?",
+      "status": "open",
+      "smallestNextStep": "Level author records the design rationale; no new capture needed (telemetry is already a clean full clear). If intentional, keep the level and recalibrate the tutorial-finale expectation. If escalation is required, add finale pressure within 900px of the crown on every route to it, then re-run.",
+      "rerun": "TYPESAFE_API_KEY=$KEY node scripts/level-critic.mjs 1"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
       "priority": 2,
       "flaw": "sleeping-finale",
       "source": "quality",
-      "evidence": "4/4 personas named \"sleeping-finale\"; 03-finale.jpg (crown approach and finale pressure); crownX=1800",
+      "gatedOn": "INV-1",
+      "evidence": "4/4 personas named \"sleeping-finale\" (repeated across 2 runs); 03-finale.jpg staged still (crown approach and finale pressure); crownX=1800; mechanical flags none (short-level exemption applies)",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Add finale pressure within 900px of the crown on every route to it.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"sleeping-finale\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Record L1's campaign-role rationale first (INV-1): confirm whether Dawn Run has no finale by design. Only if the role demands escalation, add finale pressure within 900px of the crown on every route to it.",
+      "recheck": "Rationale recorded. If pressure was added, re-run the full critic; \"sleeping-finale\" must be gone and no new structural flaw may appear. If the easy ending is intentional, no level edit; recalibrate instead.",
+      "confidence": "medium",
+      "limitations": "Model opinion repeated across runs but with no mechanical corroboration (short-level exemption applies); staged stills, not gameplay frames; per-run telemetry not retained; unplayed branches/tiers unverified.",
+      "alternativeCause": "Panel calibration on tutorial finales: an easy ending can be intentional for a level-1 teaching role; the critic skill anchors playable floors to this shipped tutorial and tolerates sleeping-finale where there is no finale by design."
     }
   ],
   "loop": 2,

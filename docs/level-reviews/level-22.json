@@ -253,16 +253,22 @@
       "output_tokens": 352
     },
     "gate": {
-      "passed": true,
+      "passed": false,
       "shown": 4,
       "contradicted": 0,
       "unsupported": 0,
-      "needsHuman": [],
+      "needsHuman": [
+        "row:Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff",
+        "row:27 Starlink satellites climb to orbit",
+        "row:Halloween-eve night launch over the coast",
+        "row:700th launch milestone, recovery crew waits on the droneship"
+      ],
       "signatureMissing": [],
       "signatureUnsupported": [],
       "universeVerdict": "shown"
     },
-    "humanConfirmed": [
+    "humanConfirmed": [],
+    "agentConfirmed": [
       "row:Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff",
       "row:27 Starlink satellites climb to orbit",
       "row:Halloween-eve night launch over the coast",
@@ -277,11 +283,54 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [],
-  "fixes": [],
+  "statuses": {
+    "captureValidity": "stale-but-valid capture: crown-collected run (36.4s, 0 deaths, no page errors), screenshots sent, 5 beat stills retained in-repo. Limits: old capture with no gameplay-frame labels (shots.json predates capture-kind labels, so staged vs gameplay kind is unverified from the manifest), no per-run retention (pilotRuns 2 but only the final outcome plus the empty repeatedFlaws intersection survives), and judged-beat coverage unrecorded (the old selectPanelShots(...,4) judged at most 4 of the 5 beats; which beat was omitted is not in stored evidence).",
+    "routeCoverage": "complete on the main route: crown collected with maxX 3535 against crownX 3520; all three checkpoints (1050/2300/3020) passed. Limits: alternate branches/tiers visited are unrecorded (old capture), so off-route sections are unverified; the finale still (x=3320) sits 200px before the crown, so the final approach is telemetry-verified, not still-verified.",
+    "mechanical": "clear: no flags — 3 platform keys (harborDeck/skyhookPanel/vaultDeck, dominant share 0.55, a visual-variety heuristic that never blocks quality), no clone-similarity comparator fired, finale carries 5 hazards with 5 visible in a frozen still. Zero deaths, so no death cluster exists to cite.",
+    "quality": "PASS under the fixed rules (verified by running panelPassed): 4/4 personas name flaw none with 4 ship verdicts; fun (2.44) and fairness (1.99) clear their 1.5 floors and all four news floors pass. Boundary note: novelty mean is exactly 1.50 (per-persona 1.43/1.48/1.49/1.60 — three of four below the floor), so the pass rests on the mean and a re-judgment could tip either way; recorded as a repeatability limitation, not a failure. Model opinion on partial evidence — one retained run's scores over an unrecorded 4-of-5-beat subset; four personas judging one summary are four model perspectives, not four playtests. Independent of fidelity.",
+    "fidelity": "FAIL on needs-human alone (re-derived by running the fixed fidelityGate with confirmed=[]): all four rows sit under the 0.8 confidence gate (0.70/0.44/0.68/0.26), so needsHuman holds all 4 rows; everything else passes (4 shown, 0 contradicted, 0 unsupported, no signature element missing/unsupported, universe shown, mechanic 2.69 / visual 3.62 clear, flaw none). The stored gate passed only because the old generator counted the 4 agent confirmations as human proof (re-running the gate with those keys returns passed:true). Stored human.json is agent observation (reviewerType agent, kept as-is per audit), which clears nothing under confirmationReview.",
+    "overall": "STALE PASS: the committed PASS is inconsistent under current confirmation rules (validateStoredPass reports 2 issues) and re-derives as failing; revalidation required — not an approval."
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "Do the four low-confidence rows (0.70/0.44/0.68/0.26) read as supports to a named human reviewer on the retained stills? The stored agent observation supports all four but cannot clear needs-human under current rules, and its named basis cites 06-finale.jpg, which is not in the retained 5-shot manifest (01-05 with 05-finale.jpg) — the finale read must be re-done against 05-finale.jpg.",
+      "status": "open",
+      "smallestNextStep": "A human opens the five retained stills in evidence/level-22/, confirms or overrides each of the 4 row keys, and records the judgments in human.json with reviewerType human and per-claim shot basis (adjudicating the 06/05 filename discrepancy against 05-finale.jpg); then a bounded rerun under the fixed generator re-judges the full 5-beat sheet with evidenceSeen recorded, which also re-tests the exact-on-floor novelty read. Order no level edit before the confirmation lands.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/22.md node scripts/level-critic.mjs 22"
+    }
+  ],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Booster B1093 falls back and lands on a droneship 8.5 minutes after liftoff AND row:27 Starlink satellites climb to orbit AND row:Halloween-eve night launch over the coast AND row:700th launch milestone, recovery crew waits on the droneship are low-confidence (0.70/0.44/0.68/0.26, all < 0.8 gate) and unconfirmed: the stored humanConfirmed rested on reviewerType agent evidence, which the fixed confirmationReview rejects (confirmed=[], agentConfirmed=4 preserved separately); re-running the fixed fidelityGate with confirmed=[] returns passed:false with needsHuman=[4 rows], and with the agent keys returns passed:true — the stored PASS depended entirely on counting agent evidence as human proof. Agent basis limitation: the observation cites 06-finale.jpg, absent from the retained 5-shot manifest (finale is 05-finale.jpg).",
+      "owner": "human reviewer (docs/level-reviews/evidence/level-22/human.json)",
+      "smallestFix": "A human confirms or overrides each of the 4 row keys against the retained stills (finale read against 05-finale.jpg, noting the 06/05 discrepancy) and records the judgments in human.json with reviewerType human and per-claim shot basis; do not relabel the stored agent observation.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; needsHuman must be empty for the fidelity gate (and the rerun re-tests the exact-1.50 novelty read).",
+      "confidence": "high",
+      "limitations": "Single retained capture generation; still kinds (staged vs gameplay) and judged-beat subset unrecorded; the agent observation's level-data cross-checks (descent topology, drones, rescues) are unverified by this review.",
+      "alternativeCause": "None for the gate failure — it is mechanical (confidence < 0.8 without a valid confirmation). Whether the rows genuinely read as supports is exactly what the human confirmation decides."
+    }
+  ],
   "loop": 7,
   "priorFlaw": "cheap",
   "loopExceeded": true,
+  "handoff": {
+    "handedOff": true,
+    "remainingFlaw": "needs-human",
+    "evidence": "4 rows under the 0.8 confidence gate with reviewerType agent confirmations only (re-derived fidelityGate passed:false); stored PASS inconsistent (validateStoredPass: 2 issues).",
+    "owner": "human reviewer (docs/level-reviews/evidence/level-22/human.json)",
+    "note": "Stop-rule history: stored loop 7 was counted by the old nextLoopInfo rule (every non-passing report +1), so it conflates design revisions with calibration reruns — the breakdown is unrecoverable from stored evidence (no runs[], no analysisHash history). The three-iteration stop rule was exceeded at loop 4, yet iteration continued to a loop-7 PASS with the LOOP LIMIT warning attached to a passing verdict. Under the fixed rule (nextRevisionLoop) only design revisions advance the loop and this stale PASS revalidates at loop 7; do not lower the gate to escape the loop."
+  },
+  "stalePass": true,
+  "stalePassIssues": [
+    "stored PASS claims 4 human confirmation(s) but evidence human.json has reviewerType \"agent\": treat as inconsistent/stale and revalidate",
+    "stored PASS at loop 7 has no handoff record explaining the stop-rule history"
+  ],
   "pilotRuns": 2,
   "repeatedFlaws": [],
-  "passed": true
+  "passed": false
 }

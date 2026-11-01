@@ -1885,6 +1885,80 @@ test('the pilot flies a wide beam band on a covering cooldown window', async () 
     assert.equal(leap.jump, true);
 });
 
+test('a grounded pilot holds its jump when the beam window is shorter than the takeoff dwell', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    // L3's beam flyover: standing below the band, the current vy:0 run
+    // dwells zero in the band, but the takeoff arc transits it for
+    // ~150ms. A 400ms cooldown covers the standstill (350ms margin)
+    // yet not the leap (150 + 350 = 500ms), so the walk-up continues
+    // with the jump vetoed instead of launching into the flip.
+    const decks = [
+        { left: 105, right: 335, top: 775, x: 220, w: 230 },
+        { left: 443, right: 597, top: 685, x: 520, w: 154 },
+        { left: 262, right: 378, top: 763, x: 320, w: 116 },
+    ];
+    const snap = makeSnap({
+        physics: { gravityY: 260 },
+        player: { x: 312, y: 758, vx: 0, vy: 0, grounded: true },
+        crown: { x: 5000, y: 400 },
+        platforms: decks,
+        hazards: [
+            {
+                id: 'laser-520',
+                type: 'laser',
+                x: 520,
+                y: 650,
+                w: 260,
+                h: 12,
+                active: false,
+                enable: false,
+                phase: 'cooldown',
+                timeUntilPhaseChangeMs: 400,
+                orientation: 'horizontal',
+            },
+        ],
+    });
+    const short = decidePilotInput(snap, createPilotState());
+    assert.equal(short.right, true);
+    assert.equal(short.jump, false);
+});
+
+test('a grounded pilot leaps when the beam window covers the takeoff dwell', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    // Same L3 flyover geometry as the veto case, but a 900ms cooldown
+    // covers both the ~150ms takeoff-arc transit and the 350ms margin,
+    // so the takeoff gate must permit the leap.
+    const decks = [
+        { left: 105, right: 335, top: 775, x: 220, w: 230 },
+        { left: 443, right: 597, top: 685, x: 520, w: 154 },
+        { left: 262, right: 378, top: 763, x: 320, w: 116 },
+    ];
+    const snap = makeSnap({
+        physics: { gravityY: 260 },
+        player: { x: 312, y: 758, vx: 0, vy: 0, grounded: true },
+        crown: { x: 5000, y: 400 },
+        platforms: decks,
+        hazards: [
+            {
+                id: 'laser-520',
+                type: 'laser',
+                x: 520,
+                y: 650,
+                w: 260,
+                h: 12,
+                active: false,
+                enable: false,
+                phase: 'cooldown',
+                timeUntilPhaseChangeMs: 900,
+                orientation: 'horizontal',
+            },
+        ],
+    });
+    const leap = decidePilotInput(snap, createPilotState());
+    assert.equal(leap.right, true);
+    assert.equal(leap.jump, true);
+});
+
 test('the pilot ignores dormant and distant beams', async () => {
     const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
     const beam = (overrides = {}) => ({

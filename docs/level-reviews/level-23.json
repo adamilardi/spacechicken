@@ -288,56 +288,56 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "pipeline-ran-full: crown-collected run (52.4s, 1 death, no page errors), screenshots sent, 6-beat manifest retained. Limits: old capture with no still kinds (staged vs gameplay kind is unverified from the manifest — the retained drone still shows Time 00:00.00 with the title card, i.e. staged), no per-run retention (pilotRuns 2 but only the final outcome plus the empty repeatedFlaws intersection survives), and judged-beat coverage partial by construction (the old selectPanelShots(...,4) judged 4 of the 6 beats per panel pass, deterministically omitting the 04-hazard-drone twin beat and 05-hazard-drip; per-pass subsets unrecorded, evidenceSeen did not exist). Evidence-set staleness: JPG filenames on disk (02-hazard-cosmicRay/03-hazard-drone/04-hazard-drip/05-setpiece-cuspArc) do not match the manifest file list (02-setpiece-cuspArc/03-hazard-bonk/04-hazard-drone/05-hazard-drip).",
+    "routeCoverage": "complete on the main route: crown collected with maxX 4252 against crownX 4250; all three checkpoints (1300/1950/2950) passed. One death at x=1785 — a single event, not a cluster, with no cause/phase/input/visibility data in the old capture, so no fairness attribution is drawn. Alternate branches/tiers visited are unrecorded (old capture), so off-route sections are unverified; the finale still (x=4050) sits 200px before the crown, so the final approach is telemetry-verified, not still-verified.",
+    "mechanical": "clear: no flags — 3 platform keys (labDeck/issHull/vaultDeck, dominant share 0.50, a visual-variety heuristic that never blocks quality), no clone-similarity comparator fired (no clone finding invented), finale carries 3 hazards with 2 visible in a frozen still (finaleVisible true).",
+    "quality": "PASS under the fixed rules (verified by running panelPassed with news floors): 4/4 personas name flaw none, 0 rework verdicts, fun (2.43) and fairness (1.82) clear their 1.5 floors, and all four news floors pass (novelty 1.91, theme 2.47, readability 2.25, pacing 2.42). The 3 iterate + 1 ship verdicts are four model perspectives on one retained summary, not four playtests — and with no named flaw there is no quality finding to fix. Independent of fidelity.",
+    "fidelity": "FAIL on needs-human alone (re-derived by running the fixed fidelityGate with confirmed=[]): all four rows sit under the 0.8 confidence gate (0.79/0.55/0.33/0.64), so needsHuman holds all 4 rows; everything else passes (3 shown, 0 contradicted, 1 unsupported within the <=1 allowance, no signature element missing/unsupported, universe shown, mechanic 2.93 / visual 3.34 clear, flaw none). The twin-satellites element reads missing (noul=0.28) but is NOT signature, and the drone beat was never shown to the panel — not visible in selected evidence is distinct from missing from the game. Stored human.json is agent observation (reviewerType agent, kept as-is per audit), which clears nothing under confirmationReview (confirmed=[], agentConfirmed=3); even counted, the gate still fails on the unconfirmed solar-wind row.",
+    "overall": "ITERATE/REWORK stands, on fidelity/evidence grounds only. Quality passes; no level edit is ordered before the evidence lands — not an approval."
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "Do the twin satellites read as shown, and the formation row as supports, when the drone beat is actually judged with motion evidence? The missing (0.28) / unsupported (0.33) verdicts were reached by panels that never saw the 04-hazard-drone beat (old 4-of-6 selection), while level source (twin starlinkSprite drones x=2350/2500, y=240/222, staggered 2400/2900ms patrols) and the retained staged drone still (both craft visible, one partly behind the title overlay, small at 0.05 scale) both show two craft present. A frozen staged still cannot prove formation flight either way.",
+      "status": "open",
+      "smallestNextStep": "Bounded evidence capture only, before any art decision: rerun the fixed generator so both panels judge the full 6-beat sheet with evidenceSeen recorded (drone beat included) plus drone-beat patrol/motion evidence for the formation read; a human reads the twins at gameplay size and confirms or overrides the element + formation row in human.json with reviewerType human and per-claim shot basis. Prescribe art changes only if that capture names a readability defect with shot basis.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/23.md node scripts/level-critic.mjs 23"
+    },
+    {
+      "id": "INV-2",
+      "question": "Do all four rows (confidences 0.79/0.55/0.33/0.64, all < 0.8 gate) read as supports to a named human reviewer? The stored agent observation supports 3 of 4 (solar-wind row unconfirmed) but cannot clear needs-human under current rules, and its file basis (on-disk 03-hazard-drone.jpg) belongs to a different capture generation than the manifest numbering (drone is 04-hazard-drone.jpg).",
+      "status": "open",
+      "smallestNextStep": "A human opens the retained stills, confirms or overrides each of the 4 row keys, and records the judgments in human.json with reviewerType human and per-claim shot basis (adjudicating the disk/manifest filename discrepancy); then the same bounded rerun re-judges the full beat sheet. Order no level edit before the confirmation lands.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/23.md node scripts/level-critic.mjs 23"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
-      "priority": 2,
-      "flaw": "missing-elements",
+      "priority": 4,
+      "flaw": "needs-human",
       "source": "fidelity",
-      "evidence": "element \"twin satellites\" missing in shots (noul=0.28)",
-      "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+      "evidence": "row:Magnetic field lines snap and explosively reconnect, releasing energy AND row:Solar wind slams the magnetopause and accelerates particles AND row:Twin TRACERS satellites fly in formation through the cusp AND row:The cusp funnels field lines down to the pole are low-confidence (0.79/0.55/0.33/0.64, all < 0.8 gate) and unconfirmed: the stored human.json holds 3 agent confirmations (solar-wind row not confirmed), which the fixed confirmationReview rejects (confirmed=[], agentConfirmed=3, reviewerType agent); re-running the fixed fidelityGate with confirmed=[] returns passed:false with needsHuman=[4 rows], and even with the agent keys it returns passed:false on the solar-wind row. Every other gate clause passes. Agent basis limitation: the observation cites on-disk filenames (03-hazard-drone.jpg) that do not match the manifest numbering (drone is 04-hazard-drone.jpg).",
+      "owner": "human reviewer (docs/level-reviews/evidence/level-23/human.json)",
+      "smallestFix": "A human confirms or overrides each of the 4 row keys against the retained stills (adjudicating the disk/manifest filename discrepancy) and records the judgments in human.json with reviewerType human and per-claim shot basis; do not relabel the stored agent observation.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; needsHuman must be empty for the fidelity gate.",
+      "confidence": "high",
+      "limitations": "Single retained capture generation; still kinds (staged vs gameplay) unrecorded in the manifest; the agent observation's level-data cross-checks are unverified by this review.",
+      "alternativeCause": "None for the gate failure — it is mechanical (confidence < 0.8 without a valid confirmation). Whether the rows genuinely read as supports is exactly what the human confirmation decides."
     },
     {
       "rank": 2,
       "priority": 4,
-      "flaw": "needs-human",
+      "flaw": "missing-elements",
       "source": "fidelity",
-      "evidence": "row:Magnetic field lines snap and explosively reconnect, releasing energy is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:Magnetic field lines snap and explosively reconnect, releasing energy\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
-    },
-    {
-      "rank": 3,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "row:Solar wind slams the magnetopause and accelerates particles is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:Solar wind slams the magnetopause and accelerates particles\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
-    },
-    {
-      "rank": 4,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "row:Twin TRACERS satellites fly in formation through the cusp is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:Twin TRACERS satellites fly in formation through the cusp\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
-    },
-    {
-      "rank": 5,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "row:The cusp funnels field lines down to the pole is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:The cusp funnels field lines down to the pole\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "evidence": "INVESTIGATION, not a rebuild: element \"twin satellites\" (non-signature — the stored 'missing signature elements' wording was wrong) judged missing (noul=0.28) and the formation row unsupported (0.33) by panels that never saw the 04-hazard-drone beat: the old selectPanelShots(..., 4) over the 6-beat manifest deterministically selected opener/setpiece-cuspArc/bonk/finale only. The twins exist in levels/reconnection.js (twin starlinkSprite drones x=2350/2500, y=240/222, staggered 2400/2900ms patrols) and both read in the retained staged drone still (one partly behind the title overlay, small at 0.05 scale); a frozen staged still cannot prove formation flight either way.",
+      "owner": "rerun + human reviewer (docs/level-reviews/evidence/level-23/human.json)",
+      "smallestFix": "Bounded evidence capture only — rerun the fixed generator so both panels judge the full 6-beat sheet with evidenceSeen plus drone-beat patrol/motion evidence, and have a human read the twins at gameplay size against the element + formation row. Prescribe art changes only if that capture names a readability defect with shot basis.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; the twin element re-judges shown (noul >= 0.7) on the drone beat, or a named readability defect with shot basis replaces this investigation.",
+      "confidence": "medium",
+      "limitations": "Old capture judged a 4-of-6 subset with per-pass subsets unrecorded; the retained drone still is staged (Time 00:00.00, title card) and belongs to a different file generation than the manifest; formation flight needs motion data no still provides.",
+      "alternativeCause": "The twins may genuinely read poorly at 0.05 gameplay scale (one craft partly behind the title overlay in the staged still) — but that readability verdict requires the drone beat judged at gameplay size, which stored evidence does not contain."
     }
   ],
   "loop": 1,

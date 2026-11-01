@@ -116,10 +116,12 @@
   "flags": [
     {
       "id": "flat-deck",
-      "detail": "2 deck key(s), dominant share 0.71 across 28 decks"
+      "kind": "visual-variety",
+      "detail": "2 deck key(s), dominant share 0.71 across 28 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)"
     },
     {
       "id": "checkpoint-desert",
+      "kind": "route",
       "detail": "no checkpoint between x=3300 and x=6400"
     }
   ],
@@ -273,46 +275,75 @@
   "fidelity": null,
   "concept": null,
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "partial: timeout run, 44 deaths, no page errors, screenshots sent, 6/6 beat manifests retained (JPGs not in repo); no death causes/events, no input trace, no gameplay frames, no per-run retention; local findings stand, whole-level verdicts do not",
+    "routeCoverage": "partial: no completed crown route (outcome: timeout; only crown-collected completes); pilot never clears the x=3375-4573 hotspot band (maxX 4612) and segment x=4612-12450 is unverified; boss still at x=12440 and finale still at x=12250 (beyond maxX) are staged, not gameplay frames",
+    "mechanical": "flags-raised: checkpoint-desert (code-measured 3100px gap, all 44 deaths inside it), flat-deck (visual-variety heuristic, never blocks quality)",
+    "quality": "ITERATE/REWORK: 3/4 cheap votes (repeated across 2 runs as a label; model opinion: four personas judging one summary are four model perspectives, not four playtests), corroborated by the dominant 19-death cluster at x=4269; causal attribution unavailable (INV-1), so unfairness is suspected, not proven. 1/4 flat vote corroborated by the flat-deck flag only (not repeated). Old first-deaths citation struck as non-causal.",
+    "fidelity": "n/a: not a news level (fidelity/concept null)",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "What kills the pilot at the dominant 19-death cluster (spots x=4195-4394; center x=4269) and the flanking clusters (13 deaths at x=3375-3416, 12 at x=4401-4573)? Stored evidence has no death causes/events, no input trace, and no gameplay frames (no retained still within 700px of any cluster; JPGs not retained), and per-run retention is absent — the repeat rests on the repeatedFlaws label intersection only — so a bot-policy defect cannot be distinguished from a reproducible design problem.",
+      "status": "open",
+      "smallestNextStep": "Bounded capture rerun with death events and gameplay death frames retained: record hazard id/cause/phase, input history, and camera visibility at all three hotspots and whether they repeat across fresh starts/phases. Only propose the tell-window edit if a hotspot repeats.",
+      "rerun": "TYPESAFE_API_KEY=$KEY node scripts/level-critic.mjs 13"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
       "priority": 1,
       "flaw": "cheap",
       "source": "quality",
-      "evidence": "3/4 personas named \"cheap\"; deathSpots x=4203, 4332, 4445, 3391",
+      "evidence": "3/4 personas named \"cheap\" (repeated across 2 runs as a label); 19 deaths cluster near x=4269 (spots x=4195, 4203, 4205, 4208, 4215, 4218, 4221, 4223, 4226, 4228, 4228, 4272, 4311, 4332, 4344, 4351, 4359, 4383, 4394; fixed chaining r=200); flanking clusters 13 deaths at x=3375-3416 and 12 at x=4401-4573; maxX 4612 never clears the band. No retained still within 700px of any cluster. Stored first-deaths citation (x=4203, 4332, 4445, 3391, spanning all three clusters with no shot) struck as non-causal.",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone and no new structural flaw may appear."
+      "smallestFix": "At the x=4269 hotspot: widen the tell window or move the hazard so the death traces to a missed tell — after INV-1 confirms the hotspot repeats across fresh starts/phases with a recorded hazard cause.",
+      "recheck": "Re-run the full critic twice from fresh starts: deaths near x=4269 must not recur as a cluster and maxX must pass x=4269 on both runs; the rerun must retain death events with hazard id/cause/phase.",
+      "confidence": "medium",
+      "limitations": "Votes plus the dominant cluster corroborate the finding, but hazard ID, cause, phase, input history, and camera visibility are all absent from stored evidence (no death events, no input trace, no gameplay frames, JPGs not retained). The cross-run repeat rests on the repeatedFlaws label intersection only; hotspot repeat is unverified.",
+      "alternativeCause": "Bot-policy defect or phase mistiming: the pilot may mistime one phase or mishandle an encounter a human reads cleanly. Repeated bot mistakes alone do not prove unfairness — INV-1 decides."
     },
     {
       "rank": 2,
-      "priority": 1,
-      "flaw": "flat-deck",
-      "source": "mechanical",
-      "evidence": "2 deck key(s), dominant share 0.71 across 28 decks",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 3,
       "priority": 2,
       "flaw": "flat",
       "source": "quality",
-      "evidence": "1/4 personas named \"flat\"; 02-hazard-boarder.jpg (hazard beat: boarder at x=550)",
+      "evidence": "1/4 personas named \"flat\" (not in repeatedFlaws); flat-deck: 2 deck keys, dominant share 0.71 across 28 decks. Stored mid-shot citation (02-hazard-boarder.jpg, boarder at x=550) struck as non-causal; the deck-key measurement is the corroboration.",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Diagnose repetitive play from route evidence (connectivity, height changes, encounter choices, waiting time, repeated decisions), not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the look as art direction.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "medium",
+      "limitations": "Single vote, corroborated by the deck-key flag only (not repeated); texture counts diagnose paint, never play.",
+      "alternativeCause": "Deliberate two-key harbor art direction; the paint may be intentional while the flagged stretch still needs a route decision."
+    },
+    {
+      "rank": 3,
+      "priority": 3,
+      "flaw": "checkpoint-desert",
+      "source": "mechanical",
+      "evidence": "no checkpoint between x=3300 and x=6400 (3100px gap); all 44 deaths fall inside the gap (spots x=3375-4573); checkpoint replay time unmeasured in stored evidence",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
+      "recheck": "Re-run the full critic: no checkpoint gap over 2500px, and the rerun measures replay time after death at the x=4269 hotspot.",
+      "confidence": "high",
+      "limitations": "Gap is code-measured; its play cost (replay time) is unmeasured: stored telemetry has death spots but no checkpoint replay times or input traces.",
+      "alternativeCause": "If INV-1 shows the hotspot deaths are a bot-policy defect, the gap still stands as route evidence but its severity drops; keep the checkpoint regardless of attribution."
     },
     {
       "rank": 4,
       "priority": 3,
-      "flaw": "checkpoint-desert",
+      "flaw": "flat-deck",
       "source": "mechanical",
-      "evidence": "no checkpoint between x=3300 and x=6400",
+      "evidence": "2 deck key(s), dominant share 0.71 across 28 decks (visual-variety heuristic)",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"checkpoint-desert\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Visual-variety heuristic, not a quality proof: either justify the two-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show distinct decisions, or the build report must carry the art-direction exception.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag. Never blocks quality.",
+      "alternativeCause": "Deliberate two-key harbor art direction; the paint may be intentional."
     }
   ],
   "loop": 1,

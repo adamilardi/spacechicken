@@ -16,6 +16,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
 import { FastSession } from './fast/session.mjs';
 import { LEVEL_DEFINITIONS, LEVEL_IDS } from '../levels/index.js';
@@ -126,74 +127,136 @@ async function playLevel(session, level, seed) {
     };
 }
 
+export function buildSplit(level, attempts) {
+    if (attempts.length === 0) throw Error(`Level ${level} ran zero attempts`);
+    const final = attempts[attempts.length - 1];
+    const sum = (key) => attempts.reduce((total, row) => total + row[key], 0);
+    return {
+        level,
+        won: final.won,
+        firstAttemptClear: attempts[0].won,
+        attempts,
+        simulatedMs: sum('simulatedMs'),
+        wallTimeMs: sum('wallTimeMs'),
+        deaths: sum('deaths'),
+        pendingLevel: final.pendingLevel,
+        gameOver: final.gameOver,
+        playerScene: final.playerScene,
+    };
+}
+
+export async function runSpeedrun({
+    chain,
+    levels,
+    maxLevels,
+    retries,
+    seedBase,
+    playLevel: playLevelFn,
+    onLog = () => {},
+}) {
+    const splits = [];
+    let completed = false;
+    const queue = [...levels];
+    let seedCounter = 0;
+    while (queue.length > 0 && splits.length < maxLevels) {
+        const level = queue.shift();
+        const attempts = [];
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            seedCounter += 1;
+            const row = await playLevelFn(level, seedBase + seedCounter);
+            row.attempt = attempt + 1;
+            attempts.push(row);
+            if (row.won) break;
+            onLog(`L${level} attempt ${attempt + 1} failed, retrying`);
+        }
+        const split = buildSplit(level, attempts);
+        splits.push(split);
+        onLog(
+            `L${split.level} ${split.won ? 'clear' : 'STUCK'} ` +
+                `sim=${(split.simulatedMs / 1000).toFixed(1)}s ` +
+                `wall=${(split.wallTimeMs / 1000).toFixed(1)}s ` +
+                `deaths=${split.deaths} attempts=${split.attempts.length} ` +
+                `next=${split.pendingLevel ?? (split.gameOver ? 'game-over' : '-')}`
+        );
+        if (!split.won && chain) break;
+        if (chain && split.pendingLevel != null && !levels.includes(split.pendingLevel)) {
+            queue.push(split.pendingLevel);
+        }
+        // A finale gameOver ends a chained campaign run, but in explicit-list
+        // mode it finishes only that split: the rest of the queue still runs.
+        if (chain && (split.gameOver || !split.playerScene)) {
+            completed = split.won;
+            break;
+        }
+        if (!chain && queue.length === 0) {
+            completed = splits.every((row) => row.won);
+        }
+    }
+    if (
+        chain &&
+        !completed &&
+        splits.length > 0 &&
+        splits.every((row) => row.won) &&
+        queue.length === 0
+    ) {
+        completed = true;
+    }
+    return { splits, completed };
+}
+
+export function buildSpeedrunReport({ chain, seed, splits, completed, totalWallMs }) {
+    const attempts = splits.flatMap((split) => split.attempts);
+    const totalSimMs = attempts.reduce((sum, row) => sum + row.simulatedMs, 0);
+    const totalDeaths = attempts.reduce((sum, row) => sum + row.deaths, 0);
+    return {
+        type: 'speedrun-report',
+        chain,
+        seed,
+        completed,
+        levels: splits.length,
+        wins: splits.filter((row) => row.won).length,
+        firstAttemptWins: splits.filter((row) => row.firstAttemptClear).length,
+        totalAttempts: attempts.length,
+        totalDeaths,
+        totalSimMs: Math.round(totalSimMs),
+        totalWallMs: Math.round(totalWallMs),
+        speed: totalSimMs / totalWallMs,
+        splits,
+        createdAt: new Date().toISOString(),
+    };
+}
+
 async function main() {
     const { chain, levels } = startPlan();
     const session = await new FastSession().open();
-    const splits = [];
     const runStarted = performance.now();
-    let completed = false;
-    const queue = [...levels];
     try {
-        let seedCounter = 0;
-        while (queue.length > 0 && splits.length < MAX_LEVELS) {
-            const level = queue.shift();
-            let split = null;
-            for (let attempt = 0; attempt <= RETRIES; attempt++) {
-                seedCounter += 1;
-                split = await playLevel(session, level, SEED + seedCounter);
-                split.attempt = attempt + 1;
-                if (split.won) break;
-                console.log(`L${level} attempt ${attempt + 1} failed, retrying`);
-            }
-            splits.push(split);
-            console.log(
-                `L${split.level} ${split.won ? 'clear' : 'STUCK'} ` +
-                    `sim=${(split.simulatedMs / 1000).toFixed(1)}s ` +
-                    `wall=${(split.wallTimeMs / 1000).toFixed(1)}s ` +
-                    `deaths=${split.deaths} next=${split.pendingLevel ?? (split.gameOver ? 'game-over' : '-')}`
-            );
-            if (!split.won && chain) break;
-            if (chain && split.pendingLevel != null && !levels.includes(split.pendingLevel)) {
-                queue.push(split.pendingLevel);
-            }
-            if (split.gameOver || !split.playerScene) {
-                completed = chain ? split.won : splits.every((row) => row.won);
-                break;
-            }
-            if (!chain && queue.length === 0) {
-                completed = splits.every((row) => row.won);
-            }
-        }
-        if (
-            chain &&
-            !completed &&
-            splits.length > 0 &&
-            splits.every((row) => row.won) &&
-            queue.length === 0
-        ) {
-            completed = true;
-        }
-        const totalSimMs = splits.reduce((sum, row) => sum + row.simulatedMs, 0);
+        const { splits, completed } = await runSpeedrun({
+            chain,
+            levels,
+            maxLevels: MAX_LEVELS,
+            retries: RETRIES,
+            seedBase: SEED,
+            playLevel: (level, seed) => playLevel(session, level, seed),
+            onLog: (line) => console.log(line),
+        });
         const totalWallMs = performance.now() - runStarted;
-        const report = {
-            type: 'speedrun-report',
+        const report = buildSpeedrunReport({
             chain,
             seed: SEED,
-            completed,
-            levels: splits.length,
-            wins: splits.filter((row) => row.won).length,
-            totalSimMs: Math.round(totalSimMs),
-            totalWallMs: Math.round(totalWallMs),
-            speed: totalSimMs / totalWallMs,
             splits,
-            createdAt: new Date().toISOString(),
-        };
+            completed,
+            totalWallMs,
+        });
         fs.writeFileSync(
             path.join(OUT, 'speedrun-report.json'),
             JSON.stringify(report, null, 2) + '\n'
         );
         console.log(
-            `Speedrun: ${report.wins}/${report.levels} clears in ${(totalSimMs / 1000).toFixed(1)}s sim / ${(totalWallMs / 1000).toFixed(1)}s wall (${report.speed.toFixed(1)}x); completed=${completed}`
+            `Speedrun: ${report.wins}/${report.levels} clears ` +
+                `(${report.firstAttemptWins} first-attempt) in ${(report.totalSimMs / 1000).toFixed(1)}s sim / ` +
+                `${(report.totalWallMs / 1000).toFixed(1)}s wall (${report.speed.toFixed(1)}x); ` +
+                `attempts=${report.totalAttempts} deaths=${report.totalDeaths} completed=${completed}`
         );
         if (!completed) process.exitCode = 1;
         return report;
@@ -202,7 +265,10 @@ async function main() {
     }
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+    main().catch((error) => {
+        console.error(error);
+        process.exitCode = 1;
+    });
+}

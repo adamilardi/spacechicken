@@ -266,56 +266,80 @@
   "newsFloorFailures": [
     "novelty mean 0.54 < news floor 1.5"
   ],
+  "statuses": {
+    "captureValidity": "valid: crown-collected full traversal (49.3s, 1 death, no page errors), screenshots sent, 5/5 beat stills retained in-repo and tracked at HEAD; no death cause/phase/input, no gameplay frames (staged beat shots only; shots.json predates capture-kind labels), no per-run retention; build brief records a prior Oct 31 capture with mixed panel flaws, so votes are model perspectives on separate captures",
+    "routeCoverage": "complete (main route): crown-collected with maxX 5658 at crownX 5650; alternate branches/tiers unrecorded in stored telemetry, so off-route sections stay unverified",
+    "mechanical": "blocked: skeleton-rhyme (code-measured similarity-1.0 skeleton match to L19; paired comparison in review); background-recycled is a visual-variety heuristic (never blocks quality) with a composition device already claimed in the build brief",
+    "quality": "ITERATE/REWORK: 4/4 clone votes (all iterate; repeated across 2 runs; model opinion: four personas judging run summaries are four model perspectives, not four playtests), corroborated by the named-comparator mechanical flag. Old drone-shot citation struck as non-causal; paired verdict: L17 changes, L19 holds.",
+    "fidelity": "FAIL (kept separate from quality): gate failed on 3 low-confidence needs-human rows (no human.json recorded); mechanic 2.85 / visual 2.86; universe shown; no signature rows",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [],
   "fixes": [
     {
       "rank": 1,
-      "priority": 1,
-      "flaw": "clone",
-      "source": "quality",
-      "evidence": "4/4 personas named \"clone\"; 02-hazard-drone.jpg (hazard beat: drone at x=1400)",
+      "priority": 0,
+      "flaw": "concept:incomplete-brief",
+      "source": "concept",
+      "evidence": "build brief fails the concept gate: missing novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Complete the missing concept artefacts in the build brief (novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom), then re-run npm run critic:concept. The novelty-ledger and topology-fingerprint decide the differentiation scope against the L19/L20 shared skeleton before any rebuild spend.",
+      "recheck": "Concept gate passes (npm run critic:concept) before any art or build spend. No full redesign and no new panel before this prerequisite.",
+      "confidence": "high",
+      "limitations": "Code-measured from the brief; no model judgment involved.",
+      "alternativeCause": "None: the brief either contains the artefacts or it does not."
     },
     {
       "rank": 2,
+      "priority": 1,
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "4/4 personas named \"clone\" (all iterate; repeated across 2 runs) AND deck layout similarity 1 to level 19 (Hubble Rescue): identical world width 6000 and identical 14-value deck-x sequence under new paints (bastionDeck/bastionGrate/vaultDeck vs issHull/stationPanel/vaultDeck), 4/4 clone with repetition on L19 as well, novelty mean 0.54 < 1.5 floor; full side-by-side in the re-derivation section of level-17.md (single cause shared with skeleton-rhyme; the stored drone-shot citation is struck as non-causal)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "After the concept prerequisite passes: change L17's Topology Fingerprint per the completed concept artefacts -- a new deck sequence and height grammar plus a route/finale identity distinct from L19's; do not re-skin the copied skeleton. L19 holds as the reference; L19/L20 reviews own their sides.",
+      "recheck": "Re-run the full critic: the clone-similarity flag must clear and no persona may name clone from the new route/mechanic evidence, with no new structural flaw.",
+      "confidence": "medium",
+      "limitations": "Corroborated panel claim with an exact code-measured comparator; single-route bot capture, unplayed branches/tiers stay unverified.",
+      "alternativeCause": "Shared news-level format (checkpoint spine, crown position) explains part of the resemblance; the full 14-value x-list identity exceeds format into duplication."
+    },
+    {
+      "rank": 3,
       "priority": 1,
       "flaw": "skeleton-rhyme",
       "source": "mechanical",
       "evidence": "deck layout similarity 1 to level 19 (Hubble Rescue): same width and deck x sequence under new paints",
       "owner": "skills/level-creator/SKILL.md",
       "smallestFix": "Re-lay the decks: change the world width and the deck x sequence, not just the paints. A copied x-list under new textures is still the copied skeleton.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 3,
-      "priority": 2,
-      "flaw": "concept:incomplete-brief",
-      "source": "concept",
-      "evidence": "build brief fails the concept gate: missing novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Complete the missing concept artefacts in the build brief (novelty-ledger, signature-mechanic-canvas, topology-fingerprint, element-inventory>=3, themed-enemy, signature-marking, scenery-only:AI data-center spending boom), then re-run npm run critic:concept.",
-      "recheck": "Concept gate passes (npm run critic:concept) before any art or build spend."
+      "recheck": "Re-run the full critic (npm run critic:level); \"skeleton-rhyme\" must be gone and no new structural flaw may appear.",
+      "confidence": "high",
+      "limitations": "Code-measured from level data; the panel must confirm or rebut from the numbers.",
+      "alternativeCause": "None for the measurement; whether the shared skeleton reads as duplicate experience is the panel question, answered affirmatively by 4/4 clone votes on both levels."
     },
     {
       "rank": 4,
       "priority": 3,
       "flaw": "background-recycled",
       "source": "mechanical",
-      "evidence": "background type 'bastion' already used by levels 11, 16; build report must claim a new composition device",
+      "evidence": "background type 'bastion' already used by levels 11, 16; build brief already claims a composition device (full-bleed generated plunging-ticker backdrop plate at depth -20, alpha 0.55 -- a device no shipped bastion level uses; levels 11/16 render bare bastion). The flag persists because the check is paint-agnostic (visual-variety heuristic).",
       "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Visual-variety heuristic, not a quality proof: keep the claimed backdrop-plate device in the build brief as the art-direction exception, or introduce a distinct composition device as part of the differentiation above.",
+      "recheck": "Re-run the full critic: the build report must carry the art-direction exception for the reused background, or the background must read distinct.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag.",
+      "alternativeCause": "Reuse may be a deliberate bastion-arc identity; the brief claims it is differentiated by the generated backdrop plate."
     },
     {
       "rank": 5,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
-      "evidence": "row:Value plunges, index falls is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "evidence": "row:Value plunges, index falls AND row:AI data-center spending boom AND row:Investors must decide: hold or exit are low-confidence (0.34 / 0.70 / 0.48, all need-human at <0.8); no human.json recorded; a human must open the named screenshots in docs/level-reviews/evidence/",
       "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:Value plunges, index falls\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "smallestFix": "Confirm or override each low-confidence row against the screenshots and record the judgments in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate.",
+      "confidence": "medium",
+      "limitations": "Low-confidence model judgment; only a human check resolves it.",
+      "alternativeCause": "Rows may read clearly to a human in the retained stills; the panel saw staged beat shots, not gameplay frames."
     }
   ],
   "loop": 3,

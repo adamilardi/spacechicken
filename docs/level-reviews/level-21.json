@@ -320,56 +320,62 @@
   "newsFloorFailures": [
     "novelty mean 1.33 < news floor 1.5"
   ],
+  "statuses": {
+    "captureValidity": "valid: crown-collected run (66.8s, 1 death, no page errors), screenshots sent, 6 beat stills retained in-repo. Limits: old capture with no death cause/phase/input, no gameplay frames (all six stills are staged re-entry shots — every HUD reads Time 00:00.00 / Deaths 0 — and shots.json predates capture-kind labels), no per-run retention (the none unanimity rests on the final scores plus the empty repeatedFlaws intersection only), branches/tiers unrecorded.",
+    "routeCoverage": "complete: crown collected with maxX 5615 against crownX 5650; all four checkpoints (1300/2800/3350/4650) passed and every gap under the 2500px desert threshold, so no stretch is unverified. All six beats sit in visited vicinity — but they are staged-teleport stills, not gameplay frames.",
+    "mechanical": "clear: no flags — 3 platform keys (cliff/mesa/vaultDeck, dominant share 0.46), no clone-similarity comparator fired, finale carries 2 hazards with 1 visible in a frozen still.",
+    "quality": "fail on the novelty news floor alone: 4/4 personas name flaw none with zero rework and zero structural votes; fun (2.20) and fairness (1.92) clear their floors and the theme/readability/pacing news floors pass; only novelty mean 1.33 < 1.5 fails (gap 0.17; per-persona 1.26-1.42). Model opinion on partial evidence — one retained run over 4 of 6 judged beats (the Survey Orbiter + sample-carry beats 04/05 omitted); four personas judging one summary are four model perspectives, not four playtests. Independent of fidelity.",
+    "fidelity": "FAIL (kept separate from quality): gate fails on exactly two sub-conditions — needsHuman non-empty (6 items) and flaw label missing-elements rather than none; everything else passes (3 shown, 0 contradicted, 1 non-signature unsupported, no signature element missing/unsupported, universe shown, mechanic 2.8 / visual 3.55 clear). The only missing element (dish array, 0.09) is non-signature, so the stock missing-signature advice mislabels it; the 7th inventory element (Tanegashima beach gantry) was never judged; stored human.json is batch-agent observation (reviewerType agent), which clears nothing.",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "Does the 1.33 novelty read survive when both panels judge all six beats, including the omitted 04-drone (Survey Orbiter + sample tubes) and 05-roller evidence? Stored scores come from one retained run over 4 judged beats with no clone-flag corroboration, and the omitted beats carry the brief's claimed new verb and themed enemy.",
+      "status": "open",
+      "smallestNextStep": "Bounded rerun under the fixed generator (batchPanelShots over all 6 beats, batchInventory over all 7 elements so the gantry is judged too); record per-run scores with evidenceSeen. Order no redesign before the re-judgment lands; a distinctiveness conversation begins only if the floor miss repeats with named route/mechanic evidence.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/21.md node scripts/level-critic.mjs 21"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
       "priority": 2,
       "flaw": "missing-elements",
       "source": "fidelity",
-      "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.8 visual=3.55",
+      "evidence": "fidelity flaw \"missing-elements\" (mechanic=2.8 visual=3.55) AND element \"Estrack dish array\" missing in judged shots (noul=0.09); determination recorded before this order: no dish prop/texture/corpus token exists (codeChecks claimed:false; no dish/estrack match in levels/config/SpaceChicken/assets outside bg-plate pixels), dish pixels live only in the right ~40% of bg.png rendered at alpha 0.55, and no dishes appear in any of the six retained beats spanning x=150-5450 (01/02/04/05/06 viewed directly, 03 judged by the panel; batch-agent observer independently reports plate regions cropped/illegible) — functionally absent at gameplay size, not merely outside the selected images. NOTE: the dish is NON-signature — no signature element is missing (tubes shown 0.81, crater faint 0.44) — so the stock \"missing signature elements\" text is corrected here.",
       "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
+      "smallestFix": "Build ONE dedicated Estrack dish-array prop (or hazard read) at gameplay size with opener/finale-adjacent coverage, following the h3Rocket precedent (props at x=400 and x=5450); do not re-map the whole plate to chase the cropped region.",
+      "recheck": "Re-shoot the beat sheet and re-judge with NEWS_BRIEF; the dish element must read shown (noul >= 0.7) from a beat covering the prop location, with no new flaw.",
+      "confidence": "medium",
+      "limitations": "Supported across code, full-route captures, and two independent observers — but staged stills only, no gameplay frames, single capture generation.",
+      "alternativeCause": "Plate-mapping crop: re-mapping the plate could expose the dish region, but the 6-beat span already covers the route and shows nothing, so a dedicated prop is the smaller robust fix."
     },
     {
       "rank": 2,
       "priority": 2,
-      "flaw": "missing-elements",
-      "source": "fidelity",
-      "evidence": "element \"Estrack dish array\" missing in shots (noul=0.09)",
-      "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+      "flaw": "novelty-calibration",
+      "source": "investigation",
+      "evidence": "novelty mean 1.33 < 1.5 floor is the SOLE quality-side failure (4/4 flaw none, 0 rework, 0 structural, fun/fair plus theme/readability/pacing floors pass, no clone flags); scores rest on one retained run over 4/6 judged beats with the Survey Orbiter + sample-carry beats (04/05) omitted, and 1.33 sits in the skill's copied-skeleton band (1.1-1.4) without code corroboration",
+      "owner": "investigation (capture/panel rerun)",
+      "smallestFix": "Calibrate before editing: bounded rerun judging the FULL 6-beat sheet and 7-element inventory (INV-1); order no redesign before the re-judgment lands.",
+      "recheck": "Novelty is re-judged from the full beat sheet on a fresh run with evidenceSeen recorded; a distinctiveness edit is considered only if the miss repeats with named route/mechanic evidence.",
+      "confidence": "low",
+      "limitations": "Uncorroborated model opinion: single retained run, 4 of 6 beats judged, no clone flag, no per-run score retention.",
+      "alternativeCause": "The omitted orbiter/carry beats may carry the distinctiveness the judged beats lack; or the route may genuinely rhyme with the roster despite the ledger claim — the re-judgment decides."
     },
     {
       "rank": 3,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
-      "evidence": "element:Phobos crater field is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "evidence": "element:Phobos crater field AND element:return capsule AND row:First to orbit Phobos, sample surface, return from Mars system AND row:H3 launch from Tanegashima, night liftoff over beach AND row:Arrives Mars next summer, investigates Phobos and Deimos up close AND row:ESA deep-space comms + Estrack ground stations send commands are low-confidence (needs-human); stored human.json is batch-agent observation (reviewerType agent under the fixed confirmationReview), which clears nothing; the agent's row support comes from level data with a tube-2 position discrepancy (x=3350 cited vs x=2250/2560/4550 in data) that needs adjudication against the stills and the data",
       "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"element:Phobos crater field\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
-    },
-    {
-      "rank": 4,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "element:return capsule is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"element:return capsule\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
-    },
-    {
-      "rank": 5,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "row:First to orbit Phobos, sample surface, return from Mars system is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:First to orbit Phobos, sample surface, return from Mars system\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "smallestFix": "A human confirms or overrides each low-confidence item against the retained stills and level data, adjudicates the data-vs-still conflicts, and records the judgments in human.json with a human reviewer name.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate.",
+      "confidence": "medium",
+      "limitations": "Low-confidence model judgment; only a human check resolves it.",
+      "alternativeCause": "Items may read clearly to a human in the retained stills; the panels saw staged beat shots (2 of 6 beats omitted), not gameplay frames."
     }
   ],
   "loop": 2,
