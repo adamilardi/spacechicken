@@ -486,11 +486,54 @@ export function elementVerdict(probability) {
     return 'missing';
 }
 
+// Concrete systems a fact→mechanic row can claim. A row naming one of
+// these is making a typed, checkable promise about the level data; a row
+// naming none of them is scenery until proven otherwise.
+const MECHANIC_SYSTEMS = [
+    'laser',
+    'drone',
+    'rover',
+    'cosmicray',
+    'cosmic ray',
+    'bonk',
+    'crusher',
+    'drip',
+    'roller',
+    'dustdevil',
+    'dust devil',
+    'boss',
+    'boarder',
+    'bearraider',
+    'shrike',
+    'crown_shield',
+    'shield',
+    'checkpoint',
+    'crown',
+    'wave',
+    'patrol',
+    'bounce',
+    'spring',
+    'gate',
+    'lift',
+    'tram',
+    'carry',
+    'rescue',
+];
+
+export function mechanicSystems(mechanic) {
+    const text = String(mechanic || '').toLowerCase();
+    return MECHANIC_SYSTEMS.filter((system) => text.includes(system));
+}
+
 // Code-side claim check: an element counts as claimed only when one of its
 // distinctive tokens appears in the level corpus (instructions, texture
 // keys, hazard config, asset paths). Reskin-by-title does not claim.
+// A mechanic row is backed only when a system it names actually appears
+// in the level corpus (hazard type, texture key, objective marker), so a
+// brief cannot pass by naming mechanics the level never spawns.
 export function fidelityCodeChecks(brief, corpus) {
     const haystack = String(corpus || '').toLowerCase();
+    const hasCorpus = haystack.trim().length > 0;
     const elements = (brief?.elements || []).map((element) => {
         const tokens = element
             .toLowerCase()
@@ -505,7 +548,38 @@ export function fidelityCodeChecks(brief, corpus) {
                 row.mechanic
             )
     );
-    return { elements, sceneryOnlyFacts: sceneryOnly.map((row) => row.fact) };
+    const mechanics = (brief?.mappings || []).map((row) => {
+        const systems = mechanicSystems(row.mechanic);
+        const backed = !hasCorpus
+            ? null
+            : systems.length > 0 &&
+              systems.some(
+                  (system) =>
+                      haystack.includes(system.replace(/\s+/g, '')) || haystack.includes(system)
+              );
+        return { fact: row.fact, mechanic: row.mechanic, systems, backed };
+    });
+    return {
+        elements,
+        mechanics,
+        sceneryOnlyFacts: sceneryOnly.map((row) => row.fact),
+        unbackedMechanics: mechanics
+            .filter((entry) => entry.backed === false)
+            .map((entry) => entry.fact),
+    };
+}
+
+// Signature rows whose claimed mechanic never spawns in the level data.
+// A signature promise with no actor behind it fails before art spending
+// is judged: the panel cannot show what the level does not contain.
+export function unbackedSignatureMechanics(brief, corpus) {
+    const signatureFacts = new Set(
+        (brief?.mappings || []).filter((row) => row.signature).map((row) => row.fact)
+    );
+    if (!signatureFacts.size) return [];
+    return fidelityCodeChecks(brief, corpus).unbackedMechanics.filter((fact) =>
+        signatureFacts.has(fact)
+    );
 }
 
 // Keys in human.json `confirmed` must exactly match `element:`/`row:`
@@ -599,26 +673,85 @@ export function isNewsLevelFor(content, brief) {
     );
 }
 
+function briefFieldValue(text, labelPattern) {
+    const match = String(text || '').match(new RegExp(`${labelPattern}\\s*:[ \\t]*([^\\n]*)`, 'i'));
+    return match ? match[1].trim() : null;
+}
+
+function sectionBody(text, headingPattern) {
+    const lines = String(text || '').split('\n');
+    const start = lines.findIndex((line) => headingPattern.test(line));
+    if (start < 0) return null;
+    const body = [];
+    for (const line of lines.slice(start + 1)) {
+        if (/^#{1,3}\s/.test(line)) break;
+        body.push(line);
+    }
+    return body.join('\n').trim();
+}
+
+const PLACEHOLDER_VALUE = /^(none|n\/?a|tbd|todo|unknown|pending|-|—|\.)$/i;
+
+function isPopulated(value, minLength = 8) {
+    const cleaned = String(value || '')
+        .replace(/[*_`]/g, '')
+        .trim();
+    return cleaned.length >= minLength && !PLACEHOLDER_VALUE.test(cleaned);
+}
+
+// Structural concept gate: headings alone never pass. Each creativity
+// artefact must carry real content, the themed enemy and boss decision
+// must name something (or, for the boss, a reasoned "none"), signature
+// marks must point at inventory the brief actually lists, and every
+// fact→mechanic row must name a mechanic. Creative judgment (is it
+// actually fresh?) stays with the panel; this gate only refuses empty
+// or self-contradictory paperwork before art money is spent on it.
 export function assessConcept(markdown) {
     const text = String(markdown || '');
     const brief = parseNewsBrief(text);
-    const lower = text.toLowerCase();
     const missing = [];
-    if (!/novelty ledger/.test(lower)) missing.push('novelty-ledger');
-    if (!/signature mechanic/.test(lower)) missing.push('signature-mechanic-canvas');
-    if (!/topology fingerprint/.test(lower)) missing.push('topology-fingerprint');
-    if (brief.mappings.length < 3) missing.push('fact-mechanic-rows>=3');
-    if (brief.elements.length < 3) missing.push('element-inventory>=3');
-    if (!/themed enemy\s*:/.test(lower)) missing.push('themed-enemy');
-    if (!/boss theme\s*:/.test(lower)) missing.push('boss-theme-decision');
+    if (!isPopulated(sectionBody(text, /novelty ledger/i), 24)) missing.push('novelty-ledger');
+    if (!isPopulated(sectionBody(text, /signature mechanic/i), 24)) {
+        missing.push('signature-mechanic-canvas');
+    }
+    if (!isPopulated(sectionBody(text, /topology fingerprint/i), 24)) {
+        missing.push('topology-fingerprint');
+    }
+    const populatedRows = brief.mappings.filter((row) => isPopulated(row.mechanic, 3));
+    if (brief.mappings.length < 3 || populatedRows.length < brief.mappings.length) {
+        missing.push('fact-mechanic-rows>=3');
+    }
+    if (brief.elements.length < 3 || brief.elements.some((item) => !isPopulated(item, 3))) {
+        missing.push('element-inventory>=3');
+    }
+    const themedEnemy = briefFieldValue(text, 'themed enemy');
+    if (!isPopulated(themedEnemy, 3)) missing.push('themed-enemy');
+    const bossTheme = briefFieldValue(text, 'boss theme');
+    if (!bossTheme) {
+        missing.push('boss-theme-decision');
+    } else if (/^none\b/i.test(bossTheme)) {
+        const reason = bossTheme.replace(/^none\b[\s:—-]*/i, '');
+        if (!isPopulated(reason, 8)) missing.push('boss-theme-decision');
+    } else if (!isPopulated(bossTheme, 3)) {
+        missing.push('boss-theme-decision');
+    }
     if (!brief.signatureElements.length && !brief.signatureFacts.length) {
         missing.push('signature-marking');
     }
+    const inventory = new Set(brief.elements.map((item) => item.toLowerCase()));
+    const orphanSignatures = brief.signatureElements.filter((item) => {
+        const needle = item.toLowerCase();
+        return ![...inventory].some(
+            (entry) => entry === needle || entry.includes(needle) || needle.includes(entry)
+        );
+    });
+    if (orphanSignatures.length) missing.push('signature-not-in-inventory');
     const sceneryOnlyFacts = fidelityCodeChecks(brief, '').sceneryOnlyFacts;
     return {
         passed: missing.length === 0 && sceneryOnlyFacts.length === 0,
         missing,
         sceneryOnlyFacts,
+        orphanSignatures,
         elementCount: brief.elements.length,
         mappingCount: brief.mappings.length,
     };
@@ -1241,16 +1374,30 @@ export function assessEvidenceValidity({
     };
 }
 
-export function selectPanelShots(shots, max = 4) {
-    const list = shots || [];
-    if (list.length <= max) return list;
-    const picked = [list[0]];
-    for (const shot of list.slice(1, -1)) {
-        if (picked.length >= max - 1) break;
-        picked.push(shot);
+// Coverage over truncation: panels batch the full beat sheet, so no
+// beat is ever silently dropped to fit a request cap. selectPanelShots
+// is retained only as the batching entry point name; it returns every
+// shot. panelShotCoverage proves, from the reports' own evidenceSeen
+// records, exactly which beats each judgment saw.
+export function selectPanelShots(shots) {
+    return [...(shots || [])];
+}
+
+export function panelShotCoverage(shots, reports = [], fidelity = null) {
+    const all = (shots || []).map((shot) => shot.id).filter(Boolean);
+    const seen = new Set();
+    for (const report of reports || []) {
+        for (const id of report?.evidenceSeen || []) seen.add(id);
     }
-    picked.push(list.at(-1));
-    return picked;
+    for (const id of fidelity?.evidenceSeen || []) seen.add(id);
+    const seenIds = all.filter((id) => seen.has(id));
+    const missingIds = all.filter((id) => !seen.has(id));
+    return {
+        total: all.length,
+        seen: seenIds,
+        missing: missingIds,
+        complete: all.length === 0 || missingIds.length === 0,
+    };
 }
 
 // Beat sheet derived from level data: opener, signature beats before
@@ -1284,6 +1431,25 @@ export function planBeats(analysis, content) {
             proves: `hazard beat: ${hazard.type} at x=${Math.round(hazard.x || 0)}`,
         });
         if (candidates.length >= 5) break;
+    }
+    // Tier coverage: a stacked level must show its heights. When decks
+    // span three or more height bands, spend a beat on the highest deck
+    // line so cross-height play is judged, not just the floor run.
+    const deckYs = [
+        ...new Set((content?.staticPlatforms || []).map((p) => Math.round((p.y || 0) / 60))),
+    ].sort((a, b) => a - b);
+    if (deckYs.length >= 3 && candidates.length < 5) {
+        const topDeck = [...(content?.staticPlatforms || [])].sort(
+            (a, b) => (a.y || 0) - (b.y || 0)
+        )[0];
+        if (topDeck) {
+            push({
+                slug: 'tier-high',
+                x: Math.round(topDeck.x || 0),
+                y: clampY(topDeck.y),
+                proves: `high tier beat: deck band y=${Math.round(topDeck.y || 0)} of ${deckYs.length} bands`,
+            });
+        }
     }
     const seenProps = new Set();
     for (const prop of [...(content?.props || [])].sort((a, b) => (a.x || 0) - (b.x || 0))) {
@@ -2402,6 +2568,16 @@ function renderHeaderLines(report) {
     if (statuses) {
         lines.push(...renderStatusLines(statuses));
     }
+    if (report.shipVerdict) {
+        lines.push(
+            `- Ship verdict: ${report.shipVerdict.ship ? 'SHIP' : 'DO NOT SHIP'}${report.shipVerdict.blockers?.length ? ` (blockers: ${report.shipVerdict.blockers.join('; ')})` : ''}`
+        );
+    }
+    if (report.shotCoverage) {
+        lines.push(
+            `- Beat coverage: ${report.shotCoverage.seen.length}/${report.shotCoverage.total} beats judged${report.shotCoverage.missing.length ? ` (unseen: ${report.shotCoverage.missing.join(', ')})` : ''}`
+        );
+    }
     return lines;
 }
 
@@ -2555,32 +2731,84 @@ function renderFixLines(report) {
 }
 
 // Human confirmations are evidence, not a rubber stamp: only a named
-// human reviewer counts toward the fidelity gate. Agent visual review is
-// recorded separately and never silently stands in for the human check
-// the skill requires. Confirmations name no shot or basis at their peril:
-// missing reviewer/reasoning is reported as an issue by callers.
-export function confirmationReview(human) {
-    const confirmed = Array.isArray(human?.confirmed) ? human.confirmed : [];
+// human reviewer with a stated basis counts toward the fidelity gate.
+// A malformed human confirmation (no reviewer, no reasoning) is rejected
+// outright, not counted with a warning. Confirmations may bind to the
+// evidence they judged — entries of the form { key, shot, hash } are
+// checked against the current shot hashes and go stale when the shot
+// changes; plain string keys rely on the named basis in `reasoning`.
+function confirmationEntries(human) {
+    const raw = Array.isArray(human?.confirmed) ? human.confirmed : [];
+    return raw.map((entry) =>
+        typeof entry === 'string'
+            ? { key: entry }
+            : { key: entry?.key, shot: entry?.shot, hash: entry?.hash }
+    );
+}
+
+function hasObservedBasis(human) {
+    return Array.isArray(human?.reasoning)
+        ? human.reasoning.some((line) => String(line || '').trim().length > 0)
+        : Boolean(String(human?.reasoning || '').trim());
+}
+
+export function confirmationReview(human, { shotHashes = null } = {}) {
+    const entries = confirmationEntries(human);
     const reviewerType =
         human?.reviewerType || (/agent/i.test(human?.reviewer || '') ? 'agent' : null);
     const issues = [];
-    if (confirmed.length && reviewerType !== 'human') {
+    const hasBasis = hasObservedBasis(human);
+    if (entries.length && reviewerType !== 'human') {
         issues.push('confirmations are not from a named human reviewer (reviewerType)');
     }
-    if (confirmed.length && !human?.reviewer) issues.push('confirmation has no reviewer');
-    if (confirmed.length && !human?.reasoning) issues.push('confirmation has no observed basis');
+    if (entries.length && reviewerType === 'human' && !human?.reviewer) {
+        issues.push('confirmation has no reviewer');
+    }
+    if (entries.length && reviewerType === 'human' && !hasBasis) {
+        issues.push('confirmation has no observed basis');
+    }
+    const malformed =
+        entries.length > 0 &&
+        (reviewerType !== 'human' || !human?.reviewer || !hasBasis || entries.some((e) => !e.key));
+    const stale = [];
+    const confirmed = [];
+    if (!malformed) {
+        for (const entry of entries) {
+            if (entry.shot && entry.hash && shotHashes && shotHashes[entry.shot] !== entry.hash) {
+                stale.push(entry.key);
+                issues.push(
+                    `confirmation for "${entry.key}" is bound to stale evidence (${entry.shot})`
+                );
+                continue;
+            }
+            confirmed.push(entry.key);
+        }
+    }
     return {
         confirmed: reviewerType === 'human' ? confirmed : [],
-        agentConfirmed: reviewerType === 'human' ? [] : confirmed,
+        agentConfirmed: reviewerType === 'human' ? [] : entries.map((entry) => entry.key),
         reviewerType,
         issues,
+        stale,
+        malformed: Boolean(malformed),
     };
 }
 
-function loadHumanConfirmations(evidenceDir) {
+export function loadHumanConfirmations(evidenceDir) {
     try {
         const human = JSON.parse(readFileSync(path.join(evidenceDir, 'human.json'), 'utf8'));
-        const review = confirmationReview(human);
+        const shotHashes = {};
+        for (const name of ['shots.json', 'shots-run2.json', 'shots-run1.json']) {
+            try {
+                const manifest = JSON.parse(readFileSync(path.join(evidenceDir, name), 'utf8'));
+                for (const shot of manifest.shots || []) {
+                    if (shot.file && shot.hash) shotHashes[shot.file] = shot.hash;
+                }
+            } catch {
+                // Manifest for that run not present.
+            }
+        }
+        const review = confirmationReview(human, { shotHashes });
         for (const issue of review.issues) {
             console.warn(`warning: human.json ${issue}`);
         }
@@ -2589,6 +2817,36 @@ function loadHumanConfirmations(evidenceDir) {
         // No confirmations recorded.
     }
     return [];
+}
+
+// Aggregate ship verdict: panel PASS alone never ships a level. Shipping
+// additionally requires a completed crown route (or a verified human
+// completion, for routes the bot pilot cannot finish), a passing boss
+// review where the level has a boss encounter, and respect for the
+// three-loop stop rule unless a human explicitly reopens it.
+export function assessShipVerdict({
+    passed = false,
+    telemetry = null,
+    humanPlay = false,
+    bossRequired = false,
+    bossPassed = null,
+    loop = 1,
+    loopReopened = false,
+} = {}) {
+    const blockers = [];
+    if (!passed) blockers.push('critic panels did not pass');
+    if (!isCompletedCrownRoute(telemetry?.outcome) && !humanPlay) {
+        blockers.push(
+            `no completed crown route (outcome: ${telemetry?.outcome || 'none'}) and no verified human completion`
+        );
+    }
+    if (bossRequired && bossPassed !== true) {
+        blockers.push('boss review has not passed for this boss level');
+    }
+    if (loop > 3 && !loopReopened) {
+        blockers.push(`loop ${loop} exceeds the three-loop limit without explicit human reopening`);
+    }
+    return { ship: blockers.length === 0, blockers };
 }
 
 // eslint-disable-next-line complexity -- panel stages share the capture state
@@ -2705,10 +2963,19 @@ async function evaluatePanels(ctx) {
     const qualityPassed = panelPassed(state.reports, ctx.flags, state.screenshotsSent, {
         news: ctx.isNewsLevel,
     });
+    // Every captured beat must have reached a judge. A signature or tier
+    // beat nobody saw is missing evidence, not a pass.
+    state.shotCoverage = panelShotCoverage(ctx.shots, state.reports, state.fidelity);
+    const unbackedSignature = ctx.isNewsLevel
+        ? unbackedSignatureMechanics(ctx.brief, ctx.corpus)
+        : [];
+    state.unbackedSignature = unbackedSignature;
     const passed =
         ctx.conceptOk &&
         Boolean(state.reports.length) &&
         qualityPassed &&
+        state.shotCoverage.complete &&
+        unbackedSignature.length === 0 &&
         (!ctx.isNewsLevel || state.fidelity?.gate?.passed);
     return { ...state, passed };
 }
@@ -2732,15 +2999,19 @@ function runConceptGate(args, briefPath) {
 }
 
 // News brief resolution: explicit path, else build report, else selection.
-function resolveNewsBrief(briefPath, levelId) {
+// Brief resolution order: explicit NEWS_BRIEF/--brief path, then the
+// build note docs/level-builds/<id>.md, then the art selection for this
+// level (art-selections/*/selection.json whose level_id matches, with
+// its brief_path resolved relative to the selection folder).
+export function resolveNewsBrief(briefPath, levelId, root = ROOT) {
     let brief = null;
     let briefSource = null;
     let briefRaw = null;
-    const candidates = [briefPath, path.join(ROOT, 'docs/level-builds', `${levelId}.md`)].filter(
+    const candidates = [briefPath, path.join(root, 'docs/level-builds', `${levelId}.md`)].filter(
         Boolean
     );
     for (const candidate of candidates) {
-        const resolved = path.isAbsolute(candidate) ? candidate : path.join(ROOT, candidate);
+        const resolved = path.isAbsolute(candidate) ? candidate : path.join(root, candidate);
         if (existsSync(resolved)) {
             briefRaw = readFileSync(resolved, 'utf8');
             brief = parseNewsBrief(briefRaw);
@@ -2748,7 +3019,41 @@ function resolveNewsBrief(briefPath, levelId) {
             if (brief.elements.length || brief.mappings.length) break;
         }
     }
+    if (!brief?.elements?.length && !brief?.mappings?.length) {
+        const fromSelection = resolveBriefFromSelection(levelId, root);
+        if (fromSelection) {
+            ({ brief, briefSource, briefRaw } = fromSelection);
+        }
+    }
     return { brief, briefSource, briefRaw };
+}
+
+export function resolveBriefFromSelection(levelId, root = ROOT) {
+    const selectionsDir = path.join(root, 'art-selections');
+    let folders = [];
+    try {
+        folders = require('node:fs').readdirSync(selectionsDir);
+    } catch {
+        return null;
+    }
+    for (const folder of folders) {
+        const selectionPath = path.join(selectionsDir, folder, 'selection.json');
+        let selection = null;
+        try {
+            selection = JSON.parse(readFileSync(selectionPath, 'utf8'));
+        } catch {
+            continue;
+        }
+        if (String(selection?.level_id) !== String(levelId) || !selection?.brief_path) continue;
+        const briefPath = path.resolve(path.dirname(selectionPath), selection.brief_path);
+        if (!existsSync(briefPath)) continue;
+        const briefRaw = readFileSync(briefPath, 'utf8');
+        const brief = parseNewsBrief(briefRaw);
+        if (brief.elements.length || brief.mappings.length) {
+            return { brief, briefSource: briefPath, briefRaw };
+        }
+    }
+    return null;
 }
 
 function buildRunRecord({ runLabel, pilotRevision, startedAt, telemetry, shots, panel }) {
@@ -2829,6 +3134,9 @@ function assembleReport({
     pilotRuns,
     repeatedFlaws,
     passed,
+    bossPassed = null,
+    humanPlay = false,
+    loopReopened = false,
 }) {
     const fixes = buildFixContract({
         reports,
@@ -2857,6 +3165,18 @@ function assembleReport({
     // so the Quality gate line reports what the panel actually said.
     const releaseEligible = !isStatic && apiKey ? statuses.releaseEligibility.eligible : false;
     const loopExceeded = loopInfo.loop > 3;
+    const shipVerdict = isStatic
+        ? { ship: false, blockers: ['static run: mechanical evidence only'] }
+        : assessShipVerdict({
+              passed,
+              telemetry,
+              humanPlay,
+              bossRequired: Boolean(analysis?.hasBoss),
+              bossPassed,
+              loop: loopInfo.loop,
+              loopReopened,
+          });
+    const shotCoverage = panelShotCoverage(shots, reports, fidelity);
     return {
         level: levelId,
         run: isStatic ? 'static' : apiKey ? 'full' : 'mechanical-only',
@@ -2900,30 +3220,42 @@ function assembleReport({
         repeatedFlaws,
         passed,
         releaseEligible,
+        shipVerdict,
+        shotCoverage,
+        bossPassed,
+        humanPlay,
     };
 }
 
 function writeCriticReport(levelId, report) {
     mkdirSync(path.join(ROOT, 'docs/level-reviews'), { recursive: true });
-    writeFileSync(
-        path.join(ROOT, 'docs/level-reviews', `level-${levelId}.json`),
-        `${JSON.stringify(report, null, 2)}\n`
+    const json = `${JSON.stringify(report, null, 2)}\n`;
+    const markdown = renderReport(report);
+    // Latest pointer for tooling, plus an immutable history copy: a failed
+    // run's evidence must survive the pass that follows it.
+    writeFileSync(path.join(ROOT, 'docs/level-reviews', `level-${levelId}.json`), json);
+    writeFileSync(path.join(ROOT, 'docs/level-reviews', `level-${levelId}.md`), markdown);
+    const stamp = String(report.provenance?.capturedAt || new Date().toISOString()).replace(
+        /[:.]/g,
+        '-'
     );
-    writeFileSync(
-        path.join(ROOT, 'docs/level-reviews', `level-${levelId}.md`),
-        renderReport(report)
-    );
+    const historyDir = path.join(ROOT, 'docs/level-reviews', 'history');
+    mkdirSync(historyDir, { recursive: true });
+    const historyBase = `level-${levelId}-${stamp}-loop${report.loop ?? 1}`;
+    writeFileSync(path.join(historyDir, `${historyBase}.json`), json);
+    writeFileSync(path.join(historyDir, `${historyBase}.md`), markdown);
     console.log(`critic report: docs/level-reviews/level-${levelId}.md`);
-    const { passed, releaseEligible } = report;
-    const shipVerdict = releaseEligible || (report.run === 'static' && passed);
+    console.log(`critic history: docs/level-reviews/history/${historyBase}.md`);
+    const { passed } = report;
+    const ship = report.run === 'static' ? passed : Boolean(report.shipVerdict?.ship);
     console.log(
-        shipVerdict
+        ship
             ? 'CRITIC: PASS'
             : passed
-              ? 'CRITIC: PANELS PASSED, ROUTE UNVERIFIED'
+              ? `CRITIC: PANELS PASSED, NOT SHIPPABLE (${(report.shipVerdict?.blockers || []).join('; ')})`
               : 'CRITIC: ITERATE'
     );
-    process.exitCode = shipVerdict ? 0 : 2;
+    process.exitCode = ship ? 0 : 2;
 }
 
 // eslint-disable-next-line complexity -- orchestrates static/capture/panel stages in order
@@ -3085,6 +3417,29 @@ async function main() {
         humanRaw,
     });
     const loopInfo = computeLoopInfo({ isStatic, priorReport, analysis });
+    let bossPassed = null;
+    if (analysis?.hasBoss) {
+        try {
+            const bossReport = JSON.parse(
+                readFileSync(path.join(ROOT, 'docs/boss-reviews', `level-${levelId}.json`), 'utf8')
+            );
+            bossPassed = bossReport.passed === true;
+        } catch {
+            bossPassed = false;
+        }
+    }
+    const humanReview = humanRaw ? confirmationReview(humanRaw) : null;
+    const humanPlay = Boolean(
+        humanRaw?.playedToCrown === true &&
+        humanReview?.reviewerType === 'human' &&
+        humanReview?.reviewer &&
+        !humanReview?.malformed
+    );
+    const loopReopened = Boolean(
+        humanRaw?.reopenLoop === true &&
+        humanReview?.reviewerType === 'human' &&
+        humanReview?.reviewer
+    );
     const report = assembleReport({
         levelId,
         isStatic,
@@ -3104,6 +3459,9 @@ async function main() {
         pilotRuns,
         repeatedFlaws,
         passed,
+        bossPassed,
+        humanPlay,
+        loopReopened,
     });
     writeCriticReport(levelId, report);
 }

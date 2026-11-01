@@ -32,7 +32,7 @@ Show a short table of ids, preview links, and limits, plus one recommended set. 
 
 Do not swap in a different paint or quietly rewrite the chosen one. Note requested revisions on their own. Each role can come from a different candidate. Record the exact path.
 
-Write `art-selections/<level-id>/selection.json` and `selection.md`. Use a new revision instead of overwriting an older selection. Paths in the file are relative to the selection folder.
+Write `art-selections/<level-id>/selection.json` and `selection.md`. Use a new revision instead of overwriting an older selection. Paths in the file are relative to the selection folder. Path contract (schema_version 1, enforced by `scripts/critic-art.mjs`): `asset_path` resolves first relative to the selection folder, then relative to the repo root (for shipped `assets/...` files); canvas paints are `.js` modules exporting `paint(ctx, width, height)` and are rendered to a gameplay preview by the art critic; shipped canvas textures are named as `canvas:<textureKey>` and verified against the sprite registry. A selection the art critic cannot resolve or render does not pass.
 
 ```json
 {

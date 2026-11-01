@@ -391,15 +391,15 @@ test('concept gate requires the three artefacts, rows, inventory, and themed ene
             '',
             '## Novelty Ledger',
             '',
-            'differs',
+            'differs from every shipped level: no sibling teaches a rising-water clock',
             '',
             '## Signature Mechanic Canvas',
             '',
-            'verb: carry',
+            'verb: carry — the rising water forces the player to carry crews upward',
             '',
             '## Topology Fingerprint',
             '',
-            'sink-and-rise',
+            'sink-and-rise: decks descend into the flood then climb to the crown',
         ].join('\n')
     );
     assert.equal(good.passed, true);
@@ -485,17 +485,24 @@ test('report renders signature marks, static fidelity, and the fix contract', as
     assert.match(md, /1\. \[blind\] \(quality\) owner: skills\/level-creator\/SKILL\.md/);
 });
 
-test('panel shot selection keeps opener and finale within the request cap', async () => {
-    const { selectPanelShots } = await loadCritic();
-    const shots = [1, 2, 3, 4, 5, 6].map((n) => ({
+test('panel shot selection never drops a beat to fit a request cap', async () => {
+    const { selectPanelShots, panelShotCoverage } = await loadCritic();
+    const shots = [1, 2, 3, 4, 5, 6, 7].map((n) => ({
         id: `0${n}-beat`,
         file: `0${n}.jpg`,
         proves: `beat ${n}`,
     }));
     const picked = selectPanelShots(shots, 4);
-    assert.equal(picked.length, 4);
+    assert.equal(picked.length, 7);
     assert.equal(picked[0].id, '01-beat');
-    assert.equal(picked.at(-1).id, '06-beat');
+    assert.equal(picked.at(-1).id, '07-beat');
+    const partial = panelShotCoverage(shots, [{ evidenceSeen: ['01-beat', '02-beat'] }], null);
+    assert.equal(partial.complete, false);
+    assert.deepEqual(partial.missing, ['03-beat', '04-beat', '05-beat', '06-beat', '07-beat']);
+    const full = panelShotCoverage(shots, [{ evidenceSeen: shots.map((s) => s.id) }], {
+        evidenceSeen: [],
+    });
+    assert.equal(full.complete, true);
 });
 
 test('agent confirmations never count as human confirmation', async () => {
@@ -1080,4 +1087,133 @@ test('committed reviews keep ranks, priorities, and fix sources consistent', asy
             }
         });
     }
+});
+
+test('concept gate rejects placeholder artefacts and orphan signatures', async () => {
+    const { assessConcept } = await loadCritic();
+    const placeholder = assessConcept(
+        [
+            '# Level 99 — Placeholder',
+            '',
+            'Element inventory: a, b, c',
+            'Signature elements: not-in-inventory',
+            'Themed enemy:',
+            'Boss theme:',
+            '',
+            '| Story fact | Gameplay it becomes | Why |',
+            '| --- | --- | --- |',
+            '| F1 | gravity | w |',
+            '| F2 | hazard | w |',
+            '| F3 | objective | w |',
+            '',
+            '## Novelty Ledger',
+            '',
+            '## Signature Mechanic Canvas',
+            '',
+            '## Topology Fingerprint',
+            '',
+        ].join('\n')
+    );
+    assert.equal(placeholder.passed, false);
+    assert.ok(placeholder.missing.includes('novelty-ledger'));
+    assert.ok(placeholder.missing.includes('themed-enemy'));
+    assert.ok(placeholder.missing.includes('boss-theme-decision'));
+    assert.ok(placeholder.missing.includes('signature-not-in-inventory'));
+});
+
+test('mechanic refs must name systems the level actually spawns', async () => {
+    const { fidelityCodeChecks, unbackedSignatureMechanics } = await loadCritic();
+    const brief = {
+        elements: ['ticker tape'],
+        mappings: [
+            { fact: 'Cargo must reach crown', mechanic: 'carry cargo to crown', signature: true },
+            { fact: 'Drones patrol', mechanic: 'drone patrols', signature: false },
+        ],
+    };
+    const checks = fidelityCodeChecks(brief, '{"dynamic":[{"type":"drone"}]}');
+    assert.deepEqual(checks.unbackedMechanics, ['Cargo must reach crown']);
+    assert.deepEqual(unbackedSignatureMechanics(brief, '{"dynamic":[{"type":"drone"}]}'), [
+        'Cargo must reach crown',
+    ]);
+    assert.deepEqual(unbackedSignatureMechanics(brief, ''), []);
+});
+
+test('malformed human confirmations are rejected, stale bindings drop', async () => {
+    const { confirmationReview } = await loadCritic();
+    const malformed = confirmationReview({
+        confirmed: ['row:rescue'],
+        reviewerType: 'human',
+    });
+    assert.deepEqual(malformed.confirmed, []);
+    assert.equal(malformed.malformed, true);
+    const bound = confirmationReview(
+        {
+            confirmed: [{ key: 'row:rescue', shot: '03-finale.jpg', hash: 'old-hash' }],
+            reviewer: 'Ada',
+            reviewerType: 'human',
+            reasoning: 'opened the finale shot',
+        },
+        { shotHashes: { '03-finale.jpg': 'new-hash' } }
+    );
+    assert.deepEqual(bound.confirmed, []);
+    assert.deepEqual(bound.stale, ['row:rescue']);
+    const fresh = confirmationReview(
+        {
+            confirmed: [{ key: 'row:rescue', shot: '03-finale.jpg', hash: 'new-hash' }],
+            reviewer: 'Ada',
+            reviewerType: 'human',
+            reasoning: 'opened the finale shot',
+        },
+        { shotHashes: { '03-finale.jpg': 'new-hash' } }
+    );
+    assert.deepEqual(fresh.confirmed, ['row:rescue']);
+});
+
+test('ship verdict requires completion, boss pass, and loop respect', async () => {
+    const { assessShipVerdict } = await loadCritic();
+    const base = {
+        passed: true,
+        telemetry: { outcome: 'crown-collected' },
+        bossRequired: false,
+        bossPassed: null,
+        loop: 1,
+    };
+    assert.equal(assessShipVerdict(base).ship, true);
+    assert.equal(assessShipVerdict({ ...base, telemetry: { outcome: 'timeout' } }).ship, false);
+    assert.equal(
+        assessShipVerdict({ ...base, telemetry: { outcome: 'timeout' }, humanPlay: true }).ship,
+        true
+    );
+    assert.equal(assessShipVerdict({ ...base, bossRequired: true, bossPassed: false }).ship, false);
+    assert.equal(assessShipVerdict({ ...base, bossRequired: true, bossPassed: true }).ship, true);
+    assert.equal(assessShipVerdict({ ...base, loop: 4 }).ship, false);
+    assert.equal(assessShipVerdict({ ...base, loop: 4, loopReopened: true }).ship, true);
+});
+
+test('news brief resolves through the art selection fallback', async () => {
+    const { resolveBriefFromSelection } = await loadCritic();
+    const os = require('node:os');
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'brief-fallback-'));
+    fs.mkdirSync(path.join(root, 'art-selections/99'), { recursive: true });
+    fs.mkdirSync(path.join(root, 'art-candidates/story-x'), { recursive: true });
+    fs.writeFileSync(
+        path.join(root, 'art-candidates/story-x/brief.md'),
+        [
+            '# Level 99 — Story X',
+            '',
+            'Element inventory: rising water, sandbag stacks, rescue boats',
+            '',
+            '| Story fact | Gameplay it becomes | Why |',
+            '| --- | --- | --- |',
+            '| River rises | drip hazards | clock |',
+        ].join('\n')
+    );
+    fs.writeFileSync(
+        path.join(root, 'art-selections/99/selection.json'),
+        JSON.stringify({ level_id: 99, brief_path: '../../art-candidates/story-x/brief.md' })
+    );
+    const resolved = resolveBriefFromSelection(99, root);
+    assert.ok(resolved, 'selection fallback finds the selected brief');
+    assert.deepEqual(resolved.brief.elements, ['rising water', 'sandbag stacks', 'rescue boats']);
+    assert.equal(resolveBriefFromSelection(18, root), null);
 });

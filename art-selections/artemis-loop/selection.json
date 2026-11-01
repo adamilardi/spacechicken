@@ -1,0 +1,34 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-artemis-loop/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated"
+        },
+        {
+            "asset_path": "assets/news-artemis-loop/integrity-sprite.png",
+            "role": "actor: Integrity Sprite (bonk hazard, key integritySprite)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha, resized to 72px gameplay height"
+        },
+        {
+            "asset_path": "assets/news-artemis-loop/shield-glow.png",
+            "role": "prop: heat-shield glow (key shieldGlow)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "assets/news-artemis-loop/chute-prop.png",
+            "role": "prop: splashdown parachutes (key chuteProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "canvas:labDeck/issHull/vaultDeck",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 25,
+    "requested_revisions": [],
+    "story": "Artemis II: 695,081 Miles, Heat Shield Held [2026] — Tech Insider, Nov 1 2026, https://tech-insider.org/artemis-ii-moon-mission-695081-miles-heat-shield-orion-recap-2026/",
+    "unfilled_roles": []
+}

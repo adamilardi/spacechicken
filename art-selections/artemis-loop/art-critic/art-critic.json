@@ -1,0 +1,131 @@
+{
+    "selection": "art-selections/artemis-loop/selection.json",
+    "verdict": "PASS",
+    "checks": [
+        {
+            "asset": "assets/news-artemis-loop/bg.jpg",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present (root-relative: assets/news-artemis-loop/bg.jpg)"
+        },
+        {
+            "asset": "assets/news-artemis-loop/bg.jpg",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/artemis-loop/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-artemis-loop/bg.jpg",
+            "check": "plate-covers",
+            "result": "pass",
+            "detail": "1920x1280"
+        },
+        {
+            "asset": "assets/news-artemis-loop/integrity-sprite.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present (root-relative: assets/news-artemis-loop/integrity-sprite.png)"
+        },
+        {
+            "asset": "assets/news-artemis-loop/integrity-sprite.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/artemis-loop/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-artemis-loop/integrity-sprite.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "108x72 RGBA"
+        },
+        {
+            "asset": "assets/news-artemis-loop/integrity-sprite.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "15.8% opaque"
+        },
+        {
+            "asset": "assets/news-artemis-loop/shield-glow.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present (root-relative: assets/news-artemis-loop/shield-glow.png)"
+        },
+        {
+            "asset": "assets/news-artemis-loop/shield-glow.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/artemis-loop/art-critic/02-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-artemis-loop/shield-glow.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "96x64 RGBA"
+        },
+        {
+            "asset": "assets/news-artemis-loop/shield-glow.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "14.8% opaque"
+        },
+        {
+            "asset": "assets/news-artemis-loop/chute-prop.png",
+            "check": "file-exists",
+            "result": "pass",
+            "detail": "present (root-relative: assets/news-artemis-loop/chute-prop.png)"
+        },
+        {
+            "asset": "assets/news-artemis-loop/chute-prop.png",
+            "check": "gameplay-preview",
+            "result": "pass",
+            "detail": "art-selections/artemis-loop/art-critic/03-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-artemis-loop/chute-prop.png",
+            "check": "has-alpha",
+            "result": "pass",
+            "detail": "96x64 RGBA"
+        },
+        {
+            "asset": "assets/news-artemis-loop/chute-prop.png",
+            "check": "cutout-fill",
+            "result": "pass",
+            "detail": "20.2% opaque"
+        },
+        {
+            "asset": "canvas:labDeck/issHull/vaultDeck",
+            "check": "canvas-paint",
+            "result": "pass",
+            "detail": "shipped canvas texture(s) registered: labDeck, issHull, vaultDeck"
+        }
+    ],
+    "previews": [
+        {
+            "asset": "assets/news-artemis-loop/bg.jpg",
+            "kind": "background",
+            "preview": "art-selections/artemis-loop/art-critic/00-background-gameplay-1280x720.jpg"
+        },
+        {
+            "asset": "assets/news-artemis-loop/integrity-sprite.png",
+            "kind": "actor",
+            "preview": "art-selections/artemis-loop/art-critic/01-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-artemis-loop/shield-glow.png",
+            "kind": "actor",
+            "preview": "art-selections/artemis-loop/art-critic/02-actor-gameplay-52px.png"
+        },
+        {
+            "asset": "assets/news-artemis-loop/chute-prop.png",
+            "kind": "actor",
+            "preview": "art-selections/artemis-loop/art-critic/03-actor-gameplay-52px.png"
+        }
+    ],
+    "checklist": [
+        "Two-device difference: name the two composition devices that differ from every shipped background type (see the authoring reference catalog).",
+        "Landmark read at 1x: open the gameplay preview — the signature landmark names the place without the instructions paragraph.",
+        "Silhouette distinctness: the actor cutout at 52px is not mistakable for a shipped hazard or the chicken.",
+        "Palette anchor: the set matches the style-anchor palette; background stays quieter than chicken, hazards, and platform edges.",
+        "No doubles: the plate paints no characters, crowns, or text that duplicate live sprites."
+    ]
+}

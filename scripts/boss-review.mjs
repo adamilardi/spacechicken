@@ -551,7 +551,7 @@ export function panelPassed(reports) {
 export async function reviewBoss(client, brief, telemetry) {
     const flagged = { ...telemetry, flags: telemetryFlags(telemetry) };
     const fight = {
-        game: 'Space Chicken: a chicken run-and-gun platformer. Levels 8-16 are contra-style shooting stages with the space phaser (horizontal bolts). Touching an enemy kills; checkpoints respawn.',
+        game: 'Space Chicken: a chicken run-and-gun platformer. Levels 8-16 are contra-style shooting stages with the weapon rack (phaser plus unlocked Scatter/Piercer/Nova/Tempest/Hail/Ripper/Comet/Halo) and 8-way aim: forward, up, diagonal-up, and down/diagonal-down from the air, with fan spreads perpendicular to the aim. Touching an enemy kills; checkpoints respawn.',
         boss: brief,
         variety: varietyNote(brief),
     };

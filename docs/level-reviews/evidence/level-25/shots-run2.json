@@ -1,0 +1,114 @@
+{
+  "level": 25,
+  "runLabel": 2,
+  "shots": [
+    {
+      "id": "run2-death-1",
+      "file": "run2-death-1.jpg",
+      "x": 2006,
+      "y": 400,
+      "proves": "gameplay frame at death 1 (x=2006, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "f50a6494f8df"
+    },
+    {
+      "id": "run2-death-2",
+      "file": "run2-death-2.jpg",
+      "x": 2225,
+      "y": 400,
+      "proves": "gameplay frame at death 2 (x=2225, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "9f084c40a446"
+    },
+    {
+      "id": "run2-death-3",
+      "file": "run2-death-3.jpg",
+      "x": 2249,
+      "y": 400,
+      "proves": "gameplay frame at death 3 (x=2249, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "a18b0722056d"
+    },
+    {
+      "id": "run2-death-4",
+      "file": "run2-death-4.jpg",
+      "x": 2295,
+      "y": 400,
+      "proves": "gameplay frame at death 4 (x=2295, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "15453ad149ae"
+    },
+    {
+      "id": "run2-death-5",
+      "file": "run2-death-5.jpg",
+      "x": 2209,
+      "y": 400,
+      "proves": "gameplay frame at death 5 (x=2209, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "3b2f5210c87e"
+    },
+    {
+      "id": "run2-death-6",
+      "file": "run2-death-6.jpg",
+      "x": 2276,
+      "y": 400,
+      "proves": "gameplay frame at death 6 (x=2276, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "b059de908c55"
+    },
+    {
+      "id": "01-opener",
+      "file": "run2-01-opener.jpg",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "capture": "staged-teleport",
+      "hash": "64c09dad7c7c"
+    },
+    {
+      "id": "02-hazard-cosmicRay",
+      "file": "run2-02-hazard-cosmicRay.jpg",
+      "x": 900,
+      "y": 140,
+      "proves": "hazard beat: cosmicRay at x=900",
+      "capture": "staged-teleport",
+      "hash": "556b97e2d358"
+    },
+    {
+      "id": "03-hazard-bonk",
+      "file": "run2-03-hazard-bonk.jpg",
+      "x": 1760,
+      "y": 560,
+      "proves": "hazard beat: bonk at x=1760",
+      "capture": "staged-teleport",
+      "hash": "54ad6bcd9c53"
+    },
+    {
+      "id": "04-hazard-laser",
+      "file": "run2-04-hazard-laser.jpg",
+      "x": 3120,
+      "y": 200,
+      "proves": "hazard beat: laser at x=3120",
+      "capture": "staged-teleport",
+      "hash": "9fa0e6deddd2"
+    },
+    {
+      "id": "05-hazard-crusher",
+      "file": "run2-05-hazard-crusher.jpg",
+      "x": 3720,
+      "y": 380,
+      "proves": "hazard beat: crusher at x=3720",
+      "capture": "staged-teleport",
+      "hash": "384b66a6fb3f"
+    },
+    {
+      "id": "06-finale",
+      "file": "run2-06-finale.jpg",
+      "x": 4950,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "capture": "staged-teleport",
+      "hash": "287dd3bd54d9"
+    }
+  ]
+}

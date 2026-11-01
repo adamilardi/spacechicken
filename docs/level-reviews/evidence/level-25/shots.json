@@ -1,0 +1,60 @@
+{
+  "level": 25,
+  "runLabel": 1,
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "capture": "staged-teleport",
+      "hash": "f5ff815d61e2"
+    },
+    {
+      "id": "02-hazard-cosmicRay",
+      "file": "02-hazard-cosmicRay.jpg",
+      "x": 900,
+      "y": 140,
+      "proves": "hazard beat: cosmicRay at x=900",
+      "capture": "staged-teleport",
+      "hash": "25dc11f3edf5"
+    },
+    {
+      "id": "03-hazard-bonk",
+      "file": "03-hazard-bonk.jpg",
+      "x": 1760,
+      "y": 560,
+      "proves": "hazard beat: bonk at x=1760",
+      "capture": "staged-teleport",
+      "hash": "47be9e4f9f5e"
+    },
+    {
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "x": 3120,
+      "y": 200,
+      "proves": "hazard beat: laser at x=3120",
+      "capture": "staged-teleport",
+      "hash": "588152709435"
+    },
+    {
+      "id": "05-hazard-crusher",
+      "file": "05-hazard-crusher.jpg",
+      "x": 3720,
+      "y": 380,
+      "proves": "hazard beat: crusher at x=3720",
+      "capture": "staged-teleport",
+      "hash": "4880b2e236fd"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "x": 4950,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "capture": "staged-teleport",
+      "hash": "864161883912"
+    }
+  ]
+}
