@@ -5458,7 +5458,11 @@ test('the game page opts into a mobile visual viewport', () => {
 
 test('the pause dialog names the current jump keys', () => {
     const html = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
-    assert.match(html, /Jump: Space, K, ↑, or W/);
+    const dialog = html.match(/<dialog id="pause-dialog"[\s\S]*?<\/dialog>/)[0];
+    const jumpRow = dialog.match(/<dt>Jump<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)[1];
+    for (const key of ['Space', 'K', '↑', 'W']) {
+        assert.match(jumpRow, new RegExp(`<kbd>${key}</kbd>`));
+    }
 });
 
 test('the Jev pilot fallback runs the shared brain and maps its input', async () => {
