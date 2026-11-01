@@ -83,7 +83,12 @@ export function attachPauseControls(game) {
             pausedPadHeld = held;
         }
         const scene = pausedScene || game.scene.getScenes(true)[0];
-        button.hidden = !scene || scene.awaitingStart || scene.gameOver || scene.isTransitioning;
+        button.hidden =
+            !scene ||
+            Boolean(pausedScene) ||
+            scene.awaitingStart ||
+            scene.gameOver ||
+            scene.isTransitioning;
     }
 
     game.events.on('poststep', syncButton);

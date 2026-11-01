@@ -265,6 +265,16 @@
                 width: min(480px, calc(100% - 32px));
                 padding: 20px 24px 24px;
             }
+            #pause-dialog[open] {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .pause-scroll {
+                overflow-y: auto;
+                touch-action: pan-y;
+                min-height: 0;
+            }
             .pause-subtitle {
                 margin: 0 0 4px;
                 color: #9fb2d8;
@@ -325,12 +335,10 @@
                 white-space: nowrap;
             }
             #pause-dialog #resume-button {
-                position: sticky;
-                bottom: 0;
+                flex: none;
                 width: 100%;
-                margin-top: 4px;
+                margin-top: 12px;
                 font-size: 18px;
-                box-shadow: 0 -8px 16px rgba(3, 9, 24, 0.9);
             }
             :is(#pause-dialog, #race-setup-dialog)::backdrop {
                 background: #030918cc;
@@ -379,132 +387,135 @@
         <dialog id="pause-dialog" aria-labelledby="pause-title">
             <h1 id="pause-title">Game paused</h1>
             <p class="pause-subtitle">The timer is stopped.</p>
-            <div class="pause-groups pause-keyboard-help">
-                <section class="pause-group" aria-label="Move and jump">
-                    <h2>Move &amp; jump</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Move</dt>
-                            <dd><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd></dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Jump</dt>
-                            <dd><kbd>Space</kbd> <kbd>K</kbd> <kbd>↑</kbd> <kbd>W</kbd></dd>
-                        </div>
-                    </dl>
-                </section>
-                <section class="pause-group" aria-label="Combat">
-                    <h2>Combat</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Fire</dt>
-                            <dd><kbd>F</kbd> <kbd>J</kbd></dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Aim while firing</dt>
-                            <dd>hold <kbd>↑</kbd>/<kbd>W</kbd> or <kbd>↓</kbd>/<kbd>S</kbd></dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Swap gun</dt>
-                            <dd><kbd>G</kbd> (weapon levels)</dd>
-                        </div>
-                    </dl>
-                </section>
-                <section class="pause-group" aria-label="Game shortcuts">
-                    <h2>Game</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Pause</dt>
-                            <dd><kbd>Esc</kbd> <kbd>P</kbd></dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Music · Leaderboard</dt>
-                            <dd><kbd>M</kbd> <kbd>B</kbd></dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Retry · Fork</dt>
-                            <dd><kbd>R</kbd> (results) <kbd>1</kbd> <kbd>2</kbd></dd>
-                        </div>
-                    </dl>
-                </section>
-                <section class="pause-group" aria-label="Race and two player">
-                    <h2>Race &amp; 2-player</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Race modes</dt>
-                            <dd>
-                                <kbd>2</kbd> keys · <kbd>3</kbd> keys+pad · <kbd>4</kbd> two pads
-                            </dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Player 1</dt>
-                            <dd>
-                                <kbd>A</kbd> <kbd>D</kbd> + <kbd>Space</kbd> · <kbd>J</kbd> fires ·
-                                <kbd>G</kbd> swaps
-                            </dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Player 2</dt>
-                            <dd>
-                                arrows + <kbd>↑</kbd> · <kbd>Num 1</kbd> fires ·
-                                <kbd>Num 2</kbd> swaps
-                            </dd>
-                        </div>
-                    </dl>
-                </section>
-                <section class="pause-group" aria-label="Gamepad">
-                    <h2>Gamepad</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Move · Aim</dt>
-                            <dd>stick / D-pad · stick Y</dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Jump · Fire · Swap</dt>
-                            <dd><kbd>A</kbd> <kbd>X</kbd> <kbd>Y</kbd></dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Pause</dt>
-                            <dd><kbd>Start</kbd></dd>
-                        </div>
-                    </dl>
-                </section>
-            </div>
-            <div class="pause-groups pause-touch-help">
-                <section class="pause-group" aria-label="Touch controls">
-                    <h2>Touch controls</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Move</dt>
-                            <dd>← → buttons</dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Jump</dt>
-                            <dd>JUMP button</dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Fire</dt>
-                            <dd>bolt button</dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Aim</dt>
-                            <dd>▲ / ▼ while firing</dd>
-                        </div>
-                        <div class="pause-row">
-                            <dt>Swap gun</dt>
-                            <dd>gun button</dd>
-                        </div>
-                    </dl>
-                </section>
-                <section class="pause-group" aria-label="On-screen toggles">
-                    <h2>Toggles</h2>
-                    <dl>
-                        <div class="pause-row">
-                            <dt>Music · Leaderboard</dt>
-                            <dd>on-screen buttons</dd>
-                        </div>
-                    </dl>
-                </section>
+            <div class="pause-scroll">
+                <div class="pause-groups pause-keyboard-help">
+                    <section class="pause-group" aria-label="Move and jump">
+                        <h2>Move &amp; jump</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Move</dt>
+                                <dd><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd></dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Jump</dt>
+                                <dd><kbd>Space</kbd> <kbd>K</kbd> <kbd>↑</kbd> <kbd>W</kbd></dd>
+                            </div>
+                        </dl>
+                    </section>
+                    <section class="pause-group" aria-label="Combat">
+                        <h2>Combat</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Fire</dt>
+                                <dd><kbd>F</kbd> <kbd>J</kbd></dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Aim while firing</dt>
+                                <dd>hold <kbd>↑</kbd>/<kbd>W</kbd> or <kbd>↓</kbd>/<kbd>S</kbd></dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Swap gun</dt>
+                                <dd><kbd>G</kbd> (weapon levels)</dd>
+                            </div>
+                        </dl>
+                    </section>
+                    <section class="pause-group" aria-label="Game shortcuts">
+                        <h2>Game</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Pause</dt>
+                                <dd><kbd>Esc</kbd> <kbd>P</kbd></dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Music · Leaderboard</dt>
+                                <dd><kbd>M</kbd> <kbd>B</kbd></dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Retry · Fork</dt>
+                                <dd><kbd>R</kbd> (results) <kbd>1</kbd> <kbd>2</kbd></dd>
+                            </div>
+                        </dl>
+                    </section>
+                    <section class="pause-group" aria-label="Race and two player">
+                        <h2>Race &amp; 2-player</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Race modes</dt>
+                                <dd>
+                                    <kbd>2</kbd> keys · <kbd>3</kbd> keys+pad · <kbd>4</kbd> two
+                                    pads
+                                </dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Player 1</dt>
+                                <dd>
+                                    <kbd>A</kbd> <kbd>D</kbd> + <kbd>Space</kbd> ·
+                                    <kbd>J</kbd> fires · <kbd>G</kbd> swaps
+                                </dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Player 2</dt>
+                                <dd>
+                                    arrows + <kbd>↑</kbd> · <kbd>Num 1</kbd> fires ·
+                                    <kbd>Num 2</kbd> swaps
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
+                    <section class="pause-group" aria-label="Gamepad">
+                        <h2>Gamepad</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Move · Aim</dt>
+                                <dd>stick / D-pad · stick Y</dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Jump · Fire · Swap</dt>
+                                <dd><kbd>A</kbd> <kbd>X</kbd> <kbd>Y</kbd></dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Pause</dt>
+                                <dd><kbd>Start</kbd></dd>
+                            </div>
+                        </dl>
+                    </section>
+                </div>
+                <div class="pause-groups pause-touch-help">
+                    <section class="pause-group" aria-label="Touch controls">
+                        <h2>Touch controls</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Move</dt>
+                                <dd>← → buttons</dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Jump</dt>
+                                <dd>JUMP button</dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Fire</dt>
+                                <dd>bolt button</dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Aim</dt>
+                                <dd>▲ / ▼ while firing</dd>
+                            </div>
+                            <div class="pause-row">
+                                <dt>Swap gun</dt>
+                                <dd>gun button</dd>
+                            </div>
+                        </dl>
+                    </section>
+                    <section class="pause-group" aria-label="On-screen toggles">
+                        <h2>Toggles</h2>
+                        <dl>
+                            <div class="pause-row">
+                                <dt>Music · Leaderboard</dt>
+                                <dd>on-screen buttons</dd>
+                            </div>
+                        </dl>
+                    </section>
+                </div>
             </div>
             <button id="resume-button" class="game-button">Resume game</button>
         </dialog>

@@ -1822,6 +1822,243 @@ test('campaign view groups levels under sub-campaign tabs', async () => {
     assert.equal(rowById[1].visible, false);
 });
 
+test('branch choice clears the level banner', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const chainable = () => ({
+        setOrigin() {
+            return this;
+        },
+        setScrollFactor() {
+            return this;
+        },
+        setDepth() {
+            return this;
+        },
+        setPadding() {
+            return this;
+        },
+        setBackgroundColor() {
+            return this;
+        },
+        setInteractive() {
+            return this;
+        },
+        on() {
+            return this;
+        },
+    });
+    let cleared = 0;
+    const overlays = Object.create(Overlays.prototype);
+    overlays.ui = { destroyed: false, clearLevelBanner: () => (cleared += 1) };
+    overlays.scene = {
+        getViewportWidth: () => 1280,
+        getViewportHeight: () => 720,
+        add: { rectangle: () => chainable(), text: () => chainable() },
+    };
+    overlays.branchObjects = null;
+    overlays.showBranchChoice(
+        [
+            { title: 'Rust Harbor', level: 13 },
+            { title: 'Iron Vault', level: 16 },
+        ],
+        () => {},
+        'Two routes diverge.'
+    );
+    assert.equal(cleared, 1);
+    assert.equal(overlays.branchObjects.length, 6);
+});
+
+test('pause button hides while paused', async () => {
+    const { attachPauseControls } = await importModule('PauseController.js');
+    const button = {
+        hidden: false,
+        blur() {},
+        addEventListener() {},
+        removeEventListener() {},
+    };
+    const dialog = {
+        showModal() {},
+        close() {},
+        scrollTop: 0,
+        addEventListener() {},
+        removeEventListener() {},
+    };
+    const resume = { focus() {}, addEventListener() {}, removeEventListener() {} };
+    const scene = {
+        awaitingStart: false,
+        gameOver: false,
+        isTransitioning: false,
+        jumpRequested: true,
+        pointerTapTimes: new Map(),
+        input: { keyboard: { resetKeys() {} }, manager: { pointers: [] } },
+        inputController: { pollGamepad() {} },
+        uiManager: null,
+        scene: { pause() {}, resume() {} },
+    };
+    const handlers = {};
+    const saved = {};
+    for (const key of ['document', 'window', 'navigator']) {
+        saved[key] = globalThis[key];
+    }
+    globalThis.document = {
+        getElementById: (id) =>
+            ({ 'pause-button': button, 'pause-dialog': dialog, 'resume-button': resume })[id],
+        hidden: false,
+        addEventListener() {},
+        removeEventListener() {},
+    };
+    globalThis.window = {
+        addEventListener(event, fn) {
+            handlers[event] = fn;
+        },
+        removeEventListener() {},
+    };
+    globalThis.navigator = {};
+    const game = {
+        scene: { getScenes: () => [scene] },
+        sound: {},
+        events: {
+            on(event, fn) {
+                handlers[event] = fn;
+            },
+            off() {},
+            once() {},
+        },
+        canvas: { focus() {} },
+    };
+    try {
+        attachPauseControls(game);
+        handlers.poststep();
+        assert.equal(button.hidden, false);
+        handlers.keydown({ code: 'Escape', repeat: false, preventDefault() {} });
+        handlers.poststep();
+        assert.equal(button.hidden, true);
+        handlers.keydown({ code: 'Escape', repeat: false, preventDefault() {} });
+        handlers.poststep();
+        assert.equal(button.hidden, false);
+    } finally {
+        for (const key of ['document', 'window', 'navigator']) {
+            if (saved[key] === undefined) {
+                delete globalThis[key];
+            } else {
+                globalThis[key] = saved[key];
+            }
+        }
+    }
+});
+
+test('narrow portrait HUD stacks deaths under the level', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const fake = (width, height) => ({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        displayWidth: width,
+        displayHeight: height,
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+        },
+    });
+    const ui = Object.create(UIManager.prototype);
+    ui.timerText = fake(200, 26);
+    ui.levelText = fake(220, 20);
+    ui.deathText = fake(110, 18);
+    ui.targetText = fake(200, 16);
+    ui.playerNameText = fake(120, 18);
+    ui.text = fake(300, 16);
+    ui.musicToggleButton = fake(40, 40);
+    ui.leaderboardButton = fake(150, 44);
+    ui.layoutNarrowPortraitHud({ left: 0, right: 0, top: 0, bottom: 0 }, 10, 390);
+    assert.equal(ui.deathText.x, 10);
+    assert.ok(ui.deathText.y > ui.levelText.y, 'deaths sits below the level line');
+    assert.ok(ui.targetText.y > ui.deathText.y, 'target follows the stacked stats');
+});
+
+test('compact HUD stacks stats in portrait but not landscape', async () => {
+    const { UIManager } = await importModule('UIManager.js');
+    const { computeLayoutMetrics } = await importModule('HudLayout.js');
+    const fake = (width, height) => ({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        displayWidth: width,
+        displayHeight: height,
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+        },
+        setFontSize() {},
+        setWordWrapWidth() {},
+        setPadding() {},
+    });
+    const layoutAt = (width, height) => {
+        const ui = Object.create(UIManager.prototype);
+        ui.scene = {
+            viewport: {
+                getLayoutMetrics: (insets) => computeLayoutMetrics(width, height, insets),
+            },
+        };
+        ui.overlays = { titleText: null, titleView: null };
+        ui.cachedInsets = null;
+        ui.touchControlsEnabled = false;
+        ui.timerText = fake(200, 26);
+        ui.levelText = fake(220, 20);
+        ui.deathText = fake(110, 18);
+        ui.targetText = fake(200, 16);
+        ui.playerNameText = fake(120, 18);
+        ui.text = fake(300, 16);
+        ui.musicToggleButton = null;
+        ui.leaderboardButton = fake(150, 44);
+        ui.layoutUI();
+        return ui;
+    };
+    const portrait = layoutAt(390, 844);
+    assert.ok(
+        portrait.deathText.y > portrait.levelText.y,
+        'portrait stats stack below the level line'
+    );
+    const boardLeft = portrait.leaderboardButton.x - portrait.leaderboardButton.displayWidth / 2;
+    assert.ok(
+        portrait.deathText.x + portrait.deathText.width <= boardLeft,
+        'stacked deaths clear the leaderboard button'
+    );
+    const landscape = layoutAt(844, 390);
+    assert.equal(
+        landscape.deathText.y,
+        landscape.levelText.y,
+        'landscape keeps the shallow same-line stats'
+    );
+});
+
+test('story rows deal row-major across two columns', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const fake = () => ({
+        x: 0,
+        y: 0,
+        displayHeight: 26,
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+        },
+        setWordWrapWidth() {},
+    });
+    const overlays = Object.create(Overlays.prototype);
+    overlays.ui = { applyFontSize() {} };
+    overlays.titleNewsHeader = fake();
+    overlays.titleNewsRows = [fake(), fake(), fake(), fake(), fake()];
+    const frame = { x: 0, y: 100, w: 700, h: 322, centerX: 350, bottom: 422 };
+    overlays.layoutStoriesPanel(frame, { fonts: { instructions: 16 }, innerWidth: 800 });
+    const [first, second, third] = overlays.titleNewsRows;
+    assert.equal(first.y, second.y);
+    assert.ok(first.x < second.x);
+    assert.ok(third.y > first.y);
+    overlays.layoutStoriesPanel(frame, { fonts: { instructions: 16 }, innerWidth: 320 });
+    assert.ok(overlays.titleNewsRows.every((row) => row.x === frame.centerX));
+});
+
 test('chevron taps cycle instead of starting', async () => {
     const { InputController } = await importModule('InputController.js');
     const chevron = {
@@ -5684,6 +5921,12 @@ test('the pause dialog names the current jump keys', () => {
     for (const key of ['Space', 'K', '↑', 'W']) {
         assert.match(jumpRow, new RegExp(`<kbd>${key}</kbd>`));
     }
+});
+
+test('pause dialog stays hidden until opened', () => {
+    const html = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+    assert.match(html, /#pause-dialog\[open\]\s*\{[^}]*display:\s*flex/);
+    assert.doesNotMatch(html, /#pause-dialog\s*\{[^}]*display:\s*flex/);
 });
 
 test('the Jev pilot fallback runs the shared brain and maps its input', async () => {

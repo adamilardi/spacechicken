@@ -1779,6 +1779,7 @@ export class Overlays {
         if (this.ui.destroyed || !Array.isArray(options) || options.length < 2) {
             return;
         }
+        this.ui.clearLevelBanner();
         this.hideBranchChoice();
         this.branchOptions = options;
         this.branchCallback = typeof onPick === 'function' ? onPick : null;
@@ -2163,15 +2164,20 @@ export class Overlays {
         const totalW = frame.w - pad * 2;
         const colW = (totalW - (columns - 1) * 10) / columns;
         for (const row of rows) row.setWordWrapWidth?.(colW, true);
-        const perCol = Math.ceil(rows.length / columns);
-        for (let c = 0; c < columns; c++) {
-            const colX = frame.x + pad + colW * (c + 0.5) + c * 10;
+        // Deal row-major across two columns so story numbers read
+        // left-to-right like the campaign rows.
+        const lanes =
+            columns === 1
+                ? [rows]
+                : [rows.filter((_, i) => i % 2 === 0), rows.filter((_, i) => i % 2 === 1)];
+        lanes.forEach((lane, c) => {
+            const colX = columns === 1 ? frame.centerX : frame.x + pad + colW * (c + 0.5) + c * 10;
             let rowY = top;
-            for (const row of rows.slice(c * perCol, (c + 1) * perCol)) {
+            for (const row of lane) {
                 row.setPosition(colX, rowY);
                 rowY += (row.displayHeight || 26) + 8;
             }
-        }
+        });
     }
 
     layoutCampaignPanel(frame, metrics) {

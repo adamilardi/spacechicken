@@ -791,32 +791,47 @@ export class UIManager {
         this.wrapInstructionText(metrics, padding);
         if (!narrowPortrait) this.avoidHudOverlap();
         if (metrics.isCompact) {
-            // Keep the HUD shallow in landscape and leave the playfield readable.
-            this.levelText.setPosition(
-                insets.left + padding,
-                this.timerText.y + this.timerText.height + 4
-            );
-            if (this.deathText) {
+            this.layoutCompactStats(metrics, insets, padding);
+        }
+        if (narrowPortrait && !this.overlays.titleText) {
+            this.layoutNarrowPortraitHud(insets, padding, width);
+        }
+    }
+
+    layoutCompactStats(metrics, insets, padding) {
+        // Keep the HUD shallow in landscape and leave the playfield readable.
+        // In portrait the stats stack: same-line deaths run under the
+        // leaderboard button on narrow screens.
+        this.levelText.setPosition(
+            insets.left + padding,
+            this.timerText.y + this.timerText.height + 4
+        );
+        if (this.deathText) {
+            if (metrics.isPortrait) {
+                this.deathText.setPosition(
+                    insets.left + padding,
+                    this.levelText.y + this.levelText.height + 4
+                );
+            } else {
                 this.deathText.setPosition(
                     this.levelText.x + this.levelText.width + 12,
                     this.levelText.y
                 );
             }
-            const statsBottom =
-                this.levelText.y + Math.max(this.levelText.height, this.deathText?.height || 0);
-            this.targetText?.setPosition(insets.left + padding, statsBottom + 4);
-            const nameBottom = this.playerNameText
-                ? this.playerNameText.y + this.playerNameText.displayHeight / 2
-                : 0;
-            this.text.setPosition(
-                insets.left + padding,
-                Math.max(this.targetText.y + this.targetText.height, nameBottom) + 8
-            );
-            this.text.setWordWrapWidth(Math.max(140, metrics.innerWidth - padding * 2), true);
         }
-        if (narrowPortrait && !this.overlays.titleText) {
-            this.layoutNarrowPortraitHud(insets, padding, width);
-        }
+        const statsBottom = Math.max(
+            this.levelText.y + this.levelText.height,
+            this.deathText ? this.deathText.y + this.deathText.height : 0
+        );
+        this.targetText?.setPosition(insets.left + padding, statsBottom + 4);
+        const nameBottom = this.playerNameText
+            ? this.playerNameText.y + this.playerNameText.displayHeight / 2
+            : 0;
+        this.text.setPosition(
+            insets.left + padding,
+            Math.max(this.targetText.y + this.targetText.height, nameBottom) + 8
+        );
+        this.text.setWordWrapWidth(Math.max(140, metrics.innerWidth - padding * 2), true);
     }
 
     layoutNarrowPortraitHud(insets, padding, width) {
@@ -829,9 +844,13 @@ export class UIManager {
             insets.left + padding,
             this.timerText.y + this.timerText.height + 4
         );
-        this.deathText?.setPosition(this.levelText.x + this.levelText.width + 12, this.levelText.y);
-        const statsBottom =
-            this.levelText.y + Math.max(this.levelText.height, this.deathText?.height || 0);
+        this.deathText?.setPosition(
+            insets.left + padding,
+            this.levelText.y + this.levelText.height + 4
+        );
+        const statsBottom = this.deathText
+            ? this.deathText.y + this.deathText.height
+            : this.levelText.y + this.levelText.height;
         this.targetText?.setPosition(insets.left + padding, statsBottom + 4);
         this.playerNameText?.setPosition(
             width - insets.right - padding,
