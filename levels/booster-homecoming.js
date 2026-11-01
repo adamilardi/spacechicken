@@ -22,6 +22,7 @@ export const level = {
         news: {
             outlet: 'Spaceflight Now',
             headline: 'SpaceX closes out October with 700th Falcon 9 launch to date',
+            url: 'https://spaceflightnow.com/2026/10/30/live-coverage-spacex-to-close-out-october-with-halloween-eve-falcon-9-launch/',
         },
         background: {
             type: 'harbor',

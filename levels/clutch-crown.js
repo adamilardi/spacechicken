@@ -25,6 +25,7 @@ export const level = {
             outlet: 'World Chess',
             headline:
                 'Gukesh vs Sindarov: Everything You Need To Know About The 2026 World Chess Championship',
+            url: 'https://worldchess.com/news/gukesh-vs-sindarov-everything-you-need-to-know-about-the-2026-world-chess-championship',
         },
         background: {
             type: 'station',

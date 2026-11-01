@@ -137,6 +137,7 @@ export class Overlays {
         this.titleHeroPrev = null;
         this.titleHeroNext = null;
         this.titleHeroCounter = null;
+        this.titleHeroSourceUrl = null;
         this.titleHeroIndex = Math.max(0, NEWS_LEVEL_IDS.indexOf(FEATURED_NEWS_ID));
         this.titleHeroTimer = null;
         this.titleView = 'featured';
@@ -1434,6 +1435,12 @@ export class Overlays {
         this.titleHeroCounter = mk('', Math.max(11, ins - 2), '#8ce4ff', true);
         this.titleHeroCounter.setOrigin(1, 0);
         this.titleHeroOutlet = mk('', Math.max(12, ins - 1), '#9fb3c8');
+        if (typeof this.titleHeroOutlet.setInteractive === 'function') {
+            this.titleHeroOutlet.setInteractive({ useHandCursor: true });
+            this.titleHeroOutlet.on('pointerup', () => this.openNewsLink());
+            this.titleHeroOutlet.on('pointerover', () => this.titleHeroOutlet.setColor('#8ce4ff'));
+            this.titleHeroOutlet.on('pointerout', () => this.titleHeroOutlet.setColor('#9fb3c8'));
+        }
         this.titleHeroHeadline = mk('', Math.max(16, ins + 2), '#ffffff', true);
         this.titleHeroHeadline.setWordWrapWidth(400, true);
         this.titleHeroLevel = mk('', Math.max(15, ins + 1), '#ffe566', true);
@@ -1508,13 +1515,26 @@ export class Overlays {
         return NEWS_LEVEL_IDS[this.titleHeroIndex] || NEWS_LEVEL_IDS[0];
     }
 
+    openNewsLink() {
+        const url = this.titleHeroSourceUrl;
+        if (typeof url !== 'string' || !/^https?:\/\//.test(url)) return false;
+        if (typeof window === 'undefined' || typeof window.open !== 'function') return false;
+        window.open(url, '_blank', 'noopener');
+        return true;
+    }
+
     updateHero(animate = true) {
         const id = this.featuredNewsId();
         if (!id || !this.titleHeroHeadline) return;
         const title = LEVEL_DEFINITIONS[id]?.TITLE || `Level ${id}`;
         const news = LEVEL_CONTENT[id]?.news || {};
         const outlet = news.outlet || 'News wire';
-        if (this.titleHeroOutlet) this.titleHeroOutlet.setText(`Source: ${outlet}`);
+        this.titleHeroSourceUrl = typeof news.url === 'string' && news.url ? news.url : null;
+        if (this.titleHeroOutlet) {
+            this.titleHeroOutlet.setText(
+                this.titleHeroSourceUrl ? `Source: ${outlet} ↗` : `Source: ${outlet}`
+            );
+        }
         if (this.titleHeroHeadline) {
             const raw = news.headline || title;
             this.titleHeroHeadline.setText(raw.length > 110 ? `${raw.slice(0, 107)}…` : raw);
@@ -2565,6 +2585,7 @@ export class Overlays {
         this.titleHeroPrev = null;
         this.titleHeroNext = null;
         this.titleHeroCounter = null;
+        this.titleHeroSourceUrl = null;
         this.titleMoreButton = null;
         this.titleCampaignButton = null;
         this.titleSettingsButton = null;

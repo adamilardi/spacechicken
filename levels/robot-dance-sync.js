@@ -23,6 +23,7 @@ export const level = {
             outlet: 'Today News Brief',
             headline:
                 '110 AgiBot humanoid robots dance together in China to set a Guinness World Records title',
+            url: 'https://todaynewsbrief.com/article/tech-agibot-110-humanoid-robots-dance-guinness-world-record',
         },
         background: {
             type: 'facility',

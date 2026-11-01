@@ -22,6 +22,7 @@ export const level = {
         news: {
             outlet: 'ESA/JAXA',
             headline: "MMX lifts off to Mars's moon Phobos",
+            url: 'https://www.esa.int/ESA_Multimedia/Images/2026/10/MMX_lifts_off_to_Mars_s_moon_Phobos',
         },
         background: {
             type: 'mars',

@@ -22,6 +22,7 @@ export const level = {
         news: {
             outlet: 'EuropeSays/NASA',
             headline: 'Once again, NASA is asking for ideas to rescue Hubble from certain death',
+            url: 'https://www.europesays.com/ie/759401/',
         },
         background: {
             type: 'iss',

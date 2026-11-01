@@ -22,6 +22,7 @@ export const level = {
         news: {
             outlet: 'Phys.org',
             headline: "NASA's TRACERS first results offer peek into violent magnetic process",
+            url: 'https://phys.org/news/2026-10-nasa-tracers-results-peek-violent.html',
         },
         background: {
             type: 'moon',

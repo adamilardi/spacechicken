@@ -56,6 +56,7 @@ export class UIManager {
             this.overlays.titleHeroPlay,
             this.overlays.titleHeroPrev,
             this.overlays.titleHeroNext,
+            this.overlays.titleHeroOutlet,
             this.overlays.titleMoreButton,
             this.overlays.titleCampaignButton,
             this.overlays.titleSettingsButton,

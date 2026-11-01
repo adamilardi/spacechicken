@@ -22,6 +22,7 @@ export const level = {
         news: {
             outlet: 'Le Private Banker',
             headline: 'Nasdaq 100 falls into correction as Intel, Nvidia and Reddit lead tech rout',
+            url: 'https://leprivatebanker.com/2026/10/30/nasdaq-100-falls-into-correction-as-intel-nvidia-and-reddit-lead-tech-rout/',
         },
         background: {
             type: 'skyhook',

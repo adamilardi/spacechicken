@@ -226,6 +226,11 @@ test('news levels are marked and listed for the title screen', async () => {
         assert.ok(LEVEL_DEFINITIONS[id].TITLE, `level ${id} has a title`);
         assert.ok(LEVEL_CONTENT[id].news.outlet, `level ${id} names its outlet`);
         assert.ok(LEVEL_CONTENT[id].news.headline, `level ${id} names its headline`);
+        assert.match(
+            LEVEL_CONTENT[id].news.url || '',
+            /^https:\/\//,
+            `level ${id} links its original article`
+        );
     }
 });
 
@@ -286,6 +291,68 @@ test('featured story is the default title action with an accurate action line', 
     scene.updateTitleScreen({ pointerStartTriggered: true, menu: {} });
     assert.deepEqual(campaignStarts, [1]);
     assert.deepEqual(launched, [FEATURED_NEWS_ID]);
+});
+
+test('featured story links its original article', async () => {
+    const { Overlays } = await importModule('Overlays.js');
+    const overlays = Object.create(Overlays.prototype);
+    const texts = {};
+    overlays.titleHeroIndex = 0;
+    overlays.titleHeroHeadline = {
+        setText(text) {
+            texts.headline = text;
+        },
+    };
+    overlays.titleHeroOutlet = {
+        setText(text) {
+            texts.outlet = text;
+        },
+    };
+    overlays.titleHeroLevel = {
+        setText(text) {
+            texts.level = text;
+        },
+    };
+    overlays.titleHeroMechanic = {
+        setText(text) {
+            texts.mechanic = text;
+        },
+    };
+    overlays.titleHeroCounter = {
+        setText(text) {
+            texts.counter = text;
+        },
+    };
+    overlays.updateStageVisibility = () => {};
+    overlays.updateNewsRowHighlight = () => {};
+    overlays.layoutTitleScreen = () => {};
+    overlays.scene = {};
+    overlays.updateHero(false);
+    assert.equal(texts.outlet, 'Source: Reuters ↗');
+    assert.equal(
+        overlays.titleHeroSourceUrl,
+        'https://tech-insider.org/nasdaq-100-2-trillion-october-wipeout-ai-spending-fears-2026/'
+    );
+
+    const opened = [];
+    const realWindow = global.window;
+    global.window = {
+        open: (url, target, features) => {
+            opened.push([url, target, features]);
+        },
+    };
+    try {
+        assert.equal(overlays.openNewsLink(), true);
+    } finally {
+        if (realWindow === undefined) delete global.window;
+        else global.window = realWindow;
+    }
+    assert.deepEqual(opened, [[overlays.titleHeroSourceUrl, '_blank', 'noopener']]);
+
+    overlays.titleHeroSourceUrl = 'javascript:alert(1)';
+    assert.equal(overlays.openNewsLink(), false);
+    overlays.titleHeroSourceUrl = null;
+    assert.equal(overlays.openNewsLink(), false);
 });
 
 test('title news rows start their level without unlocks', async () => {
@@ -360,6 +427,7 @@ test('story levels chain to the next story in order', async () => {
         22: 23,
         23: 24,
         24: 25,
+        25: null,
     };
     for (const [id, next] of Object.entries(expected)) {
         assert.equal(

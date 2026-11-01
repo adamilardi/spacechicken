@@ -22,6 +22,7 @@ export const level = {
         news: {
             outlet: 'Reuters',
             headline: 'Nasdaq 100 faces $2T October wipeout on AI fears',
+            url: 'https://tech-insider.org/nasdaq-100-2-trillion-october-wipeout-ai-spending-fears-2026/',
         },
         background: {
             type: 'bastion',
