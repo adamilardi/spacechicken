@@ -57,16 +57,21 @@ export function renderSkyhookBackground(
         (layout.stars || []).forEach((star) => {
             renderer.graphics.fillRect(star.x, star.y, 1, 1);
         });
-        renderer.graphics.fillStyle(palette.ribbon, 0.25);
-        renderer.graphics.fillRect(layout.ribbonX - 6, 0, 12, worldHeight);
-        renderer.graphics.fillStyle(palette.ribbon, 0.95);
-        renderer.graphics.fillRect(layout.ribbonX - 2, 0, 4, worldHeight);
-        (layout.climbers || []).forEach((climber) => {
-            renderer.graphics.fillStyle(palette.climber, 0.95);
-            renderer.graphics.fillRect(layout.ribbonX - 8, climber, 16, 6);
-            renderer.graphics.fillStyle(0xfff4e0, 0.95);
-            renderer.graphics.fillRect(layout.ribbonX - 8, climber, 16, 2);
-        });
+        // The sky layer barely scrolls (scrollX 0.05), so the tether ribbon
+        // sits at a fixed screen position all level. Levels borrowing the
+        // skyhook night sky for non-tether scenery opt out with ribbon: false.
+        if (background.ribbon !== false) {
+            renderer.graphics.fillStyle(palette.ribbon, 0.25);
+            renderer.graphics.fillRect(layout.ribbonX - 6, 0, 12, worldHeight);
+            renderer.graphics.fillStyle(palette.ribbon, 0.95);
+            renderer.graphics.fillRect(layout.ribbonX - 2, 0, 4, worldHeight);
+            (layout.climbers || []).forEach((climber) => {
+                renderer.graphics.fillStyle(palette.climber, 0.95);
+                renderer.graphics.fillRect(layout.ribbonX - 8, climber, 16, 6);
+                renderer.graphics.fillStyle(0xfff4e0, 0.95);
+                renderer.graphics.fillRect(layout.ribbonX - 8, climber, 16, 2);
+            });
+        }
         return;
     }
     if (layerId === 'far') {

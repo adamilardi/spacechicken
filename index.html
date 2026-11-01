@@ -261,6 +261,76 @@
                 overflow-y: auto;
                 touch-action: pan-y;
             }
+            #pause-dialog {
+                width: min(480px, calc(100% - 32px));
+                padding: 20px 24px 24px;
+            }
+            .pause-subtitle {
+                margin: 0 0 4px;
+                color: #9fb2d8;
+                font-size: 14px;
+            }
+            .pause-groups {
+                text-align: left;
+                margin: 0 0 8px;
+            }
+            .pause-group {
+                margin: 0;
+                padding: 8px 0 10px;
+                border-top: 1px solid #2a3a5c;
+            }
+            .pause-group:first-child {
+                border-top: none;
+            }
+            .pause-group h2 {
+                margin: 0 0 8px;
+                color: #ffe566;
+                font-size: 15px;
+                font-weight: bold;
+            }
+            .pause-group dl {
+                margin: 0;
+                display: grid;
+                gap: 6px;
+            }
+            .pause-row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 16px;
+                margin: 0;
+            }
+            .pause-row dt {
+                flex: none;
+                color: #dce7ff;
+                font-size: 14px;
+            }
+            .pause-row dd {
+                margin: 0;
+                text-align: right;
+                color: #9fb2d8;
+                font-size: 13px;
+                line-height: 1.9;
+            }
+            .pause-row kbd {
+                display: inline-block;
+                padding: 1px 7px;
+                border: 1px solid #4a5f8a;
+                border-radius: 6px;
+                background: #0b1428;
+                color: #eaf0ff;
+                font:
+                    12px 'Courier New',
+                    monospace;
+                white-space: nowrap;
+            }
+            #pause-dialog #resume-button {
+                position: sticky;
+                bottom: 0;
+                width: 100%;
+                margin-top: 4px;
+                font-size: 18px;
+            }
             :is(#pause-dialog, #race-setup-dialog)::backdrop {
                 background: #030918cc;
             }
@@ -291,6 +361,12 @@
                 :is(#pause-dialog, #race-setup-dialog) p {
                     margin: 8px 0;
                 }
+                .pause-group {
+                    padding: 6px 0 8px;
+                }
+                .pause-group h2 {
+                    margin-bottom: 4px;
+                }
             }
         </style>
     </head>
@@ -301,20 +377,134 @@
         </button>
         <dialog id="pause-dialog" aria-labelledby="pause-title">
             <h1 id="pause-title">Game paused</h1>
-            <p>The timer is stopped.</p>
-            <p class="pause-keyboard-help">
-                Move: ← → or A / D · Jump: Space, K, ↑, or W<br />Fire: F or J · Aim: hold ↑/W or
-                ↓/S while firing (up, diagonal, or down in air) · Swap gun: G (weapon levels) ·
-                Pause: Esc or P<br />Music: M · Leaderboard: B · Retry: R (results) · Fork: 1 / 2<br />Race:
-                2 keys · 3 keys+pad · 4 two pads<br />2P keys — P1: A/D + Space, J fires, G swaps ·
-                P2: arrows + ↑, numpad 1 fires, 2 swaps<br />Gamepad: stick/D-pad moves · stick Y
-                aims · A jumps · X fires · Y swaps · Start pauses
-            </p>
-            <p class="pause-touch-help">
-                Use the arrows to move and JUMP to boost. The bolt button fires, the ▲/▼ buttons aim
-                it up or down, the gun button swaps guns. On-screen buttons also toggle music and
-                the leaderboard.
-            </p>
+            <p class="pause-subtitle">The timer is stopped.</p>
+            <div class="pause-groups pause-keyboard-help">
+                <section class="pause-group" aria-label="Move and jump">
+                    <h2>Move &amp; jump</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Move</dt>
+                            <dd><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd></dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Jump</dt>
+                            <dd><kbd>Space</kbd> <kbd>K</kbd> <kbd>↑</kbd> <kbd>W</kbd></dd>
+                        </div>
+                    </dl>
+                </section>
+                <section class="pause-group" aria-label="Combat">
+                    <h2>Combat</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Fire</dt>
+                            <dd><kbd>F</kbd> <kbd>J</kbd></dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Aim while firing</dt>
+                            <dd>hold <kbd>↑</kbd>/<kbd>W</kbd> or <kbd>↓</kbd>/<kbd>S</kbd></dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Swap gun</dt>
+                            <dd><kbd>G</kbd> (weapon levels)</dd>
+                        </div>
+                    </dl>
+                </section>
+                <section class="pause-group" aria-label="Game shortcuts">
+                    <h2>Game</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Pause</dt>
+                            <dd><kbd>Esc</kbd> <kbd>P</kbd></dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Music · Leaderboard</dt>
+                            <dd><kbd>M</kbd> <kbd>B</kbd></dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Retry · Fork</dt>
+                            <dd><kbd>R</kbd> (results) <kbd>1</kbd> <kbd>2</kbd></dd>
+                        </div>
+                    </dl>
+                </section>
+                <section class="pause-group" aria-label="Race and two player">
+                    <h2>Race &amp; 2-player</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Race modes</dt>
+                            <dd>
+                                <kbd>2</kbd> keys · <kbd>3</kbd> keys+pad · <kbd>4</kbd> two pads
+                            </dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Player 1</dt>
+                            <dd>
+                                <kbd>A</kbd> <kbd>D</kbd> + <kbd>Space</kbd> · <kbd>J</kbd> fires ·
+                                <kbd>G</kbd> swaps
+                            </dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Player 2</dt>
+                            <dd>
+                                arrows + <kbd>↑</kbd> · <kbd>Num 1</kbd> fires ·
+                                <kbd>Num 2</kbd> swaps
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+                <section class="pause-group" aria-label="Gamepad">
+                    <h2>Gamepad</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Move · Aim</dt>
+                            <dd>stick / D-pad · stick Y</dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Jump · Fire · Swap</dt>
+                            <dd><kbd>A</kbd> <kbd>X</kbd> <kbd>Y</kbd></dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Pause</dt>
+                            <dd><kbd>Start</kbd></dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+            <div class="pause-groups pause-touch-help">
+                <section class="pause-group" aria-label="Touch controls">
+                    <h2>Touch controls</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Move</dt>
+                            <dd>← → buttons</dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Jump</dt>
+                            <dd>JUMP button</dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Fire</dt>
+                            <dd>bolt button</dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Aim</dt>
+                            <dd>▲ / ▼ while firing</dd>
+                        </div>
+                        <div class="pause-row">
+                            <dt>Swap gun</dt>
+                            <dd>gun button</dd>
+                        </div>
+                    </dl>
+                </section>
+                <section class="pause-group" aria-label="On-screen toggles">
+                    <h2>Toggles</h2>
+                    <dl>
+                        <div class="pause-row">
+                            <dt>Music · Leaderboard</dt>
+                            <dd>on-screen buttons</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
             <button id="resume-button" class="game-button">Resume game</button>
         </dialog>
         <noscript><p class="error">Enable JavaScript to play Space Chicken.</p></noscript>

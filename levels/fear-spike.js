@@ -28,6 +28,7 @@ export const level = {
             type: 'skyhook',
             style: 'night',
             starCount: 0,
+            ribbon: false,
             color: 0x060b18,
             palette: {
                 top: 0x060b18,
