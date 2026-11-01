@@ -4788,6 +4788,36 @@ test('bot snapshot distinguishes death from collecting the crown', async () => {
     assert.equal(snap.pendingLevel, 2);
 });
 
+test('bot snapshot exposes the branch choice so the driver can pick it', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    scene.init({ level: 12 });
+    scene.player = {
+        x: 12056,
+        y: 200,
+        alpha: 1,
+        visible: true,
+        scaleX: 1,
+        scaleY: 1,
+        body: {
+            enable: false,
+            velocity: { x: 0, y: 0 },
+            blocked: {},
+            touching: {},
+        },
+    };
+    scene.levelConfig = { nextLevel: 13 };
+    scene.isTransitioning = false;
+    scene.gameOver = false;
+    scene.pendingSceneData = null;
+    scene.awaitingBranch = true;
+    scene.uiManager = { branchOptions: [{ level: 13 }, { level: 16 }] };
+
+    const snap = scene.getBotSnapshot();
+    assert.equal(snap.awaitingBranch, true);
+    assert.deepEqual(snap.branchOptions, [13, 16]);
+});
+
 test('the game page opts into a mobile visual viewport', () => {
     const html = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
     assert.match(html, /viewport-fit=cover/);

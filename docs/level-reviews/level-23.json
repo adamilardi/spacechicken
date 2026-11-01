@@ -75,10 +75,12 @@
   "telemetry": {
     "level": 23,
     "outcome": "crown-collected",
-    "durationSec": 39.2,
-    "deaths": 0,
-    "deathSpots": [],
-    "maxX": 4256,
+    "durationSec": 52.4,
+    "deaths": 1,
+    "deathSpots": [
+      1785
+    ],
+    "maxX": 4252,
     "hazardTypesSeen": [
       "reconnectionSprite",
       "drone",
@@ -96,24 +98,24 @@
       "proves": "spawn read and first move"
     },
     {
-      "id": "02-hazard-cosmicRay",
-      "file": "02-hazard-cosmicRay.jpg",
-      "proves": "hazard beat: cosmicRay at x=1700"
+      "id": "02-setpiece-cuspArc",
+      "file": "02-setpiece-cuspArc.jpg",
+      "proves": "set piece: cuspArc at x=520"
     },
     {
-      "id": "03-hazard-drone",
-      "file": "03-hazard-drone.jpg",
+      "id": "03-hazard-bonk",
+      "file": "03-hazard-bonk.jpg",
+      "proves": "hazard beat: bonk at x=1760"
+    },
+    {
+      "id": "04-hazard-drone",
+      "file": "04-hazard-drone.jpg",
       "proves": "hazard beat: drone at x=2350"
     },
     {
-      "id": "04-hazard-drip",
-      "file": "04-hazard-drip.jpg",
+      "id": "05-hazard-drip",
+      "file": "05-hazard-drip.jpg",
       "proves": "hazard beat: drip at x=3740"
-    },
-    {
-      "id": "05-setpiece-cuspArc",
-      "file": "05-setpiece-cuspArc.jpg",
-      "proves": "set piece: cuspArc at x=520"
     },
     {
       "id": "06-finale",
@@ -126,48 +128,48 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 2.28,
-      "fairness": 2.05,
-      "readability": 2.28,
-      "novelty": 1.71,
-      "pacing": 2.36,
-      "theme": 2.37,
+      "fun": 2.37,
+      "fairness": 1.89,
+      "readability": 2.23,
+      "novelty": 1.89,
+      "pacing": 2.41,
+      "theme": 2.43,
       "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 2.39,
-      "fairness": 2.01,
-      "readability": 2.41,
-      "novelty": 1.79,
-      "pacing": 2.35,
-      "theme": 2.45,
+      "fun": 2.42,
+      "fairness": 1.81,
+      "readability": 2.35,
+      "novelty": 1.99,
+      "pacing": 2.36,
+      "theme": 2.44,
       "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 2.34,
-      "fairness": 1.97,
-      "readability": 2.18,
-      "novelty": 1.68,
-      "pacing": 2.4,
-      "theme": 2.49,
+      "fun": 2.4,
+      "fairness": 1.8,
+      "readability": 2.12,
+      "novelty": 1.78,
+      "pacing": 2.38,
+      "theme": 2.45,
       "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 2.54,
-      "fairness": 2.06,
-      "readability": 2.41,
-      "novelty": 1.68,
-      "pacing": 2.6,
-      "theme": 2.61,
+      "fun": 2.53,
+      "fairness": 1.8,
+      "readability": 2.32,
+      "novelty": 1.98,
+      "pacing": 2.54,
+      "theme": 2.55,
       "flaw": "none",
       "verdict": "ship"
     }
@@ -201,25 +203,25 @@
       {
         "element": "Reconnection Sprite",
         "signature": true,
-        "noul": 0.85,
+        "noul": 0.87,
         "verdict": "shown"
       },
       {
         "element": "twin satellites",
         "signature": false,
-        "noul": 0.8,
-        "verdict": "shown"
+        "noul": 0.28,
+        "verdict": "missing"
       },
       {
         "element": "cusp funnel",
         "signature": true,
-        "noul": 0.85,
+        "noul": 0.77,
         "verdict": "shown"
       },
       {
         "element": "magnetosphere arcs",
         "signature": false,
-        "noul": 0.87,
+        "noul": 0.86,
         "verdict": "shown"
       }
     ],
@@ -228,54 +230,55 @@
         "fact": "Magnetic field lines snap and explosively reconnect, releasing energy",
         "mechanic": "Bonk-snap verb: bonk Reconnection Sprites (bonk hazards) to bounce across broken field-line gaps too wide for a normal jump; gravity 340 so falls are fast and snaps are the way back up",
         "signature": true,
-        "choice": "unsupported",
-        "confidence": 0.42
+        "choice": "supports",
+        "confidence": 0.79
       },
       {
         "fact": "Solar wind slams the magnetopause and accelerates particles",
         "mechanic": "Cosmic-ray particle streams (cosmicRay hazards) sweeping the funnel lanes plus drip particle rain on the press decks",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.85
+        "confidence": 0.55
       },
       {
         "fact": "Twin TRACERS satellites fly in formation through the cusp",
         "mechanic": "A twin drone pair on one shared patrol beat crossing the funnel throat",
         "signature": false,
-        "choice": "supports",
-        "confidence": 0.2
+        "choice": "unsupported",
+        "confidence": 0.33
       },
       {
         "fact": "The cusp funnels field lines down to the pole",
         "mechanic": "Funnel topology: wide split upper/lower lines converge to a narrow crown gate past the cusp beam and finale sprite; crown is the cusp point",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.7
+        "confidence": 0.64
       }
     ],
-    "mechanicFidelity": 2.79,
+    "mechanicFidelity": 2.93,
     "visualFidelity": 3.34,
     "fidelityFlaw": "none",
-    "universeFit": 0.97,
+    "universeFit": 0.96,
     "usage": {
-      "input_tokens": 12084,
+      "input_tokens": 12082,
       "output_tokens": 352
     },
     "gate": {
-      "passed": true,
-      "shown": 4,
+      "passed": false,
+      "shown": 3,
       "contradicted": 0,
-      "unsupported": 0,
-      "needsHuman": [],
+      "unsupported": 1,
+      "needsHuman": [
+        "row:Magnetic field lines snap and explosively reconnect, releasing energy",
+        "row:Solar wind slams the magnetopause and accelerates particles",
+        "row:Twin TRACERS satellites fly in formation through the cusp",
+        "row:The cusp funnels field lines down to the pole"
+      ],
       "signatureMissing": [],
       "signatureUnsupported": [],
       "universeVerdict": "shown"
     },
-    "humanConfirmed": [
-      "row:Magnetic field lines snap and explosively reconnect, releasing energy",
-      "row:Twin TRACERS satellites fly in formation through the cusp",
-      "row:The cusp funnels field lines down to the pole"
-    ]
+    "humanConfirmed": []
   },
   "concept": {
     "passed": true,
@@ -285,11 +288,62 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [],
-  "fixes": [],
-  "loop": 2,
-  "priorFlaw": "cheap",
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 2,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "element \"twin satellites\" missing in shots (noul=0.28)",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+    },
+    {
+      "rank": 2,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Magnetic field lines snap and explosively reconnect, releasing energy is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:Magnetic field lines snap and explosively reconnect, releasing energy\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 3,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Solar wind slams the magnetopause and accelerates particles is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:Solar wind slams the magnetopause and accelerates particles\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 4,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Twin TRACERS satellites fly in formation through the cusp is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:Twin TRACERS satellites fly in formation through the cusp\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:The cusp funnels field lines down to the pole is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:The cusp funnels field lines down to the pole\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
   "loopExceeded": false,
-  "pilotRuns": 1,
+  "pilotRuns": 2,
   "repeatedFlaws": [],
-  "passed": true
+  "passed": false
 }

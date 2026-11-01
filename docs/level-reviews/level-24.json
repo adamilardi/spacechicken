@@ -14,11 +14,12 @@
     ],
     "dominantKeyShare": 0.46153846153846156,
     "hazardTypes": [
+      "boarder",
       "laser",
       "drone",
       "boss"
     ],
-    "hazardCount": 6,
+    "hazardCount": 12,
     "hasBoss": true,
     "movingCount": 0,
     "propCount": 4,
@@ -79,14 +80,18 @@
   "telemetry": {
     "level": 24,
     "outcome": "gate-open",
-    "durationSec": 44.1,
-    "deaths": 0,
-    "deathSpots": [],
-    "maxX": 6017,
+    "durationSec": 71.6,
+    "deaths": 2,
+    "deathSpots": [
+      2977,
+      2727
+    ],
+    "maxX": 6020,
     "hazardTypesSeen": [
       "laser",
       "drone",
-      "boss"
+      "boss",
+      "boarder"
     ],
     "errors": []
   },
@@ -127,49 +132,49 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 1.93,
-      "fairness": 1.87,
-      "readability": 2.25,
-      "novelty": 1.53,
-      "pacing": 1.81,
-      "theme": 2.09,
-      "flaw": "sleeping-finale",
+      "fun": 2.03,
+      "fairness": 1.49,
+      "readability": 2.3,
+      "novelty": 1.46,
+      "pacing": 2,
+      "theme": 2.2,
+      "flaw": "cheap",
       "verdict": "iterate"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 2,
-      "fairness": 1.83,
-      "readability": 2.21,
-      "novelty": 1.57,
-      "pacing": 1.72,
-      "theme": 2.15,
-      "flaw": "sleeping-finale",
+      "fun": 2.15,
+      "fairness": 1.37,
+      "readability": 2.18,
+      "novelty": 1.48,
+      "pacing": 2.03,
+      "theme": 2.35,
+      "flaw": "none",
       "verdict": "iterate"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 2.02,
-      "fairness": 1.93,
-      "readability": 2.08,
-      "novelty": 1.42,
-      "pacing": 1.87,
-      "theme": 2.21,
-      "flaw": "sleeping-finale",
+      "fun": 2.1,
+      "fairness": 1.38,
+      "readability": 1.99,
+      "novelty": 1.47,
+      "pacing": 2.05,
+      "theme": 2.32,
+      "flaw": "cheap",
       "verdict": "iterate"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 2.19,
-      "fairness": 1.82,
-      "readability": 2.23,
-      "novelty": 1.51,
-      "pacing": 1.97,
-      "theme": 2.37,
-      "flaw": "sleeping-finale",
+      "fun": 2.29,
+      "fairness": 1.48,
+      "readability": 2.21,
+      "novelty": 1.54,
+      "pacing": 2.18,
+      "theme": 2.38,
+      "flaw": "cheap",
       "verdict": "iterate"
     }
   ],
@@ -208,20 +213,20 @@
       {
         "element": "chessboard ranks",
         "signature": true,
-        "noul": 0.68,
-        "verdict": "faint"
+        "noul": 0.72,
+        "verdict": "shown"
       },
       {
         "element": "knight piece",
         "signature": false,
-        "noul": 0.95,
+        "noul": 0.97,
         "verdict": "shown"
       },
       {
         "element": "rapid clock",
         "signature": false,
-        "noul": 0.39,
-        "verdict": "missing"
+        "noul": 0.46,
+        "verdict": "faint"
       }
     ],
     "rows": [
@@ -230,45 +235,45 @@
         "mechanic": "Crown encounter: the Champion King boss guards the shielded crown on the top rank; the player fights it with the phaser (contra profile) while it knight-leaps to telegraphed squares",
         "signature": true,
         "choice": "supports",
-        "confidence": 0.3
+        "confidence": 0.26
       },
       {
         "fact": "He overturned a 2.5-point deficit on the final day",
         "mechanic": "Boss enrage at half HP is the final-day swing: leaps come faster and shorter-telegraphed, and a heavy comet pod waits at the arena door as the challenger's preparation",
         "signature": false,
         "choice": "unsupported",
-        "confidence": 0.92
+        "confidence": 0.94
       },
       {
         "fact": "18 rapid games over three days against four elite rivals",
         "mechanic": "Three stacked rank floors as the bracket: pawn boarder waves and file lasers on the lower ranks, checkpoints as rounds, rook drones on the middle rank",
         "signature": false,
-        "choice": "unsupported",
-        "confidence": 0.5
+        "choice": "supports",
+        "confidence": 0.49
       },
       {
         "fact": "The Geneva title match against Gukesh is next",
         "mechanic": "Crown is the showdown crown: win it and the road to Geneva opens (NEXT_LEVEL 1, outside the campaign chain)",
         "signature": false,
         "choice": "unsupported",
-        "confidence": 0.2
+        "confidence": 0.26
       }
     ],
-    "mechanicFidelity": 2.16,
-    "visualFidelity": 3.23,
+    "mechanicFidelity": 2.32,
+    "visualFidelity": 3.21,
     "fidelityFlaw": "none",
-    "universeFit": 0.96,
+    "universeFit": 0.92,
     "usage": {
-      "input_tokens": 12095,
+      "input_tokens": 12120,
       "output_tokens": 352
     },
     "gate": {
       "passed": false,
-      "shown": 2,
+      "shown": 3,
       "contradicted": 0,
-      "unsupported": 3,
+      "unsupported": 2,
       "needsHuman": [
-        "element:chessboard ranks",
+        "element:rapid clock",
         "row:Sindarov's attacking victory over the reigning star decided the showdown",
         "row:18 rapid games over three days against four elite rivals",
         "row:The Geneva title match against Gukesh is next"
@@ -286,40 +291,32 @@
     "elementCount": 4,
     "mappingCount": 4
   },
-  "newsFloorFailures": [],
+  "newsFloorFailures": [
+    "novelty mean 1.49 < news floor 1.5"
+  ],
   "fixes": [
     {
       "rank": 1,
-      "priority": 2,
-      "flaw": "missing-elements",
-      "source": "fidelity",
-      "evidence": "element \"rapid clock\" missing in shots (noul=0.39)",
-      "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
+      "priority": 1,
+      "flaw": "cheap",
+      "source": "quality",
+      "evidence": "3/4 personas named \"cheap\"; deathSpots x=2977, 2727; nearest shot 04-hazard-drone.jpg",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone and no new structural flaw may appear."
     },
     {
       "rank": 2,
-      "priority": 2,
-      "flaw": "sleeping-finale",
-      "source": "quality",
-      "evidence": "4/4 personas named \"sleeping-finale\"; 06-finale.jpg (crown approach and finale pressure); crownX=6550",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Add finale pressure within 900px of the crown on every route to it.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"sleeping-finale\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 3,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
-      "evidence": "element:chessboard ranks is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "evidence": "element:rapid clock is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
       "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"element:chessboard ranks\" against the screenshot and record it in human.json.",
+      "smallestFix": "Confirm or override \"element:rapid clock\" against the screenshot and record it in human.json.",
       "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     },
     {
-      "rank": 4,
+      "rank": 3,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
@@ -329,7 +326,7 @@
       "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     },
     {
-      "rank": 5,
+      "rank": 4,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
@@ -337,14 +334,24 @@
       "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
       "smallestFix": "Confirm or override \"row:18 rapid games over three days against four elite rivals\" against the screenshot and record it in human.json.",
       "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:The Geneva title match against Gukesh is next is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:The Geneva title match against Gukesh is next\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     }
   ],
-  "loop": 3,
-  "priorFlaw": "sleeping-finale",
-  "loopExceeded": false,
+  "loop": 4,
+  "priorFlaw": "missing-elements",
+  "loopExceeded": true,
   "pilotRuns": 2,
   "repeatedFlaws": [
-    "sleeping-finale"
+    "cheap"
   ],
   "passed": false
 }

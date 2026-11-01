@@ -19,6 +19,13 @@
     "checkpoints": [],
     "crownX": 1800,
     "finaleHazardCount": 0,
+    "finaleVisibleHazardCount": 0,
+    "finaleVisible": false,
+    "deckLayout": [
+      0.2,
+      0.4,
+      0.6
+    ],
     "platformBands": [
       9,
       8,
@@ -29,9 +36,10 @@
   "telemetry": {
     "level": 1,
     "outcome": "crown-collected",
-    "durationSec": 23.4,
+    "durationSec": 23.5,
     "deaths": 0,
-    "maxX": 1809,
+    "deathSpots": [],
+    "maxX": 1799,
     "hazardTypesSeen": [
       "rock"
     ],
@@ -59,52 +67,73 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 1.46,
-      "fairness": 2.42,
-      "readability": 2.48,
-      "novelty": 0.9,
-      "pacing": 1.1,
-      "theme": 1.66,
-      "flaw": "flat",
+      "fun": 1.33,
+      "fairness": 2.37,
+      "readability": 2.38,
+      "novelty": 1.02,
+      "pacing": 0.57,
+      "theme": 1.5,
+      "flaw": "sleeping-finale",
       "verdict": "iterate"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 1.13,
-      "fairness": 2.35,
-      "readability": 2.47,
-      "novelty": 0.96,
-      "pacing": 0.63,
-      "theme": 1.51,
+      "fun": 1.12,
+      "fairness": 1.94,
+      "readability": 2.45,
+      "novelty": 0.88,
+      "pacing": 0.43,
+      "theme": 1.36,
       "flaw": "sleeping-finale",
       "verdict": "iterate"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 1.71,
-      "fairness": 2.65,
-      "readability": 2.36,
-      "novelty": 0.97,
-      "pacing": 1.2,
-      "theme": 1.81,
+      "fun": 1.54,
+      "fairness": 2.28,
+      "readability": 2.26,
+      "novelty": 0.99,
+      "pacing": 0.7,
+      "theme": 1.48,
       "flaw": "sleeping-finale",
       "verdict": "iterate"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 1.57,
-      "fairness": 2.82,
-      "readability": 2.75,
-      "novelty": 0.85,
-      "pacing": 1.61,
-      "theme": 1.78,
-      "flaw": "flat",
-      "verdict": "ship"
+      "fun": 1.31,
+      "fairness": 2.33,
+      "readability": 2.62,
+      "novelty": 0.89,
+      "pacing": 0.86,
+      "theme": 1.48,
+      "flaw": "sleeping-finale",
+      "verdict": "iterate"
     }
   ],
   "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 2,
+      "flaw": "sleeping-finale",
+      "source": "quality",
+      "evidence": "4/4 personas named \"sleeping-finale\"; 03-finale.jpg (crown approach and finale pressure); crownX=1800",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add finale pressure within 900px of the crown on every route to it.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"sleeping-finale\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 2,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "sleeping-finale"
+  ],
   "passed": false
 }

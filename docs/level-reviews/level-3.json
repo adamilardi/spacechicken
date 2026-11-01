@@ -1,0 +1,167 @@
+{
+  "level": 3,
+  "run": "full",
+  "analysis": {
+    "title": "Orbital Gauntlet",
+    "gravity": 260,
+    "worldWidth": 2200,
+    "backgroundType": "station",
+    "platformCount": 5,
+    "platformKeys": [
+      "stationPanel"
+    ],
+    "dominantKeyShare": 1,
+    "hazardTypes": [
+      "laser",
+      "drone"
+    ],
+    "hazardCount": 5,
+    "hasBoss": false,
+    "movingCount": 4,
+    "propCount": 0,
+    "checkpoints": [
+      {
+        "x": 1440,
+        "y": 402
+      }
+    ],
+    "crownX": 2050,
+    "finaleHazardCount": 3,
+    "finaleVisibleHazardCount": 3,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.1,
+      0.236,
+      0.436,
+      0.655,
+      0.873
+    ],
+    "platformBands": [
+      13,
+      12,
+      9,
+      7,
+      5
+    ]
+  },
+  "flags": [],
+  "telemetry": {
+    "level": 3,
+    "outcome": "timeout",
+    "durationSec": 90,
+    "deaths": 1,
+    "deathSpots": [
+      141
+    ],
+    "maxX": 301,
+    "hazardTypesSeen": [
+      "laser",
+      "drone"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-laser",
+      "file": "02-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=520"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=900"
+    },
+    {
+      "id": "04-finale",
+      "file": "04-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.53,
+      "fairness": 1.65,
+      "readability": 2.23,
+      "novelty": 1.56,
+      "pacing": 1.52,
+      "theme": 2.07,
+      "flaw": "stale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.43,
+      "fairness": 1.53,
+      "readability": 2.15,
+      "novelty": 1.45,
+      "pacing": 1.43,
+      "theme": 2.08,
+      "flaw": "stale",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.32,
+      "fairness": 1.41,
+      "readability": 1.76,
+      "novelty": 1.49,
+      "pacing": 1.23,
+      "theme": 2,
+      "flaw": "blind",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.52,
+      "fairness": 1.58,
+      "readability": 2.18,
+      "novelty": 1.52,
+      "pacing": 1.47,
+      "theme": 2.23,
+      "flaw": "stale",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "blind",
+      "source": "quality",
+      "evidence": "1/4 personas named \"blind\"; deathSpots x=141; nearest shot 01-opener.jpg",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Make the landing/hazard readable in time: move the hazard off the blind landing or add a tell/landmark before the drop.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"blind\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "stale",
+      "source": "quality",
+      "evidence": "3/4 personas named \"stale\"; 02-hazard-laser.jpg (hazard beat: laser at x=520)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Replace the signature decision with a verb no sibling teaches the same way, with teach/press/twist beats.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"stale\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [],
+  "passed": false
+}

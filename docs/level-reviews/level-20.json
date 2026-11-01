@@ -86,22 +86,33 @@
   ],
   "telemetry": {
     "level": 20,
-    "outcome": "crown-collected",
-    "durationSec": 85.9,
-    "deaths": 4,
+    "outcome": "timeout",
+    "durationSec": 150.1,
+    "deaths": 16,
     "deathSpots": [
-      1423,
-      1663,
+      1383,
+      1447,
+      1355,
+      1436,
+      1462,
+      1337,
       1441,
-      5178
+      1351,
+      1444,
+      1351,
+      1428,
+      1353,
+      1431,
+      1353,
+      1439,
+      1348
     ],
-    "maxX": 5615,
+    "maxX": 1462,
     "hazardTypesSeen": [
       "laser",
       "drone",
       "boulder",
-      "calibrationTech",
-      "rock"
+      "calibrationTech"
     ],
     "errors": []
   },
@@ -122,14 +133,14 @@
       "proves": "hazard beat: laser at x=1960"
     },
     {
-      "id": "04-hazard-roller",
-      "file": "04-hazard-roller.jpg",
-      "proves": "hazard beat: roller at x=2900"
+      "id": "04-setpiece-countdownBoard",
+      "file": "04-setpiece-countdownBoard.jpg",
+      "proves": "set piece: countdownBoard at x=2400"
     },
     {
-      "id": "05-setpiece-countdownBoard",
-      "file": "05-setpiece-countdownBoard.jpg",
-      "proves": "set piece: countdownBoard at x=2400"
+      "id": "05-hazard-roller",
+      "file": "05-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=2900"
     },
     {
       "id": "06-finale",
@@ -142,48 +153,48 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 1.43,
-      "fairness": 1.31,
-      "readability": 2.16,
-      "novelty": 0.65,
-      "pacing": 1.81,
-      "theme": 1.73,
+      "fun": 0.47,
+      "fairness": 0.72,
+      "readability": 1.99,
+      "novelty": 0.56,
+      "pacing": 0.83,
+      "theme": 1.44,
       "flaw": "clone",
       "verdict": "rework"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 1.66,
-      "fairness": 1.34,
-      "readability": 2.13,
-      "novelty": 0.43,
-      "pacing": 1.83,
-      "theme": 1.84,
+      "fun": 0.51,
+      "fairness": 0.72,
+      "readability": 1.71,
+      "novelty": 0.38,
+      "pacing": 0.77,
+      "theme": 1.65,
       "flaw": "clone",
       "verdict": "rework"
     },
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 1.71,
-      "fairness": 1.37,
-      "readability": 1.99,
-      "novelty": 0.36,
-      "pacing": 1.96,
-      "theme": 1.91,
+      "fun": 0.41,
+      "fairness": 0.63,
+      "readability": 1.58,
+      "novelty": 0.38,
+      "pacing": 0.7,
+      "theme": 1.62,
       "flaw": "clone",
-      "verdict": "iterate"
+      "verdict": "rework"
     },
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 1.54,
-      "fairness": 1.3,
-      "readability": 2.2,
-      "novelty": 0.51,
-      "pacing": 2.01,
-      "theme": 2,
+      "fun": 0.37,
+      "fairness": 0.55,
+      "readability": 1.98,
+      "novelty": 0.44,
+      "pacing": 0.81,
+      "theme": 1.75,
       "flaw": "clone",
       "verdict": "rework"
     }
@@ -229,38 +240,38 @@
       {
         "element": "humanoid dancer bots",
         "signature": true,
-        "noul": 0.78,
+        "noul": 0.79,
         "verdict": "shown"
       },
       {
         "element": "stage formation grid",
         "signature": true,
-        "noul": 0.68,
+        "noul": 0.69,
         "verdict": "faint"
       },
       {
         "element": "transport cases",
         "signature": false,
-        "noul": 0.51,
+        "noul": 0.45,
         "verdict": "faint"
       },
       {
         "element": "LinkBots antenna mast",
         "signature": false,
-        "noul": 0.86,
+        "noul": 0.88,
         "verdict": "shown"
       },
       {
         "element": "countdown numerals",
         "signature": false,
-        "noul": 0.97,
+        "noul": 0.98,
         "verdict": "shown"
       },
       {
         "element": "Guinness certificate gate",
         "signature": false,
-        "noul": 0.28,
-        "verdict": "missing"
+        "noul": 0.57,
+        "verdict": "faint"
       }
     ],
     "rows": [
@@ -276,29 +287,29 @@
         "mechanic": "Laser timing gates on a fixed beat (on/off 800ms+) + checkpoint rescue as re-sync points; crown objective as finale pose",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.22
+        "confidence": 0.3
       },
       {
         "fact": "Robots walk from cases, self-calibrate, no per-unit remote",
         "mechanic": "Bonk pads as calibration stages: bonk to bounce between formation decks; gravity 240 for floaty choreography",
         "signature": false,
         "choice": "unsupported",
-        "confidence": 0.44
+        "confidence": 0.5
       },
       {
         "fact": "Guinness adjudicator counts and certifies on site",
         "mechanic": "Certification gauntlet: finale beat-laser gate + tempo roller crossing to the crown pose; finale checkpoint as the adjudicator mark",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.31
+        "confidence": 0.37
       }
     ],
-    "mechanicFidelity": 2.48,
-    "visualFidelity": 3.39,
+    "mechanicFidelity": 2.55,
+    "visualFidelity": 3.44,
     "fidelityFlaw": "missing-elements",
-    "universeFit": 0.97,
+    "universeFit": 0.96,
     "usage": {
-      "input_tokens": 12289,
+      "input_tokens": 12345,
       "output_tokens": 389
     },
     "gate": {
@@ -309,6 +320,7 @@
       "needsHuman": [
         "element:stage formation grid",
         "element:transport cases",
+        "element:Guinness certificate gate",
         "row:LinkBots directs fleets over 5G+WiFi, UWB +-10cm, auto gap-fill",
         "row:Robots walk from cases, self-calibrate, no per-unit remote",
         "row:Guinness adjudicator counts and certifies on site"
@@ -317,9 +329,7 @@
       "signatureUnsupported": [],
       "universeVerdict": "shown"
     },
-    "humanConfirmed": [
-      "element:humanoid dancer bots"
-    ]
+    "humanConfirmed": []
   },
   "concept": {
     "passed": true,
@@ -329,8 +339,10 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [
-    "novelty mean 0.49 < news floor 1.5",
-    "theme mean 1.87 < news floor 2"
+    "novelty mean 0.44 < news floor 1.5",
+    "theme mean 1.61 < news floor 2",
+    "readability mean 1.81 < news floor 2",
+    "pacing mean 0.78 < news floor 1.5"
   ],
   "fixes": [
     {
@@ -358,23 +370,13 @@
       "priority": 2,
       "flaw": "missing-elements",
       "source": "fidelity",
-      "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.48 visual=3.39",
+      "evidence": "fidelity flaw \"missing-elements\"; mechanic=2.55 visual=3.44",
       "owner": "skills/level-art-creator/SKILL.md",
       "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
       "recheck": "Re-run the full critic with NEWS_BRIEF; the fidelity gate must pass."
     },
     {
       "rank": 4,
-      "priority": 2,
-      "flaw": "missing-elements",
-      "source": "fidelity",
-      "evidence": "element \"Guinness certificate gate\" missing in shots (noul=0.28)",
-      "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
-      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7)."
-    },
-    {
-      "rank": 5,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
@@ -382,10 +384,20 @@
       "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
       "smallestFix": "Confirm or override \"element:stage formation grid\" against the screenshot and record it in human.json.",
       "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "element:transport cases is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"element:transport cases\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     }
   ],
-  "loop": 1,
-  "priorFlaw": null,
+  "loop": 2,
+  "priorFlaw": "clone",
   "loopExceeded": false,
   "pilotRuns": 2,
   "repeatedFlaws": [

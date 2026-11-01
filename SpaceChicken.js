@@ -3192,6 +3192,10 @@ export class SpaceChicken extends Phaser.Scene {
             lastDeathKind: this.lastDeathKind ?? null,
             dying: Boolean(this.isTransitioning && !this.gameOver && pendingLevel == null),
             pendingLevel,
+            awaitingBranch: Boolean(this.awaitingBranch),
+            branchOptions: Array.isArray(this.uiManager?.branchOptions)
+                ? this.uiManager.branchOptions.map((option) => option.level)
+                : null,
             elapsedMs: performance.now() - this.startTime,
             simulationTimeScale: this.testTimeScale,
             jumpCount: this.jumpCount,

@@ -1,0 +1,284 @@
+{
+  "level": 10,
+  "run": "full",
+  "analysis": {
+    "title": "Spire Crown",
+    "gravity": 280,
+    "worldWidth": 12400,
+    "backgroundType": "spire",
+    "platformCount": 30,
+    "platformKeys": [
+      "spireAlloy",
+      "spireGlass"
+    ],
+    "dominantKeyShare": 0.7666666666666667,
+    "hazardTypes": [
+      "laser",
+      "dustDevil",
+      "drone",
+      "boarder",
+      "shrike",
+      "bonk",
+      "boss"
+    ],
+    "hazardCount": 31,
+    "hasBoss": true,
+    "movingCount": 1,
+    "propCount": 6,
+    "checkpoints": [
+      {
+        "x": 1620,
+        "y": 510
+      },
+      {
+        "x": 2750,
+        "y": 390
+      },
+      {
+        "x": 6750,
+        "y": 270
+      },
+      {
+        "x": 7830,
+        "y": 250
+      },
+      {
+        "x": 11350,
+        "y": 220
+      }
+    ],
+    "crownX": 11950,
+    "finaleHazardCount": 3,
+    "finaleVisibleHazardCount": 3,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.024,
+      0.073,
+      0.109,
+      0.149,
+      0.149,
+      0.194,
+      0.194,
+      0.211,
+      0.23,
+      0.266,
+      0.302,
+      0.351,
+      0.375,
+      0.399,
+      0.448,
+      0.496,
+      0.516,
+      0.544,
+      0.593,
+      0.631,
+      0.673,
+      0.689,
+      0.715,
+      0.757,
+      0.799,
+      0.815,
+      0.841,
+      0.883,
+      0.919,
+      0.964
+    ],
+    "platformBands": [
+      11,
+      10,
+      9,
+      9,
+      8,
+      7,
+      6,
+      7,
+      6,
+      6,
+      7,
+      6,
+      6,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      4,
+      5,
+      5,
+      5,
+      3,
+      3,
+      5,
+      3,
+      4,
+      4
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "2 deck key(s), dominant share 0.77 across 30 decks"
+    },
+    {
+      "id": "checkpoint-desert",
+      "detail": "no checkpoint between x=2750 and x=6750"
+    }
+  ],
+  "telemetry": {
+    "level": 10,
+    "outcome": "timeout",
+    "durationSec": 310.1,
+    "deaths": 10,
+    "deathSpots": [
+      5566,
+      6883,
+      6909,
+      10899,
+      10875,
+      11290,
+      8563,
+      11491,
+      11459,
+      11473
+    ],
+    "maxX": 11537,
+    "hazardTypesSeen": [
+      "laser",
+      "dust_devil",
+      "drone",
+      "shrike",
+      "sentry",
+      "boss",
+      "boarder"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-boarder",
+      "file": "02-hazard-boarder.jpg",
+      "proves": "hazard beat: boarder at x=900"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=2850"
+    },
+    {
+      "id": "04-hazard-bonk",
+      "file": "04-hazard-bonk.jpg",
+      "proves": "hazard beat: bonk at x=11250"
+    },
+    {
+      "id": "05-hazard-boss",
+      "file": "05-hazard-boss.jpg",
+      "proves": "hazard beat: boss at x=11920"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.48,
+      "fairness": 1.05,
+      "readability": 2.12,
+      "novelty": 1.1,
+      "pacing": 0.86,
+      "theme": 1.99,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.57,
+      "fairness": 0.97,
+      "readability": 2.08,
+      "novelty": 1.28,
+      "pacing": 0.86,
+      "theme": 2.21,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.23,
+      "fairness": 0.98,
+      "readability": 1.79,
+      "novelty": 1.25,
+      "pacing": 0.79,
+      "theme": 2.19,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.56,
+      "fairness": 0.95,
+      "readability": 2.13,
+      "novelty": 1.36,
+      "pacing": 0.93,
+      "theme": 2.34,
+      "flaw": "flat",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "2 deck key(s), dominant share 0.77 across 30 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "4/4 personas named \"flat\"; 02-hazard-boarder.jpg (hazard beat: boarder at x=900)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 3,
+      "flaw": "checkpoint-desert",
+      "source": "mechanical",
+      "evidence": "no checkpoint between x=2750 and x=6750",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"checkpoint-desert\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "flat"
+  ],
+  "passed": false
+}

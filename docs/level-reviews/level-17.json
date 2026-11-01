@@ -90,13 +90,12 @@
   "telemetry": {
     "level": 17,
     "outcome": "crown-collected",
-    "durationSec": 67.8,
-    "deaths": 2,
+    "durationSec": 49.3,
+    "deaths": 1,
     "deathSpots": [
-      1523,
-      1510
+      5073
     ],
-    "maxX": 5611,
+    "maxX": 5658,
     "hazardTypesSeen": [
       "laser",
       "drone",
@@ -137,23 +136,23 @@
     {
       "persona": "reviewer",
       "name": "Marlowe (expert reviewer)",
-      "fun": 1.81,
-      "fairness": 1.52,
-      "readability": 2.27,
-      "novelty": 0.76,
-      "pacing": 2.08,
-      "theme": 2.04,
+      "fun": 1.89,
+      "fairness": 1.75,
+      "readability": 2.28,
+      "novelty": 0.65,
+      "pacing": 2.16,
+      "theme": 2.14,
       "flaw": "clone",
-      "verdict": "rework"
+      "verdict": "iterate"
     },
     {
       "persona": "veteran",
       "name": "Vic (contra veteran)",
-      "fun": 2,
-      "fairness": 1.55,
-      "readability": 2.34,
-      "novelty": 0.56,
-      "pacing": 2.02,
+      "fun": 1.92,
+      "fairness": 1.7,
+      "readability": 2.37,
+      "novelty": 0.51,
+      "pacing": 2.05,
       "theme": 2.18,
       "flaw": "clone",
       "verdict": "iterate"
@@ -161,11 +160,11 @@
     {
       "persona": "casual",
       "name": "Sam (casual newcomer)",
-      "fun": 1.98,
-      "fairness": 1.61,
-      "readability": 2.12,
-      "novelty": 0.57,
-      "pacing": 2.19,
+      "fun": 2.02,
+      "fairness": 1.78,
+      "readability": 2.13,
+      "novelty": 0.52,
+      "pacing": 2.26,
       "theme": 2.27,
       "flaw": "clone",
       "verdict": "iterate"
@@ -173,12 +172,12 @@
     {
       "persona": "speedrunner",
       "name": "Lex (speedrunner)",
-      "fun": 1.98,
-      "fairness": 1.45,
-      "readability": 2.25,
-      "novelty": 0.52,
-      "pacing": 2.09,
-      "theme": 2.33,
+      "fun": 1.97,
+      "fairness": 1.68,
+      "readability": 2.36,
+      "novelty": 0.49,
+      "pacing": 2.17,
+      "theme": 2.28,
       "flaw": "clone",
       "verdict": "iterate"
     }
@@ -200,36 +199,36 @@
         "mechanic": "Descending server-deck route toward crown at the floor's end; rolling margin-call rollers",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.33
+        "confidence": 0.34
       },
       {
         "fact": "AI data-center spending boom",
         "mechanic": "Bastion data-center biome + generated Muse Image backdrop (cyan conduits, plunging red ticker)",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.8
+        "confidence": 0.7
       },
       {
         "fact": "Panic spreads through names",
         "mechanic": "Generated Ticker Bot panic drones patrolling decks + laser audits timing gates",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.97
+        "confidence": 0.94
       },
       {
         "fact": "Investors must decide: hold or exit",
         "mechanic": "Reach the crown to \"close the position\"; checkpoints as circuit breakers",
         "signature": false,
         "choice": "supports",
-        "confidence": 0.44
+        "confidence": 0.48
       }
     ],
-    "mechanicFidelity": 2.89,
-    "visualFidelity": 2.82,
+    "mechanicFidelity": 2.85,
+    "visualFidelity": 2.86,
     "fidelityFlaw": "none",
-    "universeFit": 0.96,
+    "universeFit": 0.95,
     "usage": {
-      "input_tokens": 11669,
+      "input_tokens": 11659,
       "output_tokens": 280
     },
     "gate": {
@@ -239,6 +238,7 @@
       "unsupported": 0,
       "needsHuman": [
         "row:Value plunges, index falls",
+        "row:AI data-center spending boom",
         "row:Investors must decide: hold or exit"
       ],
       "signatureMissing": [],
@@ -264,7 +264,7 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [
-    "novelty mean 0.60 < news floor 1.5"
+    "novelty mean 0.54 < news floor 1.5"
   ],
   "fixes": [
     {
@@ -318,8 +318,8 @@
       "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
     }
   ],
-  "loop": 2,
-  "priorFlaw": "concept:incomplete-brief",
+  "loop": 3,
+  "priorFlaw": "clone",
   "loopExceeded": false,
   "pilotRuns": 2,
   "repeatedFlaws": [

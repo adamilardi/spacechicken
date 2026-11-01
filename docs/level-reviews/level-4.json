@@ -1,0 +1,187 @@
+{
+  "level": 4,
+  "run": "full",
+  "analysis": {
+    "title": "Moonfall Citadel",
+    "gravity": 180,
+    "worldWidth": 2800,
+    "backgroundType": "moon",
+    "platformCount": 7,
+    "platformKeys": [
+      "cliff"
+    ],
+    "dominantKeyShare": 1,
+    "hazardTypes": [
+      "rover",
+      "drone",
+      "cosmicRay",
+      "laser"
+    ],
+    "hazardCount": 13,
+    "hasBoss": false,
+    "movingCount": 6,
+    "propCount": 0,
+    "checkpoints": [],
+    "crownX": 2550,
+    "finaleHazardCount": 7,
+    "finaleVisibleHazardCount": 5,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.079,
+      0.211,
+      0.357,
+      0.507,
+      0.657,
+      0.793,
+      0.929
+    ],
+    "platformBands": [
+      11,
+      10,
+      9,
+      8,
+      7,
+      6,
+      5
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "1 deck key(s), dominant share 1.00 across 7 decks"
+    }
+  ],
+  "telemetry": {
+    "level": 4,
+    "outcome": "reached-crown-area",
+    "durationSec": 90.1,
+    "deaths": 5,
+    "deathSpots": [
+      907,
+      901,
+      2019,
+      2113,
+      2469
+    ],
+    "maxX": 2483,
+    "hazardTypesSeen": [
+      "rock",
+      "rover",
+      "drone",
+      "laser",
+      "cosmic_ray"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-rover",
+      "file": "02-hazard-rover.jpg",
+      "proves": "hazard beat: rover at x=535"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=900"
+    },
+    {
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=2370"
+    },
+    {
+      "id": "05-finale",
+      "file": "05-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.63,
+      "fairness": 1.46,
+      "readability": 2.23,
+      "novelty": 1.79,
+      "pacing": 1.64,
+      "theme": 2.23,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.6,
+      "fairness": 1.31,
+      "readability": 2.16,
+      "novelty": 1.84,
+      "pacing": 1.25,
+      "theme": 2.17,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.66,
+      "fairness": 1.46,
+      "readability": 2.02,
+      "novelty": 1.72,
+      "pacing": 1.84,
+      "theme": 2.31,
+      "flaw": "flat",
+      "verdict": "iterate"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.82,
+      "fairness": 1.4,
+      "readability": 2.22,
+      "novelty": 1.73,
+      "pacing": 1.92,
+      "theme": 2.36,
+      "flaw": "flat",
+      "verdict": "iterate"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "1 deck key(s), dominant share 1.00 across 7 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "4/4 personas named \"flat\"; 02-hazard-rover.jpg (hazard beat: rover at x=535)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "flat"
+  ],
+  "passed": false
+}

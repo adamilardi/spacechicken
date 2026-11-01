@@ -1,0 +1,41 @@
+{
+  "level": 3,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-3/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-laser",
+      "x": 520,
+      "y": 560,
+      "proves": "hazard beat: laser at x=520",
+      "id": "02-hazard-laser",
+      "file": "02-hazard-laser.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-3/02-hazard-laser.jpg"
+    },
+    {
+      "slug": "hazard-drone",
+      "x": 900,
+      "y": 520,
+      "proves": "hazard beat: drone at x=900",
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-3/03-hazard-drone.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 1850,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "04-finale",
+      "file": "04-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-3/04-finale.jpg"
+    }
+  ]
+}

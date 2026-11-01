@@ -1,0 +1,305 @@
+{
+  "level": 16,
+  "run": "full",
+  "analysis": {
+    "title": "Iron Vault",
+    "gravity": 300,
+    "worldWidth": 10000,
+    "backgroundType": "bastion",
+    "platformCount": 23,
+    "platformKeys": [
+      "vaultDeck",
+      "bastionGrate"
+    ],
+    "dominantKeyShare": 0.7391304347826086,
+    "hazardTypes": [
+      "boarder",
+      "drone",
+      "laser",
+      "crusher",
+      "shrike",
+      "bonk",
+      "boss"
+    ],
+    "hazardCount": 25,
+    "hasBoss": true,
+    "movingCount": 0,
+    "propCount": 6,
+    "checkpoints": [
+      {
+        "x": 1100,
+        "y": 566
+      },
+      {
+        "x": 2320,
+        "y": 476
+      },
+      {
+        "x": 4500,
+        "y": 532
+      },
+      {
+        "x": 5560,
+        "y": 492
+      },
+      {
+        "x": 8900,
+        "y": 450
+      },
+      {
+        "x": 9450,
+        "y": 424
+      }
+    ],
+    "crownX": 9550,
+    "finaleHazardCount": 2,
+    "finaleVisibleHazardCount": 1,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.038,
+      0.105,
+      0.11,
+      0.165,
+      0.22,
+      0.225,
+      0.27,
+      0.33,
+      0.39,
+      0.39,
+      0.45,
+      0.51,
+      0.51,
+      0.556,
+      0.62,
+      0.638,
+      0.684,
+      0.748,
+      0.812,
+      0.829,
+      0.874,
+      0.925,
+      0.97
+    ],
+    "platformBands": [
+      11,
+      10,
+      10,
+      9,
+      8,
+      6,
+      9,
+      10,
+      10,
+      9,
+      9,
+      9,
+      8,
+      9,
+      8,
+      8,
+      8,
+      6,
+      6,
+      8,
+      6,
+      8,
+      7
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "detail": "2 deck key(s), dominant share 0.74 across 23 decks"
+    },
+    {
+      "id": "clone-suspect",
+      "detail": "skeleton similarity 0.788 to level 11 (Bastion Relay)"
+    },
+    {
+      "id": "background-recycled",
+      "detail": "background type 'bastion' already used by levels 11, 17; build report must claim a new composition device"
+    },
+    {
+      "id": "checkpoint-desert",
+      "detail": "no checkpoint between x=5560 and x=8900"
+    }
+  ],
+  "telemetry": {
+    "level": 16,
+    "outcome": "reached-crown-area",
+    "durationSec": 250.1,
+    "deaths": 13,
+    "deathSpots": [
+      2830,
+      5105,
+      6860,
+      6174,
+      7461,
+      6403,
+      7443,
+      7472,
+      6173,
+      7461,
+      5949,
+      5923,
+      6869
+    ],
+    "maxX": 9555,
+    "hazardTypesSeen": [
+      "drone",
+      "laser",
+      "crusher",
+      "shrike",
+      "sentry",
+      "boss",
+      "boarder"
+    ],
+    "errors": []
+  },
+  "shots": [
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "proves": "spawn read and first move"
+    },
+    {
+      "id": "02-hazard-bonk",
+      "file": "02-hazard-bonk.jpg",
+      "proves": "hazard beat: bonk at x=1250"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=1700"
+    },
+    {
+      "id": "04-hazard-laser",
+      "file": "04-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=3250"
+    },
+    {
+      "id": "05-hazard-boss",
+      "file": "05-hazard-boss.jpg",
+      "proves": "hazard beat: boss at x=9540"
+    },
+    {
+      "id": "06-finale",
+      "file": "06-finale.jpg",
+      "proves": "crown approach and finale pressure"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.18,
+      "fairness": 0.96,
+      "readability": 2.1,
+      "novelty": 0.47,
+      "pacing": 0.81,
+      "theme": 1.8,
+      "flaw": "clone",
+      "verdict": "rework"
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.28,
+      "fairness": 0.86,
+      "readability": 1.91,
+      "novelty": 0.41,
+      "pacing": 0.58,
+      "theme": 1.94,
+      "flaw": "clone",
+      "verdict": "rework"
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.12,
+      "fairness": 0.86,
+      "readability": 1.63,
+      "novelty": 0.34,
+      "pacing": 0.51,
+      "theme": 1.78,
+      "flaw": "clone",
+      "verdict": "rework"
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.3,
+      "fairness": 0.79,
+      "readability": 2.01,
+      "novelty": 0.33,
+      "pacing": 0.72,
+      "theme": 2,
+      "flaw": "clone",
+      "verdict": "rework"
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "clone",
+      "source": "quality",
+      "evidence": "4/4 personas named \"clone\"; 02-hazard-bonk.jpg (hazard beat: bonk at x=1250)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "clone-suspect",
+      "source": "mechanical",
+      "evidence": "skeleton similarity 0.788 to level 11 (Bastion Relay)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Change deck/hazard sequence and background composition until skeleton similarity drops below the clone threshold.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"clone-suspect\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 3,
+      "priority": 1,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "2 deck key(s), dominant share 0.74 across 23 decks",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 4,
+      "priority": 3,
+      "flaw": "background-recycled",
+      "source": "mechanical",
+      "evidence": "background type 'bastion' already used by levels 11, 17; build report must claim a new composition device",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone and no new structural flaw may appear."
+    },
+    {
+      "rank": 5,
+      "priority": 3,
+      "flaw": "checkpoint-desert",
+      "source": "mechanical",
+      "evidence": "no checkpoint between x=5560 and x=8900",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"checkpoint-desert\" must be gone and no new structural flaw may appear."
+    }
+  ],
+  "loop": 1,
+  "priorFlaw": null,
+  "loopExceeded": false,
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "clone"
+  ],
+  "passed": false
+}

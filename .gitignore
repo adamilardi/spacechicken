@@ -42,3 +42,6 @@ __pycache__/
 
 # Scratch image output, never committed
 generated_images/
+
+# Level-critic evidence screenshots are regenerable artifacts, never committed
+docs/level-reviews/evidence/**/*.jpg

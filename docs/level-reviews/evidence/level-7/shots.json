@@ -1,0 +1,32 @@
+{
+  "level": 7,
+  "shots": [
+    {
+      "slug": "opener",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "id": "01-opener",
+      "file": "01-opener.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-7/01-opener.jpg"
+    },
+    {
+      "slug": "hazard-boarder",
+      "x": 700,
+      "y": 540,
+      "proves": "hazard beat: boarder at x=700",
+      "id": "02-hazard-boarder",
+      "file": "02-hazard-boarder.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-7/02-hazard-boarder.jpg"
+    },
+    {
+      "slug": "finale",
+      "x": 3440,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "id": "03-finale",
+      "file": "03-finale.jpg",
+      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-7/03-finale.jpg"
+    }
+  ]
+}
