@@ -49,3 +49,34 @@ test('clutch crown: reachable decks, safe checkpoints, crown in range', async ()
     assert.ok((level.content.pods || []).length >= 2, 'at least 2 pods');
     assert.ok((level.content.boarderWaves || []).length >= 2, 'at least 2 boarderWaves');
 });
+
+test('clutch crown: weapons ship with pawn boarders on every wave', async () => {
+    const { level } = await import(pathToFileURL(path.join(root, 'levels/clutch-crown.js')).href);
+    const waves = level.content.boarderWaves || [];
+    const boarders = (level.content.dynamic || []).filter((h) => h.type === 'boarder');
+    // PHASER bolts only damage boarders and bosses: a PHASER level with no
+    // boarder homes gives the player a gun with nothing to shoot on the route.
+    assert.ok(boarders.length >= 1, 'PHASER level spawns at least one boarder');
+    for (const trigger of waves) {
+        const homes = boarders.filter((h) => h.wave === trigger.wave);
+        assert.ok(
+            homes.length >= 1,
+            `wave-${trigger.wave} has at least one boarder home (trigger x=${trigger.x})`
+        );
+        for (const home of homes) {
+            assert.ok(
+                home.x >= trigger.x,
+                `wave-${home.wave} boarder at x=${home.x} releases ahead of the player`
+            );
+        }
+    }
+    const span = (d) => [d.x - 48 * (d.scaleX || 1), d.x + 48 * (d.scaleX || 1)];
+    for (const home of boarders) {
+        const deck = level.content.staticPlatforms.find((entry) => {
+            const [left, right] = span(entry);
+            return home.x >= left - 11 && home.x <= right + 11;
+        });
+        assert.ok(deck, `wave-${home.wave} boarder at x=${home.x} spawns over a deck`);
+        assert.ok(home.y <= deck.y - 12, `wave-${home.wave} boarder drops onto its deck`);
+    }
+});

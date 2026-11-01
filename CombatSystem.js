@@ -2,6 +2,7 @@ import { GAME_CONSTANTS } from './Constants.js';
 import {
     WEAPON_DEFS,
     activeWeaponId,
+    aimVector,
     nextWeaponId,
     tempGunMsLeft,
     weaponsForLevel,
@@ -176,17 +177,56 @@ export class CombatSystem {
             if (!gun) {
                 continue;
             }
-            const dir = chicken.flipX ? -1 : 1;
-            gun.setPosition(chicken.x + dir * 16, chicken.y + 2);
-            gun.setFlipX(dir < 0);
+            const aim = chicken.aim;
+            if (!aim || aim.y === 0) {
+                const dir = chicken.flipX ? -1 : 1;
+                gun.setPosition(chicken.x + dir * 16, chicken.y + 2);
+                gun.setRotation?.(0);
+                gun.setFlipX(dir < 0);
+                gun.setFlipY?.(false);
+            } else {
+                // Point the gun along the aim; flip Y on leftward aims so
+                // the sprite stays upright instead of rolling upside down.
+                gun.setPosition(chicken.x + aim.x * 16, chicken.y + aim.y * 16);
+                gun.setRotation?.(Math.atan2(aim.y, aim.x));
+                gun.setFlipX?.(false);
+                gun.setFlipY?.(aim.x < 0);
+            }
             gun.setVisible(chicken.active !== false && chicken.visible !== false);
         }
+    }
+
+    // Resolve one chicken's aim for this frame from its raw aim inputs.
+    // moveX comes from the run velocity movement already applied, so a
+    // chicken running left aims its diagonals left without extra state.
+    syncChickenAim(chicken, raw) {
+        if (!chicken) {
+            return;
+        }
+        const body = chicken.body;
+        chicken.aim = aimVector({
+            facing: chicken.flipX ? -1 : 1,
+            moveX: body?.velocity?.x || 0,
+            aimUp: raw?.up,
+            aimDown: raw?.down,
+            grounded: Boolean(body?.blocked?.down || body?.touching?.down || !body?.velocity),
+        });
     }
 
     updateCombat(inputState) {
         const scene = this.scene;
         const now = scene.getGameTime();
         if (scene.levelConfig?.phaser) {
+            this.syncChickenAim(scene.player, {
+                up: inputState?.aimUpHeld,
+                down: inputState?.aimDownHeld,
+            });
+            if (scene.player2) {
+                this.syncChickenAim(scene.player2, {
+                    up: scene.player2.aimUpHeld,
+                    down: scene.player2.aimDownHeld,
+                });
+            }
             if (inputState?.phaserHeld) {
                 this.tryFirePhaser(scene.player, now);
             }
@@ -221,7 +261,7 @@ export class CombatSystem {
             return;
         }
         const def = WEAPON_DEFS[this.weaponOf(chicken)] || WEAPON_DEFS.phaser;
-        const dir = chicken.flipX ? -1 : 1;
+        const aim = chicken.aim || { x: chicken.flipX ? -1 : 1, y: 0 };
         const fan = def.spread > 0 ? def.spread : 0;
         const shots =
             def.ways === 5 && fan > 0
@@ -231,7 +271,7 @@ export class CombatSystem {
                   : [0];
         let fired = false;
         for (let i = 0; i < shots.length; i++) {
-            if (this.spawnPlayerBolt(chicken, dir, def, shots[i])) {
+            if (this.spawnPlayerBolt(chicken, aim, def, shots[i])) {
                 fired = true;
             }
         }
@@ -241,7 +281,11 @@ export class CombatSystem {
         }
     }
 
-    spawnPlayerBolt(chicken, dir, def, velocityY) {
+    // aim is a unit vector; fanY is the legacy fan offset, applied
+    // perpendicular to the aim so a horizontal shot keeps the exact
+    // shipped velocities (SPEED, fanY) and every other direction is
+    // that same volley rotated.
+    spawnPlayerBolt(chicken, aim, def, fanY) {
         const scene = this.scene;
         const group = scene.phaserBolts;
         let bolt = group.getFirstDead?.(false) || null;
@@ -254,6 +298,11 @@ export class CombatSystem {
         if (!bolt) {
             return false;
         }
+        const speed = GAME_CONSTANTS.PHASER_BOLT_SPEED;
+        const velocityX = aim.x * speed - aim.y * fanY;
+        const velocityY = aim.y * speed + aim.x * fanY;
+        const spawnX = chicken.x + aim.x * 22;
+        const spawnY = chicken.y + aim.y * 22 + (aim.y === 0 ? 2 : 0);
         bolt.setTexture?.(def.bolt);
         bolt.pierceLeft = def.pierce > 0 ? def.pierce : 0;
         bolt.lastBossHit = null;
@@ -261,20 +310,34 @@ export class CombatSystem {
         bolt.setVisible?.(true);
         bolt.setDepth?.(8);
         if (bolt.enableBody) {
-            bolt.enableBody(true, chicken.x + dir * 22, chicken.y + 2, true, true);
+            bolt.enableBody(true, spawnX, spawnY, true, true);
         } else if (bolt.body) {
             bolt.body.enable = true;
-            bolt.body.reset?.(chicken.x + dir * 22, chicken.y + 2);
+            bolt.body.reset?.(spawnX, spawnY);
         }
         if (bolt.body) {
             bolt.body.allowGravity = false;
             bolt.body.setAllowGravity?.(false);
-            bolt.body.setSize?.(def.boltWidth, def.boltHeight, true);
+            if (Math.abs(velocityY) > Math.abs(velocityX)) {
+                bolt.body.setSize?.(def.boltHeight, def.boltWidth, true);
+            } else if (velocityX !== 0 && velocityY !== 0) {
+                const side = Math.ceil(def.boltWidth * Math.SQRT1_2);
+                bolt.body.setSize?.(side, side, true);
+            } else {
+                bolt.body.setSize?.(def.boltWidth, def.boltHeight, true);
+            }
         }
-        bolt.setVelocity?.(dir * GAME_CONSTANTS.PHASER_BOLT_SPEED, velocityY);
+        bolt.setVelocity?.(velocityX, velocityY);
         bolt.bornX = bolt.x;
-        bolt.setFlipX?.(dir < 0);
-        scene.effectsManager?.emitMuzzle?.(chicken.x + dir * 22, chicken.y + 2, dir);
+        bolt.bornY = bolt.y;
+        if (aim.y === 0) {
+            bolt.setRotation?.(0);
+            bolt.setFlipX?.(aim.x < 0);
+        } else {
+            bolt.setRotation?.(Math.atan2(velocityY, velocityX));
+            bolt.setFlipX?.(false);
+        }
+        scene.effectsManager?.emitMuzzle?.(spawnX, spawnY, aim.x < 0 ? -1 : 1);
         return true;
     }
 
@@ -286,11 +349,16 @@ export class CombatSystem {
             if (!bolt?.active) {
                 continue;
             }
-            const traveled = Math.abs(bolt.x - (bolt.bornX ?? bolt.x));
+            const traveled = Math.hypot(
+                bolt.x - (bolt.bornX ?? bolt.x),
+                bolt.y - (bolt.bornY ?? bolt.y)
+            );
             if (
                 traveled > GAME_CONSTANTS.PHASER_RANGE ||
                 bolt.x < -20 ||
-                bolt.x > scene.worldWidth + 20
+                bolt.x > scene.worldWidth + 20 ||
+                bolt.y < -20 ||
+                bolt.y > scene.worldHeight + 20
             ) {
                 scene.effectsManager?.emitPhaserImpact?.(bolt.x, bolt.y);
                 this.recycleBolt(bolt);

@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press J to fire. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press J to fire — hold Up/W while firing to aim up the stair and at the glass tiers, Down/S to fire down from the air. Wardens hold the glass as well as the alloy. Shrikes swoop the stair: stomp them or dodge the dive. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. WARDEN PRIME holds the deck: jump her charge, burn the lens. The bolt button fires. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
+            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. WARDEN PRIME holds the deck: jump her charge, burn the lens. The bolt button fires; hold the up-arrow to aim up the stair, the down-arrow to fire down from the air. Wardens hold the glass too. Stomp swooping shrikes. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'spire',
             style: 'crown',
@@ -154,10 +154,10 @@ export const level = {
                 key: 'voltOrb',
                 x: 2850,
                 y: 330,
-                patrol: { x: 2950, duration: 1600 },
+                patrol: { x: 2950, y: 270, duration: 1600 },
             },
             { type: 'boarder', key: 'spireWarden', x: 900, y: 560, wave: 1 },
-            { type: 'boarder', key: 'spireWarden', x: 1900, y: 500, wave: 2 },
+            { type: 'boarder', key: 'spireWarden', x: 1900, y: 378, wave: 2 },
             { type: 'boarder', key: 'spireWarden', x: 2400, y: 440, wave: 2 },
             { type: 'boarder', key: 'spireWarden', x: 2900, y: 380, wave: 3 },
             { type: 'boarder', key: 'spireWarden', x: 3300, y: 320, wave: 3 },
@@ -190,7 +190,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 4700,
                 y: 200,
-                patrol: { x: 4800, duration: 1600 },
+                patrol: { x: 4800, y: 140, duration: 1600 },
             },
             { type: 'boarder', key: 'spireWarden', x: 3700, y: 340, wave: 4 },
             { type: 'boarder', key: 'spireWarden', x: 4200, y: 300, wave: 4 },
@@ -202,7 +202,7 @@ export const level = {
             },
             { type: 'boarder', key: 'spireWarden', x: 5000, y: 260, wave: 5 },
             { type: 'boarder', key: 'spireWarden', x: 5600, y: 220, wave: 5 },
-            { type: 'boarder', key: 'spireWarden', x: 6200, y: 200, wave: 5 },
+            { type: 'boarder', key: 'spireWarden', x: 6400, y: 178, wave: 5 },
             {
                 type: 'laser',
                 x: 9250,
@@ -239,7 +239,7 @@ export const level = {
                 key: 'voltOrb',
                 x: 10300,
                 y: 210,
-                patrol: { x: 10400, duration: 1600 },
+                patrol: { x: 10400, y: 150, duration: 1600 },
             },
             {
                 type: 'dustDevil',
@@ -248,7 +248,25 @@ export const level = {
                 patrol: { x: 8380, duration: 1500 },
             },
             { type: 'boarder', key: 'spireWarden', x: 8350, y: 252, wave: 6 },
-            { type: 'boarder', key: 'spireWarden', x: 9910, y: 232, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 10050, y: 158, wave: 6 },
+            {
+                type: 'shrike',
+                x: 2100,
+                y: 290,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 160,
+                swoopDY: 140,
+                startDelay: 700,
+            },
+            {
+                type: 'shrike',
+                x: 7600,
+                y: 180,
+                sweep: { range: 60, duration: 2000 },
+                swoopDX: -100,
+                swoopDY: 60,
+                startDelay: 1300,
+            },
             { type: 'boarder', key: 'spireWarden', x: 10950, y: 232, wave: 6 },
             {
                 type: 'bonk',

@@ -88,6 +88,8 @@ export const level = {
             { wave: 3, x: 3600 },
         ],
         dynamic: [
+            { type: 'boarder', x: 500, y: 540, wave: 1 },
+            { type: 'boarder', x: 1150, y: 540, wave: 1 },
             {
                 type: 'laser',
                 x: 1750,
@@ -100,6 +102,7 @@ export const level = {
                 offDuration: 1000,
                 startDelay: 200,
             },
+            { type: 'boarder', x: 2200, y: 540, wave: 2 },
             {
                 type: 'drone',
                 x: 2600,
@@ -108,6 +111,7 @@ export const level = {
                 bobAmplitude: 6,
                 bobDuration: 1400,
             },
+            { type: 'boarder', x: 2850, y: 540, wave: 2 },
             {
                 type: 'laser',
                 x: 3300,
@@ -120,6 +124,7 @@ export const level = {
                 offDuration: 1000,
                 startDelay: 600,
             },
+            { type: 'boarder', x: 4400, y: 380, wave: 3 },
             {
                 type: 'drone',
                 x: 4900,
@@ -128,6 +133,7 @@ export const level = {
                 bobAmplitude: 6,
                 bobDuration: 1400,
             },
+            { type: 'boarder', x: 5200, y: 380, wave: 3 },
             {
                 type: 'laser',
                 x: 5680,

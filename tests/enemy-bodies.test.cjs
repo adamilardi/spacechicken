@@ -88,3 +88,24 @@ test('bear raider body uses source coordinates at scale 0.05', async () => {
     assert.ok(Math.abs(call.w - 632) <= 4, `body width ${call.w} ~= 632 source units`);
     assert.equal(call.w, call.h);
 });
+
+test('shrike body covers the winged torso and tags a cross-tier swoop', async () => {
+    const { spawn } = await import(pathToFileURL(path.join(root, 'enemies/shrike.js')).href);
+    const shrike = mockSprite(48, 48);
+    let tagged = null;
+    const builder = {
+        tagTestEntity(entity, metadata) {
+            tagged = metadata;
+        },
+        tweens: null,
+        add: null,
+    };
+    spawn(builder, mockGroup(shrike), { x: 100, y: 100, swoopDX: 90, swoopDY: 150 });
+    assert.equal(shrike.bonkable, true);
+    const call = shrike.body.sizeCall;
+    assert.ok(call, 'setSize called');
+    assert.equal(call.w, Math.round(48 * 0.7));
+    assert.equal(call.h, Math.round(48 * 0.62));
+    assert.equal(tagged.type, 'shrike');
+    assert.deepEqual(tagged.target, { x: 190, y: 250 });
+});

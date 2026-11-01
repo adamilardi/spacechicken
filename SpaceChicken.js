@@ -308,6 +308,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.botJumpWasDown = false;
         this.jumpPointerId = null;
         this.touchJumpReleased = false;
+        this.touchAimUpHeld = false;
+        this.touchAimDownHeld = false;
 
         this.dynamicHazardEvents = [];
         this.activeWarningGraphics = [];
@@ -1544,8 +1546,8 @@ export class SpaceChicken extends Phaser.Scene {
         this.combat.tryFirePhaser(chicken, now);
     }
 
-    spawnPlayerBolt(chicken, dir, def, velocityY) {
-        return this.combat.spawnPlayerBolt(chicken, dir, def, velocityY);
+    spawnPlayerBolt(chicken, aim, def, fanY) {
+        return this.combat.spawnPlayerBolt(chicken, aim, def, fanY);
     }
 
     stepPhaserBolts() {
@@ -2298,7 +2300,11 @@ export class SpaceChicken extends Phaser.Scene {
         }
         if (this.levelConfig?.phaser && !this.coachSeen(GAME_CONSTANTS.COACH_PHASER_KEY)) {
             this.markCoach(GAME_CONSTANTS.COACH_PHASER_KEY);
-            this.uiManager?.showLevelBanner?.('PHASER', 'J to fire · K to jump', 2200);
+            this.uiManager?.showLevelBanner?.(
+                'PHASER',
+                'J fire · hold ↑/↓ while firing to aim · K jump',
+                2200
+            );
             return;
         }
         if (this.coachSeen(GAME_CONSTANTS.COACH_BONK_KEY) || !this.bonkCapInView()) {
@@ -2426,11 +2432,14 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     isJumpInput(inputState) {
+        // While fire is held, Up/W aim the phaser up instead of jumping
+        // (Contra-style); Space/K always jump, so no jump input is lost.
+        const aimUpHeld = Boolean(inputState.aimUpHeld);
         return Boolean(
-            (this.coopMode !== 'keyboard' && inputState.upJustPressed) ||
+            (this.coopMode !== 'keyboard' && inputState.upJustPressed && !aimUpHeld) ||
             inputState.spaceJustPressed ||
             inputState.kJustPressed ||
-            inputState.wJustPressed ||
+            (inputState.wJustPressed && !aimUpHeld) ||
             inputState.gamepadJumpJustPressed ||
             inputState.pointerJumpTriggered ||
             inputState.doubleTapJumpTriggered ||
@@ -2720,8 +2729,23 @@ export class SpaceChicken extends Phaser.Scene {
             (right ? 1 : 0) * GAME_CONSTANTS.PLAYER_VELOCITY_X -
                 (left ? 1 : 0) * GAME_CONSTANTS.PLAYER_VELOCITY_X
         );
+        // Player 2 aim mirrors player 1: arrows aim while the fire key is
+        // held (Up then aims instead of jumping), stick Y aims on a pad.
+        const p2FireHeld = !usePad && Boolean(this.player2PhaserKey?.isDown);
+        if (!usePad) {
+            this.player2.aimUpHeld = Boolean(this.cursors?.up?.isDown && p2FireHeld);
+            this.player2.aimDownHeld = Boolean(this.cursors?.down?.isDown);
+        } else {
+            const axisY = pad?.axes?.[1] || 0;
+            this.player2.aimUpHeld = axisY < -GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE;
+            this.player2.aimDownHeld =
+                axisY > GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE || Boolean(pad?.buttons?.[13]?.pressed);
+        }
         const upJump =
-            !usePad && this.cursors?.up && Phaser.Input.Keyboard.JustDown(this.cursors.up);
+            !usePad &&
+            this.cursors?.up &&
+            !this.player2.aimUpHeld &&
+            Phaser.Input.Keyboard.JustDown(this.cursors.up);
         const now = this.getGameTime();
         const groundedBefore = Boolean(
             this.player2.body.blocked.down || this.player2.body.touching.down
@@ -2977,6 +3001,12 @@ export class SpaceChicken extends Phaser.Scene {
         this.rightPressed = Boolean(bot.right);
         if (bot.shoot) {
             state.phaserHeld = true;
+        }
+        if (bot.aimUp) {
+            state.aimUpHeld = true;
+        }
+        if (bot.aimDown) {
+            state.aimDownHeld = true;
         }
         const botJumpDown = Boolean(bot.jump);
         if (botJumpDown && !this.botJumpWasDown) {

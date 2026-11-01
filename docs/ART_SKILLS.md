@@ -14,7 +14,7 @@ Shared paths, hazard rules, and the phaser live in [the authoring reference](../
 | [enemy-animation-creator](../skills/enemy-animation-creator/SKILL.md)       | Poses of the same paint, or tween notes                  | `animation-manifest.json` and a playback preview   |
 | [enemy-animation-integrator](../skills/enemy-animation-integrator/SKILL.md) | Play that animation in the game                          | Registered textures, tweens or anims, a play check |
 | [boss-creator](../skills/boss-creator/SKILL.md)                             | A distinct last stretch before the crown                 | Painted actor, rule, playable encounter            |
-| [level-creator](../skills/level-creator/SKILL.md)                           | A new level from the chosen paints and working hazards   | `LEVEL_DEFINITIONS` entry, playtest, build report  |
+| [level-creator](../skills/level-creator/SKILL.md)                           | A new level from paints/hazards; contra tiers and paths  | `LEVEL_DEFINITIONS` entry, playtest, build report  |
 | [weapon-creator](../skills/weapon-creator/SKILL.md)                         | Another gun beside the space phaser                      | Painted shot, one fire path, HUD and input         |
 | [game-critic](../skills/game-critic/SKILL.md)                               | Score every level (plus news fidelity) and gate shipping | `docs/level-reviews/level-<id>.md` critic report   |
 

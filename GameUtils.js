@@ -83,6 +83,18 @@ export function applyHardModeConfig(config, mults) {
                 hoverMs: harden(config.hoverMs, mults.PATROL_MULT),
                 telegraphMs: harden(config.telegraphMs, mults.WARNING_MULT),
             };
+        case 'shrike':
+            return {
+                ...config,
+                hoverMs: harden(config.hoverMs, mults.PATROL_MULT),
+                telegraphMs: harden(config.telegraphMs, mults.WARNING_MULT),
+                sweep: config.sweep
+                    ? {
+                          ...config.sweep,
+                          duration: harden(config.sweep.duration, mults.PATROL_MULT),
+                      }
+                    : config.sweep,
+            };
         case 'drone':
         case 'rover':
         case 'roller':
@@ -174,6 +186,31 @@ export function boarderSteering(alienX, alienY, targetX, targetY, grounded, opti
         goalX,
         goalY,
     };
+}
+
+// Contra aim: which way a chicken's gun points this frame. Fire is aimed
+// with held direction keys, never with the facing alone: aimUp fires up
+// (diagonal while moving), aimDown fires down only while airborne — on
+// the ground it falls back to forward fire, because there is no crouch.
+// moveX is the current horizontal input (or run velocity); facing is the
+// last horizontal direction faced. Returns a unit vector; diagonals use
+// SQRT1_2 so bolt speed is constant in every direction.
+export function aimVector(options = {}) {
+    const facing = options.facing < 0 ? -1 : 1;
+    const moveX = Number(options.moveX) || 0;
+    const horizontal = moveX !== 0 ? Math.sign(moveX) : facing;
+    const up = Boolean(options.aimUp);
+    const down = Boolean(options.aimDown);
+    if (up === down) {
+        return { x: horizontal, y: 0 };
+    }
+    if (up) {
+        return moveX !== 0 ? { x: horizontal * Math.SQRT1_2, y: -Math.SQRT1_2 } : { x: 0, y: -1 };
+    }
+    if (options.grounded) {
+        return { x: horizontal, y: 0 };
+    }
+    return moveX !== 0 ? { x: horizontal * Math.SQRT1_2, y: Math.SQRT1_2 } : { x: 0, y: 1 };
 }
 
 export function nextBoarderWave(currentWave, leadX, waves) {

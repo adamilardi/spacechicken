@@ -82,6 +82,15 @@ export class GamepadController {
         const axis = (value) => (Math.abs(value || 0) >= 0.22 ? value : 0);
         const horizontal =
             axis(pad.axes?.[0]) || (buttonDown(15) ? 1 : 0) || (buttonDown(14) ? -1 : 0);
+        // Stick Y aims the phaser; D-pad down aims down too. D-pad up
+        // stays a jump button, so pad aim-up is stick-only.
+        const aimAxisY = pad.axes?.[1] || 0;
+        if (aimAxisY < -GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE) {
+            state.aimUpHeld = true;
+        }
+        if (aimAxisY > GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE || buttonDown(13)) {
+            state.aimDownHeld = true;
+        }
         if (scene.coopMode !== 'keyboard-controller' && scene.coopMode !== 'keyboard') {
             scene.leftPressed ||= horizontal < 0;
             scene.rightPressed ||= horizontal > 0;

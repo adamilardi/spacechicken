@@ -1802,7 +1802,10 @@ test('coach lines show once for the phaser and a gold cap', async () => {
     scene.maybeShowCoach();
     scene.uiManager.bannerTitle = null;
     scene.maybeShowCoach();
-    assert.deepEqual(banners, ['PHASER:J to fire · K to jump', 'BONK:Drop on the gold cap']);
+    assert.deepEqual(banners, [
+        'PHASER:J fire · hold ↑/↓ while firing to aim · K jump',
+        'BONK:Drop on the gold cap',
+    ]);
 });
 
 test('vertical laser visuals and hitboxes have the same orientation', async () => {

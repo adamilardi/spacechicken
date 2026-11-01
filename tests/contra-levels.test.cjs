@@ -157,6 +157,38 @@ test('contra boarder homes sit over decks, never over gaps', async () => {
     }
 });
 
+test('wave-1 boarders spawn with feet above their deck', async () => {
+    const { LEVEL_CONTENT } = await importModule('levels/index.js');
+    // Wave 1 arrives standing at its home; a home embedded in the deck
+    // falls straight through instead of separating upward, so the 36px
+    // body needs its feet above the deck top. Later waves drop in from
+    // above and land normally.
+    const BOARDER_HALF_HEIGHT = 18;
+    for (const id of CONTRA_LEVELS) {
+        const decks = LEVEL_CONTENT[id].staticPlatforms.map((entry) => ({
+            entry,
+            span: deckSpan(entry),
+        }));
+        for (const hazard of LEVEL_CONTENT[id].dynamic || []) {
+            if (hazard.type !== 'boarder' || hazard.wave !== 1) {
+                continue;
+            }
+            const deck = decks.find(
+                (candidate) =>
+                    hazard.x >= candidate.span.left - BOARDER_HALF_WIDTH &&
+                    hazard.x <= candidate.span.right + BOARDER_HALF_WIDTH
+            );
+            if (!deck) {
+                continue;
+            }
+            assert.ok(
+                hazard.y + BOARDER_HALF_HEIGHT < deck.span.top,
+                `level ${id} wave-1 boarder at x=${hazard.x} spawns with feet above its deck`
+            );
+        }
+    }
+});
+
 test('contra checkpoints sit on decks above the kill line', async () => {
     const { LEVEL_CONTENT, LEVEL_DEFINITIONS } = await importModule('levels/index.js');
     for (const id of CONTRA_LEVELS) {
@@ -224,6 +256,33 @@ test('contra levels run full stage length', async () => {
             LEVEL_DEFINITIONS[id].CROWN_X > width / 2,
             `level ${id} crown sits in the second half`
         );
+    }
+});
+
+test('contra levels host shrikes and high-tier boarders for the aim game', async () => {
+    const { LEVEL_CONTENT, LEVEL_DEFINITIONS } = await importModule('levels/index.js');
+    for (const id of CONTRA_LEVELS) {
+        const content = LEVEL_CONTENT[id];
+        const shrikes = (content.dynamic || []).filter((hazard) => hazard.type === 'shrike');
+        assert.ok(shrikes.length >= 1, `level ${id} hosts a shrike`);
+        for (const shrike of shrikes) {
+            assert.ok(
+                Number.isFinite(shrike.swoopDY) && shrike.swoopDY > 0,
+                `level ${id} shrike swoops down a tier`
+            );
+            assert.ok(
+                shrike.y + shrike.swoopDY < LEVEL_DEFINITIONS[id].KILLZONE_Y,
+                `level ${id} shrike swoop stays above the kill line`
+            );
+        }
+        // At least one wave holds an upper tier, so aiming up is mandatory
+        // somewhere on the route, not just available.
+        const tops = content.staticPlatforms.map((entry) => deckSpan(entry).top);
+        const lowestTop = Math.max(...tops);
+        const high = (content.dynamic || []).filter(
+            (hazard) => hazard.type === 'boarder' && hazard.y < lowestTop - 56
+        );
+        assert.ok(high.length >= 1, `level ${id} stations a boarder on an upper tier`);
     }
 });
 

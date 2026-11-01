@@ -1,0 +1,92 @@
+{
+    "schema_version": 1,
+    "brief_id": "contra-shrike",
+    "kind": "enemy",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "enemy-shrike-a",
+            "title": "Shrike falcon-drone",
+            "status": "painted",
+            "summary": "Swept-wing diving falcon-drone with a down-hooked amber beak and a gold spring-cap bonk read.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-shrike-a/paint.js",
+                    "width_px": 48,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#b33a2a", "#f2d8a8", "#ffb15a", "#ffe14a"],
+                "target_display": "48x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 24, "y": 44 }
+            },
+            "animation_handoff_path": "enemy-shrike-a/animation-handoff.md",
+            "checks": { "dimensions": "pass", "alpha": "pass", "silhouette": "pass" },
+            "limitations": []
+        },
+        {
+            "id": "enemy-shrike-b",
+            "title": "Rotor orb (killed)",
+            "status": "painted",
+            "summary": "Killed: repeats the sentry orb read. Kept on disk.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-shrike-b/paint.js",
+                    "width_px": 48,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#3d4c63", "#ff4a3c"],
+                "target_display": "48x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 24, "y": 44 }
+            },
+            "animation_handoff_path": null,
+            "checks": { "dimensions": "pass", "alpha": "unverified", "silhouette": "unverified" },
+            "limitations": ["killed: orb read duplicates sentryOrb"]
+        },
+        {
+            "id": "enemy-shrike-c",
+            "title": "Manta ray (killed)",
+            "status": "painted",
+            "summary": "Killed: flat wing reads as a platform edge. Kept on disk.",
+            "assets": [
+                {
+                    "role": "canonical-default-view",
+                    "path": "enemy-shrike-c/paint.js",
+                    "width_px": 48,
+                    "height_px": 48,
+                    "alpha": true,
+                    "readiness": "concept"
+                }
+            ],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "role": "bonk",
+                "palette": ["#4a2a6e", "#7d5fc4"],
+                "target_display": "48x48",
+                "anchor": { "space": "pixels", "origin": "top-left", "x": 24, "y": 44 }
+            },
+            "animation_handoff_path": null,
+            "checks": { "dimensions": "pass", "alpha": "unverified", "silhouette": "unverified" },
+            "limitations": ["killed: wing reads as a platform edge"]
+        }
+    ]
+}

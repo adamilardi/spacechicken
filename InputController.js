@@ -20,6 +20,8 @@ export class InputController {
             gamepadJumpJustPressed: false,
             gamepadStartJustPressed: false,
             phaserHeld: false,
+            aimUpHeld: false,
+            aimDownHeld: false,
             coopMode: null,
         };
         this.controls = {
@@ -72,6 +74,8 @@ export class InputController {
         state.p1SwitchJustPressed = false;
         state.p2SwitchJustPressed = false;
         state.phaserHeld = false;
+        state.aimUpHeld = false;
+        state.aimDownHeld = false;
         state.menu = {};
         state.coopMode = null;
         // The branch offer owns keys 2/3/4 while it is up: coopKeys.keyboard
@@ -108,6 +112,8 @@ export class InputController {
         controls.leaderboardButton = ui ? ui.leaderboardButton : null;
         controls.playerNameText = ui ? ui.playerNameText : null;
         controls.phaserButton = ui ? ui.phaserButton : null;
+        controls.aimUpButton = ui ? ui.aimUpButton : null;
+        controls.aimDownButton = ui ? ui.aimDownButton : null;
         controls.selectPrevButton = ui ? ui.selectPrevButton : null;
         controls.selectNextButton = ui ? ui.selectNextButton : null;
         controls.newsButtons = ui ? ui.newsButtons : [];
@@ -130,6 +136,7 @@ export class InputController {
             touch.applyPointerMovement(pointer, targets, movementMidpoint, controls);
         }
         this.syncPhaserHeld(state, phaserPointerDown);
+        this.syncAimHeld(state);
 
         state.pointerJumpTriggered = touch.detectPointerJump(activePointers, controls, ui);
         state.pointerStartTriggered = touch.detectTitleStart(activePointers, controls);
@@ -166,6 +173,21 @@ export class InputController {
 
     pollWeaponSwitch(state, pads) {
         return this.gamepad.pollWeaponSwitch(state, pads);
+    }
+
+    // Aim is held intent, resolved into a direction by CombatSystem.
+    // Up only aims while fire is held (otherwise Up/W still jump, and
+    // Space/K jump even while aiming); Down/S aim whenever held. Pad
+    // aim arrives via GamepadController, touch aim via scene flags the
+    // aim buttons set, mirroring phaserHeld.
+    syncAimHeld(state) {
+        const scene = this.scene;
+        const upKeyHeld = Boolean(scene.cursors?.up?.isDown || scene.wasd?.W?.isDown);
+        const downKeyHeld = Boolean(scene.cursors?.down?.isDown || scene.wasd?.S?.isDown);
+        state.aimUpHeld = Boolean(
+            state.aimUpHeld || scene.touchAimUpHeld || (upKeyHeld && state.phaserHeld)
+        );
+        state.aimDownHeld = Boolean(state.aimDownHeld || scene.touchAimDownHeld || downKeyHeld);
     }
 
     syncPhaserHeld(state, pointerDown) {

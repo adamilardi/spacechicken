@@ -96,7 +96,8 @@ For better long-term quality, ESLint + Prettier have been added (see below).
 - Landing dust, jump stretch, jetpack trails, and crown sparkles
 - Web Audio API music + sound effects (with mute toggle)
 - Full keyboard (WASD/arrows/space) + touch controls (including double-tap jump)
-- Standard gamepads: left stick or D-pad to move, A/Cross to jump, Start/Menu to pause
+- Standard gamepads: left stick or D-pad to move, stick Y aims the phaser up/down, A/Cross to jump, Start/Menu to pause
+- Contra-style aimed fire on weapon levels: hold ↑/W or ↓/S while firing to shoot up, diagonally, or (in air) down; Space/K still jump while aiming
 - Local two-player mode: press 2 for keyboard + keyboard, 3 for keyboard + controller, or 4 for two controllers
   In keyboard + keyboard mode, Player 1 uses WASD + Space; Player 2 uses the arrow keys + Numpad 0.
 - Moving platforms, lasers, patrolling drones, physics bombs

@@ -118,6 +118,7 @@ const rootFiles = Object.freeze([
     'enemies/boarder.js',
     'enemies/boss.js',
     'enemies/bear-raider.js',
+    'enemies/shrike.js',
     'enemies/generic.js',
     'enemies/index.js',
     'InputController.js',

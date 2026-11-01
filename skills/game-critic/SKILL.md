@@ -42,7 +42,7 @@ The script writes `docs/level-reviews/level-<id>.json` (machine verdict) and `do
 
 Screenshots are evidence the panel actually sees, not decoration in a report. The full run captures a beat sheet derived from level data at 1280×720 — not fixed thirds — and sends the images themselves to Jev in the same request as the text state:
 
-- Beats: `01-opener` (spawn view), one beat per distinct hazard / themed-enemy type at its first spawn (`02-…`, `03-…`), one per signature set piece, `finale` (crown approach), plus any death-spot revisit the telemetry names.
+- Beats: `01-opener` (spawn view), one beat per distinct hazard / themed-enemy type at its first spawn (`02-…`, `03-…`), one per signature set piece, `finale` (crown approach), plus any death-spot revisit the telemetry names. On a contra level, also one beat per tier at its first fight and one at each path split showing both branches in frame — height claims are judged from shots that show the heights.
 - Files land in `docs/level-reviews/evidence/level-<id>/` with a `shots.json` manifest (beat, camera/player position, what the shot must prove). The report links every verdict claim to a shot file.
 - Sending (quality panel): the SDK now provides `image()`, so quality-panel shots go through `image()`; each shot is referenced once from `state.shots[]` so every readability question judges the same pictures. Keep to at most 4 shots per request, JPEG, each side 280–1568px — split the beat sheet across requests rather than shrinking shots below legibility.
 - Sending (fidelity panel): fidelity still uses the raw HTTP base64 path (base64 `assets` map, `TypeSafe-Danger-Zone-Images: true` header; see `scripts/level-critic.mjs` `sendScreenshots`). If the image request is rejected (no key, images off, size limit), the run marks `screenshots_sent: false`, falls back to text-only scoring, and caps Readability and Fidelity at **unverified** — a level may not ship on filenames the critic never saw. Record which path ran.
@@ -51,11 +51,11 @@ Screenshots are evidence the panel actually sees, not decoration in a report. Th
 
 Six dimensions, each 0–4, scored per persona from the evidence only. Anchors are in `scripts/level-critic.mjs` (`SCORE_LEVELS`); the short form:
 
-- **Fun** — decisions per minute. Long empty runs, waiting, and one-note loops cap at 2.
-- **Fairness** — every death traces to a missed tell. Blind landings, respawns inside timing, and beams that guard only one route cap at 2.
-- **Readability** — a first-time player reads the next move at gameplay size: platforms read solid, hazards telegraph, the themed objects are recognisable without the instructions paragraph.
-- **Novelty** — this level's topology, signature mechanic, and finale rule vs the shipped roster. Sharing the skeleton, the deck set, or the finale rule with a sibling caps at 2 (see the clone rules in level-creator).
-- **Pacing** — teach → press → rest → finale escalation, honest checkpoints, no dead shelves, no sleeping finale.
+- **Fun** — decisions per minute. Long empty runs, waiting, and one-note loops cap at 2. On a contra level, single-height gunplay is one-note however dense: fights that never ask the player to change tier, drop in, or fight under/over a line cap at 2.
+- **Fairness** — every death traces to a missed tell. Blind landings, respawns inside timing, and beams that guard only one route cap at 2. Cross-height deaths count double scrutiny: a boarder no aim direction could reach on the approach taken, or a drop whose landing hazard was off-screen, is `cheap`/`blind`, not difficulty.
+- **Readability** — a first-time player reads the next move at gameplay size: platforms read solid, hazards telegraph, the themed objects are recognisable without the instructions paragraph. On tiered levels, each tier and the way between tiers must read before the jump — deck paints distinguish heights, and the split's two branches are both visible as choices, not one discovered by falling.
+- **Novelty** — this level's topology, signature mechanic, and finale rule vs the shipped roster. Sharing the skeleton, the deck set, or the finale rule with a sibling caps at 2 (see the clone rules in level-creator). Tier count, tier spacing, and the signature vertical set piece are topology: same heights under new paint is still a shared skeleton.
+- **Pacing** — teach → press → rest → finale escalation, honest checkpoints, no dead shelves, no sleeping finale. Contra pacing also escalates across heights: later acts combine tiers (low push answered from above, mover rides under fire) instead of repeating the opener's one-tier fight at new x positions.
 - **Theme** — fiction, look, hazards, and objective reinforce each other. A palette swap over a generic run caps at 2.
 
 Plus one **flaw** choice per persona from the taxonomy: `none`, `flat`, `clone`, `sleeping-finale`, `sponge`, `cheap`, `empty-route`, `blind`, `stale`, `off-theme`, `unreadable`. And a **verdict**: `ship`, `iterate`, `rework`.
@@ -71,11 +71,13 @@ The script computes these before any persona sees the level, and personas must c
 - `skeleton-rhyme` — the sorted deck x sequence and world width match a shipped level (≥0.85 at the same width and deck count) even under different paints. This is the copied-template case the kit-based clone check misses: levels 17/19/20 share one x-list and score 1.00 against each other.
 - `background-recycled` — a shipped background `type` reused with no new composition device claimed in the build report.
 - `low-hazard-variety` — fewer than two hazard types outside the tutorial levels, or every hazard is a reskin of one behaviour.
-- `empty-route` — a shelf, bridge, or upper line with nothing that pays or threatens.
+- `empty-route` — a shelf, bridge, or upper line with nothing that pays or threatens. Covers whole tiers and split branches on contra levels: a high road with no fight, payoff, or exposure of its own is an empty route even when the low road underneath is busy.
 - `sleeping-finale` — no hazard, gate, or boss pressure in the last stretch before the crown.
 - `finale-invisible` — hazards exist within 900px of the crown but none can appear in a frozen finale still (a lone timed beam caught off-phase, or pressure outside the crown frame). Personas judge finale pressure from the still plus `finaleHazardCount`/`finaleVisible` in the level state; this flag is the level-side fix, not a panel error.
 - `checkpoint-desert` — a gap over 2500px without a checkpoint on long levels, or a checkpoint inside beam timing / under a patrol lane.
 - `blind-landing` — a required drop or jump whose landing deck is off-screen with a hazard on it.
+
+**Contra height audit (contra levels; build-report evidence, panel-confirmed).** No script flag computes tiers yet, so the panel judges them from the build report's Height & Path Map, the beat sheet (one shot per tier and per split), and telemetry: fewer than two full tiers, no act with three standable heights, a tier or branch with no fight/payoff, boarders stationed where aimed fire (forward/up/diagonal/down-from-air), a fan lane, a drop-in, or a bonk cannot answer them, or a finale approachable at a height its pressure does not cover. Name these with the existing taxonomy — `flat` for single-height contra, `empty-route` for the dead tier/branch, `cheap`/`blind` for unanswerable cross-height deaths, `sleeping-finale` for a finale that covers one height only — never with invented flag ids. Per-branch telemetry (or the build report's per-branch play record) is required evidence: a run that only took the low road cannot clear the high road.
 
 ## News fidelity critic (news levels only, mandatory)
 

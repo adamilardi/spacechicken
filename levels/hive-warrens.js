@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: J. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: J — hold Up/W while firing to aim up the shaft and at the high fangs, Down/S to fire down from the air. Gnawers hold the fangs as well as the floor. Shrikes swoop between tiers: stomp them or dodge the dive. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
         touchInstructions:
-            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires. New gun: PIERCER. The gun button swaps guns. The HIVE MOTHER guards the crown: burn her, duel her young. Pods grant 30s guns.',
+            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires; hold the up-arrow to aim up the shaft, the down-arrow to fire down from the air. Gnawers hold the fangs too. Stomp swooping shrikes. New gun: PIERCER. The gun button swaps guns. The HIVE MOTHER guards the crown: burn her, duel her young. Pods grant 30s guns.',
         background: {
             type: 'hive',
             style: 'warrens',
@@ -149,7 +149,7 @@ export const level = {
             },
             { type: 'boarder', key: 'gnawer', x: 1100, y: 480, wave: 1 },
             { type: 'boarder', key: 'gnawer', x: 2250, y: 580, wave: 2 },
-            { type: 'boarder', key: 'gnawer', x: 2350, y: 580, wave: 2 },
+            { type: 'boarder', key: 'gnawer', x: 2350, y: 458, wave: 2 },
             { type: 'boarder', key: 'gnawer', x: 2700, y: 500, wave: 3 },
             { type: 'boarder', key: 'gnawer', x: 3150, y: 380, wave: 3 },
             {
@@ -167,7 +167,7 @@ export const level = {
                 key: 'sporeFloater',
                 x: 4300,
                 y: 540,
-                patrol: { x: 4420, duration: 1700 },
+                patrol: { x: 4420, y: 470, duration: 1700 },
             },
             {
                 type: 'dustDevil',
@@ -192,7 +192,7 @@ export const level = {
             { type: 'boarder', key: 'gnawer', x: 4150, y: 560, wave: 4 },
             { type: 'boarder', key: 'gnawer', x: 5000, y: 620, wave: 5 },
             { type: 'boarder', key: 'gnawer', x: 5450, y: 560, wave: 5 },
-            { type: 'boarder', key: 'gnawer', x: 5900, y: 480, wave: 5 },
+            { type: 'boarder', key: 'gnawer', x: 5950, y: 398, wave: 5 },
             { type: 'drip', x: 8350, y: 310, interval: 1600, delay: 0 },
             { type: 'drip', x: 8500, y: 310, interval: 1600, delay: 750 },
             {
@@ -200,7 +200,7 @@ export const level = {
                 key: 'sporeFloater',
                 x: 9450,
                 y: 340,
-                patrol: { x: 9540, duration: 1700 },
+                patrol: { x: 9540, y: 280, duration: 1700 },
             },
             {
                 type: 'dustDevil',
@@ -230,7 +230,25 @@ export const level = {
                 bodyHeight: 36,
             },
             { type: 'boarder', key: 'gnawer', x: 7160, y: 464, wave: 6 },
-            { type: 'boarder', key: 'gnawer', x: 9080, y: 384, wave: 6 },
+            { type: 'boarder', key: 'gnawer', x: 9200, y: 268, wave: 6 },
+            {
+                type: 'shrike',
+                x: 1950,
+                y: 545,
+                sweep: { range: 60, duration: 1800 },
+                swoopDX: 60,
+                swoopDY: 95,
+                startDelay: 900,
+            },
+            {
+                type: 'shrike',
+                x: 9900,
+                y: 330,
+                sweep: { range: 50, duration: 2000 },
+                swoopDX: 100,
+                swoopDY: 90,
+                startDelay: 1500,
+            },
             {
                 type: 'boss',
                 key: 'hiveMother',
