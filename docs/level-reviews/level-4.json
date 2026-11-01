@@ -154,26 +154,63 @@
   "fidelity": null,
   "concept": null,
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "partial: reached-crown-area at x=2483 of crown x=2550 (97% of route), 5 deaths, no page errors, screenshots sent, 5/5 beats retained as manifests; local findings stand, the crown collection itself is unverified",
+    "routeCoverage": "partial: no completed crown route (outcome: reached-crown-area; only crown-collected counts under the fixed rules); everything past x=2483 including the crown grab is unverified in play; branches/tiers unrecorded",
+    "mechanical": "flags-raised, non-blocking: the single flat-deck flag (single cliff key, dominant share 1.0) is a visual-variety heuristic under the fixed rules; a justified art-direction exception rebuts it and it never proves repetitive play",
+    "quality": "ITERATE: 4/4 flat votes (all iterate), repeated across 2 pilot runs and supported by the deck flag -- corroborated under the fixed isCorroboratedFlaw rule -- but the panel judged staged stills, and four personas judging one summary are four model perspectives, not four playtests",
+    "fidelity": "n/a: not a news level (fidelity/concept null)",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "What kills the pilot at x~2019-2113 (dominant cluster x~2066, 2 deaths)? Stored evidence has no death cause/events, no input history, no hazard-phase data, and no gameplay frames, and per-run telemetry was not retained so a cross-run repeat is unconfirmed; a mistimed encounter, an unfair hotspot, and a policy defect are all live.",
+      "status": "open",
+      "smallestNextStep": "Bounded rerun with death events (hazard id/cause/phase at the hotspot), input history, checkpoint replay time, and retained gameplay frames of the x~2019-2113 encounter including telegraph visibility in the frames before each death; repeat across fresh starts/phases. Only if the cluster repeats in captured play may a level edit be proposed.",
+      "rerun": "TYPESAFE_API_KEY=$KEY node scripts/level-critic.mjs 4"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
-      "priority": 1,
-      "flaw": "flat-deck",
-      "source": "mechanical",
-      "evidence": "1 deck key(s), dominant share 1.00 across 7 decks",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 2,
       "priority": 2,
       "flaw": "flat",
       "source": "quality",
-      "evidence": "4/4 personas named \"flat\"; 02-hazard-rover.jpg (hazard beat: rover at x=535)",
+      "evidence": "4/4 personas named \"flat\" (all iterate; corroborated: 4 votes >= 2, repeated across 2 runs, supporting flat-deck flag); panel judged 5 staged stills of played sections (pilot reached x=2483 of crown x=2550); cited still 02-hazard-rover.jpg (rover beat x=535) locates the read, not a cause; route telemetry (connectivity, waiting time, repeated decisions) not stored",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Diagnose repetitive play from route evidence, not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the single-key look as art direction.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "medium",
+      "limitations": "Corroborated by vote count plus cross-run repeat plus deck flag, but the panel judged staged stills (JPG binaries not retained) and no route-connectivity/waiting-time telemetry is stored; four personas judging one summary are four model perspectives, not four playtests.",
+      "alternativeCause": "Paint-driven read: the panel may be naming the single-key look rather than played repetition -- the decks descend steadily (bands 11 to 5). If the INV-1 hotspot explains the low fun/fairness scores, the monotony read still needs route-decision evidence."
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "death-cluster-x2066",
+      "source": "capture",
+      "gatedOn": "INV-1",
+      "evidence": "2 deaths cluster near x=2066 (spots 2019, 2113); secondary 2-cluster at x~904 (drone beat x=900); lone death x=2469; no checkpoints (spawn replay, ~2000px per hotspot death); no death cause, input history, phase data, or gameplay frames retained; cross-run repeat unconfirmed (no per-run retention)",
+      "owner": "scripts/level-critic.mjs",
+      "smallestFix": "Not a level edit. Run the INV-1 capture and attribute the hotspot (mistimed encounter vs unfair hotspot vs policy defect) before any encounter change.",
+      "recheck": "INV-1 answered with retained death events, input history, replay time, and gameplay frames; attribution recorded.",
+      "confidence": "n/a",
+      "limitations": "Attribution entry, not a design finding: stored telemetry observes the hotspot (2 deaths near x=2066) but supports no cause.",
+      "alternativeCause": "None named yet: mistimed encounter, unfair hotspot, and policy defect are all live hypotheses pending the INV-1 capture."
+    },
+    {
+      "rank": 3,
+      "priority": 3,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "1 deck key(s) (cliff), dominant share 1.00 across 7 decks (paint heuristic; never a quality proof)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag.",
+      "alternativeCause": "Deliberate art direction: a single-key moon look may be intentional, in which case the build report rebuts the flag with no level change."
     }
   ],
   "loop": 1,

@@ -294,56 +294,89 @@
   "newsFloorFailures": [
     "novelty mean 1.49 < news floor 1.5"
   ],
+  "statuses": {
+    "captureValidity": "pipeline-ran-full: gate-open run (71.6s, 2 deaths, no page errors), screenshots sent, 6-beat manifest retained; on-disk JPG filenames match the manifest. Limits: old capture with no still kinds (05-hazard-boss x=6400 and 06-finale x=6350 both exceed maxX 6020, so both are staged/teleported stills, not gameplay frames), no per-run retention (pilotRuns 2 but only the final outcome plus the repeatedFlaws intersection survives), positions polled every 150ms with death spots approximated from the prior position, no death cause/phase/input/visibility data, and judged-beat coverage partial by construction (the old selectPanelShots(...,4) judged 4 of the 6 beats per panel pass, deterministically opener/setpiece-countdownBoard/hazard-laser/finale — omitting both the 04-hazard-drone death-cluster beat and the 05-hazard-boss signature-encounter beat; per-pass subsets unrecorded, evidenceSeen did not exist). hazardTypesSeen unions snapshot types across staged and gameplay capture (includes boss though the pilot never reached x=6400), so it cannot attribute deaths or prove encounters.",
+    "routeCoverage": "PARTIAL: outcome gate-open with maxX 6020 against crownX 6550 — the final 530px, including the Champion King arena (boss x=6400) and the crown approach, is unverified in gameplay; gate-open does not verify the crown. All four checkpoints (1500/3100/4700/5500) were passed. The two deaths (x=2977, 2727 — 250px apart on the middle rank before the x=3100 checkpoint) are a candidate cluster cited, not diagnosed: no cause/phase/input/visibility data. Alternate branches/tiers visited are unrecorded (old capture), so off-route sections are unverified.",
+    "mechanical": "clear: no flags — 3 platform keys (bastionDeck/labDeck/vaultDeck, dominant share 0.46, a visual-variety heuristic that never blocks quality), no clone-similarity comparator fired (no clone finding invented), finale carries 2 hazards with 1 visible in a frozen still (finaleVisible true — but that still is staged, x=6350 > maxX).",
+    "quality": "FAIL on stored panel math, but the cheap diagnosis is uncorroborated: 3/4 personas name cheap (structural), flawless 1<3, fairness mean 1.43<1.5 floor, novelty 1.49<1.5 floor — panelPassed with news floors verified false. But the panel never saw the drone beat nearest the deaths, the deaths carry no encounter evidence, and the four personas are four model perspectives on one retained summary, not four playtests. No level edit ordered before encounter evidence. The novelty miss (0.01) sits inside observed run variance (per-persona 1.46-1.54; build record logged 1.51 on this level at an earlier loop): re-measure, do not redesign. Independent of fidelity.",
+    "fidelity": "FAIL on three independent grounds (re-derived by running the fixed fidelityGate with confirmed=[]): unsupported=2 rows (>1 allowance: comeback row firmly unsupported at 0.94 plus Geneva row unsupported at 0.26), needsHuman holds 4 keys (element:rapid clock plus 3 rows), and mechanic 2.32 < 2.5 gate. Everything else passes (3 shown including both signature elements, 0 contradicted, no signature element missing/unsupported, universe shown, visual 3.21, flaw none). No stored human.json exists for level-24, so all four needs-human keys are genuinely unconfirmed. The comeback enrage mechanic is temporal while the boss was never reached in gameplay and the boss beat never judged — frozen staged stills cannot show phase behavior either way.",
+    "overall": "ITERATE/REWORK stands, on quality-panel math (uncorroborated cheap + fairness floor), fidelity (unsupported rows + mechanic + needs-human), and partial route coverage. No level edit is ordered before the evidence lands — not an approval."
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "What killed the pilot at x=2727 and x=2977 (250px apart, middle rank before the x=3100 checkpoint)? Two retained deaths with no hazard ID, cause, phase, input history, telegraph visibility, or replay footage; the nearest beat (04-hazard-drone, x=2600) was never shown to the panel; hazardTypesSeen is a staged+gameplay union that cannot attribute. The stored tell-window prescription is withdrawn until the capture attributes the deaths.",
+      "status": "open",
+      "smallestNextStep": "Bounded encounter-evidence capture only, before any cheap fix: rerun the fixed generator for exact death/cause events, telegraph duration, hazard phase, checkpoint replay time, input history, and encounter stills across x=2600-3100 with the full 6-beat sheet judged. Prescribe hazard/tell changes only if that capture attributes both deaths to a named encounter with cause data.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/24.md node scripts/level-critic.mjs 24"
+    },
+    {
+      "id": "INV-2",
+      "question": "Does the final-day swing read when the fight is actually captured? The comeback row is firmly unsupported (0.94), but the enrage mechanic (faster, shorter-telegraph leaps + tint at half HP, comet pod at the arena door) is temporal: the boss was never reached in gameplay (maxX 6020 < 6400), the boss beat was never judged, and frozen staged stills cannot show phase behavior. Mechanic 2.32 < 2.5 trails on the two unsupported rows; the Geneva row mechanic (NEXT_LEVEL 1, outside the campaign chain) is additionally unobservable in-level.",
+      "status": "open",
+      "smallestNextStep": "Boss-fight gameplay evidence across the HP threshold (both phases, measured telegraph durations, enrage tint, comet pod, full-beat re-judge). If the row still reads unsupported with the fight captured, apply the explicit design remedies in fix rank 2 (deficit legibility, enrage readability, Geneva legibility) — one bounded change with measurable acceptance, not a rebuild.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/24.md node scripts/level-critic.mjs 24"
+    },
+    {
+      "id": "INV-3",
+      "question": "Do element:rapid clock (faint 0.46; its countdownBoard beat WAS in the judged subset) and the 3 low-confidence rows (0.26/0.49/0.26) read as shown/supports to a named human reviewer? No stored human.json exists for level-24; nothing is confirmed.",
+      "status": "open",
+      "smallestNextStep": "A human opens the retained stills, confirms or overrides each of the 4 keys, and records the judgments in human.json with reviewerType human and per-claim shot basis; then the same bounded rerun re-judges the full beat sheet. Order no level edit before the confirmations land.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/24.md node scripts/level-critic.mjs 24"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
       "priority": 1,
       "flaw": "cheap",
       "source": "quality",
-      "evidence": "3/4 personas named \"cheap\"; deathSpots x=2977, 2727; nearest shot 04-hazard-drone.jpg",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone and no new structural flaw may appear."
+      "evidence": "INVESTIGATION, not a level edit: 3/4 personas named \"cheap\" and repeatedFlaws holds cheap across 2 pilot runs, but the two retained deaths (x=2977, 2727; 150ms-poll approximations 250px apart before the x=3100 checkpoint) carry no hazard ID, cause, phase, input history, telegraph visibility, or replay footage; the nearest beat (04-hazard-drone.jpg, x=2600) was deterministically omitted from every panel pass by the old selectPanelShots(..., 4) (judged: opener/setpiece-countdownBoard/hazard-laser/finale); hazardTypesSeen is a staged+gameplay union (includes \"boss\" though maxX 6020 < boss x=6400) and attributes nothing.",
+      "owner": "rerun + human reviewer (docs/level-reviews/evidence/level-24/human.json)",
+      "smallestFix": "Bounded encounter-evidence capture only — rerun the fixed generator for exact death/cause events, telegraph duration, hazard phase, checkpoint replay time, input history, and encounter stills across x=2600-3100 with the full 6-beat sheet judged. Prescribe hazard/tell changes only if that capture attributes both deaths to a named encounter with cause data.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; both deaths attribute to a named encounter with cause/event basis (or a named capture defect replaces this investigation) before any \"cheap\" level edit is ordered.",
+      "confidence": "low",
+      "limitations": "Two deaths with zero encounter fields; nearest beat never judged; per-run data not retained so the repeatedFlaws intersection cannot be re-examined; death positions are poll approximations.",
+      "alternativeCause": "A bot-policy defect (bad line through the drone rank), a capture defect (stale positions, missed telegraph), or a genuinely unfair encounter — stored evidence cannot distinguish these, which is why no level edit is ordered."
     },
     {
       "rank": 2,
-      "priority": 4,
-      "flaw": "needs-human",
+      "priority": 2,
+      "flaw": "unsupported-comeback",
       "source": "fidelity",
-      "evidence": "element:rapid clock is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"element:rapid clock\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "evidence": "INVESTIGATION with evidence-first remedy: comeback row firmly unsupported (0.94, not a needs-human item) and mechanic 2.32 < 2.5 gate, but the judged evidence cannot show the behavior — the boss was never reached in gameplay (maxX 6020 < boss x=6400), the 05-hazard-boss beat was omitted from every panel pass, and the enrage mechanic (faster, shorter-telegraph leaps + tint at half HP) is temporal: frozen staged stills cannot prove phase behavior either way. The Geneva row mechanic (NEXT_LEVEL 1, outside the campaign chain per the brief) is additionally unobservable in-level.",
+      "owner": "rerun first, then skills/level-creator/SKILL.md only if the re-judge still fails",
+      "smallestFix": "Capture first (INV-2: boss-fight gameplay across the HP threshold with measured telegraph durations, enrage tint, comet pod, full-beat re-judge). If the comeback row still reads unsupported with the fight captured, apply explicit design remedies, one bounded change: (a) deficit legibility — the countdownBoard/scoreboard narrates the 2.5-point deficit-to-swing arc in-level; (b) enrage readability — enrage tint plus a measurable tell window before every swing-phase leap; (c) Geneva legibility — a finale \"road to Geneva\" beat (plate/text/beacon) observable without leaving the campaign chain.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; the comeback row re-judges supports on captured fight evidence and mechanicMean >= 2.5, or a named defect with shot/event basis (not a stock template) replaces this entry.",
+      "confidence": "medium",
+      "limitations": "The 0.94 unsupported verdict is firm but was reached without the boss beat or any fight-phase evidence; mechanic 2.32 is a single-pass model score over the same limited subset.",
+      "alternativeCause": "The enrage mapping may genuinely fail to read (deficit never shown in-level; tint/tell unreadable at fight speed) — but that design verdict requires the fight captured, which stored evidence lacks."
     },
     {
       "rank": 3,
       "priority": 4,
       "flaw": "needs-human",
       "source": "fidelity",
-      "evidence": "row:Sindarov's attacking victory over the reigning star decided the showdown is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:Sindarov's attacking victory over the reigning star decided the showdown\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "evidence": "element:rapid clock is faint (noul=0.46) and rows \"Sindarov's attacking victory...\" (0.26), \"18 rapid games...\" (0.49), \"The Geneva title match...\" (0.26) sit under the 0.8 confidence gate; no stored human.json exists for level-24, so all four keys are unconfirmed. The fixed fidelityGate with confirmed=[] returns passed:false with needsHuman=[4 keys].",
+      "owner": "human reviewer (docs/level-reviews/evidence/level-24/human.json)",
+      "smallestFix": "A named human opens the retained stills, confirms or overrides each of the 4 keys, and records the judgments in human.json with reviewerType human and per-claim shot basis.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; needsHuman must be empty for the fidelity gate.",
+      "confidence": "high",
+      "limitations": "Single retained capture generation; finale-area stills are staged/teleported (x > maxX), so the signature-encounter read rests on staged frames until gameplay capture lands.",
+      "alternativeCause": "None for the gate failure — it is mechanical (confidence < 0.8 without a valid confirmation). Whether the keys genuinely read as shown/supports is exactly what the human confirmation decides."
     },
     {
       "rank": 4,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "row:18 rapid games over three days against four elite rivals is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:18 rapid games over three days against four elite rivals\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
-    },
-    {
-      "rank": 5,
-      "priority": 4,
-      "flaw": "needs-human",
-      "source": "fidelity",
-      "evidence": "row:The Geneva title match against Gukesh is next is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
-      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
-      "smallestFix": "Confirm or override \"row:The Geneva title match against Gukesh is next\" against the screenshot and record it in human.json.",
-      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate."
+      "priority": 5,
+      "flaw": "novelty-floor",
+      "source": "quality",
+      "evidence": "CALIBRATION, not a design fix: novelty mean 1.49 misses the 1.5 floor by 0.0125 while per-persona novelty spans 1.46-1.54 (Lex passes individually) and the build record logged 1.51 (pass) on this same level at an earlier loop — threshold-crossing variance across captures from a single retained capture generation and one panel pass.",
+      "owner": "rerun (no level edit)",
+      "smallestFix": "None — re-measure novelty on the INV-1/INV-2 evidence rerun with full beats recorded; order no design change for a 0.01 miss inside observed variance.",
+      "recheck": "Re-run the full critic with NEWS_BRIEF; novelty re-measures with its per-persona spread and capture generation recorded, and any persistent shortfall names the repeated decision/route evidence behind it.",
+      "confidence": "high",
+      "limitations": "One retained capture generation; no same-evidence repeat judgments exist to separate play-to-play from model variability.",
+      "alternativeCause": "A persistent novelty shortfall would need repeated-measure evidence plus named repeated decisions/routes — neither exists in stored evidence."
     }
   ],
   "loop": 4,

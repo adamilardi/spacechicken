@@ -52,10 +52,12 @@
   "flags": [
     {
       "id": "flat-deck",
-      "detail": "1 deck key(s), dominant share 1.00 across 6 decks"
+      "kind": "visual-variety",
+      "detail": "1 deck key(s), dominant share 1.00 across 6 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)"
     },
     {
       "id": "low-hazard-variety",
+      "kind": "gameplay",
       "detail": "hazard types [boarder] over 3960px"
     }
   ],
@@ -147,46 +149,63 @@
   "fidelity": null,
   "concept": null,
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "valid: full traversal to the crown (crown-collected in 36.2s, 0 deaths, no page errors, screenshots sent, 3/3 beats retained)",
+    "routeCoverage": "complete: crown collected (maxX 3643 vs crownX 3640); branches/tiers visited are unrecorded in stored telemetry, so unplayed branches/tiers stay unverified",
+    "mechanical": "flags-raised: flat-deck (visual-variety heuristic, never blocks quality), low-hazard-variety (static [boarder] over 3960px, CONTRADICTED by the 6-type runtime union; gated on reconciliation INV-1, no new behaviour prescribed until then)",
+    "quality": "ITERATE/REWORK: 4/4 flat votes (3 rework + 1 iterate), repeated across 2 pilot runs (model opinion, medium confidence by vote count, repetition, and flat-deck corroboration). No persona named clone and no clone-similarity flag exists: the stored [clone] top fix was generator-invented (removed rework->clone conversion) and is deleted.",
+    "fidelity": "n/a: not a news level (fidelity/concept null)",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "Do 6 hazard behaviours actually appear in L7 play (runtime hazardTypesSeen: boarder, drone, boulder, sentry, shrike, boss) or is the static single-boarder extraction right (8 boarders, hasBoss=false)? The runtime list includes boss with hasBoss=false, so at least one side misattributes; the runtime value is a unioned snapshot summary, not contact evidence, and no hazard ids/phases were retained.",
+      "status": "open",
+      "smallestNextStep": "Bounded rerun with hazard id/phase/telegraph retention: compare snapshot hazard ids against static placement ids to decide whether the runtime union is polluted (non-level actors) or the static extraction misses spawns. A level edit (second behaviour) only if a single behaviour is confirmed in play.",
+      "rerun": "TYPESAFE_API_KEY=$KEY node scripts/level-critic.mjs 7"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
-      "priority": 1,
-      "flaw": "clone",
-      "source": "quality",
-      "evidence": "3 rework verdict(s) without a named clone flaw",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 2,
-      "priority": 1,
-      "flaw": "flat-deck",
-      "source": "mechanical",
-      "evidence": "1 deck key(s), dominant share 1.00 across 6 decks",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 3,
       "priority": 2,
       "flaw": "flat",
       "source": "quality",
-      "evidence": "4/4 personas named \"flat\"; 02-hazard-boarder.jpg (hazard beat: boarder at x=700)",
+      "evidence": "4/4 personas named \"flat\" (repeated across 2 pilot runs); 02-hazard-boarder.jpg staged still (hazard beat: boarder at x=700); full clear in 36.2s with 0 deaths, no death clusters to cite; data support: all 6 decks share issHull and 5 of 6 sit in band 10 (platformBands 10,10,10,10,10,8)",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Break the deck row: vary widths/heights and add a second route line or set piece in the flagged stretch.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Diagnose repetitive play from route evidence (connectivity, height changes, encounter choices, waiting time, repeated decisions), not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the look as art direction.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "medium",
+      "limitations": "Corroborated by vote count, cross-run repetition, and the flat-deck flag, but still model opinion: staged stills only (no gameplay frames, JPG binaries not retained); per-run telemetry not retained; branches/tiers visited unrecorded, so unplayed branches/tiers are unverified; four personas judging one summary are four model perspectives, not four playtests.",
+      "alternativeCause": "Panel calibration on single-key art: the paint read is real (one key, one band row), but route monotony vs paint monotony needs route evidence (connectivity/height/encounter data), not the stills alone."
     },
     {
-      "rank": 4,
+      "rank": 2,
+      "priority": 3,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "1 deck key(s), dominant share 1.00 across 6 decks (visual-variety heuristic)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag. Never blocks quality.",
+      "alternativeCause": "Deliberate single-key ISS art direction; the paint may be intentional while the route still needs a decision (see the flat fix above)."
+    },
+    {
+      "rank": 3,
       "priority": 3,
       "flaw": "low-hazard-variety",
       "source": "mechanical",
-      "evidence": "hazard types [boarder] over 3960px",
+      "gatedOn": "INV-1",
+      "evidence": "static hazard types [boarder] over 3960px (8 boarders, hasBoss=false) CONTRADICTED by runtime hazardTypesSeen [boarder, drone, boulder, sentry, shrike, boss]: 6 types including boss with hasBoss=false; runtime value is a unioned snapshot summary, not contact evidence; no hazard ids/phases retained",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Add a second hazard behaviour; a reskin of the same behaviour does not count.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"low-hazard-variety\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Resolve INV-1 first: do not add a second hazard behaviour until the static/runtime contradiction is reconciled. Only if reconciliation confirms a single behaviour in play, add a second hazard behaviour (a reskin of the same behaviour does not count).",
+      "recheck": "Reconciliation recorded. If a behaviour was added, re-run the full critic: the variety flag must clear with matching static/runtime evidence and no new structural flaw may appear.",
+      "confidence": "low",
+      "limitations": "Code-measured static fact contradicted by runtime data; neither side alone supports a level edit. No hazard ids, phases, or contact evidence retained.",
+      "alternativeCause": "Runtime union polluted by non-level actors (snapshot includes types the level never places), or static extraction misses spawns the level actually runs; INV-1 decides between them."
     }
   ],
   "loop": 1,

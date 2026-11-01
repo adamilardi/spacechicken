@@ -224,16 +224,48 @@
     "mappingCount": 4
   },
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "valid: crown-collected full traversal (94.4s, 5 deaths, no page errors), screenshots sent, 5/5 beat stills retained in-repo and tracked at HEAD; no death cause/phase/input, no gameplay frames (all 5 stills are staged beat shots; stored shots.json predates capture-kind labels), no per-run retention (the repeat rests on the repeatedFlaws label intersection only)",
+    "routeCoverage": "complete (main route): crown-collected with maxX 5691 at crownX 5700; alternate branches/tiers unrecorded in stored telemetry, so off-route sections stay unverified",
+    "mechanical": "clean: no mechanical flags",
+    "quality": "ITERATE/REWORK: 4/4 cheap votes (all iterate; repeated across 2 runs as a label; model opinion: four personas judging run summaries are four model perspectives, not four playtests), corroborated by the 4-death hotspot at x=5327. Old crusher-shot citation struck as non-causal (re-derivation in review).",
+    "fidelity": "FAIL (kept separate from quality): the fidelity panel never ran (fidelity-panel-unavailable) — an infrastructure/evidence issue, not a human-review task. Stored human.json is build-agent eyeball observation, not a panel judgment, and does not clear the gate.",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "What kills the pilot 4x at the x=5327 hotspot (spots x=5305, 5332, 5332, 5340) and once at x=1369? Stored evidence has no death causes/events, no input trace, no hazard-phase data, and no gameplay frames (cited still 04-setpiece-closingBell.jpg at x=5850 is 523px from the hotspot center; distance-closest 05-finale.jpg at x=5500 is 173px off; all stills staged), and per-run retention is absent — the repeat rests on the repeatedFlaws label intersection only — so a bot-policy defect cannot be distinguished from a reproducible design problem.",
+      "status": "open",
+      "smallestNextStep": "Bounded capture rerun with death events and gameplay death frames retained: record hazard id/cause/phase, input history, and camera visibility at x=5327 and whether the hotspot repeats across fresh starts/phases. The same rerun restores the fidelity panel. Only propose the tell-window edit if the hotspot repeats in captured play.",
+      "rerun": "TYPESAFE_API_KEY=$KEY NEWS_BRIEF=docs/level-builds/18.md node scripts/level-critic.mjs 18"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
+      "priority": 0,
+      "flaw": "fidelity-panel-unavailable",
+      "source": "infrastructure",
+      "evidence": "fidelity-panel-unavailable: the fidelity panel never judged this level (no key, images off, size limit, or no screenshots captured)",
+      "owner": "infrastructure (panel/capture rerun)",
+      "smallestFix": "Restore the evidence path and re-run the full critic: set TYPESAFE_API_KEY, re-capture the beat sheet, and confirm the panel runs. Do not ask a human to stand in for the missing panel.",
+      "recheck": "Re-run the full critic; the fidelity panel must run and judge the full beat sheet.",
+      "confidence": "high",
+      "limitations": "Infrastructure state, not a level flaw."
+    },
+    {
+      "rank": 2,
       "priority": 1,
       "flaw": "cheap",
       "source": "quality",
-      "evidence": "4/4 personas named \"cheap\"; deathSpots x=1369, 5332, 5305, 5332; nearest shot 02-hazard-crusher.jpg",
+      "evidence": "4/4 personas named \"cheap\"; 4 deaths cluster near x=5327 (spots x=5305, 5332, 5332, 5340); nearest shot 04-setpiece-closingBell.jpg (staged still)",
       "owner": "skills/level-creator/SKILL.md",
       "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone and no new structural flaw may appear."
+      "recheck": "Re-run the full critic twice from fresh starts: deaths near x=5327 must not recur as a cluster and maxX must pass x=5327 on both runs.",
+      "confidence": "medium",
+      "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+      "alternativeCause": "Pilot mistiming on one phase; confirm by repeating across fresh starts/phases."
     }
   ],
   "loop": 1,

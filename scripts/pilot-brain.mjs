@@ -2091,9 +2091,21 @@ function laserWindowCovers(player, item, snap, dir, spanWidth) {
         // band, so the window must cover the band contact (dwell),
         // not a span run that never happens (L3's beam flyover). The
         // body goes dark while cooling (active false), but a cycling
-        // timer is still a real window.
+        // timer is still a real window. Grounded pilots take off from
+        // a standstill, so gate the takeoff arc too: the current vy:0
+        // run under the band dwells zero while the leap transits it,
+        // and a short window must veto the jump (L3's flyover hold).
         const dwell = beamBandDwell(player, item, snap, dir);
-        return item.timeUntilPhaseChangeMs >= dwell * 1000 + 350;
+        if (!player.grounded) {
+            return item.timeUntilPhaseChangeMs >= dwell * 1000 + 350;
+        }
+        const takeoff = beamBandDwell(
+            { x: player.x, y: player.y, vx: dir * 160, vy: -330 },
+            item,
+            snap,
+            dir
+        );
+        return item.timeUntilPhaseChangeMs >= Math.max(dwell, takeoff) * 1000 + 350;
     }
     // Dormant timers are not windows (release fires instantly), so
     // narrow spans never run through.

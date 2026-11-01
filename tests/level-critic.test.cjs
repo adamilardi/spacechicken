@@ -677,6 +677,338 @@ test('news status comes from the content marker, not brief availability', async 
     assert.equal(isNewsLevelFor(null, null), false);
 });
 
+test('L2/L7: rework verdicts without a clone vote never invent a clone finding', async () => {
+    const { buildFixContract } = await loadCritic();
+    const reports = ['reviewer', 'veteran', 'casual', 'speedrunner'].map((persona) => ({
+        persona,
+        fun: 2.2,
+        fairness: 1.9,
+        flaw: 'flat',
+        verdict: persona === 'reviewer' ? 'rework' : 'iterate',
+    }));
+    const fixes = buildFixContract({
+        reports,
+        flags: [],
+        telemetry: { outcome: 'crown-collected', deaths: 0, deathSpots: [], maxX: 5500 },
+        analysis: { crownX: 5500 },
+        shots: [{ id: '01-opener', file: '01-opener.jpg', proves: 'spawn read' }],
+    });
+    assert.ok(
+        fixes.every((fix) => fix.flaw !== 'clone'),
+        `no clone finding without a comparator, got: ${fixes.map((f) => f.flaw).join(', ')}`
+    );
+});
+
+test('L3: an uncorroborated blind vote routes to investigation, not a level edit', async () => {
+    const { buildFixContract, isCorroboratedFlaw } = await loadCritic();
+    const reports = ['reviewer', 'veteran', 'casual', 'speedrunner'].map((persona, index) => ({
+        persona,
+        fun: 1.6,
+        fairness: 1.7,
+        flaw: index === 0 ? 'blind' : 'none',
+        verdict: 'iterate',
+    }));
+    const telemetry = { outcome: 'timeout', deaths: 1, deathSpots: [141], maxX: 301 };
+    assert.equal(
+        isCorroboratedFlaw('blind', { voteCount: 1, repeatedFlaws: [], telemetry, flags: [] }),
+        false
+    );
+    const fixes = buildFixContract({
+        reports,
+        flags: [],
+        telemetry,
+        analysis: { crownX: 2050 },
+        shots: [{ id: '01-opener', file: '01-opener.jpg', proves: 'spawn read' }],
+        repeatedFlaws: [],
+    });
+    assert.equal(fixes[0].flaw, 'blind');
+    assert.equal(fixes[0].source, 'investigation');
+    assert.match(fixes[0].smallestFix, /Investigate before editing/);
+    assert.ok(fixes[0].alternativeCause.length > 0);
+    assert.ok(fixes[0].recheck.length > 10);
+    assert.ok(fixes.every((fix) => !(fix.flaw === 'blind' && fix.source === 'quality')));
+});
+
+test('L18: the fix cites the dominant death cluster, not the first death', async () => {
+    const { dominantDeathCluster, buildFixContract } = await loadCritic();
+    const cluster = dominantDeathCluster([1369, 5305, 5320, 5330, 5340]);
+    assert.equal(cluster.count, 4);
+    assert.ok(cluster.center >= 5300 && cluster.center <= 5345, `center ${cluster.center}`);
+    assert.equal(dominantDeathCluster([141]).count, 1);
+    assert.equal(dominantDeathCluster([]), null);
+    const reports = ['reviewer', 'veteran', 'casual', 'speedrunner'].map((persona, index) => ({
+        persona,
+        fun: 2.0,
+        fairness: 1.6,
+        flaw: index < 2 ? 'cheap' : 'none',
+        verdict: 'iterate',
+    }));
+    const fixes = buildFixContract({
+        reports,
+        flags: [],
+        telemetry: {
+            outcome: 'timeout',
+            deaths: 5,
+            deathSpots: [1369, 5305, 5320, 5330, 5340],
+            maxX: 5340,
+        },
+        analysis: { crownX: 5600 },
+        shots: [
+            { id: '01-opener', file: '01-opener.jpg', x: 150, proves: 'spawn read' },
+            { id: '05-hotspot', file: '05-hotspot.jpg', x: 5300, proves: 'hazard beat' },
+        ],
+    });
+    assert.match(fixes[0].evidence, /4 deaths cluster near x=53\d\d/);
+    assert.match(fixes[0].evidence, /05-hotspot\.jpg/);
+});
+
+test('L18: panel unavailability is infrastructure, ranked first, never a human task', async () => {
+    const { buildFixContract, isInfrastructureKey, recommendNextAction } = await loadCritic();
+    assert.equal(isInfrastructureKey('fidelity-panel-unavailable'), true);
+    assert.equal(isInfrastructureKey('panel-unavailable'), true);
+    assert.equal(isInfrastructureKey('no-screenshots'), true);
+    assert.equal(isInfrastructureKey('row:some fact'), false);
+    const fixes = buildFixContract({
+        reports: [],
+        flags: [{ id: 'flat-deck', kind: 'visual-variety', detail: '1 deck key' }],
+        fidelity: {
+            gate: { passed: false, needsHuman: ['fidelity-panel-unavailable'] },
+            elements: [],
+            rows: [],
+        },
+    });
+    assert.equal(fixes[0].flaw, 'fidelity-panel-unavailable');
+    assert.equal(fixes[0].source, 'infrastructure');
+    assert.match(fixes[0].owner, /infrastructure/);
+    assert.ok(fixes.every((fix) => fix.flaw !== 'needs-human'));
+    const next = recommendNextAction(fixes);
+    assert.equal(next.flaw, 'fidelity-panel-unavailable');
+    assert.match(next.justification, /infrastructure/);
+});
+
+test('full beat sheets and inventories batch without dropping evidence', async () => {
+    const { batchPanelShots, batchInventory, mergeFidelityBatches, mergePersonaBatches } =
+        await loadCritic();
+    const beats = [1, 2, 3, 4, 5, 6].map((n) => ({ id: `0${n}-beat`, file: `0${n}.jpg` }));
+    const shotBatches = batchPanelShots(beats, 4);
+    assert.equal(shotBatches.length, 2);
+    assert.deepEqual(
+        shotBatches.flat().map((shot) => shot.id),
+        beats.map((shot) => shot.id)
+    );
+    const inventory = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    const chunks = batchInventory(inventory, 6);
+    assert.equal(chunks.length, 2);
+    assert.deepEqual(chunks.flat(), inventory);
+    // Visibility is existential: shown in any batch counts as shown.
+    const merged = mergeFidelityBatches([
+        {
+            elements: [{ element: 'dish', noul: 0.2 }],
+            rows: [{ fact: 'f', choice: 'unsupported', confidence: 0.5 }],
+            mechanicFidelity: 2,
+            visualFidelity: 2,
+            fidelityFlaw: 'none',
+            universeFit: 0.9,
+            shotIds: ['01-opener'],
+        },
+        {
+            elements: [{ element: 'dish', noul: 0.85 }],
+            rows: [{ fact: 'f', choice: 'supports', confidence: 0.9 }],
+            mechanicFidelity: 3,
+            visualFidelity: 3,
+            fidelityFlaw: 'none',
+            universeFit: 0.95,
+            shotIds: ['05-finale'],
+        },
+    ]);
+    assert.equal(merged.elements[0].verdict, 'shown');
+    assert.equal(merged.rows[0].choice, 'supports');
+    assert.deepEqual(merged.evidenceSeen, ['01-opener', '05-finale']);
+    const persona = mergePersonaBatches([
+        { persona: 'reviewer', name: 'M', fun: 2, flaw: 'none', verdict: 'ship', shotIds: ['a'] },
+        {
+            persona: 'reviewer',
+            name: 'M',
+            fun: 4,
+            flaw: 'flat',
+            verdict: 'iterate',
+            shotIds: ['b'],
+        },
+    ]);
+    assert.equal(persona.fun, 3);
+    assert.equal(persona.flaw, 'flat');
+    assert.equal(persona.verdict, 'iterate');
+    assert.deepEqual(persona.evidenceSeen, ['a', 'b']);
+});
+
+test('failed and successful runs both survive; repeats need two runs', async () => {
+    const { appendRun, repeatedFlawsAcrossRuns } = await loadCritic();
+    const first = appendRun([], { runId: 'run-1', flaws: ['cheap', 'flat'] });
+    const both = appendRun(first, { runId: 'run-2', flaws: ['flat'] });
+    assert.equal(first.length, 1);
+    assert.equal(both.length, 2);
+    assert.equal(both[0].runId, 'run-1');
+    assert.equal(both[1].runId, 'run-2');
+    assert.deepEqual(repeatedFlawsAcrossRuns(both), ['flat']);
+    assert.deepEqual(repeatedFlawsAcrossRuns([both[0]]), []);
+});
+
+test('L22: agent confirmations never yield a human-confirmed PASS', async () => {
+    const { confirmationReview, validateStoredPass } = await loadCritic();
+    const agentHuman = {
+        confirmed: ['row:a', 'row:b'],
+        reviewer: 'agent human-review (screenshots opened)',
+        reviewerType: 'agent',
+        date: '2026-10-31',
+        reasoning: 'opened shots',
+    };
+    assert.deepEqual(confirmationReview(agentHuman).confirmed, []);
+    const storedPass = {
+        passed: true,
+        loop: 7,
+        telemetry: { outcome: 'crown-collected' },
+        fidelity: {
+            humanConfirmed: ['row:a', 'row:b'],
+            elements: [],
+            rows: [{ fact: 'a' }, { fact: 'b' }],
+        },
+    };
+    const stale = validateStoredPass(storedPass, agentHuman);
+    assert.equal(stale.consistent, false);
+    assert.ok(stale.issues.some((issue) => /reviewerType "agent"/.test(issue)));
+    const humanHuman = { ...agentHuman, reviewer: 'Ada', reviewerType: 'human' };
+    const fresh = validateStoredPass(
+        { ...storedPass, loop: 1, handoff: null },
+        { ...humanHuman, confirmed: [] }
+    );
+    assert.equal(fresh.consistent, true);
+});
+
+test('gate-open never counts as a completed crown route', async () => {
+    const { isCompletedCrownRoute, assessEvidenceValidity } = await loadCritic();
+    assert.equal(isCompletedCrownRoute('crown-collected'), true);
+    assert.equal(isCompletedCrownRoute('gate-open'), false);
+    assert.equal(isCompletedCrownRoute('reached-crown-area'), false);
+    assert.equal(isCompletedCrownRoute('timeout'), false);
+    const gateOpen = assessEvidenceValidity({
+        telemetry: { outcome: 'gate-open', deaths: 2, deathSpots: [5000, 5100], maxX: 6020 },
+        runs: [{ runId: 'r1' }],
+        analysis: { crownX: 6550 },
+        flags: [],
+        reports: [],
+        fidelity: null,
+        screenshotsSent: true,
+        isNewsLevel: false,
+    });
+    assert.equal(gateOpen.routeCoverage.status, 'partial');
+    assert.ok(gateOpen.routeCoverage.unverified.length > 0);
+    assert.equal(gateOpen.releaseEligibility.eligible, false);
+    assert.ok(
+        gateOpen.releaseEligibility.blockers.some((blocker) =>
+            /no completed crown route/.test(blocker)
+        )
+    );
+});
+
+test('report separates the quality gate from release eligibility', async () => {
+    const { renderReport, assessEvidenceValidity } = await loadCritic();
+    const good = ['reviewer', 'veteran', 'casual', 'speedrunner'].map((persona) => ({
+        persona,
+        name: persona,
+        fun: 2.4,
+        fairness: 1.8,
+        readability: 2.3,
+        novelty: 1.9,
+        pacing: 2.2,
+        theme: 2.4,
+        flaw: 'none',
+        verdict: 'ship',
+    }));
+    const statuses = assessEvidenceValidity({
+        telemetry: { outcome: 'timeout', deaths: 0, deathSpots: [], maxX: 4612 },
+        runs: [{ runId: 'r1' }],
+        analysis: { crownX: 6000, title: 'Fake' },
+        flags: [],
+        reports: good,
+        fidelity: null,
+        screenshotsSent: true,
+        isNewsLevel: false,
+    });
+    assert.equal(statuses.quality.status, 'pass');
+    assert.equal(statuses.releaseEligibility.eligible, false);
+    const md = renderReport({
+        level: 13,
+        run: 'full',
+        analysis: { title: 'Fake' },
+        flags: [],
+        telemetry: { outcome: 'timeout', maxX: 4612 },
+        screenshotsSent: true,
+        reports: good,
+        passed: true,
+        statuses,
+        loop: 1,
+        fixes: [],
+    });
+    assert.match(md, /Quality gate: PASS/);
+    assert.match(md, /Route coverage: partial/);
+    assert.match(md, /Release eligibility: NOT ELIGIBLE/);
+});
+
+test('revision loops hold on calibration reruns and advance on design change', async () => {
+    const { nextRevisionLoop, analysisHash } = await loadCritic();
+    const prior = { passed: false, loop: 1, fixes: [{ flaw: 'flat' }] };
+    const calibration = nextRevisionLoop(prior, { designChanged: false });
+    assert.equal(calibration.loop, 1);
+    assert.equal(calibration.calibrationRuns, 1);
+    assert.equal(calibration.priorFlaw, 'flat');
+    const revised = nextRevisionLoop(prior, { designChanged: true });
+    assert.equal(revised.loop, 2);
+    assert.equal(revised.calibrationRuns, 0);
+    assert.deepEqual(nextRevisionLoop(null, {}), { loop: 1, priorFlaw: null, calibrationRuns: 0 });
+    const stale = nextRevisionLoop({ passed: true, loop: 2, stalePass: true }, {});
+    assert.equal(stale.loop, 2);
+    const a = { worldWidth: 6000, crownX: 5500, platformKeys: ['a'], platformCount: 8 };
+    assert.equal(analysisHash(a), analysisHash({ ...a }));
+    assert.notEqual(analysisHash(a), analysisHash({ ...a, crownX: 5600 }));
+});
+
+test('fix contract keeps every blocker, dedupes causes, and justifies the next action', async () => {
+    const { buildFixContract, recommendNextAction } = await loadCritic();
+    const fixes = buildFixContract({
+        reports: [],
+        flags: [
+            { id: 'flat-deck', kind: 'visual-variety', detail: 'visual' },
+            { id: 'checkpoint-desert', kind: 'route', detail: 'gap' },
+            { id: 'low-hazard-variety', kind: 'gameplay', detail: 'one type' },
+        ],
+        fidelity: {
+            gate: { passed: false, needsHuman: [] },
+            elements: [
+                { element: 'a', verdict: 'missing', noul: 0.1 },
+                { element: 'b', verdict: 'missing', noul: 0.2 },
+            ],
+            rows: [],
+            fidelityFlaw: 'none',
+        },
+    });
+    // Every blocker survives (no truncation), repeated missing-elements merge.
+    assert.ok(fixes.length >= 4, `kept ${fixes.length} blockers`);
+    assert.equal(fixes.filter((fix) => fix.flaw === 'missing-elements').length, 1);
+    assert.match(
+        fixes.find((fix) => fix.flaw === 'missing-elements').evidence,
+        /"a".*"b"|"b".*"a"/
+    );
+    const ranks = fixes.map((fix) => fix.rank);
+    assert.deepEqual(
+        ranks,
+        [...ranks].sort((a, b) => a - b)
+    );
+    const next = recommendNextAction(fixes);
+    assert.equal(next.flaw, fixes[0].flaw);
+    assert.ok(next.justification.length > 10);
+    assert.equal(recommendNextAction([]), null);
+});
+
 test('news novelty floor separates clones from genuine departures', async () => {
     const { panelPassed, NEWS_FLOORS } = await loadCritic();
     assert.equal(NEWS_FLOORS.novelty, 1.5);

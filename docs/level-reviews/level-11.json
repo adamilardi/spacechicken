@@ -110,18 +110,22 @@
   "flags": [
     {
       "id": "flat-deck",
-      "detail": "2 deck key(s), dominant share 0.72 across 25 decks"
+      "kind": "visual-variety",
+      "detail": "2 deck key(s), dominant share 0.72 across 25 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)"
     },
     {
       "id": "clone-suspect",
+      "kind": "clone",
       "detail": "skeleton similarity 0.788 to level 16 (Iron Vault)"
     },
     {
       "id": "background-recycled",
+      "kind": "visual-variety",
       "detail": "background type 'bastion' already used by levels 16, 17; build report must claim a new composition device"
     },
     {
       "id": "checkpoint-desert",
+      "kind": "route",
       "detail": "no checkpoint between x=3451 and x=6000"
     }
   ],
@@ -247,56 +251,75 @@
   "fidelity": null,
   "concept": null,
   "newsFloorFailures": [],
+  "statuses": {
+    "captureValidity": "partial: gate-open run, 16 deaths, no page errors, screenshots sent, 6/6 beat manifests retained (JPGs not in repo); no death causes/events, no gameplay frames, no per-run retention; local findings stand, whole-level verdicts do not",
+    "routeCoverage": "partial: no completed crown route (outcome: gate-open; only crown-collected completes); crown-collection segment x=11485-11660 unverified; boss still at x=11640 (beyond maxX) is staged, not a gameplay frame",
+    "mechanical": "flags-raised: clone-suspect (code-measured 0.788 kit/vocabulary match to L16; paired comparison in review), checkpoint-desert (code-measured 2549px gap, 4 deaths inside), flat-deck + background-recycled (visual-variety heuristics, never block quality)",
+    "quality": "ITERATE/REWORK: 4/4 clone votes (all rework; repeated across 2 runs; model opinion: four personas judging one summary are four model perspectives, not four playtests), corroborated by the named-comparator mechanical flag. Old mid-shot citation struck as non-causal; paired verdict: L11 holds, L16 changes.",
+    "fidelity": "n/a: not a news level (fidelity/concept null)",
+    "overall": "ITERATE/REWORK: committed verdict retained, not an approval"
+  },
+  "investigations": [
+    {
+      "id": "INV-1",
+      "question": "What kills the pilot at the x=8980 hotspot (8 deaths, spots x=8912, 8923, 8939, 8976, 8981, 9024, 9027, 9059)? Stored evidence has no death causes/events, no input trace, and no gameplay frames (nearest retained still 04-hazard-bonk.jpg at x=11100 is 2120px away; JPGs not retained), and per-run retention is absent, so a bot-policy defect cannot be distinguished from a reproducible design problem.",
+      "status": "open",
+      "smallestNextStep": "Bounded capture rerun with death events and gameplay death frames retained: record hazard id/cause/phase at x=8980 and whether the hotspot repeats across fresh starts/phases. The same rerun covers the unverified crown segment x=11485-11660 once the pilot passes the hotspot. Only propose a level edit if the hotspot repeats.",
+      "rerun": "TYPESAFE_API_KEY=$KEY node scripts/level-critic.mjs 11"
+    }
+  ],
   "fixes": [
     {
       "rank": 1,
       "priority": 1,
       "flaw": "clone",
       "source": "quality",
-      "evidence": "4/4 personas named \"clone\"; 02-hazard-boarder.jpg (hazard beat: boarder at x=700)",
+      "evidence": "4/4 personas named \"clone\" (all rework; repeated across 2 runs) AND skeleton similarity 0.788 to level 16 (Iron Vault): 10/13 shared kit tokens + 5/6 shared height bands; paired deck-x grammar (opener row, stacked doubles at ~0.39/~0.50, parallel late climb 0.81->0.97); full side-by-side in level-11.md re-derivation. Stored mid-shot citation (02-hazard-boarder.jpg at x=700, 8280px from the x=8980 hotspot) struck as non-causal. Merged with clone-suspect (one cause, combined evidence); flag retained in flags list.",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Change the Topology Fingerprint: new route shape plus a new finale rule; do not re-skin the copied skeleton.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"clone\" must be gone and no new structural flaw may appear."
+      "smallestFix": "No L11 edit: L11 holds as the bastion-kit reference and level 16 owns the differentiation (see docs/level-reviews/level-16.md). After L16's revision, re-run this level's critic to confirm the pair reads distinct.",
+      "recheck": "Re-run the full critic after L16's revision: skeleton similarity to L16 must sit below the 0.75 clone threshold or the panel must stop naming \"clone\", with no new structural flaw.",
+      "confidence": "medium",
+      "limitations": "Kit/vocabulary match is code-measured (high); the duplicate-experience judgment rests on model votes over one retained summary per run, with staged stills only (JPGs not retained) and no per-run telemetry. The 0.788 metric ignores deck order, hazard placement and timing.",
+      "alternativeCause": "Deliberate bastion-arc reuse (background shared across levels 11/16/17, boss-gated finales): the arc grammar may be intentional while the route+kit identity still duplicates, which is why L16 (the later subset-echo level) carries the change instead of L11."
     },
     {
       "rank": 2,
-      "priority": 1,
-      "flaw": "clone-suspect",
+      "priority": 3,
+      "flaw": "checkpoint-desert",
       "source": "mechanical",
-      "evidence": "skeleton similarity 0.788 to level 16 (Iron Vault)",
+      "evidence": "no checkpoint between x=3451 and x=6000 (2549px gap); 4 of 16 deaths fall inside the gap (x=3469, 4488, 5179, 5192); checkpoint replay time unmeasured in stored evidence",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Change deck/hazard sequence and background composition until skeleton similarity drops below the clone threshold.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"clone-suspect\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
+      "recheck": "Re-run the full critic: no checkpoint gap over 2500px, and the rerun measures replay time after death at the x=8980 hotspot.",
+      "confidence": "medium",
+      "limitations": "Gap is code-measured; its play cost (replay time) is unmeasured: stored telemetry has death spots but no checkpoint replay times or input traces.",
+      "alternativeCause": "If INV-1 shows the hotspot deaths are a bot-policy defect, the gap still stands as route evidence but its severity drops; keep the checkpoint regardless of attribution."
     },
     {
       "rank": 3,
-      "priority": 1,
+      "priority": 3,
       "flaw": "flat-deck",
       "source": "mechanical",
-      "evidence": "2 deck key(s), dominant share 0.72 across 25 decks",
+      "evidence": "2 deck key(s), dominant share 0.72 across 25 decks (visual-variety heuristic)",
       "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Use at least three platform reads with no key above 80% of decks.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"flat-deck\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Visual-variety heuristic, not a quality proof: either justify the two-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show distinct decisions, or the build report must carry the art-direction exception.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag. Never blocks quality.",
+      "alternativeCause": "Deliberate two-key bastion art direction shared with the arc; the paint may be intentional while the kit/route identity still needs L16 to diverge."
     },
     {
       "rank": 4,
       "priority": 3,
       "flaw": "background-recycled",
       "source": "mechanical",
-      "evidence": "background type 'bastion' already used by levels 16, 17; build report must claim a new composition device",
+      "evidence": "background type 'bastion' already used by levels 16, 17; build report must claim a new composition device (visual-variety heuristic)",
       "owner": "skills/level-art-creator/SKILL.md",
-      "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone and no new structural flaw may appear."
-    },
-    {
-      "rank": 5,
-      "priority": 3,
-      "flaw": "checkpoint-desert",
-      "source": "mechanical",
-      "evidence": "no checkpoint between x=3451 and x=6000",
-      "owner": "skills/level-creator/SKILL.md",
-      "smallestFix": "Add a checkpoint so no gap over 2500px is without one, clear of beam timing and patrol lanes.",
-      "recheck": "Re-run the full critic (npm run critic:level); \"checkpoint-desert\" must be gone and no new structural flaw may appear."
+      "smallestFix": "Claim the bastion-arc composition device for this level in the build report (what distinguishes its bastion read from levels 16/17), or introduce one; revisit after L16 differentiates.",
+      "recheck": "Re-run the full critic: the build report claims a composition device for the reused background, or the background reads distinct.",
+      "confidence": "low",
+      "limitations": "Shared-background membership is code-measured; whether the reuse reads as an arc or a repeat is a visual judgment the retained staged stills cannot settle (JPGs not retained). Never blocks quality.",
+      "alternativeCause": "Deliberate campaign arc: three bastion levels may intentionally share a background language, with differentiation carried by route and kit rather than backdrop."
     }
   ],
   "loop": 1,
