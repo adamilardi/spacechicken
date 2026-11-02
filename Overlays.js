@@ -1053,7 +1053,7 @@ export class Overlays {
         this.titleText = this.scene.add
             .text(0, 0, 'SPACE CHICKEN', {
                 fontSize: `${metrics.fonts.title}px`,
-                fontFamily: BANNER_FONT,
+                fontFamily: 'Impact, Arial Black, sans-serif',
                 fill: '#fff6c9',
                 fontStyle: 'bold',
                 align: 'center',
@@ -1061,10 +1061,11 @@ export class Overlays {
             .setOrigin(0.5);
         this.titleText.setScrollFactor(0);
         this.titleText.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
-        this.ui.styleHudText(this.titleText, 8);
+        this.titleText.setStroke?.('#101529', 3);
+        this.titleText.setShadow?.(0, 4, '#ff633c', 0, true, true);
         this.ui.markUi(this.titleText);
         this.titleTagline = this.scene.add
-            .text(0, 0, "Don't just read the news. Play it.", {
+            .text(0, 0, 'REAL HEADLINES. UNREAL ADVENTURES.', {
                 fontSize: `${Math.max(13, metrics.fonts.instructions)}px`,
                 fontFamily: HUD_FONT,
                 fill: '#8ce4ff',
@@ -1159,7 +1160,11 @@ export class Overlays {
         this.ui.playerNameText.setDepth(GAME_CONSTANTS.LEADERBOARD_BUTTON_DEPTH);
         this.ui.playerNameText.setVisible(false);
         this.ui.updatePlayerName(this.ui.playerName);
-        if (this.scene.tweens && typeof this.scene.tweens.add === 'function') {
+        if (
+            !this.prefersReducedTitleMotion() &&
+            this.scene.tweens &&
+            typeof this.scene.tweens.add === 'function'
+        ) {
             this.titlePromptTween = this.scene.tweens.add({
                 targets: this.titlePrompt,
                 alpha: { from: 0.78, to: 1 },
@@ -1172,6 +1177,7 @@ export class Overlays {
                 this.titleChickenTween = this.scene.tweens.add({
                     targets: this.titleChicken,
                     y: '+=7',
+                    angle: { from: -12, to: -5 },
                     duration: 1100,
                     yoyo: true,
                     repeat: -1,
@@ -1181,7 +1187,7 @@ export class Overlays {
             if (this.titleGlow) {
                 this.titleGlowTween = this.scene.tweens.add({
                     targets: this.titleGlow,
-                    alpha: { from: 0.22, to: 0.42 },
+                    alpha: { from: 0.12, to: 0.24 },
                     scale: { from: 6, to: 7.5 },
                     duration: 1300,
                     yoyo: true,
@@ -1207,6 +1213,19 @@ export class Overlays {
         this.createDifficulty();
         this.titleView = 'featured';
         this.layoutTitleScreen();
+        if (!this.prefersReducedTitleMotion() && this.scene.tweens?.add) {
+            this.titleEntranceTween = this.scene.tweens.add({
+                targets: [
+                    this.titleText,
+                    this.titleShadow,
+                    this.titleTagline,
+                    this.titleHeroThumb,
+                ].filter(Boolean),
+                alpha: { from: 0, to: 1 },
+                duration: 650,
+                ease: 'Cubic.easeOut',
+            });
+        }
     }
 
     createTitleGraphics() {
@@ -1220,7 +1239,49 @@ export class Overlays {
         };
         this.titleBackdrop = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.titleTickerBg = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
+        this.titleAtmosphere = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
         this.titleHeroBg = mk(GAME_CONSTANTS.OVERLAY_DEPTH);
+    }
+
+    prefersReducedTitleMotion() {
+        return (
+            typeof window !== 'undefined' &&
+            Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+        );
+    }
+
+    layoutTitleAtmosphere(metrics) {
+        const g = this.titleAtmosphere;
+        if (!g?.clear) return;
+        const size = `${metrics.width}:${metrics.height}`;
+        if (size === this.titleAtmosphereSize) return;
+        this.titleAtmosphereSize = size;
+        this.titleAtmosphereTween?.stop();
+        g.clear();
+        g.setPosition(0, 0);
+        // One retained graphics object; the scene tween moves it without repainting.
+        for (let i = 0; i < 42; i++) {
+            const x = (i * 227 + 19) % (metrics.width + 120);
+            const y = (i * 131 + 53) % metrics.height;
+            g.fillStyle(i % 3 ? 0x8ce4ff : 0xffcb8a, 0.35);
+            g.fillRect(x, y, i % 4 ? 2 : 14, 1);
+            if (i % 7 === 0) {
+                g.fillStyle(0xe9faff, 0.8);
+                g.fillRect(x + 5, y - 3, 1, 7);
+            }
+        }
+        if (!this.prefersReducedTitleMotion() && this.scene.tweens?.add) {
+            this.titleAtmosphereTween = this.scene.tweens.add({
+                targets: g,
+                x: -70,
+                y: 24,
+                alpha: { from: 0.45, to: 1 },
+                duration: 6500,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+            });
+        }
     }
 
     createTitleMarks() {
@@ -1233,7 +1294,11 @@ export class Overlays {
             this.ui.markUi(this.titleCrown);
         }
         if (this.scene.textures?.exists?.('chicken1')) {
-            this.titleChicken = this.scene.add.image(0, 0, 'chicken1');
+            this.titleChicken = this.scene.add.image(
+                0,
+                0,
+                this.scene.textures.exists('chicken_jetpack1') ? 'chicken_jetpack1' : 'chicken1'
+            );
             this.titleChicken.setScrollFactor(0);
             this.titleChicken.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH);
             this.titleChicken.setScale(2.6);
@@ -1246,8 +1311,8 @@ export class Overlays {
             this.titleShadow = this.scene.add
                 .text(0, 0, 'SPACE CHICKEN', {
                     fontSize: `${metrics.fonts.title}px`,
-                    fontFamily: BANNER_FONT,
-                    fill: '#e10600',
+                    fontFamily: 'Impact, Arial Black, sans-serif',
+                    fill: '#ff633c',
                     fontStyle: 'bold',
                     align: 'center',
                 })
@@ -1294,7 +1359,7 @@ export class Overlays {
             this.titleStageCrown.setOrigin(0.5, 1);
             this.ui.markUi(this.titleStageCrown);
         }
-        if (this.scene.tweens?.add) {
+        if (!this.prefersReducedTitleMotion() && this.scene.tweens?.add) {
             if (this.titleStageChicken)
                 this.titleStageChickenTween = this.scene.tweens.add({
                     targets: this.titleStageChicken,
@@ -1450,7 +1515,7 @@ export class Overlays {
             return t;
         };
         const ins = metrics.fonts.instructions;
-        this.titleHeroKicker = mk('FEATURED STORY', Math.max(11, ins - 2), '#8ce4ff', true);
+        this.titleHeroKicker = mk('NEWS → NEXT LEVEL', Math.max(11, ins - 2), '#8ce4ff', true);
         this.titleHeroCounter = mk('', Math.max(11, ins - 2), '#8ce4ff', true);
         this.titleHeroCounter.setOrigin(1, 0);
         this.titleHeroOutlet = mk('', Math.max(12, ins - 1), '#9fb3c8');
@@ -1475,7 +1540,7 @@ export class Overlays {
         }
         this.createTitleStage();
         this.titleHeroPlay = this.scene.add
-            .text(0, 0, '▶  PLAY THIS STORY', {
+            .text(0, 0, '▶  LAUNCH STORY', {
                 fontSize: `${Math.max(15, ins + 1)}px`,
                 fontFamily: HUD_FONT,
                 fill: '#111827',
@@ -1567,7 +1632,12 @@ export class Overlays {
             );
         this.updateStageVisibility();
         this.updateNewsRowHighlight(id);
-        if (animate && this.scene.tweens?.add && this.titleHeroHeadline) {
+        if (
+            animate &&
+            !this.prefersReducedTitleMotion() &&
+            this.scene.tweens?.add &&
+            this.titleHeroHeadline
+        ) {
             this.titleHeroHeadline.setAlpha(0.25);
             this.scene.tweens.add({
                 targets: [this.titleHeroHeadline, this.titleHeroLevel, this.titleHeroMechanic],
@@ -1915,7 +1985,11 @@ export class Overlays {
         const height = metrics.height;
         const centerX = insets.left + metrics.innerWidth / 2;
         const maxTitleWidth = Math.max(160, metrics.innerWidth - 24);
-        this.ui.applyFontSize(this.titleText, metrics.fonts.title);
+        const logoSize = Math.min(
+            metrics.isCompact ? (metrics.isPortrait ? 54 : 42) : 108,
+            Math.floor(metrics.innerWidth * 0.105)
+        );
+        this.ui.applyFontSize(this.titleText, logoSize);
         if (typeof this.titleText.setWordWrapWidth === 'function') {
             this.titleText.setWordWrapWidth(maxTitleWidth, true);
         }
@@ -1965,12 +2039,41 @@ export class Overlays {
                 g.fillStyle(i % 5 === 0 ? 0xffe566 : 0xffffff, i % 3 === 0 ? 0.5 : 0.22);
                 g.fillCircle(sx, sy, i % 7 === 0 ? 2 : 1);
             }
-            g.fillStyle(0xffc93c, 0.05);
-            g.fillCircle(metrics.width / 2, insets.top + 120, 210);
-            g.fillStyle(0xe10600, 0.045);
-            g.fillCircle(metrics.width / 2, insets.top + 120, 300);
-            g.fillStyle(0xe10600, 1);
-            g.fillRect(0, insets.top, metrics.width, 3);
+            // Baked orbital glow and perspective rails: no per-frame drawing.
+            const cx = metrics.width * 0.5;
+            const horizon = metrics.height * 1.35;
+            const radius = metrics.height * 0.69;
+            for (let i = 12; i > 0; i--) {
+                g.fillStyle(0x367de8, 0.012 + (12 - i) * 0.002);
+                g.fillCircle(cx, horizon, radius + i * 12);
+            }
+            g.fillStyle(0x071329, 1);
+            g.fillCircle(cx, horizon, radius);
+            if (g.strokeCircle) {
+                g.lineStyle(2, 0x79dcff, 0.6);
+                g.strokeCircle(cx, horizon, radius);
+            }
+            if (g.lineBetween) {
+                for (let i = -5; i <= 5; i++) {
+                    g.lineStyle(1, 0x5c9bda, 0.12);
+                    g.lineBetween(
+                        cx + i * 45,
+                        metrics.height * 0.72,
+                        cx + i * metrics.width * 0.23,
+                        metrics.height
+                    );
+                }
+                for (let i = 0; i < 7; i++) {
+                    const x = (i * 317 + 70) % metrics.width;
+                    const y = (i * 137 + 50) % metrics.height;
+                    g.lineStyle(2, i % 2 ? 0xffae68 : 0x8ce4ff, 0.3);
+                    g.lineBetween(x, y, x + 40, y - 16);
+                }
+            }
+            g.fillStyle(0xff794c, 1);
+            g.fillRect(0, insets.top, metrics.width * 0.3, 3);
+            g.fillStyle(0x8ce4ff, 1);
+            g.fillRect(metrics.width * 0.3, insets.top, metrics.width * 0.7, 3);
         }
     }
 
@@ -1979,15 +2082,27 @@ export class Overlays {
         const tw = this.titleText.displayWidth || 320;
         const shortLandscape = metrics.isCompact && !metrics.isPortrait;
         const wide = metrics.innerWidth >= 700 && !metrics.isPortrait;
-        const portrait = metrics.isPortrait && metrics.innerWidth >= 340;
+        const portrait = metrics.isPortrait && metrics.innerWidth >= 600;
         const show = !shortLandscape && (wide || portrait);
         this.titleChicken.setVisible(show);
         if (wide) {
             this.titleChicken.setPosition(centerX + tw / 2 + 58, this.titleText.y + 2);
-            this.titleChicken.setScale(metrics.isCompact ? 2.2 : 3.0);
+            this.titleChicken.setScale(metrics.isCompact ? 2.2 : 3.6);
         } else if (portrait) {
             this.titleChicken.setPosition(centerX + tw / 2 + 22, this.titleText.y + 2);
             this.titleChicken.setScale(1.7);
+        }
+        const g = this.titleBackdrop;
+        if (wide && show && g?.strokeCircle) {
+            const x = this.titleChicken.x;
+            const y = this.titleChicken.y;
+            g.lineStyle(1, 0x8ce4ff, 0.5);
+            g.strokeCircle(x, y, 57);
+            g.lineStyle(5, 0x8ce4ff, 0.06);
+            g.strokeCircle(x, y, 63);
+            g.fillStyle(0xffbc63, 0.8);
+            g.fillRect(x - 63, y + 36, 26, 2);
+            g.fillRect(x + 37, y - 36, 26, 2);
         }
         if (this.titleGlow) {
             this.titleGlow.setVisible(show);
@@ -1999,7 +2114,8 @@ export class Overlays {
         const insets = this.ui.getSafeAreaInsets();
         const shortLandscape = metrics.isCompact && !metrics.isPortrait;
         this.paintTitleChrome(metrics);
-        let y = insets.top + (shortLandscape ? 8 : 14);
+        this.layoutTitleAtmosphere(metrics);
+        let y = insets.top + (shortLandscape ? 8 : Math.max(30, (metrics.innerHeight - 650) / 2));
         // Name lives in Settings now; the header keeps a clear band under
         // the top HUD row (leaderboard/music) on small screens.
         if (metrics.innerWidth < 700 && !shortLandscape) y += 30;
@@ -2019,7 +2135,7 @@ export class Overlays {
         this.titleText.setPosition(centerX, y + titleH / 2);
         this.titleShadow?.setPosition(centerX + 5, y + titleH / 2 + 5);
         if (this.titleShadow) {
-            this.ui.applyFontSize(this.titleShadow, metrics.fonts.title);
+            this.ui.applyFontSize(this.titleShadow, parseInt(this.titleText.style.fontSize, 10));
             this.titleShadow.setVisible(true);
         }
         y += titleH + 6;
@@ -2034,7 +2150,7 @@ export class Overlays {
 
     heroSize(metrics) {
         const shortLandscape = metrics.isCompact && !metrics.isPortrait;
-        const w = Math.max(300, Math.min(metrics.innerWidth - 24, metrics.isPortrait ? 680 : 780));
+        const w = Math.max(300, Math.min(metrics.innerWidth - 24, metrics.isPortrait ? 680 : 920));
         // Short landscape keeps a compact-but-real hero: tall enough for the
         // preview thumb beside the headline/mechanic plus the play row, and
         // clamped so the card + secondary row still fit the inner height.
@@ -2044,8 +2160,9 @@ export class Overlays {
               ? 272
               : metrics.isCompact
                 ? 306
-                : 322;
-        if (metrics.isPortrait && metrics.innerWidth < 600) h = 300;
+                : 420;
+        if (metrics.isPortrait && metrics.innerWidth < 600)
+            h = Math.min(420, metrics.innerHeight - 245);
         return { w, h, shortLandscape };
     }
 
@@ -2053,18 +2170,26 @@ export class Overlays {
         const g = this.titleHeroBg;
         if (!g?.clear) return;
         g.clear();
+        // Layered edge light gives the mission panel depth without a bitmap asset.
+        for (let i = 3; i > 0; i--) {
+            g.lineStyle(i * 4, 0x4acfff, 0.025);
+            if (g.strokeRoundedRect) g.strokeRoundedRect(heroX, heroTop, heroW, heroH, 16);
+        }
         g.fillStyle(0x0b1628, 0.97);
         if (typeof g.fillRoundedRect === 'function')
             g.fillRoundedRect(heroX, heroTop, heroW, heroH, 16);
         else g.fillRect(heroX, heroTop, heroW, heroH);
-        g.fillStyle(0xe10600, 1);
+        g.fillStyle(0xff794c, 1);
         if (typeof g.fillRoundedRect === 'function')
             g.fillRoundedRect(heroX, heroTop, heroW, 7, { tl: 16, tr: 16, bl: 0, br: 0 });
         else g.fillRect(heroX, heroTop, heroW, 7);
-        g.lineStyle(1, 0x3d5478, 0.9);
+        g.lineStyle(1, 0x6896b3, 0.7);
         if (typeof g.strokeRoundedRect === 'function')
             g.strokeRoundedRect(heroX, heroTop, heroW, heroH, 16);
         else g.strokeRect(heroX, heroTop, heroW, heroH);
+        g.fillStyle(0x8ce4ff, 0.8);
+        g.fillRect(heroX + 24, heroTop + heroH - 2, 68, 2);
+        g.fillRect(heroX + heroW - 92, heroTop + heroH - 2, 68, 2);
     }
 
     layoutStage(heroX, stageY, stageW, stageH, pad, compact = false) {
@@ -2072,7 +2197,7 @@ export class Overlays {
         if (this.titleHeroThumb) {
             this.titleHeroThumb.setPosition(heroX + pad, stageY);
             this.titleHeroThumb.setDisplaySize(stageW, stageH);
-            this.titleHeroThumb.setAlpha(0.9);
+            this.titleHeroThumb.setAlpha(1);
         }
         const place = (img, x, size) => {
             if (!img) return;
@@ -2101,6 +2226,9 @@ export class Overlays {
         const textW = heroW - pad * 2;
         const mini = shortLandscape;
         this.titleMini = mini;
+        this.ui.applyFontSize(this.titleHeroHeadline, metrics.isCompact ? 16 : 22);
+        this.ui.applyFontSize(this.titleHeroLevel, metrics.isCompact ? 15 : 20);
+        this.titleHeroLevel?.setWordWrapWidth(textW, true);
         let y = heroTop + 12;
         this.titleHeroKicker?.setPosition(textX, y);
         this.titleHeroCounter?.setPosition(heroX + heroW - pad, heroTop + 12);
@@ -2128,7 +2256,11 @@ export class Overlays {
                 this.titleHeroMechanic.setPosition(colX, cy);
             }
         } else {
-            const stageH = metrics.isCompact ? 88 : 108;
+            const stageH = metrics.isCompact
+                ? metrics.isPortrait && metrics.innerHeight >= 650
+                    ? 150
+                    : 70
+                : 180;
             this.layoutStage(heroX, y, textW, stageH, pad);
             y += stageH + 10;
             this.titleHeroOutlet?.setPosition(textX, y);
@@ -2145,11 +2277,26 @@ export class Overlays {
                 this.titleHeroMechanic.setPosition(textX, y);
             }
         }
-        const btnY = heroTop + heroH - 24;
+        // Long headlines must push the action row down, never overlap it.
+        const copyBottom =
+            (this.titleHeroMechanic?.y || y) + (this.titleHeroMechanic?.displayHeight || 20);
+        const actualH = Math.max(heroH, copyBottom - heroTop + 68);
+        this.paintCardFrame(heroX, heroTop, heroW, actualH);
+        const btnY = heroTop + actualH - 30;
         this.titleHeroPlay?.setPosition(textX, btnY);
+        // A luminous launch rail, aligned with the actual button hit area.
+        const g = this.titleHeroBg;
+        if (g?.fillStyle && this.titleHeroPlay) {
+            const bw = this.titleHeroPlay.width;
+            const bh = this.titleHeroPlay.height;
+            g.fillStyle(0xffbd45, 0.1);
+            g.fillRect(textX - 5, btnY - bh / 2 - 5, bw + 10, bh + 10);
+            g.fillStyle(0xff9945, 0.9);
+            g.fillRect(textX, btnY + bh / 2 + 2, bw, 3);
+        }
         this.titleHeroNext?.setPosition(heroX + heroW - pad - 18, btnY);
         this.titleHeroPrev?.setPosition(heroX + heroW - pad - 62, btnY);
-        return { bottom: heroTop + heroH, heroX, heroW };
+        return { bottom: heroTop + actualH, heroX, heroW };
     }
 
     layoutStoriesPanel(frame, metrics) {
@@ -2275,7 +2422,7 @@ export class Overlays {
         const frame = { x: centerX - w / 2, y: panelTop, w, h, centerX, bottom: panelTop + h };
         const view = this.titleView || 'featured';
         if (view === 'featured') {
-            this.layoutHeroCard(centerX, panelTop, metrics);
+            frame.bottom = this.layoutHeroCard(centerX, panelTop, metrics).bottom;
         } else {
             this.paintCardFrame(frame.x, frame.y, frame.w, frame.h);
             if (view === 'stories') this.layoutStoriesPanel(frame, metrics);
@@ -2284,7 +2431,7 @@ export class Overlays {
         }
         if (this.titleBackButton)
             this.titleBackButton.setPosition(frame.x + frame.w - 52, frame.y + 20);
-        if (view === 'featured') this.layoutSecondaryRow(centerX, frame.bottom + 22, metrics);
+        if (view === 'featured') this.layoutSecondaryRow(centerX, frame.bottom + 30, metrics);
         this.applyTitleView();
     }
 
@@ -2658,6 +2805,13 @@ export class Overlays {
         this.difficultyButton?.remove();
         this.difficultyButton = null;
         this.stopHeroTimer();
+        this.titleAtmosphereTween?.stop();
+        this.titleEntranceTween?.stop();
+        this.titleEntranceTween = null;
+        this.titleAtmosphereTween = null;
+        this.titleAtmosphere?.destroy();
+        this.titleAtmosphere = null;
+        this.titleAtmosphereSize = null;
         if (this.titlePromptTween && typeof this.titlePromptTween.stop === 'function') {
             this.titlePromptTween.stop();
         }
