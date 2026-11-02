@@ -5,13 +5,22 @@ description: Turn a real news story picked in the terminal into a playable Space
 
 # News to Level
 
-The only in-game news UI is the title screen's NEWS LEVELS section, which lists every level whose `content.news` marker is set. This skill is otherwise the product: a Muse (Spark harness) workflow run on the command line in this repo. The agent fetches real news with web search, the user picks a story (or asks for a random one), and the agent generates the art and the level by invoking this repo's existing skills, then proves it plays.
+The only in-game news UI is the title screen's NEWS LEVELS section, which lists every level whose `content.news` marker is set. This skill is otherwise the product: a Muse (Spark harness) workflow run on the command line in this repo. The agent fetches real news from free feeds (Google News RSS, HN, outlet RSS; web search as backup), the user picks a story (or asks for a random one), and the agent generates the art and the level by invoking this repo's existing skills, then proves it plays.
 
 Run it by opening Muse in this repo and saying: "run news-to-level", "make a level from today's news", or "surprise me with a news level".
 
-## 1. Get today's news (Spark + web search)
+## 1. Get today's news (free feeds first, web search as backup)
 
-Use web search to find 5–6 recent, reputable headlines (prefer the last 24 hours; favor non-graphic stories). The list must span at least three beats (e.g. space, markets, sport, science, tech, culture, weather) — stories do not all need to be about space, and at most half the list may share one beat. Before listing, check the beats of the last few shipped news levels (`content.news` headlines in `levels/*.js`) plus the already-used stories (`node scripts/news-used-stories.mjs`), and lean the list away from recently covered beats. For each, verify the link actually resolves and note headline, outlet, publication time, and URL. If web search is unavailable, fetch a news RSS feed with `curl` (e.g. BBC or NASA) and parse the same fields. Never invent a headline, date, or citation.
+Pull 5–6 recent, reputable headlines (prefer the last 24 hours; favor non-graphic stories). The list must span at least three beats (e.g. space, markets, sport, science, tech, culture, weather) — stories do not all need to be about space, and at most half the list may share one beat. Before listing, check the beats of the last few shipped news levels (`content.news` headlines in `levels/*.js`) plus the already-used stories (`node scripts/news-used-stories.mjs`), and lean the list away from recently covered beats. For each, verify the link actually resolves and note headline, outlet, publication time, and URL. Never invent a headline, date, or citation.
+
+**Primary: free feeds and APIs (no key).** Mix these to cover the beats — no single source needs to carry the whole list:
+- **Google News RSS** — broadest source for any beat. Top stories: `https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en`; per-topic search: `https://news.google.com/rss/search?q=<term>&hl=en-US&gl=US&ceid=US:en`. Parse `title`/`link`/`pubDate` with `python3 -c` (`xml.etree`). Titles end in ` - Outlet` (that suffix is the outlet); `link`s are Google redirect URLs, so follow them (`curl -sIL -o /dev/null -w '%{url_effective}'`) to record the real article URL.
+- **Hacker News Algolia API** — best free tech-beat source, community-ranked. Front page: `https://hn.algolia.com/api/v1/search?tags=front_page`; search: `https://hn.algolia.com/api/v1/search?query=<term>&tags=story`. Each hit has `title`, `url`, `points`, `created_at`. Tech-beat only — never build the whole list from it.
+- **Direct outlet RSS** — `curl` a section feed and parse `title`/`link`/`pubDate`: BBC `https://feeds.bbci.co.uk/news/rss.xml` (plus `/world`, `/science_and_environment`, `/technology`, `/business`), NPR `https://feeds.npr.org/1001/rss.xml`, CBC `https://www.cbc.ca/webfeed/rss/rss-topstories`, NASA `https://www.nasa.gov/rss/dyn/breaking_news.rss`, ESA `https://www.esa.int/rssfeed/TopNews`, ESPN `https://www.espn.com/espn/rss/news`.
+
+Prefer established outlets (BBC, AP, Reuters, NPR, NYT, Guardian, ESPN, SpaceNews, Ars, etc.) over aggregators and wire copies. Confirm each candidate's URL resolves (`curl -sI -o /dev/null -w '%{http_code}' <url>`) before listing it.
+
+**Fallback: web search.** If the feeds are unavailable, gather the same headline/outlet/time/URL fields with web search.
 
 Present the list in the terminal, numbered, one line each: headline — outlet, time. Then stop and let the user pick a number.
 
