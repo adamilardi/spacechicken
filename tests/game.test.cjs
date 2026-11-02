@@ -249,7 +249,7 @@ test('news rows label the level and outlet', async () => {
     assert.equal(formatNewsRow(18, 'Fear Spike', ''), '18 · Fear Spike');
 });
 
-test('featured story is the default title action with an accurate action line', async () => {
+test('title stories wire graphics and the featured story starts', async () => {
     const { FEATURED_NEWS_ID, actionSentence } = await importModule('Overlays.js');
     const { NEWS_LEVEL_IDS } = await importModule('levels/index.js');
     assert.ok(NEWS_LEVEL_IDS.includes(FEATURED_NEWS_ID));
@@ -260,6 +260,43 @@ test('featured story is the default title action with an accurate action line', 
         assert.ok(line.length <= 120, `level ${id} action line stays brief`);
     }
     assert.match(actionSentence(19), /lift/i);
+    assert.match(actionSentence(25), /splashdown/i);
+    const { newsPlateKey, stageEnemyKey } = await importModule('Overlays.js');
+    const expectedPlates = {
+        17: 'tickerBg',
+        18: 'fearBg',
+        19: 'hubbleBg',
+        20: 'danceBg',
+        21: 'phobosBg',
+        22: 'falconBg',
+        23: 'tracersBg',
+        24: 'clutchBg',
+        25: 'artemisBg',
+    };
+    const expectedEnemies = {
+        17: 'tickerBot',
+        18: 'bearRaider',
+        19: 'servicerTug',
+        20: 'dancerBot',
+        21: 'surveyOrbiter',
+        22: 'starlinkSprite',
+        23: 'spriteBot',
+        24: 'championKing',
+        25: 'integritySprite',
+    };
+    assert.deepEqual(
+        [...NEWS_LEVEL_IDS].sort((a, b) => a - b),
+        Object.keys(expectedPlates).map(Number)
+    );
+    for (const id of NEWS_LEVEL_IDS) {
+        assert.equal(newsPlateKey(id), expectedPlates[id], `story ${id} hero plate`);
+        assert.equal(stageEnemyKey(id), expectedEnemies[id], `story ${id} stage enemy`);
+        assert.notEqual(
+            actionSentence(id),
+            'Jump, dodge, and chase the golden crown.',
+            `story ${id} has its own action sentence`
+        );
+    }
 
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();

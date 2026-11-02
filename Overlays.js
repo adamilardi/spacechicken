@@ -75,6 +75,7 @@ const NEWS_PLATE_KEYS = Object.freeze({
     22: 'falconBg',
     23: 'tracersBg',
     24: 'clutchBg',
+    25: 'artemisBg',
 });
 
 export function newsPlateKey(id) {
@@ -92,6 +93,7 @@ const ACTION_SENTENCES = Object.freeze({
     22: 'Climb the launch tower past the Starlink Sprites, then fall carefully down the descent shaft.',
     23: 'Bonk the Reconnection Sprites to snap across the broken field lines.',
     24: 'Run the bracket, fire on the pawn waves, and face the Champion King.',
+    25: 'Drop-bonk the Integrity Sprites across the crater, then fall the splashdown well past the heat beams.',
 });
 
 export function actionSentence(id) {
@@ -107,6 +109,7 @@ const STAGE_ENEMY_KEYS = Object.freeze({
     22: 'starlinkSprite',
     23: 'spriteBot',
     24: 'championKing',
+    25: 'integritySprite',
 });
 
 export function stageEnemyKey(id) {
