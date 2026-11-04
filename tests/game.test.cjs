@@ -221,7 +221,7 @@ test('news levels are marked and listed for the title screen', async () => {
     const { NEWS_LEVEL_IDS, LEVEL_DEFINITIONS, LEVEL_CONTENT } =
         await importModule('levels/index.js');
 
-    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18, 19, 20, 21, 22, 23, 24, 25]);
+    assert.deepEqual(NEWS_LEVEL_IDS, [17, 18, 19, 20, 21, 22, 23, 24, 25, 27]);
     for (const id of NEWS_LEVEL_IDS) {
         assert.ok(LEVEL_DEFINITIONS[id].TITLE, `level ${id} has a title`);
         assert.ok(LEVEL_CONTENT[id].news.outlet, `level ${id} names its outlet`);
@@ -272,6 +272,7 @@ test('title stories wire graphics and the featured story starts', async () => {
         23: 'tracersBg',
         24: 'clutchBg',
         25: 'artemisBg',
+        27: 'freezerBg',
     };
     const expectedEnemies = {
         17: 'tickerBot',
@@ -283,6 +284,7 @@ test('title stories wire graphics and the featured story starts', async () => {
         23: 'spriteBot',
         24: 'championKing',
         25: 'integritySprite',
+        27: 'defrosterDrone',
     };
     assert.deepEqual(
         [...NEWS_LEVEL_IDS].sort((a, b) => a - b),
@@ -464,7 +466,8 @@ test('story levels chain to the next story in order', async () => {
         22: 23,
         23: 24,
         24: 25,
-        25: null,
+        25: 27,
+        27: null,
     };
     for (const [id, next] of Object.entries(expected)) {
         assert.equal(
@@ -475,7 +478,7 @@ test('story levels chain to the next story in order', async () => {
     }
 });
 
-const ALL_LEVEL_IDS = Array.from({ length: 25 }, (_, i) => i + 1);
+const ALL_LEVEL_IDS = [...Array.from({ length: 25 }, (_, i) => i + 1), 27];
 
 test('level configuration exposes every playable level', async () => {
     const { LEVEL_IDS } = await importModule('levels/index.js');
@@ -1565,16 +1568,16 @@ test('level unlocks persist, clamp, and survive corrupt storage', async () => {
     assert.equal(fresh.unlockLevel(4), 4);
     assert.equal(fresh.getMaxUnlocked(), 4);
     assert.equal(fresh.unlockLevel(2), 4);
-    assert.equal(fresh.unlockLevel(99), 25);
-    assert.equal(fresh.getMaxUnlocked(), 25);
+    assert.equal(fresh.unlockLevel(99), 26);
+    assert.equal(fresh.getMaxUnlocked(), 26);
 
     global.window = { localStorage: createStorage({ spaceChickenUnlocked: 'junk' }) };
     const corrupt = new LeaderboardManager({ storageAvailable: true });
     assert.equal(corrupt.getMaxUnlocked(), 1);
 
     const noStorage = new LeaderboardManager({ storageAvailable: false });
-    assert.equal(noStorage.getMaxUnlocked(), 25);
-    assert.equal(noStorage.unlockLevel(5), 25);
+    assert.equal(noStorage.getMaxUnlocked(), 26);
+    assert.equal(noStorage.unlockLevel(5), 26);
 });
 
 test('title selection cycles within unlocked levels and starts them', async () => {

@@ -1,0 +1,105 @@
+{
+    "brief_id": "freezer-breach",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "assets": [
+                {
+                    "alpha": false,
+                    "collision": null,
+                    "height_px": 1280,
+                    "motion": { "animated_frames": false, "kind": "tile", "method": "code" },
+                    "path": "plate-a-aisle-vista.jpg",
+                    "readiness": "concept",
+                    "role": "background-layout",
+                    "width_px": 1920
+                }
+            ],
+            "checks": { "alpha": "not-applicable", "dimensions": "pass", "seams": "fail" },
+            "id": "level-freezer-a",
+            "limitations": ["Perspective corridor; does not tile for side-view play"],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "background_type": "coldstore",
+                "camera": "side-view",
+                "composition_devices": ["corridor perspective", "thermometer wall"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "palette": ["#0a1c33", "#bcd9ee", "#ff3b30"],
+                "scroll": "horizontal"
+            },
+            "status": "painted",
+            "summary": "KILLED: perspective freezer corridor; thermometer wall kept as prop idea.",
+            "title": "Aisle vista"
+        },
+        {
+            "assets": [
+                {
+                    "alpha": false,
+                    "collision": null,
+                    "height_px": 1280,
+                    "motion": { "animated_frames": false, "kind": "tile", "method": "code" },
+                    "path": "plate-b-vault-fan.jpg",
+                    "readiness": "concept",
+                    "role": "background-layout",
+                    "width_px": 1920
+                }
+            ],
+            "checks": { "alpha": "not-applicable", "dimensions": "pass", "seams": "unverified" },
+            "id": "level-freezer-b",
+            "limitations": ["No aisle cases; no retail subject"],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "background_type": "coldstore",
+                "camera": "side-view",
+                "composition_devices": ["enclosed ribs", "fan landmark"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "palette": ["#0a1c33", "#bcd9ee", "#ff3b30"],
+                "scroll": "horizontal"
+            },
+            "status": "painted",
+            "summary": "KILLED: strong fan vault but no aisle cases; reads industrial without the retail subject.",
+            "title": "Vault fan"
+        },
+        {
+            "assets": [
+                {
+                    "alpha": false,
+                    "collision": null,
+                    "height_px": 1280,
+                    "motion": { "animated_frames": false, "kind": "tile", "method": "code" },
+                    "path": "plate-c-gantry-cases.jpg",
+                    "readiness": "concept",
+                    "role": "background-layout",
+                    "width_px": 1920
+                }
+            ],
+            "checks": {
+                "alpha": "not-applicable",
+                "dimensions": "pass",
+                "novelty": "pass",
+                "seams": "unverified"
+            },
+            "id": "level-freezer-c",
+            "limitations": ["Tile seam check at playtest (0.55 alpha behind canvas bg)"],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "background_type": "coldstore",
+                "camera": "side-view",
+                "composition_devices": [
+                    "skylight asymmetric glow",
+                    "gantry diagonals",
+                    "control-booth landmark",
+                    "case-row even loop"
+                ],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "palette": ["#0a1c33", "#bcd9ee", "#ff3b30"],
+                "scroll": "horizontal"
+            },
+            "status": "painted",
+            "summary": "SURVIVOR: side-view case row + chest row, gantry diagonals, control-booth landmark; matches the topology.",
+            "title": "Gantry cases"
+        }
+    ],
+    "kind": "level",
+    "schema_version": 1
+}

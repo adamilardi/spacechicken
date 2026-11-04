@@ -23,6 +23,7 @@ import { level as boosterHomecoming } from './booster-homecoming.js';
 import { level as reconnection } from './reconnection.js';
 import { level as clutchCrown } from './clutch-crown.js';
 import { level as artemisLoop } from './artemis-loop.js';
+import { level as freezerBreach } from './freezer-breach.js';
 
 const LEVELS = [
     dawnRun,
@@ -50,6 +51,7 @@ const LEVELS = [
     reconnection,
     clutchCrown,
     artemisLoop,
+    freezerBreach,
 ].sort((left, right) => left.id - right.id);
 
 export const LEVEL_DEFINITIONS = Object.fromEntries(

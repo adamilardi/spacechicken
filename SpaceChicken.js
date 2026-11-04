@@ -45,6 +45,7 @@ const NEWS_PLATES = {
     23: 'tracersBg',
     24: 'clutchBg',
     25: 'artemisBg',
+    27: 'freezerBg',
 };
 
 function readLaunchQuery() {
@@ -367,6 +368,12 @@ export class SpaceChicken extends Phaser.Scene {
         this.load.image('integritySprite', 'assets/news-artemis-loop/integrity-sprite.png');
         this.load.image('shieldGlow', 'assets/news-artemis-loop/shield-glow.png');
         this.load.image('chuteProp', 'assets/news-artemis-loop/chute-prop.png');
+        this.load.image('freezerBg', 'assets/news-freezer-breach/bg.jpg');
+        this.load.image('defrosterDrone', 'assets/news-freezer-breach/defroster-drone.png');
+        this.load.image('thermoProp', 'assets/news-freezer-breach/thermo-prop.png');
+        this.load.image('freezerCaseProp', 'assets/news-freezer-breach/freezer-case-prop.png');
+        this.load.image('shelfProp', 'assets/news-freezer-breach/shelf-prop.png');
+        this.load.image('crateProp', 'assets/news-freezer-breach/crate-prop.png');
         this.spriteFactory = new SpriteFactory(this);
         this.spriteFactory.createChickenFrames();
         this.spriteFactory.createCrown();

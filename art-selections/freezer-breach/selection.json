@@ -1,0 +1,44 @@
+{
+    "choices": [
+        {
+            "asset_path": "assets/news-freezer-breach/bg.jpg",
+            "role": "background",
+            "source": "Muse Image generated (plate C, gantry cases)"
+        },
+        {
+            "asset_path": "assets/news-freezer-breach/defroster-drone.png",
+            "role": "actor: Defroster drone (drone hazard, key defrosterDrone)",
+            "source": "Muse Image generated, magenta-keyed to RGBA alpha, trimmed to 160x130"
+        },
+        {
+            "asset_path": "assets/news-freezer-breach/thermo-prop.png",
+            "role": "prop: 50C thermometer display (key thermoProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "assets/news-freezer-breach/freezer-case-prop.png",
+            "role": "prop: glass-door freezer case (key freezerCaseProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "assets/news-freezer-breach/shelf-prop.png",
+            "role": "prop: empty shelves + price tags (key shelfProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "assets/news-freezer-breach/crate-prop.png",
+            "role": "prop: spoiled-food discard crates (key crateProp)",
+            "source": "Muse Image generated, magenta-keyed via scripts/key-enemy.mjs"
+        },
+        {
+            "asset_path": "canvas:stationPanel/bastionGrate/vaultDeck",
+            "role": "decks",
+            "source": "existing SpriteFactory paints"
+        }
+    ],
+    "decision_status": "selected",
+    "level_id": 27,
+    "requested_revisions": [],
+    "story": "Europe on alert after supermarket freezers hit by cyber-attacks in 10 countries — BBC, Nov 3 2026, https://www.bbc.co.uk/news/articles/cwy8lm1m59mvo",
+    "unfilled_roles": []
+}

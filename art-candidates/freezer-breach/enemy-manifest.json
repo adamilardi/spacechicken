@@ -1,0 +1,88 @@
+{
+    "brief_id": "freezer-breach",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "animation_handoff_path": "animation-handoff.md",
+            "assets": [
+                {
+                    "alpha": true,
+                    "height_px": 130,
+                    "path": "../../assets/news-freezer-breach/defroster-drone.png",
+                    "readiness": "concept",
+                    "role": "canonical-default-view",
+                    "width_px": 160
+                }
+            ],
+            "checks": { "alpha": "pass", "dimensions": "pass", "silhouette": "pass" },
+            "id": "enemy-defrost-a",
+            "limitations": [],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "anchor": { "origin": "top-left", "space": "pixels", "x": 80, "y": 65 },
+                "camera": "side-view",
+                "facing": "right",
+                "palette": ["#7fa8c9", "#ff3b30"],
+                "role": "drone",
+                "target_display": "72x58"
+            },
+            "status": "painted",
+            "summary": "SURVIVOR: squat wall-fan unit, grille face, red heater-coil base strip.",
+            "title": "Defroster drone"
+        },
+        {
+            "assets": [
+                {
+                    "alpha": false,
+                    "height_px": 1280,
+                    "path": "enemy-b-coil-orb.jpg",
+                    "readiness": "concept",
+                    "role": "canonical-default-view",
+                    "width_px": 1920
+                }
+            ],
+            "checks": { "alpha": "not-applicable", "dimensions": "pass", "silhouette": "pass" },
+            "id": "enemy-defrost-b",
+            "limitations": ["Reads as generic orb droid"],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "palette": ["#7fa8c9", "#ff3b30"],
+                "role": "drone",
+                "target_display": "72x72"
+            },
+            "status": "painted",
+            "summary": "KILLED: round coil pod; too close to shipped orb reads.",
+            "title": "Coil orb"
+        },
+        {
+            "assets": [
+                {
+                    "alpha": false,
+                    "height_px": 1280,
+                    "path": "enemy-c-vent-wedge.png",
+                    "readiness": "concept",
+                    "role": "canonical-default-view",
+                    "width_px": 1920
+                }
+            ],
+            "checks": { "alpha": "not-applicable", "dimensions": "pass", "silhouette": "pass" },
+            "id": "enemy-defrost-c",
+            "limitations": ["Busy at 1x; hover rings key poorly"],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "facing": "right",
+                "palette": ["#7fa8c9", "#ff3b30"],
+                "role": "drone",
+                "target_display": "72x72"
+            },
+            "status": "painted",
+            "summary": "KILLED: vent wedge; busy silhouette with noisy hover rings.",
+            "title": "Vent wedge"
+        }
+    ],
+    "kind": "enemy",
+    "schema_version": 1
+}

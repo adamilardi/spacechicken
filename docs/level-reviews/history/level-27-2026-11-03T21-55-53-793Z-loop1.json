@@ -1,0 +1,6418 @@
+{
+  "level": 27,
+  "run": "full",
+  "analysis": {
+    "title": "Cold Chain Down",
+    "gravity": 260,
+    "worldWidth": 5200,
+    "backgroundType": "bastion",
+    "platformCount": 16,
+    "platformKeys": [
+      "stationPanel",
+      "bastionGrate",
+      "vaultDeck"
+    ],
+    "dominantKeyShare": 0.8125,
+    "hazardTypes": [
+      "laser",
+      "crusher",
+      "drone",
+      "drip",
+      "roller"
+    ],
+    "hazardCount": 15,
+    "hasBoss": false,
+    "movingCount": 0,
+    "propCount": 12,
+    "checkpoints": [
+      {
+        "x": 1000,
+        "y": 545
+      },
+      {
+        "x": 2050,
+        "y": 405
+      },
+      {
+        "x": 3100,
+        "y": 265
+      },
+      {
+        "x": 4350,
+        "y": 205
+      }
+    ],
+    "crownX": 4900,
+    "finaleHazardCount": 6,
+    "finaleVisibleHazardCount": 6,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.05,
+      0.138,
+      0.202,
+      0.236,
+      0.269,
+      0.327,
+      0.394,
+      0.427,
+      0.462,
+      0.529,
+      0.596,
+      0.63,
+      0.669,
+      0.74,
+      0.817,
+      0.913
+    ],
+    "platformBands": [
+      12,
+      11,
+      10,
+      10,
+      6,
+      9,
+      8,
+      8,
+      3,
+      6,
+      5,
+      5,
+      1,
+      4,
+      4,
+      5
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "kind": "visual-variety",
+      "detail": "3 deck key(s), dominant share 0.81 across 16 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)"
+    },
+    {
+      "id": "background-recycled",
+      "kind": "visual-variety",
+      "detail": "background type 'bastion' already used by levels 11, 16, 17; build report must claim a new composition device"
+    }
+  ],
+  "telemetry": {
+    "level": 27,
+    "outcome": "reached-crown-area",
+    "durationSec": 130.1,
+    "deaths": 8,
+    "deathSpots": [
+      1969,
+      2228,
+      3280,
+      3303,
+      3263,
+      4659,
+      4643,
+      4654
+    ],
+    "deathEvents": [
+      {
+        "x": 1969,
+        "cause": "fall",
+        "hazardId": "laser-19",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 20.9,
+        "replaySec": 0.5
+      },
+      {
+        "x": 2228,
+        "cause": "laser",
+        "hazardId": "laser-19",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 34,
+        "replaySec": 0.4
+      },
+      {
+        "x": 3280,
+        "cause": "laser",
+        "hazardId": "laser-21",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 54,
+        "replaySec": 0.4
+      },
+      {
+        "x": 3303,
+        "cause": "laser",
+        "hazardId": "laser-21",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 68.3,
+        "replaySec": 0.5
+      },
+      {
+        "x": 3263,
+        "cause": "laser",
+        "hazardId": "laser-21",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 71.1,
+        "replaySec": 0.4
+      },
+      {
+        "x": 4659,
+        "cause": "laser",
+        "hazardId": "laser-24",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 83.6,
+        "replaySec": null
+      },
+      {
+        "x": 4643,
+        "cause": "laser",
+        "hazardId": "laser-24",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 86.1,
+        "replaySec": 2.6
+      },
+      {
+        "x": 4654,
+        "cause": "laser",
+        "hazardId": "laser-24",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 88.9,
+        "replaySec": 2.8
+      }
+    ],
+    "stalls": [
+      {
+        "x": 1165,
+        "durationSec": 1.5
+      },
+      {
+        "x": 2030,
+        "durationSec": 1.7
+      },
+      {
+        "x": 4867,
+        "durationSec": 35.5
+      }
+    ],
+    "inputHistory": [
+      {
+        "tSec": 0.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 1.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 2.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 2.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 3.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 4.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 5.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 6.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 7.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 8.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 9.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 10,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 10.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 11.5,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 12.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 13,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 13.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 14.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 15.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 16.1,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 16.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 17.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 18.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 19.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 19.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 20.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 21.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 22.5,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 23.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 23.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 24.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 25.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 25.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 26.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 27.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 28,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 28.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 29.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 30.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 30.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 31.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 32.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 32.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 33.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 34.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 35.2,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 35.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 36.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 37.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 38,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 38.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 39.5,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 40.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 40.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 41.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 42.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 43,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 43.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 44.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 45,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 45.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 46.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 47.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 47.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 48.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 49.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 49.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 50.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 51.1,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 51.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 52.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 53.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 53.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 54.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 55.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 56.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 56.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 57.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 58.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 59,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 59.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 60.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 61.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 61.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 62.4,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 63.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 63.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 64.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 65.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 65.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 66.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 67.1,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 67.8,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 69,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 69.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 70.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 71.5,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 72.2,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 72.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 73.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 74.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 75,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 75.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 76.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 77,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 77.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 78.4,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 79.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 79.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 80.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 81.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 81.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 82.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 83.1,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 84.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 84.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 85.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 86.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 87,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 87.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 88.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 89.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 89.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 90.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 91.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 91.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 92.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 93.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 93.9,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 94.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 95.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 96.2,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 97,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 97.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 98.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 99.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 100.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 100.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 101.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 102.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 103.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 104.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 105.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 105.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 106.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 107.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 108.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 109.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 110.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 110.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 111.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 112.5,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 113.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 114.2,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 115,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 115.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 116.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 117.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 118.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 119.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 119.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 120.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 121.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 122.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 123.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 124.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 124.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 125.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 126.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 127.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 128.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 129.1,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 129.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      }
+    ],
+    "maxX": 4878,
+    "tiersVisited": [
+      1,
+      4,
+      5,
+      6,
+      7,
+      10,
+      11,
+      12,
+      14
+    ],
+    "routeBranches": [],
+    "branchOptionsSeen": [],
+    "gateOpened": false,
+    "hazardTypesSeen": [
+      "laser",
+      "crusher",
+      "drone",
+      "boulder",
+      "acid_drip"
+    ],
+    "hazardPhasesSeen": {
+      "laser-17": [
+        "active",
+        "cooldown"
+      ],
+      "laser-19": [
+        "active",
+        "cooldown"
+      ],
+      "laser-21": [
+        "active",
+        "cooldown"
+      ],
+      "laser-24": [
+        "active",
+        "cooldown"
+      ],
+      "laser-25": [
+        "active",
+        "cooldown"
+      ]
+    },
+    "telegraphMs": {},
+    "errors": []
+  },
+  "runs": [
+    {
+      "runId": "ef623fb7-fb58-4944-b2f0-1c5c81908be5",
+      "runLabel": 1,
+      "pilotRevision": "7df2675f2f7a",
+      "seed": null,
+      "phaseNote": "pilot unseeded; timing phase varies run to run",
+      "startedAt": "2026-11-03T21:51:04.066Z",
+      "telemetry": {
+        "level": 27,
+        "outcome": "reached-crown-area",
+        "durationSec": 130.1,
+        "deaths": 1,
+        "deathSpots": [
+          2203
+        ],
+        "deathEvents": [
+          {
+            "x": 2203,
+            "cause": "laser",
+            "hazardId": "laser-19",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 22.6,
+            "replaySec": 0.5
+          }
+        ],
+        "stalls": [
+          {
+            "x": 2020,
+            "durationSec": 1.7
+          },
+          {
+            "x": 3215,
+            "durationSec": 1.6
+          },
+          {
+            "x": 4911,
+            "durationSec": 73
+          }
+        ],
+        "inputHistory": [
+          {
+            "tSec": 0.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 1.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 2.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 3.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 3.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 4.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 5.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 6.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 6.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 7.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 8.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 9.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 10,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 10.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 11.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 12.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 13,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 13.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 14.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 15.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 16.1,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 16.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 17.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 18.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 19.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 20,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 20.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 21.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 22.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 23.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 24.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 24.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 25.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 26,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 26.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 27.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 27.9,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 28.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 29.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 29.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 30.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 31.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 31.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 32.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 33.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 33.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 34.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 35.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 35.8,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 36.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 37.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 37.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 38.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 39,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 39.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 40.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 41,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 41.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 42.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 42.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 43.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 44.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 44.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 45.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 46.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 46.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 47.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 48.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 48.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 49.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 50,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 50.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 51.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 51.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 52.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 53.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 53.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 54.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 55.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 55.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 56.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 57.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 58,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 58.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 59.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 60.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 61.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 62,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 62.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 63.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 64.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 65.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 66,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 66.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 67.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 68.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 69.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 69.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 70.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 71.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 72.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 73,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 73.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 74.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 75.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 76.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 77,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 77.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 78.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 79.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 80.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 80.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 81.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 82.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 83.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 84,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 84.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 85.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 86.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 87.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 87.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 88.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 89.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 90.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 91,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 91.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 92.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 93.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 94.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 95,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 95.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 96.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 97.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 98.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 99,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 99.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 100.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 101.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 102,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 102.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 103.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 104.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 105.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 105.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 106.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 107.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 108.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 109,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 109.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 110.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 111.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 112.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 113,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 113.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 114.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 115.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 116.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 116.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 117.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 118.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 119.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 120,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 120.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 121.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 122.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 123.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 124.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 124.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 125.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 126.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 127.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 128,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 128.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 129.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          }
+        ],
+        "maxX": 4911,
+        "tiersVisited": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12
+        ],
+        "routeBranches": [],
+        "branchOptionsSeen": [],
+        "gateOpened": false,
+        "hazardTypesSeen": [
+          "laser",
+          "crusher",
+          "drone",
+          "boulder",
+          "acid_drip"
+        ],
+        "hazardPhasesSeen": {
+          "laser-17": [
+            "active",
+            "cooldown"
+          ],
+          "laser-19": [
+            "active",
+            "cooldown"
+          ],
+          "laser-21": [
+            "active",
+            "cooldown"
+          ],
+          "laser-24": [
+            "active",
+            "cooldown"
+          ],
+          "laser-25": [
+            "active",
+            "cooldown"
+          ]
+        },
+        "telegraphMs": {},
+        "errors": []
+      },
+      "shots": [
+        {
+          "id": "death-1",
+          "file": "death-1.jpg",
+          "proves": "gameplay frame at death 1 (x=2203, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "01-opener",
+          "file": "01-opener.jpg",
+          "proves": "spawn read and first move",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "02-hazard-laser",
+          "file": "02-hazard-laser.jpg",
+          "proves": "hazard beat: laser at x=1225",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "03-hazard-crusher",
+          "file": "03-hazard-crusher.jpg",
+          "proves": "hazard beat: crusher at x=1700",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "04-hazard-drone",
+          "file": "04-hazard-drone.jpg",
+          "proves": "hazard beat: drone at x=2450",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "05-hazard-roller",
+          "file": "05-hazard-roller.jpg",
+          "proves": "hazard beat: roller at x=4800",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "06-finale",
+          "file": "06-finale.jpg",
+          "proves": "crown approach and finale pressure",
+          "capture": "staged-teleport"
+        }
+      ],
+      "flaws": [
+        "clone",
+        "sponge",
+        "sponge",
+        "sleeping-finale"
+      ],
+      "verdicts": [
+        "iterate",
+        "iterate",
+        "iterate",
+        "iterate"
+      ],
+      "screenshotsSent": true
+    },
+    {
+      "runId": "b7a1e069-1cf6-4494-92cb-1ec5dd058a12",
+      "runLabel": 2,
+      "pilotRevision": "7df2675f2f7a",
+      "seed": null,
+      "phaseNote": "pilot unseeded; timing phase varies run to run",
+      "startedAt": "2026-11-03T21:55:53.786Z",
+      "telemetry": {
+        "level": 27,
+        "outcome": "reached-crown-area",
+        "durationSec": 130.1,
+        "deaths": 8,
+        "deathSpots": [
+          1969,
+          2228,
+          3280,
+          3303,
+          3263,
+          4659,
+          4643,
+          4654
+        ],
+        "deathEvents": [
+          {
+            "x": 1969,
+            "cause": "fall",
+            "hazardId": "laser-19",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 20.9,
+            "replaySec": 0.5
+          },
+          {
+            "x": 2228,
+            "cause": "laser",
+            "hazardId": "laser-19",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 34,
+            "replaySec": 0.4
+          },
+          {
+            "x": 3280,
+            "cause": "laser",
+            "hazardId": "laser-21",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 54,
+            "replaySec": 0.4
+          },
+          {
+            "x": 3303,
+            "cause": "laser",
+            "hazardId": "laser-21",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 68.3,
+            "replaySec": 0.5
+          },
+          {
+            "x": 3263,
+            "cause": "laser",
+            "hazardId": "laser-21",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 71.1,
+            "replaySec": 0.4
+          },
+          {
+            "x": 4659,
+            "cause": "laser",
+            "hazardId": "laser-24",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 83.6,
+            "replaySec": null
+          },
+          {
+            "x": 4643,
+            "cause": "laser",
+            "hazardId": "laser-24",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 86.1,
+            "replaySec": 2.6
+          },
+          {
+            "x": 4654,
+            "cause": "laser",
+            "hazardId": "laser-24",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 88.9,
+            "replaySec": 2.8
+          }
+        ],
+        "stalls": [
+          {
+            "x": 1165,
+            "durationSec": 1.5
+          },
+          {
+            "x": 2030,
+            "durationSec": 1.7
+          },
+          {
+            "x": 4867,
+            "durationSec": 35.5
+          }
+        ],
+        "inputHistory": [
+          {
+            "tSec": 0.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 1.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 2.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 2.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 3.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 4.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 5.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 6.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 7.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 8.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 9.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 10,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 10.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 11.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 12.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 13,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 13.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 14.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 15.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 16.1,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 16.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 17.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 18.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 19.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 19.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 20.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 21.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 22.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 23.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 23.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 24.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 25.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 25.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 26.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 27.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 28,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 28.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 29.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 30.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 30.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 31.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 32.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 32.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 33.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 34.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 35.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 35.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 36.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 37.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 38,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 38.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 39.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 40.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 40.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 41.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 42.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 43,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 43.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 44.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 45,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 45.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 46.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 47.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 47.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 48.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 49.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 49.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 50.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 51.1,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 51.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 52.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 53.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 53.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 54.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 55.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 56.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 56.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 57.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 58.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 59,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 59.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 60.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 61.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 61.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 62.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 63.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 63.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 64.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 65.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 65.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 66.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 67.1,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 67.8,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 69,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 69.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 70.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 71.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 72.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 72.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 73.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 74.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 75,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 75.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 76.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 77,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 77.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 78.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 79.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 79.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 80.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 81.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 81.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 82.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 83.1,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 84.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 84.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 85.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 86.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 87,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 87.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 88.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 89.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 89.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 90.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 91.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 91.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 92.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 93.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 93.9,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 94.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 95.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 96.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 97,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 97.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 98.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 99.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 100.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 100.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 101.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 102.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 103.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 104.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 105.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 105.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 106.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 107.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 108.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 109.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 110.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 110.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 111.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 112.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 113.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 114.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 115,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 115.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 116.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 117.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 118.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 119.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 119.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 120.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 121.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 122.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 123.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 124.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 124.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 125.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 126.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 127.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 128.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 129.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 129.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          }
+        ],
+        "maxX": 4878,
+        "tiersVisited": [
+          1,
+          4,
+          5,
+          6,
+          7,
+          10,
+          11,
+          12,
+          14
+        ],
+        "routeBranches": [],
+        "branchOptionsSeen": [],
+        "gateOpened": false,
+        "hazardTypesSeen": [
+          "laser",
+          "crusher",
+          "drone",
+          "boulder",
+          "acid_drip"
+        ],
+        "hazardPhasesSeen": {
+          "laser-17": [
+            "active",
+            "cooldown"
+          ],
+          "laser-19": [
+            "active",
+            "cooldown"
+          ],
+          "laser-21": [
+            "active",
+            "cooldown"
+          ],
+          "laser-24": [
+            "active",
+            "cooldown"
+          ],
+          "laser-25": [
+            "active",
+            "cooldown"
+          ]
+        },
+        "telegraphMs": {},
+        "errors": []
+      },
+      "shots": [
+        {
+          "id": "run2-death-1",
+          "file": "run2-death-1.jpg",
+          "proves": "gameplay frame at death 1 (x=1969, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-2",
+          "file": "run2-death-2.jpg",
+          "proves": "gameplay frame at death 2 (x=2228, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-3",
+          "file": "run2-death-3.jpg",
+          "proves": "gameplay frame at death 3 (x=3280, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-4",
+          "file": "run2-death-4.jpg",
+          "proves": "gameplay frame at death 4 (x=3303, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-5",
+          "file": "run2-death-5.jpg",
+          "proves": "gameplay frame at death 5 (x=3263, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-6",
+          "file": "run2-death-6.jpg",
+          "proves": "gameplay frame at death 6 (x=4659, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "01-opener",
+          "file": "run2-01-opener.jpg",
+          "proves": "spawn read and first move",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "02-hazard-laser",
+          "file": "run2-02-hazard-laser.jpg",
+          "proves": "hazard beat: laser at x=1225",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "03-hazard-crusher",
+          "file": "run2-03-hazard-crusher.jpg",
+          "proves": "hazard beat: crusher at x=1700",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "04-hazard-drone",
+          "file": "run2-04-hazard-drone.jpg",
+          "proves": "hazard beat: drone at x=2450",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "05-hazard-roller",
+          "file": "run2-05-hazard-roller.jpg",
+          "proves": "hazard beat: roller at x=4800",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "06-finale",
+          "file": "run2-06-finale.jpg",
+          "proves": "crown approach and finale pressure",
+          "capture": "staged-teleport"
+        }
+      ],
+      "flaws": [
+        "cheap",
+        "cheap",
+        "cheap",
+        "cheap"
+      ],
+      "verdicts": [
+        "iterate",
+        "iterate",
+        "iterate",
+        "iterate"
+      ],
+      "screenshotsSent": true
+    }
+  ],
+  "shots": [
+    {
+      "id": "run2-death-1",
+      "file": "run2-death-1.jpg",
+      "proves": "gameplay frame at death 1 (x=1969, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-2",
+      "file": "run2-death-2.jpg",
+      "proves": "gameplay frame at death 2 (x=2228, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-3",
+      "file": "run2-death-3.jpg",
+      "proves": "gameplay frame at death 3 (x=3280, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-4",
+      "file": "run2-death-4.jpg",
+      "proves": "gameplay frame at death 4 (x=3303, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-5",
+      "file": "run2-death-5.jpg",
+      "proves": "gameplay frame at death 5 (x=3263, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-6",
+      "file": "run2-death-6.jpg",
+      "proves": "gameplay frame at death 6 (x=4659, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "01-opener",
+      "file": "run2-01-opener.jpg",
+      "proves": "spawn read and first move",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "02-hazard-laser",
+      "file": "run2-02-hazard-laser.jpg",
+      "proves": "hazard beat: laser at x=1225",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "03-hazard-crusher",
+      "file": "run2-03-hazard-crusher.jpg",
+      "proves": "hazard beat: crusher at x=1700",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "04-hazard-drone",
+      "file": "run2-04-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=2450",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "05-hazard-roller",
+      "file": "run2-05-hazard-roller.jpg",
+      "proves": "hazard beat: roller at x=4800",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "06-finale",
+      "file": "run2-06-finale.jpg",
+      "proves": "crown approach and finale pressure",
+      "capture": "staged-teleport"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 1.0733333333333333,
+      "fairness": 1.0366666666666668,
+      "readability": 2.1366666666666667,
+      "novelty": 1.2666666666666668,
+      "pacing": 1.5766666666666669,
+      "theme": 2.0500000000000003,
+      "flaw": "cheap",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "run2-death-4",
+        "run2-death-5",
+        "run2-death-6",
+        "01-opener",
+        "02-hazard-laser",
+        "03-hazard-crusher",
+        "04-hazard-drone",
+        "05-hazard-roller",
+        "06-finale"
+      ]
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 1.1500000000000001,
+      "fairness": 1.0566666666666666,
+      "readability": 2.026666666666667,
+      "novelty": 1.3466666666666667,
+      "pacing": 1.6366666666666667,
+      "theme": 2.106666666666667,
+      "flaw": "cheap",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "run2-death-4",
+        "run2-death-5",
+        "run2-death-6",
+        "01-opener",
+        "02-hazard-laser",
+        "03-hazard-crusher",
+        "04-hazard-drone",
+        "05-hazard-roller",
+        "06-finale"
+      ]
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 0.8033333333333333,
+      "fairness": 0.86,
+      "readability": 1.7966666666666669,
+      "novelty": 1.1833333333333333,
+      "pacing": 1.4966666666666668,
+      "theme": 2.0066666666666664,
+      "flaw": "cheap",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "run2-death-4",
+        "run2-death-5",
+        "run2-death-6",
+        "01-opener",
+        "02-hazard-laser",
+        "03-hazard-crusher",
+        "04-hazard-drone",
+        "05-hazard-roller",
+        "06-finale"
+      ]
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 0.7366666666666667,
+      "fairness": 0.9199999999999999,
+      "readability": 2.1700000000000004,
+      "novelty": 1.27,
+      "pacing": 1.2299999999999998,
+      "theme": 2.1466666666666665,
+      "flaw": "cheap",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "run2-death-4",
+        "run2-death-5",
+        "run2-death-6",
+        "01-opener",
+        "02-hazard-laser",
+        "03-hazard-crusher",
+        "04-hazard-drone",
+        "05-hazard-roller",
+        "06-finale"
+      ]
+    }
+  ],
+  "fidelity": {
+    "briefHeadline": "Level 27 — Cold Chain Down (news-to-level)",
+    "briefSource": "/home/adam/GameDevelopment/spacechicken/docs/level-builds/27.md",
+    "codeChecks": {
+      "elements": [
+        {
+          "element": "glass-door freezer aisle cases",
+          "claimed": true
+        },
+        {
+          "element": "50C thermometer displays",
+          "claimed": false
+        },
+        {
+          "element": "empty shelves + price tags",
+          "claimed": false
+        },
+        {
+          "element": "spoiled-food discard crates",
+          "claimed": false
+        }
+      ],
+      "mechanics": [
+        {
+          "fact": "Freezer temperatures soared to 50C as the hack flipped cooling to heating",
+          "mechanic": "Synchronized heat-flip gates: full-height coil beams across the aisles share one broadcast clock (1400ms hot / 1400ms cold, all gates flip simultaneously), the coils themselves the tell; melt drips intensify per aisle as the freezers fail",
+          "systems": [
+            "drip",
+            "gate"
+          ],
+          "backed": true
+        },
+        {
+          "fact": "Obsolete control systems with internet-exposed interfaces were exploited remotely",
+          "mechanic": "Hacked Defroster drones (freezer-fan units with glowing heater coils) patrol every aisle on x/y lanes; the seized machines are placed mid-route where the player must cross their lanes",
+          "systems": [
+            "drone",
+            "patrol"
+          ],
+          "backed": true
+        },
+        {
+          "fact": "10 countries hit, shelves emptied, restock crews replenishing stores",
+          "mechanic": "Supply-chain switchback topology: climb three emptied freezer aisles as stair set-pieces, cross the gantry traverse, take the roof control-room crown; checkpoints are restock depots and aisle adds (compactor, Defrosters, melt lines) escalate per aisle",
+          "systems": [
+            "checkpoint",
+            "crown"
+          ],
+          "backed": true
+        },
+        {
+          "fact": "Belgium hardest-hit with dozens of stores failing at once",
+          "mechanic": "Finale vault: a staggered coil pair plus melt drips plus a patrolling vault guard on the crown deck — the worst-hit store with all pressure at once",
+          "systems": [
+            "drip",
+            "crown",
+            "patrol"
+          ],
+          "backed": true
+        }
+      ],
+      "sceneryOnlyFacts": [],
+      "unbackedMechanics": []
+    },
+    "sent": true,
+    "elements": [
+      {
+        "element": "glass-door freezer aisle cases",
+        "signature": true,
+        "noul": 0.96,
+        "verdict": "shown"
+      },
+      {
+        "element": "50C thermometer displays",
+        "signature": true,
+        "noul": 0.2,
+        "verdict": "missing"
+      },
+      {
+        "element": "empty shelves + price tags",
+        "signature": false,
+        "noul": 0.31,
+        "verdict": "missing"
+      },
+      {
+        "element": "spoiled-food discard crates",
+        "signature": false,
+        "noul": 0.86,
+        "verdict": "shown"
+      }
+    ],
+    "rows": [
+      {
+        "fact": "Freezer temperatures soared to 50C as the hack flipped cooling to heating",
+        "mechanic": "Synchronized heat-flip gates: full-height coil beams across the aisles share one broadcast clock (1400ms hot / 1400ms cold, all gates flip simultaneously), the coils themselves the tell; melt drips intensify per aisle as the freezers fail",
+        "signature": true,
+        "choice": "unsupported",
+        "confidence": 0.76
+      },
+      {
+        "fact": "Obsolete control systems with internet-exposed interfaces were exploited remotely",
+        "mechanic": "Hacked Defroster drones (freezer-fan units with glowing heater coils) patrol every aisle on x/y lanes; the seized machines are placed mid-route where the player must cross their lanes",
+        "signature": false,
+        "choice": "supports",
+        "confidence": 0.89
+      },
+      {
+        "fact": "10 countries hit, shelves emptied, restock crews replenishing stores",
+        "mechanic": "Supply-chain switchback topology: climb three emptied freezer aisles as stair set-pieces, cross the gantry traverse, take the roof control-room crown; checkpoints are restock depots and aisle adds (compactor, Defrosters, melt lines) escalate per aisle",
+        "signature": false,
+        "choice": "unsupported",
+        "confidence": 0.42
+      },
+      {
+        "fact": "Belgium hardest-hit with dozens of stores failing at once",
+        "mechanic": "Finale vault: a staggered coil pair plus melt drips plus a patrolling vault guard on the crown deck — the worst-hit store with all pressure at once",
+        "signature": false,
+        "choice": "unsupported",
+        "confidence": 0.83
+      }
+    ],
+    "mechanicFidelity": 1.8966666666666665,
+    "visualFidelity": 2.7300000000000004,
+    "fidelityFlaw": "missing-elements",
+    "universeFit": 0.93,
+    "evidenceSeen": [
+      "run2-death-1",
+      "run2-death-2",
+      "run2-death-3",
+      "run2-death-4",
+      "run2-death-5",
+      "run2-death-6",
+      "01-opener",
+      "02-hazard-laser",
+      "03-hazard-crusher",
+      "04-hazard-drone",
+      "05-hazard-roller",
+      "06-finale"
+    ],
+    "evidenceTotal": 12,
+    "usage": [
+      {
+        "input_tokens": 22283,
+        "output_tokens": 353
+      },
+      {
+        "input_tokens": 22217,
+        "output_tokens": 353
+      },
+      {
+        "input_tokens": 22176,
+        "output_tokens": 353
+      }
+    ],
+    "gate": {
+      "passed": false,
+      "shown": 2,
+      "contradicted": 0,
+      "unsupported": 3,
+      "needsHuman": [
+        "row:Freezer temperatures soared to 50C as the hack flipped cooling to heating",
+        "row:10 countries hit, shelves emptied, restock crews replenishing stores"
+      ],
+      "signatureMissing": [
+        "50C thermometer displays"
+      ],
+      "signatureUnsupported": [
+        "Freezer temperatures soared to 50C as the hack flipped cooling to heating"
+      ],
+      "universeVerdict": "shown"
+    },
+    "humanConfirmed": []
+  },
+  "concept": {
+    "passed": true,
+    "missing": [],
+    "sceneryOnlyFacts": [],
+    "orphanSignatures": [],
+    "elementCount": 4,
+    "mappingCount": 4
+  },
+  "newsFloorFailures": [
+    "novelty mean 1.27 < news floor 1.5",
+    "pacing mean 1.49 < news floor 1.5"
+  ],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "cheap",
+      "source": "quality",
+      "evidence": "4/4 personas named \"cheap\"; 3 deaths cluster near x=4652 (spots x=4643, 4654, 4659); nearest shot run2-death-6.jpg (gameplay frame)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+      "recheck": "Re-run the full critic twice from fresh starts: deaths near x=4652 must not recur as a cluster and maxX must pass x=4652 on both runs.",
+      "confidence": "medium",
+      "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+      "alternativeCause": "Unrepeated hotspot or single-run noise; needs a phase-varied repeat.",
+      "diagnosis": {
+        "observedBehavior": "4/4 personas named \"cheap\"; 3 deaths cluster near x=4652 (spots x=4643, 4654, 4659); nearest shot run2-death-6.jpg (gameplay frame)",
+        "location": "x=4652 (3-death cluster)",
+        "evidenceId": "run2-death-6.jpg",
+        "confidence": "medium",
+        "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+        "alternativeCause": "Unrepeated hotspot or single-run noise; needs a phase-varied repeat.",
+        "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+        "acceptance": "Re-run the full critic twice from fresh starts: deaths near x=4652 must not recur as a cluster and maxX must pass x=4652 on both runs.",
+        "corroborated": true,
+        "attribution": "insufficient-evidence"
+      }
+    },
+    {
+      "rank": 2,
+      "priority": 1,
+      "flaw": "missing-elements",
+      "source": "fidelity",
+      "evidence": "fidelity flaw \"missing-elements\"; mechanic=1.8966666666666665 visual=2.7300000000000004 AND element \"50C thermometer displays\" missing in shots (noul=0.20) AND element \"empty shelves + price tags\" missing in shots (noul=0.31)",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Build the missing signature elements as art, props, or hazards visible at gameplay size.",
+      "recheck": "Re-shoot the beat sheet; the element must judge shown (noul >= 0.7).",
+      "confidence": "medium",
+      "limitations": ""
+    },
+    {
+      "rank": 3,
+      "priority": 3,
+      "flaw": "background-recycled",
+      "source": "mechanical",
+      "evidence": "background type 'bastion' already used by levels 11, 16, 17; build report must claim a new composition device",
+      "owner": "skills/level-art-creator/SKILL.md",
+      "smallestFix": "Add a new composition device for the reused background and claim it in the build report.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"background-recycled\" must be gone from telemetry and shots, and no new structural flaw may appear.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag."
+    },
+    {
+      "rank": 4,
+      "priority": 3,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "3 deck key(s), dominant share 0.81 across 16 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag."
+    },
+    {
+      "rank": 5,
+      "priority": 4,
+      "flaw": "needs-human",
+      "source": "fidelity",
+      "evidence": "row:Freezer temperatures soared to 50C as the hack flipped cooling to heating is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/ AND row:10 countries hit, shelves emptied, restock crews replenishing stores is low-confidence; a human must open the named screenshot in docs/level-reviews/evidence/",
+      "owner": "human reviewer (docs/level-reviews/evidence/human.json)",
+      "smallestFix": "Confirm or override \"row:Freezer temperatures soared to 50C as the hack flipped cooling to heating\" against the screenshot and record it in human.json.",
+      "recheck": "Re-run the full critic; needsHuman must be empty for the fidelity gate.",
+      "confidence": "medium",
+      "limitations": "Low-confidence model judgment; only a human check resolves it."
+    }
+  ],
+  "nextAction": {
+    "flaw": "cheap",
+    "source": "quality",
+    "owner": "skills/level-creator/SKILL.md",
+    "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+    "justification": "cheap leads (highest-confidence corroborated finding with a behavioral recheck)."
+  },
+  "statuses": {
+    "captureValidity": {
+      "status": "partial",
+      "detail": "reached-crown-area at x=4878 of crown x=4900: local findings stand, whole-level verdicts do not"
+    },
+    "routeCoverage": {
+      "status": "partial",
+      "detail": "no completed crown route (outcome: reached-crown-area); sections past x=4878 are unverified",
+      "visitedBranches": [],
+      "visitedTiers": [
+        1,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14
+      ],
+      "unverified": [
+        "x>4878 to crown x=4900"
+      ]
+    },
+    "mechanical": {
+      "status": "flags-raised",
+      "detail": "non-blocking flags: flat-deck, background-recycled"
+    },
+    "quality": {
+      "status": "fail",
+      "detail": "quality panel did not pass"
+    },
+    "fidelity": {
+      "status": "fail",
+      "detail": "fidelity gate did not pass"
+    },
+    "releaseEligibility": {
+      "eligible": false,
+      "blockers": [
+        "no completed crown route (reached-crown-area)",
+        "quality fail",
+        "fidelity fail"
+      ]
+    }
+  },
+  "provenance": {
+    "level": 27,
+    "analysisHash": "a35ccc9e9389",
+    "pilotRevision": "7df2675f2f7a",
+    "criticRevision": "534ca1f91a04",
+    "rubricVersion": "2026-11-01-evidence-validity",
+    "model": "jev-latest",
+    "runIds": [
+      "ef623fb7-fb58-4944-b2f0-1c5c81908be5",
+      "b7a1e069-1cf6-4494-92cb-1ec5dd058a12"
+    ],
+    "captureConfig": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "pollMs": 150,
+      "budgetSec": 130,
+      "runCount": 2
+    },
+    "capturedAt": "2026-11-03T21:55:53.793Z"
+  },
+  "loop": 1,
+  "priorFlaw": "cheap",
+  "calibrationRuns": 2,
+  "loopExceeded": false,
+  "handoff": null,
+  "priorStalePassIssues": [],
+  "pilotRuns": 2,
+  "repeatedFlaws": [],
+  "passed": false,
+  "releaseEligible": false,
+  "shipVerdict": {
+    "ship": false,
+    "blockers": [
+      "critic panels did not pass",
+      "no completed crown route (outcome: reached-crown-area) and no verified human completion"
+    ]
+  },
+  "shotCoverage": {
+    "total": 12,
+    "seen": [
+      "run2-death-1",
+      "run2-death-2",
+      "run2-death-3",
+      "run2-death-4",
+      "run2-death-5",
+      "run2-death-6",
+      "01-opener",
+      "02-hazard-laser",
+      "03-hazard-crusher",
+      "04-hazard-drone",
+      "05-hazard-roller",
+      "06-finale"
+    ],
+    "missing": [],
+    "complete": true
+  },
+  "bossPassed": null,
+  "humanPlay": false
+}

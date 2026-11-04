@@ -1,0 +1,26 @@
+{
+    "body_bounds": { "h": 58, "w": 72 },
+    "candidate_id": "enemy-defrost-a",
+    "canvas_size": { "h": 130, "w": 160 },
+    "display_size": { "h": 58, "w": 72 },
+    "events": [],
+    "root_pivot": { "x": 80, "y": 65 },
+    "source": "../../assets/news-freezer-breach/defroster-drone.png",
+    "states": {
+        "bob": {
+            "amplitude_px": 6,
+            "duration_ms": 1400,
+            "loops": true,
+            "method": "tween",
+            "property": "y"
+        },
+        "patrol": {
+            "duration_ms": 1700,
+            "loops": true,
+            "method": "tween",
+            "property": "x/y",
+            "span_px": 120
+        }
+    },
+    "version": 1
+}
