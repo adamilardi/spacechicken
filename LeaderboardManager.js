@@ -34,6 +34,16 @@ function normalizeLevel(level) {
     return LEVEL_IDS.includes(parsed) ? parsed : null;
 }
 
+function normalizeLeaderboard(data) {
+    return Array.isArray(data)
+        ? data
+              .map(normalizeLeaderboardEntry)
+              .filter(Boolean)
+              .sort((a, b) => a.time - b.time)
+              .slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES)
+        : [];
+}
+
 export class LeaderboardManager {
     constructor(scene) {
         this.scene = scene;
@@ -44,6 +54,18 @@ export class LeaderboardManager {
 
     get mode() {
         return normalizeDifficulty(this.scene?.difficulty);
+    }
+
+    getStorage() {
+        if (!this.scene?.storageAvailable || typeof window === 'undefined') {
+            return null;
+        }
+        try {
+            // Accessing the property itself can throw when browser storage is blocked.
+            return window.localStorage || null;
+        } catch {
+            return null;
+        }
     }
 
     levelBoardKey(level) {
@@ -68,23 +90,16 @@ export class LeaderboardManager {
             return [];
         }
         const key = this.levelBoardKey(normalizedLevel);
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return [];
         }
         try {
-            const raw = window.localStorage.getItem(key);
+            const raw = storage.getItem(key);
             if (!raw) {
                 return [];
             }
-            const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed)) {
-                return [];
-            }
-            return parsed
-                .map(normalizeLeaderboardEntry)
-                .filter(Boolean)
-                .sort((a, b) => a.time - b.time)
-                .slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
+            return normalizeLeaderboard(JSON.parse(raw));
         } catch (err) {
             console.error('Error reading leaderboard:', err);
             return [];
@@ -97,18 +112,12 @@ export class LeaderboardManager {
             return;
         }
         const key = this.levelBoardKey(normalizedLevel);
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return;
         }
         try {
-            const payload = Array.isArray(data)
-                ? data
-                      .map(normalizeLeaderboardEntry)
-                      .filter(Boolean)
-                      .sort((a, b) => a.time - b.time)
-                      .slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES)
-                : [];
-            window.localStorage.setItem(key, JSON.stringify(payload));
+            storage.setItem(key, JSON.stringify(normalizeLeaderboard(data)));
         } catch (err) {
             console.error('Error writing leaderboard:', err);
             this.scene.storageAvailable = false;
@@ -129,19 +138,13 @@ export class LeaderboardManager {
             entry.deaths || 0
         );
         this.savePersonalBest(normalizedLevel, entry.time);
-        if (!this.scene.storageAvailable) {
-            return true;
-        }
-
-        if (normalizedLevel === 0) {
+        if (!this.scene.storageAvailable || normalizedLevel === 0) {
             return true;
         }
 
         const leaderboard = this.readLeaderboard(normalizedLevel);
         leaderboard.push(entry);
-        leaderboard.sort((a, b) => a.time - b.time);
-        const trimmed = leaderboard.slice(0, GAME_CONSTANTS.LEADERBOARD_MAX_ENTRIES);
-        this.writeLeaderboard(normalizedLevel, trimmed);
+        this.writeLeaderboard(normalizedLevel, leaderboard);
         return true;
     }
 
@@ -211,16 +214,17 @@ export class LeaderboardManager {
     }
 
     getPlayerId() {
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return this.playerId;
         }
         try {
             const key = 'spaceChickenPlayerId';
-            const stored = window.localStorage.getItem(key);
+            const stored = storage.getItem(key);
             if (/^[0-9a-f-]{36}$/i.test(stored || '')) return stored;
             const id = this.playerId;
             if (!id) return null;
-            window.localStorage.setItem(key, id);
+            storage.setItem(key, id);
             return id;
         } catch {
             return this.playerId;
@@ -228,11 +232,12 @@ export class LeaderboardManager {
     }
 
     getPersonalBest(level) {
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return null;
         }
         try {
-            const value = Number(window.localStorage.getItem(this.personalBestKey(level)));
+            const value = Number(storage.getItem(this.personalBestKey(level)));
             return Number.isFinite(value) && value > 0 ? value : null;
         } catch {
             return null;
@@ -240,7 +245,8 @@ export class LeaderboardManager {
     }
 
     savePersonalBest(level, time) {
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return false;
         }
         const previous = this.getPersonalBest(level);
@@ -248,7 +254,7 @@ export class LeaderboardManager {
             return false;
         }
         try {
-            window.localStorage.setItem(this.personalBestKey(level), String(time));
+            storage.setItem(this.personalBestKey(level), String(time));
             return true;
         } catch {
             return false;
@@ -257,11 +263,12 @@ export class LeaderboardManager {
 
     getMaxUnlocked() {
         const max = LEVEL_IDS.length;
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return max;
         }
         try {
-            const value = Number(window.localStorage.getItem('spaceChickenUnlocked'));
+            const value = Number(storage.getItem('spaceChickenUnlocked'));
             if (!Number.isInteger(value)) {
                 return 1;
             }
@@ -278,9 +285,10 @@ export class LeaderboardManager {
         if (next <= current) {
             return current;
         }
-        if (this.scene.storageAvailable && typeof window !== 'undefined' && window.localStorage) {
+        const storage = this.getStorage();
+        if (storage) {
             try {
-                window.localStorage.setItem('spaceChickenUnlocked', String(next));
+                storage.setItem('spaceChickenUnlocked', String(next));
             } catch {
                 return next;
             }
@@ -343,29 +351,25 @@ export class LeaderboardManager {
     formatTimes(times) {
         return times
             .map((entry, index) => {
-                const timeValue = entry && typeof entry === 'object' ? entry.time : entry;
-                const nameValue =
-                    entry && typeof entry === 'object' && typeof entry.name === 'string'
-                        ? entry.name
-                        : 'Anonymous';
-                if (typeof timeValue !== 'number' || !Number.isFinite(timeValue) || timeValue < 0) {
+                const normalized = normalizeLeaderboardEntry(entry);
+                if (!normalized) {
                     return null;
                 }
-                const paddedName = normalizePlayerName(nameValue);
-                const deaths = entry && typeof entry === 'object' ? entry.deaths : undefined;
-                const suffix = Number.isInteger(deaths) && deaths > 0 ? ` · ${deaths} deaths` : '';
-                return `${index + 1}. ${formatElapsedTime(timeValue)} - ${paddedName}${suffix}`;
+                const { time, name, deaths } = normalized;
+                const suffix = deaths ? ` · ${deaths} deaths` : '';
+                return `${index + 1}. ${formatElapsedTime(time)} - ${name}${suffix}`;
             })
             .filter(Boolean)
             .join('\n');
     }
 
     loadPlayerName() {
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return null;
         }
         try {
-            const stored = window.localStorage.getItem(AUDIO_SETTINGS.PLAYER_NAME_KEY);
+            const stored = storage.getItem(AUDIO_SETTINGS.PLAYER_NAME_KEY);
             if (!stored) {
                 return null;
             }
@@ -377,11 +381,12 @@ export class LeaderboardManager {
     }
 
     savePlayerName(name) {
-        if (!this.scene.storageAvailable || typeof window === 'undefined' || !window.localStorage) {
+        const storage = this.getStorage();
+        if (!storage) {
             return;
         }
         try {
-            window.localStorage.setItem(AUDIO_SETTINGS.PLAYER_NAME_KEY, normalizePlayerName(name));
+            storage.setItem(AUDIO_SETTINGS.PLAYER_NAME_KEY, normalizePlayerName(name));
         } catch (err) {
             console.error('Error saving player name:', err);
         }

@@ -1,5 +1,22 @@
 import { GAME_CONSTANTS } from './Constants.js';
 
+// Gameplay buttons get finger-sized hit padding; menu controls use their bounds.
+const PADDED_CONTROLS = [
+    ['jump', 'jumpButton'],
+    ['left', 'leftButton'],
+    ['right', 'rightButton'],
+    ['phaser', 'phaserButton'],
+    ['aimUp', 'aimUpButton'],
+    ['aimDown', 'aimDownButton'],
+];
+const MENU_CONTROLS = [
+    ['music', 'musicButton'],
+    ['leaderboard', 'leaderboardButton'],
+    ['name', 'playerNameText'],
+    ['selectPrev', 'selectPrevButton'],
+    ['selectNext', 'selectNextButton'],
+];
+
 // Owns all touch/pointer state (active-pointer dedupe, hit targets, tap
 // timing) for one scene. InputController delegates its pointer surface here;
 // the class is also usable standalone with any scene-shaped object.
@@ -21,6 +38,9 @@ export class TouchController {
             phaser: false,
             aimUp: false,
             aimDown: false,
+            selectPrev: false,
+            selectNext: false,
+            news: false,
         };
         this.hitBounds = { x: 0, y: 0, width: 0, height: 0 };
     }
@@ -62,22 +82,8 @@ export class TouchController {
             if (!pointer.justDown || pointer.event?.target?.closest?.('button, dialog')) {
                 continue;
             }
-            this.fillPointerTargets(pointer, controls);
-            if (
-                this.targets.hasCoordinates &&
-                !this.targets.jump &&
-                !this.targets.left &&
-                !this.targets.right &&
-                !this.targets.music &&
-                !this.targets.leaderboard &&
-                !this.targets.name &&
-                !this.targets.phaser &&
-                !this.targets.aimUp &&
-                !this.targets.aimDown &&
-                !this.targets.selectPrev &&
-                !this.targets.selectNext &&
-                !this.targets.news
-            ) {
+            const targets = this.fillPointerTargets(pointer, controls);
+            if (targets.hasCoordinates && !this.isOverUiControl(targets)) {
                 return true;
             }
         }
@@ -136,63 +142,16 @@ export class TouchController {
         targets.x = x;
         targets.y = y;
         targets.hasCoordinates = hasCoordinates;
-        targets.jump =
-            hasCoordinates &&
-            this.isPointerOverGameObject(
-                x,
-                y,
-                controls.jumpButton,
-                controls.jumpButton?.touchHitPadding ?? pad
-            );
-        targets.left =
-            hasCoordinates &&
-            this.isPointerOverGameObject(
-                x,
-                y,
-                controls.leftButton,
-                controls.leftButton?.touchHitPadding ?? pad
-            );
-        targets.right =
-            hasCoordinates &&
-            this.isPointerOverGameObject(
-                x,
-                y,
-                controls.rightButton,
-                controls.rightButton?.touchHitPadding ?? pad
-            );
-        targets.music = hasCoordinates && this.isPointerOverGameObject(x, y, controls.musicButton);
-        targets.leaderboard =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.leaderboardButton);
-        targets.name =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.playerNameText);
-        targets.phaser =
-            hasCoordinates &&
-            this.isPointerOverGameObject(
-                x,
-                y,
-                controls.phaserButton,
-                controls.phaserButton?.touchHitPadding ?? pad
-            );
-        targets.aimUp =
-            hasCoordinates &&
-            this.isPointerOverGameObject(
-                x,
-                y,
-                controls.aimUpButton,
-                controls.aimUpButton?.touchHitPadding ?? pad
-            );
-        targets.aimDown =
-            hasCoordinates &&
-            this.isPointerOverGameObject(
-                x,
-                y,
-                controls.aimDownButton,
-                controls.aimDownButton?.touchHitPadding ?? pad
-            );
-        targets.selectPrev =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectPrevButton);
-        targets.selectNext =
-            hasCoordinates && this.isPointerOverGameObject(x, y, controls.selectNextButton);
+        for (const [target, control] of PADDED_CONTROLS) {
+            const button = controls[control];
+            targets[target] =
+                hasCoordinates &&
+                this.isPointerOverGameObject(x, y, button, button?.touchHitPadding ?? pad);
+        }
+        for (const [target, control] of MENU_CONTROLS) {
+            targets[target] =
+                hasCoordinates && this.isPointerOverGameObject(x, y, controls[control]);
+        }
         targets.news =
             hasCoordinates &&
             (controls.newsButtons || []).some(

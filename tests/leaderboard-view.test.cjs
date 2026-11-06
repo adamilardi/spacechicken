@@ -204,3 +204,34 @@ test('B and the arrows drive the leaderboard menu on keyboard', async () => {
         global.Phaser.Input.Keyboard.JustDown = justDown;
     }
 });
+
+test('Up and W reach menu navigation after jump polling consumes their key edges', async (t) => {
+    const { InputController } = await importModule('InputController.js');
+    const scene = createPollScene();
+    const controller = new InputController(scene);
+    const pendingPresses = new Set();
+    t.mock.method(global.Phaser.Input.Keyboard, 'JustDown', (key) => pendingPresses.delete(key));
+
+    for (const [key, jumpFlag] of [
+        [scene.cursors.up, 'upJustPressed'],
+        [scene.wasd.W, 'wJustPressed'],
+    ]) {
+        pendingPresses.add(key);
+        const pressed = controller.poll();
+        assert.equal(pressed[jumpFlag], true);
+        assert.equal(pressed.menu.up, true);
+        assert.equal(pendingPresses.size, 0);
+
+        const held = controller.poll();
+        assert.equal(held[jumpFlag], false);
+        assert.equal(held.menu.up, undefined);
+    }
+
+    pendingPresses.add(scene.cursors.up);
+    pendingPresses.add(scene.wasd.W);
+    const simultaneous = controller.poll();
+    assert.equal(simultaneous.upJustPressed, true);
+    assert.equal(simultaneous.wJustPressed, true);
+    assert.equal(simultaneous.menu.up, true);
+    assert.equal(controller.poll().menu.up, undefined);
+});

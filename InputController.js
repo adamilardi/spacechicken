@@ -1,6 +1,26 @@
 import { GamepadController } from './GamepadController.js';
 import { TouchController } from './TouchController.js';
 
+const INPUT_STATE_DEFAULTS = Object.freeze({
+    spaceJustPressed: false,
+    upJustPressed: false,
+    wJustPressed: false,
+    kJustPressed: false,
+    jumpReleased: false,
+    doubleTapJumpTriggered: false,
+    pointerJumpTriggered: false,
+    pointerStartTriggered: false,
+    gamepadJumpJustPressed: false,
+    gamepadStartJustPressed: false,
+    gamepadJumpReleased: false,
+    p1SwitchJustPressed: false,
+    p2SwitchJustPressed: false,
+    phaserHeld: false,
+    aimUpHeld: false,
+    aimDownHeld: false,
+    coopMode: null,
+});
+
 // Polls keyboard directly and delegates gamepad/pointer work to focused
 // controllers. The gamepad/pointer methods below are thin facades so existing
 // callers (scene, pause menu, tests) keep working unchanged; all of that
@@ -8,22 +28,7 @@ import { TouchController } from './TouchController.js';
 export class InputController {
     constructor(scene) {
         this.scene = scene;
-        this.state = {
-            spaceJustPressed: false,
-            upJustPressed: false,
-            wJustPressed: false,
-            kJustPressed: false,
-            jumpReleased: false,
-            doubleTapJumpTriggered: false,
-            pointerJumpTriggered: false,
-            pointerStartTriggered: false,
-            gamepadJumpJustPressed: false,
-            gamepadStartJustPressed: false,
-            phaserHeld: false,
-            aimUpHeld: false,
-            aimDownHeld: false,
-            coopMode: null,
-        };
+        this.state = { ...INPUT_STATE_DEFAULTS, menu: {} };
         this.controls = {
             jumpButton: null,
             leftButton: null,
@@ -31,6 +36,9 @@ export class InputController {
             musicButton: null,
             leaderboardButton: null,
             playerNameText: null,
+            phaserButton: null,
+            aimUpButton: null,
+            aimDownButton: null,
             selectPrevButton: null,
             selectNextButton: null,
             newsButtons: [],
@@ -63,32 +71,11 @@ export class InputController {
 
     poll() {
         const scene = this.scene;
-        const state = this.state;
-        this.pollJumpKeys(scene, state);
-        state.doubleTapJumpTriggered = false;
-        state.pointerJumpTriggered = false;
-        state.pointerStartTriggered = false;
-        state.gamepadJumpJustPressed = false;
-        state.gamepadStartJustPressed = false;
-        state.gamepadJumpReleased = false;
-        state.p1SwitchJustPressed = false;
-        state.p2SwitchJustPressed = false;
-        state.phaserHeld = false;
-        state.aimUpHeld = false;
-        state.aimDownHeld = false;
+        // Reuse the state object while clearing every frame's transient input.
+        const state = Object.assign(this.state, INPUT_STATE_DEFAULTS);
         state.menu = {};
-        state.coopMode = null;
-        // The branch offer owns keys 2/3/4 while it is up: coopKeys.keyboard
-        // shares key 2 with the vault pick, and JustDown is consume-once, so
-        // polling here would eat the pick before updateBranchInput sees it.
-        if (scene.coopKeys && !scene.awaitingBranch) {
-            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboard))
-                state.coopMode = 'keyboard';
-            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboardController))
-                state.coopMode = 'keyboard-controller';
-            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.controllers))
-                state.coopMode = 'controllers';
-        }
+        this.pollJumpKeys(scene, state);
+        this.pollCoopMode(scene, state);
 
         const touch = this.touch;
         const activePointers = touch.getActivePointers();
@@ -104,20 +91,7 @@ export class InputController {
         }
 
         const ui = scene.uiManager;
-        const controls = this.controls;
-        controls.jumpButton = ui ? ui.jumpButton : null;
-        controls.leftButton = ui ? ui.leftButton : null;
-        controls.rightButton = ui ? ui.rightButton : null;
-        controls.musicButton = ui ? ui.musicToggleButton : null;
-        controls.leaderboardButton = ui ? ui.leaderboardButton : null;
-        controls.playerNameText = ui ? ui.playerNameText : null;
-        controls.phaserButton = ui ? ui.phaserButton : null;
-        controls.aimUpButton = ui ? ui.aimUpButton : null;
-        controls.aimDownButton = ui ? ui.aimDownButton : null;
-        controls.selectPrevButton = ui ? ui.selectPrevButton : null;
-        controls.selectNextButton = ui ? ui.selectNextButton : null;
-        controls.newsButtons = ui ? ui.newsButtons : [];
-
+        const controls = this.syncTouchControls(ui);
         const movementMidpoint =
             ui && ui.touchMovementMidpoint
                 ? ui.touchMovementMidpoint
@@ -144,6 +118,37 @@ export class InputController {
         return state;
     }
 
+    pollCoopMode(scene, state) {
+        // The branch offer owns keys 2/3/4 while it is up: coopKeys.keyboard
+        // shares key 2 with the vault pick, and JustDown is consume-once, so
+        // polling here would eat the pick before updateBranchInput sees it.
+        if (scene.coopKeys && !scene.awaitingBranch) {
+            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboard))
+                state.coopMode = 'keyboard';
+            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.keyboardController))
+                state.coopMode = 'keyboard-controller';
+            if (Phaser.Input.Keyboard.JustDown(scene.coopKeys.controllers))
+                state.coopMode = 'controllers';
+        }
+    }
+
+    syncTouchControls(ui) {
+        const controls = this.controls;
+        controls.jumpButton = ui ? ui.jumpButton : null;
+        controls.leftButton = ui ? ui.leftButton : null;
+        controls.rightButton = ui ? ui.rightButton : null;
+        controls.musicButton = ui ? ui.musicToggleButton : null;
+        controls.leaderboardButton = ui ? ui.leaderboardButton : null;
+        controls.playerNameText = ui ? ui.playerNameText : null;
+        controls.phaserButton = ui ? ui.phaserButton : null;
+        controls.aimUpButton = ui ? ui.aimUpButton : null;
+        controls.aimDownButton = ui ? ui.aimDownButton : null;
+        controls.selectPrevButton = ui ? ui.selectPrevButton : null;
+        controls.selectNextButton = ui ? ui.selectNextButton : null;
+        controls.newsButtons = ui ? ui.newsButtons : [];
+        return controls;
+    }
+
     pollGamepad(state) {
         return this.gamepad.pollGamepad(state);
     }
@@ -167,7 +172,13 @@ export class InputController {
         if (justDown(scene.cursors?.right) || justDown(scene.wasd?.D)) {
             state.menu.right = true;
         }
-        if (justDown(scene.cursors?.up) || justDown(scene.wasd?.W)) {
+        // Jump polling consumes these key edges first; reuse its result for menus.
+        if (
+            state.upJustPressed ||
+            state.wJustPressed ||
+            justDown(scene.cursors?.up) ||
+            justDown(scene.wasd?.W)
+        ) {
             state.menu.up = true;
         }
         if (justDown(scene.cursors?.down) || justDown(scene.wasd?.S)) {
