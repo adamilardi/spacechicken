@@ -2,6 +2,55 @@ import { AUDIO_SETTINGS, GAME_CONSTANTS } from './Constants.js';
 import { LEVEL_IDS } from './levels/index.js';
 import { formatElapsedTime, normalizeDifficulty } from './GameUtils.js';
 
+const NAME_ADJECTIVES = [
+    'Disco',
+    'Wobbly',
+    'Cosmic',
+    'Sneaky',
+    'Spicy',
+    'Turbo',
+    'Dizzy',
+    'Funky',
+    'Bouncy',
+    'Sassy',
+    'Goofy',
+    'Crispy',
+    'Groovy',
+    'Fluffy',
+    'Zippy',
+    'Wiggly',
+];
+const NAME_NOUNS = [
+    'Nugget',
+    'Noodle',
+    'Waffle',
+    'Pickle',
+    'Potato',
+    'Turnip',
+    'Chicken',
+    'Biscuit',
+    'Dumpling',
+    'Pancake',
+    'Meatball',
+    'Marshmallow',
+    'Tater',
+    'Goose',
+    'Muffin',
+    'Bean',
+];
+
+export function generatePlayerName(playerId) {
+    // Stable per player, including when storage is unavailable between levels.
+    let hash = 2166136261;
+    for (const character of String(playerId)) {
+        hash = Math.imul(hash ^ character.codePointAt(0), 16777619) >>> 0;
+    }
+    const adjective = NAME_ADJECTIVES[hash % NAME_ADJECTIVES.length];
+    const noun = NAME_NOUNS[Math.floor(hash / NAME_ADJECTIVES.length) % NAME_NOUNS.length];
+    const number = Math.floor(hash / (NAME_ADJECTIVES.length * NAME_NOUNS.length)) % 100;
+    return `${adjective} ${noun} ${number.toString().padStart(2, '0')}`;
+}
+
 export function normalizePlayerName(name) {
     if (typeof name !== 'string') {
         return 'Anonymous';
@@ -410,26 +459,15 @@ export class LeaderboardManager {
                 ? this.scene.playerName.trim()
                 : '';
         const currentName = storedName || managerName || sceneName;
-
-        if (!forcePrompt) {
-            const fallback = normalizePlayerName(currentName);
-            this.playerName = fallback;
-            return fallback;
+        if (!this.defaultPlayerName) {
+            this.defaultPlayerName = generatePlayerName(this.getPlayerId() || Math.random());
         }
-        if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
-            const fallback = normalizePlayerName(currentName);
-            this.playerName = fallback;
-            return fallback;
+        const fallback = currentName ? normalizePlayerName(currentName) : this.defaultPlayerName;
+        let finalName = fallback;
+        if (forcePrompt && typeof window !== 'undefined' && typeof window.prompt === 'function') {
+            const response = window.prompt('Enter your name for the leaderboard:', fallback);
+            finalName = normalizePlayerName(response?.trim() || fallback);
         }
-        const defaultValue = currentName;
-        const response = window.prompt('Enter your name for the leaderboard:', defaultValue);
-        let finalName;
-        if (response === null) {
-            finalName = currentName;
-        } else {
-            finalName = response;
-        }
-        finalName = normalizePlayerName(finalName || currentName);
         this.playerName = finalName;
         this.savePlayerName(finalName);
         return finalName;

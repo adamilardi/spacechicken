@@ -393,6 +393,7 @@ export class SpaceChicken extends Phaser.Scene {
 
     create() {
         this.levelConfig = new LevelConfig(this.level);
+        this.storageAvailable = this.checkStorageAvailability();
         this.audioManager = new AudioManager(this);
         this.uiManager = new UIManager(this);
         this.leaderboardManager = new LeaderboardManager(this);
@@ -403,8 +404,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.worldBuilder = new WorldBuilder(this);
         this.inputController = new InputController(this);
 
-        this.storageAvailable = this.checkStorageAvailability();
-        this.playerName = this.leaderboardManager.loadPlayerName();
+        this.playerName = this.leaderboardManager.ensurePlayerName();
         this.musicMuted = this.audioManager.loadMusicPreference();
         this.jumpMode = this.loadJumpMode();
         this.difficulty = this.loadDifficulty();
