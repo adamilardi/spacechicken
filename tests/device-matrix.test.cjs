@@ -402,7 +402,7 @@ test('short taps jump, long presses and UI taps do not', async () => {
 
     assert.equal(
         controller.isShortPointerJump(
-            { justUp: true, downTime: 1000, upTime: 1100 },
+            { justUp: true, x: 20, y: 20, downTime: 1000, upTime: 1100 },
             emptyControls
         ),
         true
@@ -526,7 +526,7 @@ test('gamepad and touch controllers work standalone and back the facade', async 
     assert.equal(gamepad.getGamepad(), null);
     const state = { menu: {} };
     gamepad.pollGamepad(state);
-    assert.equal(state.gamepadJumpJustPressed, undefined);
+    assert.equal(state.gamepadJumpJustPressed, false);
 
     // Touch hit-testing works without the full scene.
     const touch = new TouchController({

@@ -6,6 +6,8 @@ const INPUT_STATE_DEFAULTS = Object.freeze({
     upJustPressed: false,
     wJustPressed: false,
     kJustPressed: false,
+    p2JumpJustPressed: false,
+    p2JumpReleased: false,
     jumpReleased: false,
     doubleTapJumpTriggered: false,
     pointerJumpTriggered: false,
@@ -39,12 +41,36 @@ export class InputController {
             phaserButton: null,
             aimUpButton: null,
             aimDownButton: null,
+            weaponButton: null,
             selectPrevButton: null,
             selectNextButton: null,
             newsButtons: [],
         };
         this.gamepad = new GamepadController(scene);
         this.touch = new TouchController(scene);
+        this.numpadDown = (event) => this.forwardNumpadEvent(event, 'onDown');
+        this.numpadUp = (event) => this.forwardNumpadEvent(event, 'onUp');
+        scene.input?.keyboard?.on?.('keydown', this.numpadDown);
+        scene.input?.keyboard?.on?.('keyup', this.numpadUp);
+    }
+
+    forwardNumpadEvent(event, method) {
+        // With NumLock off, browsers report Insert/End/Down keycodes for
+        // Numpad 0/1/2. The physical code still identifies the intended control.
+        const key =
+            event.code === 'Numpad0'
+                ? this.scene.player2Keys?.jump
+                : event.code === 'Numpad1'
+                  ? this.scene.player2PhaserKey
+                  : event.code === 'Numpad2'
+                    ? this.scene.switchKey2
+                    : null;
+        if (key && event.keyCode !== key.keyCode) key[method]?.(event);
+    }
+
+    destroy() {
+        this.scene.input?.keyboard?.off?.('keydown', this.numpadDown);
+        this.scene.input?.keyboard?.off?.('keyup', this.numpadUp);
     }
 
     get targets() {
@@ -55,6 +81,10 @@ export class InputController {
         return this.gamepad.gamepadJumpEdges;
     }
 
+    get gamepadJumpReleaseEdges() {
+        return this.gamepad.gamepadJumpReleaseEdges;
+    }
+
     pollJumpKeys(scene, state) {
         state.spaceJustPressed = Phaser.Input.Keyboard.JustDown(scene.space);
         state.upJustPressed = Phaser.Input.Keyboard.JustDown(scene.cursors.up);
@@ -62,11 +92,20 @@ export class InputController {
         state.kJustPressed = Boolean(
             scene.jumpKeyK && Phaser.Input.Keyboard.JustDown(scene.jumpKeyK)
         );
+        const keyboard = Phaser.Input.Keyboard;
+        // Consume every edge even when several keys are released together.
+        const spaceUp = keyboard.JustUp(scene.space);
+        const arrowUp = keyboard.JustUp(scene.cursors.up);
+        const wUp = keyboard.JustUp(scene.wasd.W);
+        const kUp = Boolean(scene.jumpKeyK && keyboard.JustUp(scene.jumpKeyK));
+        const secondJump = scene.player2Keys?.jump;
+        const secondDown = Boolean(secondJump && keyboard.JustDown(secondJump));
+        const secondUp = Boolean(secondJump && keyboard.JustUp(secondJump));
+        state.p2JumpJustPressed = scene.coopMode === 'keyboard' && secondDown;
+        state.p2JumpReleased = scene.coopMode === 'keyboard' && (arrowUp || secondUp);
         state.jumpReleased =
-            Phaser.Input.Keyboard.JustUp(scene.space) ||
-            Phaser.Input.Keyboard.JustUp(scene.cursors.up) ||
-            Phaser.Input.Keyboard.JustUp(scene.wasd.W) ||
-            Boolean(scene.jumpKeyK && Phaser.Input.Keyboard.JustUp(scene.jumpKeyK));
+            scene.coopMode !== 'controllers' &&
+            (spaceUp || wUp || kUp || (scene.coopMode !== 'keyboard' && arrowUp));
     }
 
     poll() {
@@ -143,6 +182,7 @@ export class InputController {
         controls.phaserButton = ui ? ui.phaserButton : null;
         controls.aimUpButton = ui ? ui.aimUpButton : null;
         controls.aimDownButton = ui ? ui.aimDownButton : null;
+        controls.weaponButton = ui ? ui.weaponButton : null;
         controls.selectPrevButton = ui ? ui.selectPrevButton : null;
         controls.selectNextButton = ui ? ui.selectNextButton : null;
         controls.newsButtons = ui ? ui.newsButtons : [];
@@ -162,26 +202,31 @@ export class InputController {
         if (!scene || !state || !state.menu) {
             return;
         }
-        const justDown = (key) => Boolean(key && Phaser.Input.Keyboard.JustDown(key));
+        const justDown = (key) => {
+            const pressed = key && Phaser.Input.Keyboard.JustDown(key);
+            return Boolean(pressed && !key.originalEvent?.code?.startsWith('Numpad'));
+        };
+        const eitherDown = (first, second) => {
+            const firstDown = justDown(first);
+            const secondDown = justDown(second);
+            return firstDown || secondDown;
+        };
         if (justDown(scene.boardKey)) {
             state.menu.board = true;
         }
-        if (justDown(scene.cursors?.left) || justDown(scene.wasd?.A)) {
+        if (eitherDown(scene.cursors?.left, scene.wasd?.A)) {
             state.menu.left = true;
         }
-        if (justDown(scene.cursors?.right) || justDown(scene.wasd?.D)) {
+        if (eitherDown(scene.cursors?.right, scene.wasd?.D)) {
             state.menu.right = true;
         }
         // Jump polling consumes these key edges first; reuse its result for menus.
-        if (
-            state.upJustPressed ||
-            state.wJustPressed ||
-            justDown(scene.cursors?.up) ||
-            justDown(scene.wasd?.W)
-        ) {
+        const upPressed = state.upJustPressed ?? justDown(scene.cursors?.up);
+        const wPressed = state.wJustPressed ?? justDown(scene.wasd?.W);
+        if (upPressed || wPressed) {
             state.menu.up = true;
         }
-        if (justDown(scene.cursors?.down) || justDown(scene.wasd?.S)) {
+        if (eitherDown(scene.cursors?.down, scene.wasd?.S)) {
             state.menu.down = true;
         }
         if (justDown(scene.enterKey)) {
@@ -199,8 +244,19 @@ export class InputController {
     // aim buttons set, mirroring phaserHeld.
     syncAimHeld(state) {
         const scene = this.scene;
-        const upKeyHeld = Boolean(scene.cursors?.up?.isDown || scene.wasd?.W?.isDown);
-        const downKeyHeld = Boolean(scene.cursors?.down?.isDown || scene.wasd?.S?.isDown);
+        const keyboardEnabled = scene.coopMode !== 'controllers';
+        const arrowsEnabled = scene.coopMode !== 'keyboard';
+        const upKeyHeld =
+            keyboardEnabled &&
+            Boolean((arrowsEnabled && scene.cursors?.up?.isDown) || scene.wasd?.W?.isDown);
+        const downKeyHeld =
+            keyboardEnabled &&
+            Boolean(
+                (arrowsEnabled &&
+                    scene.cursors?.down?.isDown &&
+                    scene.cursors.down.originalEvent?.code !== 'Numpad2') ||
+                scene.wasd?.S?.isDown
+            );
         state.aimUpHeld = Boolean(
             state.aimUpHeld || scene.touchAimUpHeld || (upKeyHeld && state.phaserHeld)
         );
@@ -211,8 +267,8 @@ export class InputController {
         const scene = this.scene;
         state.phaserHeld = Boolean(
             state.phaserHeld ||
-            scene.phaserKey?.isDown ||
-            scene.phaserKeyAlt?.isDown ||
+            (scene.coopMode !== 'controllers' &&
+                (scene.phaserKey?.isDown || scene.phaserKeyAlt?.isDown)) ||
             pointerDown ||
             scene.phaserHeld
         );

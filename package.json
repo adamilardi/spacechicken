@@ -36,6 +36,7 @@
         "shots": "node scripts/capture-levels.mjs",
         "shots:diff": "node scripts/diff-shots.mjs",
         "verify:devices": "node scripts/verify-device-matrix.mjs",
+        "verify:inputs": "node scripts/verify-inputs.mjs",
         "verify:mobile": "node scripts/verify-mobile.mjs",
         "verify:perf": "node scripts/profile-performance.mjs",
         "verify:perf-page": "node scripts/verify-performance-page.mjs",

@@ -1511,7 +1511,7 @@ export class SpaceChicken extends Phaser.Scene {
         );
     }
 
-    updateBranchInput() {
+    updateBranchInput(inputState = {}) {
         if (!this.awaitingBranch || !this.uiManager?.branchOptions) {
             return;
         }
@@ -1520,6 +1520,8 @@ export class SpaceChicken extends Phaser.Scene {
             this.uiManager.pickBranch(0);
         } else if (this.branchKey2 && keyboard.JustDown(this.branchKey2)) {
             this.uiManager.pickBranch(1);
+        } else {
+            this.uiManager.handleMenuInput?.(inputState);
         }
     }
 
@@ -2094,7 +2096,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.updateWeaponSwitch(inputState);
         this.updateTempGuns();
         if (this.awaitingBranch) {
-            this.updateBranchInput();
+            this.updateBranchInput(inputState);
             return;
         }
         if (this.debugSkipKey && Phaser.Input.Keyboard.JustDown(this.debugSkipKey)) {
@@ -2528,11 +2530,13 @@ export class SpaceChicken extends Phaser.Scene {
         // (Contra-style); Space/K always jump, so no jump input is lost.
         const aimUpHeld = Boolean(inputState.aimUpHeld);
         return Boolean(
-            (this.coopMode !== 'keyboard' && inputState.upJustPressed && !aimUpHeld) ||
-            inputState.spaceJustPressed ||
-            inputState.kJustPressed ||
-            (inputState.wJustPressed && !aimUpHeld) ||
-            inputState.gamepadJumpJustPressed ||
+            (this.coopMode !== 'controllers' &&
+                ((this.coopMode !== 'keyboard' && inputState.upJustPressed && !aimUpHeld) ||
+                    inputState.spaceJustPressed ||
+                    inputState.kJustPressed ||
+                    (inputState.wJustPressed && !aimUpHeld))) ||
+            (inputState.gamepadJumpJustPressed &&
+                (!this.awaitingStart || inputState.menu?.confirm)) ||
             inputState.pointerJumpTriggered ||
             inputState.doubleTapJumpTriggered ||
             this.jumpRequested
@@ -2805,7 +2809,7 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     // eslint-disable-next-line complexity
-    updatePlayer2(_inputState) {
+    updatePlayer2(inputState) {
         const pad = this.inputController.getGamepad?.(
             this.coopMode === 'keyboard-controller' ? 0 : 1
         );
@@ -2813,10 +2817,10 @@ export class SpaceChicken extends Phaser.Scene {
         const axis = usePad && Math.abs(pad?.axes?.[0] || 0) >= 0.22 ? pad.axes[0] : 0;
         const left =
             (this.player2Keys.left.isDown && !usePad) ||
-            (usePad && ((pad?.buttons?.[14]?.pressed ?? false) || axis < -0.22));
+            (usePad && ((pad?.buttons?.[14]?.pressed ?? false) || axis < 0));
         const right =
             (this.player2Keys.right.isDown && !usePad) ||
-            (usePad && ((pad?.buttons?.[15]?.pressed ?? false) || axis > 0.22));
+            (usePad && ((pad?.buttons?.[15]?.pressed ?? false) || axis > 0));
         this.player2.setVelocityX(
             (right ? 1 : 0) * GAME_CONSTANTS.PLAYER_VELOCITY_X -
                 (left ? 1 : 0) * GAME_CONSTANTS.PLAYER_VELOCITY_X
@@ -2826,28 +2830,27 @@ export class SpaceChicken extends Phaser.Scene {
         const p2FireHeld = !usePad && Boolean(this.player2PhaserKey?.isDown);
         if (!usePad) {
             this.player2.aimUpHeld = Boolean(this.cursors?.up?.isDown && p2FireHeld);
-            this.player2.aimDownHeld = Boolean(this.cursors?.down?.isDown);
+            this.player2.aimDownHeld = Boolean(
+                this.cursors?.down?.isDown && this.cursors.down.originalEvent?.code !== 'Numpad2'
+            );
         } else {
             const axisY = pad?.axes?.[1] || 0;
             this.player2.aimUpHeld = axisY < -GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE;
             this.player2.aimDownHeld =
                 axisY > GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE || Boolean(pad?.buttons?.[13]?.pressed);
         }
-        const upJump =
-            !usePad &&
-            this.cursors?.up &&
-            !this.player2.aimUpHeld &&
-            Phaser.Input.Keyboard.JustDown(this.cursors.up);
+        const upJump = !usePad && !this.player2.aimUpHeld && inputState.upJustPressed;
         const now = this.getGameTime();
         const groundedBefore = Boolean(
             this.player2.body.blocked.down || this.player2.body.touching.down
         );
         if (groundedBefore) {
             this.player2LastGroundedAt = now;
+            this.player2JumpCount = 0;
         }
         if (
             upJump ||
-            (this.player2Keys.jump.justDown && !usePad) ||
+            (inputState.p2JumpJustPressed && !usePad) ||
             (usePad && this.inputController.gamepadJumpEdges?.[1])
         ) {
             this.player2BufferedAt = now;
@@ -2866,11 +2869,22 @@ export class SpaceChicken extends Phaser.Scene {
                 }
             }
         }
+        const jumpReleased = usePad
+            ? this.inputController.gamepadJumpReleaseEdges?.[1]
+            : inputState.p2JumpReleased;
+        if (this.jumpMode === 'fine' && jumpReleased) {
+            this.player2.setVelocityY(
+                jumpCutVelocity(
+                    this.player2.body.velocity.y,
+                    GAME_CONSTANTS.JUMP_VELOCITY_Y,
+                    GAME_CONSTANTS.JUMP_CUT_MULTIPLIER
+                )
+            );
+        }
         if (this.player2.y > this.killZoneFallY) this.failFromHazard('fall');
         const grounded = Boolean(this.player2.body.blocked.down || this.player2.body.touching.down);
-        if (grounded) this.player2JumpCount = 0;
-        this.updateChickenAnimation(this.player2, grounded, false);
-        this.player2.setFlipX?.(left);
+        this.updateChickenAnimation(this.player2, grounded && this.player2JumpCount === 0, false);
+        if (left !== right) this.player2.setFlipX?.(left);
     }
 
     attemptPlayer2Jump() {
@@ -2996,6 +3010,7 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
         this.hasCleanedUp = true;
+        this.inputController?.destroy?.();
         if (this.events) {
             this.events.off('shutdown', this.cleanup, this);
             this.events.off('destroy', this.cleanup, this);

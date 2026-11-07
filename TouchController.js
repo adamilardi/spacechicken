@@ -8,6 +8,7 @@ const PADDED_CONTROLS = [
     ['phaser', 'phaserButton'],
     ['aimUp', 'aimUpButton'],
     ['aimDown', 'aimDownButton'],
+    ['weapon', 'weaponButton'],
 ];
 const MENU_CONTROLS = [
     ['music', 'musicButton'],
@@ -38,6 +39,7 @@ export class TouchController {
             phaser: false,
             aimUp: false,
             aimDown: false,
+            weapon: false,
             selectPrev: false,
             selectNext: false,
             news: false,
@@ -133,6 +135,14 @@ export class TouchController {
         );
     }
 
+    isPointerOverVisibleControl(x, y, control, padding = 0) {
+        return (
+            control?.visible !== false &&
+            control?.active !== false &&
+            this.isPointerOverGameObject(x, y, control, padding)
+        );
+    }
+
     fillPointerTargets(pointer, controls) {
         const x = pointer.x ?? pointer.worldX;
         const y = pointer.y ?? pointer.worldY;
@@ -146,16 +156,17 @@ export class TouchController {
             const button = controls[control];
             targets[target] =
                 hasCoordinates &&
-                this.isPointerOverGameObject(x, y, button, button?.touchHitPadding ?? pad);
+                this.isPointerOverVisibleControl(x, y, button, button?.touchHitPadding ?? pad);
         }
         for (const [target, control] of MENU_CONTROLS) {
             targets[target] =
-                hasCoordinates && this.isPointerOverGameObject(x, y, controls[control]);
+                hasCoordinates && this.isPointerOverVisibleControl(x, y, controls[control]);
         }
         targets.news =
             hasCoordinates &&
             (controls.newsButtons || []).some(
-                (button) => button.visible !== false && this.isPointerOverGameObject(x, y, button)
+                (button) =>
+                    button.visible !== false && this.isPointerOverVisibleControl(x, y, button)
             );
         return targets;
     }
@@ -171,6 +182,7 @@ export class TouchController {
             targets.phaser ||
             targets.aimUp ||
             targets.aimDown ||
+            targets.weapon ||
             targets.selectPrev ||
             targets.selectNext ||
             targets.news
@@ -243,16 +255,7 @@ export class TouchController {
             return false;
         }
         const targets = this.fillPointerTargets(pointer, controls);
-        if (
-            targets.music ||
-            targets.leaderboard ||
-            targets.name ||
-            targets.left ||
-            targets.right ||
-            targets.phaser ||
-            targets.aimUp ||
-            targets.aimDown
-        ) {
+        if (!targets.hasCoordinates || this.isOverUiControl(targets)) {
             return false;
         }
         const downTime = pointer.downTime || 0;

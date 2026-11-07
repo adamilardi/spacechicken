@@ -1,3 +1,4 @@
+import { readBrowserGamepads } from './GamepadController.js';
 import { GAME_CONSTANTS } from './Constants.js';
 import {
     CAMPAIGNS,
@@ -199,6 +200,8 @@ export class Overlays {
         this.branchOptions = null;
         this.branchCallback = null;
         this.branchObjects = [];
+        this.branchButtons = [];
+        this.branchMenuIndex = 0;
         this.raceSetupButton = null;
         this.raceSetupDialog = null;
         this.raceMenuIndex = 0;
@@ -1860,6 +1863,8 @@ export class Overlays {
         this.branchOptions = options;
         this.branchCallback = typeof onPick === 'function' ? onPick : null;
         this.branchObjects = [];
+        this.branchButtons = [];
+        this.branchMenuIndex = 0;
         const width = this.scene.getViewportWidth();
         const height = this.scene.getViewportHeight();
         const centerX = width / 2;
@@ -1915,9 +1920,11 @@ export class Overlays {
                 button.on('pointerup', () => this.pickBranch(index));
             }
             this.branchObjects.push(button);
+            this.branchButtons.push(button);
         });
+        this.highlightBranchChoice();
         const hintY = hasSubtitle ? centerY + 132 : centerY + 110;
-        const hint = this.scene.add.text(centerX, hintY, 'tap, or press 1 / 2', {
+        const hint = this.scene.add.text(centerX, hintY, 'tap, 1 / 2, or ↑ ↓ + A / Enter', {
             fontSize: '16px',
             fontFamily: HUD_FONT,
             fill: '#9fb3c8',
@@ -1927,6 +1934,20 @@ export class Overlays {
         hint.setScrollFactor(0);
         hint.setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 1);
         this.branchObjects.push(hint);
+    }
+
+    highlightBranchChoice() {
+        this.branchButtons.forEach((button, index) => {
+            button.setBackgroundColor(index === this.branchMenuIndex ? '#47738c' : '#17334b');
+        });
+    }
+
+    handleBranchMenu(menu) {
+        if (menu.up || menu.left) this.branchMenuIndex = 0;
+        if (menu.down || menu.right) this.branchMenuIndex = 1;
+        this.highlightBranchChoice();
+        if (menu.confirm) this.pickBranch(this.branchMenuIndex);
+        return true;
     }
 
     pickBranch(index) {
@@ -1943,6 +1964,7 @@ export class Overlays {
     }
 
     hideBranchChoice() {
+        this.branchButtons = [];
         (this.branchObjects || []).forEach((object) => {
             object?.destroy?.();
         });
@@ -1967,7 +1989,7 @@ export class Overlays {
         }
         const supportsGamepads =
             typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function';
-        const pads = supportsGamepads ? navigator.getGamepads() : [];
+        const pads = readBrowserGamepads();
         const connected = Array.from(pads || []).filter((pad) => pad && pad.connected !== false);
         const message = !supportsGamepads
             ? 'Gamepad unavailable in this browser'
@@ -2498,7 +2520,7 @@ export class Overlays {
             option.style.cssText = 'display:block;position:static;width:100%;margin:8px 0';
             option.addEventListener('click', () => {
                 const mode = option.dataset.mode;
-                const pads = Array.from(navigator.getGamepads?.() || []).filter(
+                const pads = Array.from(readBrowserGamepads()).filter(
                     (pad) => pad && pad.connected !== false
                 );
                 if (
@@ -2673,6 +2695,7 @@ export class Overlays {
 
     handleMenuInput(input) {
         const menu = input.menu || {};
+        if (this.branchOptions) return this.handleBranchMenu(menu);
         if (this.raceSetupDialog?.open) {
             const options = [...this.raceSetupDialog.querySelectorAll('button')];
             if (menu.up || menu.down) {

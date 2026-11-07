@@ -123,16 +123,14 @@ export class CombatSystem {
             return;
         }
         const keyboard = Phaser.Input.Keyboard;
-        if (
-            (scene.switchKey1 && keyboard.JustDown(scene.switchKey1)) ||
-            inputState?.p1SwitchJustPressed
-        ) {
+        const firstKey = scene.switchKey1 && keyboard.JustDown(scene.switchKey1);
+        const secondKey = scene.switchKey2 && keyboard.JustDown(scene.switchKey2);
+        if ((scene.coopMode !== 'controllers' && firstKey) || inputState?.p1SwitchJustPressed) {
             this.switchPlayerWeapon(0);
         }
         if (
             scene.player2 &&
-            ((scene.switchKey2 && keyboard.JustDown(scene.switchKey2)) ||
-                inputState?.p2SwitchJustPressed)
+            ((scene.coopMode === 'keyboard' && secondKey) || inputState?.p2SwitchJustPressed)
         ) {
             this.switchPlayerWeapon(1);
         }

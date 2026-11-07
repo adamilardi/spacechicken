@@ -25,7 +25,9 @@ export function createGameConfig(size, scene) {
         parent: 'phaser-game',
         input: {
             activePointers: 4,
-            gamepad: true,
+            // GamepadController polls the browser directly. Phaser's unused
+            // plugin also polls and cannot shut down safely with sparse slots.
+            gamepad: false,
             touch: {
                 capture: true,
             },

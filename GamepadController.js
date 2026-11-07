@@ -1,8 +1,18 @@
 import { GAME_CONSTANTS } from './Constants.js';
 
-// Owns all gamepad state (connection cache, edge latches, rumble) for one
-// scene. InputController delegates its gamepad surface here; the class is also
-// usable standalone with any scene-shaped object.
+export function readBrowserGamepads() {
+    try {
+        return typeof navigator === 'undefined' ? [] : navigator.getGamepads?.() || [];
+    } catch {
+        // Browsers may expose the API but deny it through their permissions policy.
+        return [];
+    }
+}
+
+const connected = (pad) => pad && pad.connected !== false;
+const buttonDown = (pad, index) => Boolean(pad?.buttons?.[index]?.pressed);
+
+// Owns gamepad snapshots, player assignments, button edges, and rumble.
 export class GamepadController {
     constructor(scene) {
         this.scene = scene;
@@ -10,166 +20,134 @@ export class GamepadController {
         this.gamepadSlowPoll = 0;
         this.gamepadPads = null;
         this.gamepadPadsValid = false;
+        this.playerSlots = [null, null];
+        this.previousPads = new Map();
+        this.gamepadJumpEdges = [false, false];
+        this.gamepadJumpReleaseEdges = [false, false];
     }
 
     readGamepads() {
-        if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
-            return [];
-        }
         if (!this.gamepadActive && this.gamepadSlowPoll > 0) {
             this.gamepadSlowPoll -= 1;
             return [];
         }
-        const pads = navigator.getGamepads() || [];
-        let connected = false;
-        for (let i = 0; i < pads.length; i++) {
-            if (pads[i] && pads[i].connected !== false) {
-                connected = true;
-                break;
-            }
-        }
-        this.gamepadActive = connected;
-        if (!connected) {
+        const pads = readBrowserGamepads();
+        this.gamepadActive = Array.from(pads).some(connected);
+        if (!this.gamepadActive) {
             this.gamepadSlowPoll = GAME_CONSTANTS.GAMEPAD_SLOW_POLL_FRAMES;
         }
         return pads;
     }
 
-    // eslint-disable-next-line complexity
+    assignPlayers(pads) {
+        // Keep the other player's slot when a controller disconnects. Browser
+        // indices can have holes and are not the same thing as player numbers.
+        this.playerSlots = this.playerSlots.map((slot) =>
+            slot !== null && connected(pads[slot]) ? slot : null
+        );
+        for (let slot = 0; slot < pads.length; slot++) {
+            if (!connected(pads[slot]) || this.playerSlots.includes(slot)) continue;
+            const player = this.playerSlots.indexOf(null);
+            if (player === -1) break;
+            this.playerSlots[player] = slot;
+        }
+    }
+
+    samplePad(pad, previous) {
+        const jump = buttonDown(pad, 0) || buttonDown(pad, 1) || buttonDown(pad, 12);
+        const start = buttonDown(pad, 9) || buttonDown(pad, 16);
+        const menu = {
+            confirm: buttonDown(pad, 0),
+            back: buttonDown(pad, 1),
+            board: buttonDown(pad, 3),
+            left: buttonDown(pad, 14) || (pad.axes?.[0] || 0) < -0.6,
+            right: buttonDown(pad, 15) || (pad.axes?.[0] || 0) > 0.6,
+            up: buttonDown(pad, 12) || (pad.axes?.[1] || 0) < -0.6,
+            down: buttonDown(pad, 13) || (pad.axes?.[1] || 0) > 0.6,
+        };
+        // Held buttons on connection/restart must be released before acting.
+        const known = previous && previous.id === pad.id;
+        const edge = (held, wasHeld) => Boolean(known && held && !wasHeld);
+        return {
+            id: pad.id,
+            jump,
+            start,
+            menu,
+            jumpPressed: edge(jump, previous?.jump),
+            jumpReleased: Boolean(known && !jump && previous.jump),
+            startPressed: edge(start, previous?.start),
+            switchPressed: edge(menu.board, previous?.menu.board),
+            menuEdges: Object.fromEntries(
+                Object.entries(menu).map(([key, held]) => [key, edge(held, previous?.menu[key])])
+            ),
+        };
+    }
+
     pollGamepad(state) {
-        const scene = this.scene;
         const pads = this.readGamepads();
         this.gamepadPads = pads;
         this.gamepadPadsValid = true;
-        let pad = null;
-        for (let i = 0; i < pads.length; i++) {
-            if (pads[i] && pads[i].connected !== false) {
-                pad = pads[i];
-                break;
+        this.assignPlayers(pads);
+        const samples = new Map();
+        state.menu ||= {};
+        state.gamepadStartJustPressed = false;
+        for (let slot = 0; slot < pads.length; slot++) {
+            if (!connected(pads[slot])) continue;
+            const sample = this.samplePad(pads[slot], this.previousPads.get(slot));
+            samples.set(slot, sample);
+            state.gamepadStartJustPressed ||= sample.startPressed;
+            for (const [key, pressed] of Object.entries(sample.menuEdges)) {
+                // Y switches weapons during play; its leaderboard shortcut is
+                // reserved for title/finish menus so it cannot swallow a jump.
+                if (key === 'board' && !this.scene.awaitingStart && !this.scene.gameOver) continue;
+                state.menu[key] ||= pressed;
             }
         }
-        if (!pad) {
-            this.previousGamepadButtons = null;
-            this.previousWeaponButtons = null;
-            return;
-        }
-        const buttonDown = (index) => Boolean(pad.buttons?.[index]?.pressed);
-        // A held during a scene restart must be released before it can start another game.
-        const previous = this.previousGamepadButtons || {
-            jump: true,
-            start: true,
-            secondJump: true,
-            menu: {
-                confirm: true,
-                back: true,
-                board: true,
-                left: true,
-                right: true,
-                up: true,
-                down: true,
-            },
-        };
-        const jump = buttonDown(0) || buttonDown(1) || buttonDown(12);
-        const start = buttonDown(9) || buttonDown(16);
-        const hadPrevious = Boolean(this.previousGamepadButtons);
-        state.gamepadJumpJustPressed = jump && !previous.jump;
-        state.gamepadJumpReleased = hadPrevious && !jump && previous.jump;
-        state.jumpReleased = Boolean(state.jumpReleased || state.gamepadJumpReleased);
-        state.gamepadStartJustPressed = start && !previous.start;
-        if (scene.coopMode !== 'keyboard' && scene.coopMode !== 'keyboard-controller') {
-            state.phaserHeld = buttonDown(2);
-        }
-        const axis = (value) => (Math.abs(value || 0) >= 0.22 ? value : 0);
-        const horizontal =
-            axis(pad.axes?.[0]) || (buttonDown(15) ? 1 : 0) || (buttonDown(14) ? -1 : 0);
-        // Stick Y aims the phaser; D-pad down aims down too. D-pad up
-        // stays a jump button, so pad aim-up is stick-only.
-        const aimAxisY = pad.axes?.[1] || 0;
-        if (aimAxisY < -GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE) {
-            state.aimUpHeld = true;
-        }
-        if (aimAxisY > GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE || buttonDown(13)) {
-            state.aimDownHeld = true;
-        }
-        if (scene.coopMode !== 'keyboard-controller' && scene.coopMode !== 'keyboard') {
-            scene.leftPressed ||= horizontal < 0;
-            scene.rightPressed ||= horizontal > 0;
-        }
-        const menu = {
-            confirm: buttonDown(0),
-            back: buttonDown(1),
-            board: buttonDown(3),
-            left: buttonDown(14) || (pad.axes?.[0] || 0) < -0.6,
-            right: buttonDown(15) || (pad.axes?.[0] || 0) > 0.6,
-            up: buttonDown(12) || (pad.axes?.[1] || 0) < -0.6,
-            down: buttonDown(13) || (pad.axes?.[1] || 0) > 0.6,
-        };
-        for (const [key, pressed] of Object.entries(menu)) {
-            state.menu[key] = pressed && !previous.menu?.[key];
-        }
-        this.previousGamepadButtons = { jump, start, menu };
-        const second = this.getGamepad(scene.coopMode === 'keyboard-controller' ? 0 : 1);
-        const secondJump = Boolean(
-            second?.buttons?.[0]?.pressed ||
-            second?.buttons?.[1]?.pressed ||
-            second?.buttons?.[12]?.pressed
-        );
-        this.gamepadJumpEdges = [jump && !previous.jump, secondJump && !previous.secondJump];
-        this.previousGamepadButtons.secondJump = secondJump;
-        this.pollWeaponSwitch(state, pads);
+        this.previousPads = samples;
+        const mode = this.scene.coopMode;
+        const first = samples.get(this.playerSlots[0]);
+        const secondIndex = mode === 'keyboard-controller' ? 0 : 1;
+        const second = samples.get(this.playerSlots[secondIndex]);
+        const controlsFirst = mode !== 'keyboard' && mode !== 'keyboard-controller';
+        this.gamepadJumpEdges = [
+            Boolean(controlsFirst && first?.jumpPressed),
+            Boolean(mode !== 'keyboard' && second?.jumpPressed),
+        ];
+        this.gamepadJumpReleaseEdges = [
+            Boolean(controlsFirst && first?.jumpReleased),
+            Boolean(mode !== 'keyboard' && second?.jumpReleased),
+        ];
+        state.gamepadJumpJustPressed = this.gamepadJumpEdges[0];
+        state.gamepadJumpReleased = this.gamepadJumpReleaseEdges[0];
+        state.jumpReleased ||= state.gamepadJumpReleased;
+        state.p1SwitchJustPressed = Boolean(controlsFirst && first?.switchPressed);
+        state.p2SwitchJustPressed = Boolean(mode && mode !== 'keyboard' && second?.switchPressed);
+        if (controlsFirst) this.applyPlayerInput(state, this.getGamepad(0));
     }
 
-    pollWeaponSwitch(state, pads) {
-        const scene = this.scene;
-        const list = Array.isArray(pads) ? pads : [];
-        const down = (padIndex) => Boolean(list[padIndex]?.buttons?.[3]?.pressed);
-        const previous = this.previousWeaponButtons || {};
-        const firstPad = list.findIndex((pad) => pad && pad.connected !== false);
-        const edge = (padIndex) => {
-            if (padIndex < 0) return false;
-            const pressed = down(padIndex);
-            const fired = pressed && !previous[padIndex];
-            previous[padIndex] = pressed;
-            return fired;
-        };
-        if (!scene.coopMode && firstPad >= 0) {
-            state.p1SwitchJustPressed = edge(firstPad);
-        } else if (scene.coopMode === 'controllers') {
-            state.p1SwitchJustPressed = edge(0);
-            state.p2SwitchJustPressed = edge(1);
-        } else if (scene.coopMode === 'keyboard-controller') {
-            state.p2SwitchJustPressed = edge(0);
-        }
-        this.previousWeaponButtons = previous;
+    applyPlayerInput(state, pad) {
+        state.phaserHeld ||= buttonDown(pad, 2);
+        const x = pad?.axes?.[0] || 0;
+        const horizontal = Math.abs(x) >= 0.22 ? x : 0;
+        this.scene.leftPressed ||= buttonDown(pad, 14) || horizontal < 0;
+        this.scene.rightPressed ||= buttonDown(pad, 15) || horizontal > 0;
+        const y = pad?.axes?.[1] || 0;
+        state.aimUpHeld ||= y < -GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE;
+        state.aimDownHeld ||= y > GAME_CONSTANTS.GAMEPAD_AIM_DEADZONE || buttonDown(pad, 13);
     }
 
     getGamepad(index = 0) {
-        // poll() runs before every same-frame consumer, so reuse its snapshot
-        // instead of querying the browser a second time.
-        if (this.gamepadPadsValid && this.gamepadPads) {
-            const cached = this.gamepadPads[index];
-            return cached && cached.connected !== false ? cached : null;
+        if (this.gamepadPadsValid) {
+            const slot = this.playerSlots[index];
+            return slot == null ? null : this.gamepadPads[slot] || null;
         }
-        if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function')
-            return null;
-        const pads = navigator.getGamepads();
-        const pad = pads?.[index];
-        return pad && pad.connected !== false ? pad : null;
+        return Array.from(readBrowserGamepads()).filter(connected)[index] || null;
     }
 
     pulsePads(duration, strongMagnitude, weakMagnitude) {
-        if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
-            return;
-        }
-        const pads = navigator.getGamepads();
-        if (!pads) {
-            return;
-        }
-        for (let i = 0; i < pads.length; i++) {
-            const actuator = pads[i]?.vibrationActuator;
-            if (typeof actuator?.playEffect !== 'function') {
-                continue;
-            }
+        for (const pad of readBrowserGamepads()) {
+            const actuator = connected(pad) && pad.vibrationActuator;
+            if (typeof actuator?.playEffect !== 'function') continue;
             try {
                 const pending = actuator.playEffect('dual-rumble', {
                     startDelay: 0,

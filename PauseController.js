@@ -1,3 +1,5 @@
+import { readBrowserGamepads } from './GamepadController.js';
+
 // Keep the resume control outside Phaser so it works while the scene is paused.
 export function attachPauseControls(game) {
     const button = document.getElementById('pause-button');
@@ -36,11 +38,28 @@ export function attachPauseControls(game) {
         pausedScene.input.keyboard.resetKeys();
         for (const pointer of pausedScene.input.manager.pointers) pointer.reset();
         pausedScene.jumpRequested = false;
+        pausedScene.bufferedJumpAt = 0;
+        pausedScene.player2BufferedAt = 0;
         pausedScene.jumpPointerId = null;
         pausedScene.pointerTapTimes.clear();
-        for (const name of ['leftButton', 'rightButton', 'jumpButton']) {
-            pausedScene.uiManager?.[name]?.clearTint();
+        for (const name of [
+            'leftButton',
+            'rightButton',
+            'jumpButton',
+            'phaserButton',
+            'aimUpButton',
+            'aimDownButton',
+            'weaponButton',
+        ]) {
+            const control = pausedScene.uiManager?.[name];
+            control?.emit?.('pointerupoutside');
+            control?.clearTint();
         }
+        pausedScene.phaserPointerId = null;
+        pausedScene.phaserHeld = false;
+        pausedScene.touchAimUpHeld = false;
+        pausedScene.touchAimDownHeld = false;
+        pausedScene.touchJumpReleased = false;
         // Consume the resume press before gameplay input starts polling again.
         pausedScene.inputController?.pollGamepad({ menu: {} });
         pausedScene.scene.resume();
@@ -54,6 +73,14 @@ export function attachPauseControls(game) {
     function onKey(event) {
         if (event.code !== 'Escape' && event.code !== 'KeyP') return;
         if (event.repeat) return;
+        if (!pausedScene) {
+            if (
+                event.target?.closest?.('input, textarea, select, [contenteditable="true"], dialog')
+            )
+                return;
+            const scene = game.scene.getScenes(true)[0];
+            if (event.code === 'Escape' && scene?.uiManager?.overlays?.leaderboardVisible) return;
+        }
         event.preventDefault();
         if (pausedScene) unpause();
         else pause();
@@ -75,9 +102,12 @@ export function attachPauseControls(game) {
 
     function syncButton() {
         if (pausedScene) {
-            const pads = navigator.getGamepads?.() || [];
+            const pads = readBrowserGamepads();
             const held = Array.from(pads).some(
-                (pad) => pad && [0, 1, 9, 16].some((index) => pad.buttons?.[index]?.pressed)
+                (pad) =>
+                    pad &&
+                    pad.connected !== false &&
+                    [0, 1, 9, 16].some((index) => pad.buttons?.[index]?.pressed)
             );
             if (held && !pausedPadHeld) unpause();
             pausedPadHeld = held;
