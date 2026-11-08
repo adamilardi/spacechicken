@@ -6,8 +6,8 @@ global.Phaser = {
     Scene: class {},
     Input: {
         Keyboard: {
-            JustDown: require('phaser/src/input/keyboard/keys/JustDown'),
-            JustUp: require('phaser/src/input/keyboard/keys/JustUp'),
+            JustDown: require('../node_modules/phaser/src/input/keyboard/keys/JustDown'),
+            JustUp: require('../node_modules/phaser/src/input/keyboard/keys/JustUp'),
         },
     },
 };
@@ -354,7 +354,7 @@ test('weapon switches respect each co-op player input assignment', async () => {
 
 test('physical numpad controls work with NumLock off and clean up listeners', async () => {
     const { InputController } = await import('../InputController.js');
-    const Key = require('phaser/src/input/keyboard/keys/Key');
+    const Key = require('../node_modules/phaser/src/input/keyboard/keys/Key');
     const keyboard = new EventEmitter();
     const scene = sceneForInput('keyboard');
     scene.input.keyboard = keyboard;

@@ -69,7 +69,7 @@ export function spawn(builder, group, config) {
                 cycle();
                 return;
             }
-            bear.setTintFill(0xff4a3c);
+            bear.setTint(0xff4a3c).setTintMode(Phaser.TintModes.FILL);
             builder.scene?.audioManager?.playBearTelegraph?.();
             // Blink the tell (3 on/off cycles) so the sprite stays readable;
             // a solid fill turns the bear into an unreadable red blob.
@@ -109,7 +109,7 @@ export function spawn(builder, group, config) {
                 if (blinksLeft % 2 === 0) {
                     bear.clearTint();
                 } else {
-                    bear.setTintFill(0xff4a3c);
+                    bear.setTint(0xff4a3c).setTintMode(Phaser.TintModes.FILL);
                 }
                 blinksLeft -= 1;
                 queue(blinkStep, blink);

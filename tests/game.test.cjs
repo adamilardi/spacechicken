@@ -4084,7 +4084,7 @@ test('the development server serves only game assets', async () => {
     assert.equal((await request(server, '/GameTestInterface.js')).statusCode, 200);
     assert.equal((await request(server, '/GameUtils.js')).statusCode, 200);
     assert.equal(
-        (await request(server, '/vendor/phaser-arcade-physics-3.70.0.min.js')).statusCode,
+        (await request(server, '/vendor/phaser-arcade-physics-4.2.1.min.js')).statusCode,
         200
     );
     assert.equal((await request(server, '/.git/config')).statusCode, 404);
@@ -4117,7 +4117,7 @@ test('the Cloudflare build contains only deployable runtime assets', async () =>
         await fs.promises.access(path.join(outputDirectory, file));
     }
     await fs.promises.access(
-        path.join(outputDirectory, 'vendor', 'phaser-arcade-physics-3.70.0.min.js')
+        path.join(outputDirectory, 'vendor', 'phaser-arcade-physics-4.2.1.min.js')
     );
 });
 

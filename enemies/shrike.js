@@ -102,7 +102,7 @@ export function spawn(builder, group, config) {
             if (shrike.shrikeBob) {
                 shrike.shrikeBob.pause();
             }
-            shrike.setTintFill(0xff4a3c);
+            shrike.setTint(0xff4a3c).setTintMode(Phaser.TintModes.FILL);
             // Blink the tell (3 on/off cycles) so the sprite stays readable;
             // a solid fill turns the shrike into an unreadable red blob.
             const blinkStep = Math.max(40, Math.round(telegraphMs / 6));
@@ -144,7 +144,7 @@ export function spawn(builder, group, config) {
                 if (blinksLeft % 2 === 0) {
                     shrike.clearTint();
                 } else {
-                    shrike.setTintFill(0xff4a3c);
+                    shrike.setTint(0xff4a3c).setTintMode(Phaser.TintModes.FILL);
                 }
                 blinksLeft -= 1;
                 queue(blinkStep, blink);

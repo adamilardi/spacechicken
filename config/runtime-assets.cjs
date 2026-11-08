@@ -153,7 +153,7 @@ const rootFiles = Object.freeze([
 ]);
 
 const vendorFiles = Object.freeze({
-    'vendor/phaser-arcade-physics-3.70.0.min.js':
+    'vendor/phaser-arcade-physics-4.2.1.min.js':
         'node_modules/phaser/dist/phaser-arcade-physics.min.js',
 });
 
