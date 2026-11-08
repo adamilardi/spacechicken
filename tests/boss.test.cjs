@@ -339,6 +339,13 @@ test('bolts damage an awake boss and the kill opens the crown', async () => {
     assert.ok(scene.calls.bar.some((call) => call[0] === 'hide'));
 });
 
+test('boss tint helpers match the real Phaser tint modes', async () => {
+    const { tintFillMode, tintMultiplyMode } = await importModule('BossDirector.js');
+    const TintModes = require('../node_modules/phaser/src/renderer/TintModes');
+    assert.equal(tintFillMode(), TintModes.FILL);
+    assert.equal(tintMultiplyMode(), TintModes.MULTIPLY);
+});
+
 test('a dormant boss ignores bolts', async () => {
     const { BossDirector } = await importModule('BossDirector.js');
     const scene = stubScene();

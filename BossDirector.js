@@ -5,13 +5,22 @@ import { spawn as spawnBoarder } from './enemies/boarder.js';
 // The state machine is pure (bossUpdate) so Node tests exercise the exact
 // timing the game runs; the director applies its output to sprites.
 
-// Phaser.TintModes.FILL without touching the Phaser global: this module runs
-// in Node tests where Phaser is undefined (Phaser 4 removed setTintFill).
-export function tintFillMode() {
+// Phaser tint modes without touching the Phaser global: this module runs in
+// Node tests where Phaser is undefined (Phaser 4 removed setTintFill, and
+// setTint no longer resets the mode, so multiply tints must say so too).
+function phaserTintModes() {
     if (typeof Phaser !== 'undefined' && Phaser.TintModes) {
-        return Phaser.TintModes.FILL;
+        return Phaser.TintModes;
     }
-    return 1;
+    return { MULTIPLY: 0, FILL: 1 };
+}
+
+export function tintFillMode() {
+    return phaserTintModes().FILL;
+}
+
+export function tintMultiplyMode() {
+    return phaserTintModes().MULTIPLY;
 }
 
 export function bossSpeeds(config, hard) {
@@ -409,28 +418,28 @@ export class BossDirector {
             scene.audioManager?.playWaveSound?.();
         } else if (event === 'telegraph') {
             this.setBossCrouch(boss, true);
-            boss.setTint?.(0xff5a4a);
+            boss.setTint?.(0xff5a4a)?.setTintMode?.(tintMultiplyMode());
             scene.audioManager?.playBoarderThud?.();
         } else if (event === 'charge') {
             this.setBossCrouch(boss, false);
             boss.clearTint?.();
             if (boss.bossState.enraged) {
-                boss.setTint?.(0xc44dff);
+                boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
             }
         } else if (event === 'leap') {
             this.setBossCrouch(boss, false);
             boss.clearTint?.();
             if (boss.bossState.enraged) {
-                boss.setTint?.(0xc44dff);
+                boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
             }
             scene.audioManager?.playJumpPuff?.();
         } else if (event === 'recover') {
             boss.clearTint?.();
             if (boss.bossState.enraged) {
-                boss.setTint?.(0xc44dff);
+                boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
             }
         } else if (event === 'summonTell') {
-            boss.setTint?.(0xffd94a);
+            boss.setTint?.(0xffd94a)?.setTintMode?.(tintMultiplyMode());
             scene.tweens?.add?.({
                 targets: boss,
                 scaleY: 1.12,
@@ -441,7 +450,7 @@ export class BossDirector {
         } else if (event === 'summon') {
             boss.clearTint?.();
             if (boss.bossState.enraged) {
-                boss.setTint?.(0xc44dff);
+                boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
             }
             this.setBossCrouch(boss, false);
             this.spawnSummoned(boss);
@@ -504,7 +513,7 @@ export class BossDirector {
         });
         if (!boss.bossState.enraged && boss.bossHp <= boss.bossMaxHp / 2) {
             boss.bossState.enraged = true;
-            boss.setTint?.(0xc44dff);
+            boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
             scene.uiManager?.showLevelBanner?.('ENRAGED', 'Faster charges — keep moving');
         }
         if (boss.bossHp <= 0) {
@@ -578,7 +587,7 @@ export class BossDirector {
             boss.setScale?.(1, 1);
             boss.clearTint?.();
             if (boss.bossState.enraged) {
-                boss.setTint?.(0xc44dff);
+                boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
             }
             boss.setActive?.(true);
             boss.setVisible?.(true);
