@@ -1,6 +1,6 @@
 # 🚀 Space Chicken Game
 
-A modular, browser-based Phaser 3 platformer with 16 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
+A modular, browser-based Phaser 4 platformer with 16 challenging levels, procedural graphics, dynamic audio, touch controls, and local plus Cloudflare D1 leaderboards.
 
 ## 📁 Project Structure
 

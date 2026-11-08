@@ -5,6 +5,15 @@ import { spawn as spawnBoarder } from './enemies/boarder.js';
 // The state machine is pure (bossUpdate) so Node tests exercise the exact
 // timing the game runs; the director applies its output to sprites.
 
+// Phaser.TintModes.FILL without touching the Phaser global: this module runs
+// in Node tests where Phaser is undefined (Phaser 4 removed setTintFill).
+export function tintFillMode() {
+    if (typeof Phaser !== 'undefined' && Phaser.TintModes) {
+        return Phaser.TintModes.FILL;
+    }
+    return 1;
+}
+
 export function bossSpeeds(config, hard) {
     const mults = GAME_CONSTANTS.HARD_MODE || {};
     const speedMult = hard ? mults.BOSS_SPEED_MULT || 1 : 1;
@@ -484,7 +493,7 @@ export class BossDirector {
         }
         boss.bossHp = Math.max(0, (boss.bossHp ?? 1) - 1);
         scene.uiManager?.updateBossBar?.(boss.bossHp, boss.bossMaxHp);
-        boss.setTintFill?.(0xffffff);
+        boss.setTint?.(0xffffff)?.setTintMode?.(tintFillMode());
         scene.time?.delayedCall?.(70, () => {
             if (!boss.bossDefeated) {
                 boss.clearTint?.();

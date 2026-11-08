@@ -251,7 +251,7 @@ function stubBoss(overrides = {}) {
         setVelocity() {},
         setFlipX() {},
         setTint() {},
-        setTintFill() {},
+        setTintMode() {},
         clearTint() {},
         setAlpha() {},
         setScale() {},
@@ -308,13 +308,24 @@ function stubScene() {
 }
 
 test('bolts damage an awake boss and the kill opens the crown', async () => {
-    const { BossDirector } = await importModule('BossDirector.js');
+    const { BossDirector, tintFillMode } = await importModule('BossDirector.js');
     const scene = stubScene();
     const director = new BossDirector(scene);
     const boss = stubBoss();
+    const tintCalls = [];
+    boss.setTint = (color) => {
+        tintCalls.push(['tint', color]);
+        return boss;
+    };
+    boss.setTintMode = (mode) => {
+        tintCalls.push(['mode', mode]);
+    };
     scene.bossList.push(boss);
     director.damageBoss(boss);
     assert.equal(boss.bossHp, 13);
+    // Hit flash uses the Phaser 4 tint API (setTintFill was removed in v4).
+    assert.deepEqual(tintCalls[0], ['tint', 0xffffff]);
+    assert.deepEqual(tintCalls[1], ['mode', tintFillMode()]);
     assert.deepEqual(scene.calls.bar.at(-1), ['update', 13, 14]);
     boss.bossHp = 8;
     director.damageBoss(boss);

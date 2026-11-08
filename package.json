@@ -1,7 +1,7 @@
 {
     "name": "space-chicken",
     "version": "1.0.0",
-    "description": "Space Chicken - Modular Phaser 3 platformer",
+    "description": "Space Chicken - Modular Phaser 4 platformer",
     "private": true,
     "license": "SEE LICENSE IN LICENSE.txt",
     "type": "module",
@@ -60,7 +60,7 @@
         "rl:watch": "node scripts/rl/watch-policy.mjs"
     },
     "dependencies": {
-        "phaser": "3.70.0"
+        "phaser": "4.2.1"
     },
     "devDependencies": {
         "@typesafe-ai/sdk": "^0.7.0",
