@@ -76,7 +76,9 @@ function motionDirection(vx, vy) {
 
 // eslint-disable-next-line complexity
 function listGroupBodies(group, now = 0, defaults = {}, timeScale = 1) {
-    const entries = group && group.children && group.children.entries;
+    // getChildren() in both Phaser 3 and 4; group.children.entries died
+    // with Struct.Set in v4 (native Set has no .entries array).
+    const entries = typeof group?.getChildren === 'function' ? group.getChildren() : [];
     if (!Array.isArray(entries)) {
         return [];
     }
@@ -1686,10 +1688,7 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
         this.lastBombTrailAt = now;
-        const entries = this.bombs.children.entries;
-        if (!Array.isArray(entries)) {
-            return;
-        }
+        const entries = this.bombs.getChildren?.() || [];
         for (let i = 0; i < entries.length; i++) {
             const bomb = entries[i];
             if (!bomb || bomb.active === false || bomb.visible === false) {
@@ -2068,10 +2067,7 @@ export class SpaceChicken extends Phaser.Scene {
         if (!this.bombs) {
             return;
         }
-        const children =
-            this.bombs.children && Array.isArray(this.bombs.children.entries)
-                ? this.bombs.children.entries
-                : [];
+        const children = this.bombs.getChildren?.() || [];
         for (let i = 0; i < children.length; i++) {
             const bomb = children[i];
             if (bomb && bomb.active !== false) {
@@ -2978,10 +2974,7 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
         const bombCleanupY = this.worldHeight + GAME_CONSTANTS.BOMB_CLEANUP_THRESHOLD_Y;
-        const entries = this.bombs.children.entries;
-        if (!Array.isArray(entries)) {
-            return;
-        }
+        const entries = this.bombs.getChildren?.() || [];
         for (let i = 0; i < entries.length; i++) {
             const bomb = entries[i];
             if (!bomb || bomb.active === false) {
