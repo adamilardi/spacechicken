@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'BASTION RELAY - Inside the enemy base. Wardens hold the line on the deck and the high grates: face them and press J to fire the space phaser — hold Up/W while firing to aim up at the grates, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Red gates sweep the hall on a beat: cross on the dark. Drop through the grate trench mid-run. Shrikes swoop the halls: stomp them or dodge the dive. The GATEKEEPER holds the crown deck: jump her charge, duel her wardens, burn the lens. New gun: TEMPEST, a 5-way fan. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'BASTION RELAY - Inside the enemy base. Wardens hold the line on the deck and the high grates: face them and press J to fire the space phaser — hold Up/W while firing to aim up at the grates, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Red gates sweep the hall on a beat: cross on the dark. Climb the relay shaft past the crushers: clear each grate landing, dodge the crossing orb, and drop out the far side. Drop through the grate trench mid-run. Shrikes swoop the halls: stomp them or dodge the dive. The GATEKEEPER holds the crown deck: jump her charge, duel her wardens, burn the lens. New gun: TEMPEST, a 5-way fan. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
         touchInstructions:
-            'BASTION RELAY - Inside the base. Wardens hold the grates too: the bolt button fires, the up-arrow aims up, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: TEMPEST. The GATEKEEPER holds the deck: jump her charge, duel her wardens. Cross the gates on the dark. Pods grant 30s guns. Free cages for −2s.',
+            'BASTION RELAY - Inside the base. Wardens hold the grates too: the bolt button fires, the up-arrow aims up, the down-arrow fires down from the air. Stomp swooping shrikes. Climb the shaft grates and clear each landing. New gun: TEMPEST. The GATEKEEPER holds the deck: jump her charge, duel her wardens. Cross the gates on the dark. Pods grant 30s guns. Free cages for −2s.',
         background: {
             type: 'bastion',
             style: 'relay',
@@ -52,13 +52,16 @@ export const level = {
             { x: 5350, y: 640, key: 'bastionDeck', scaleX: 6.0 },
             { x: 6050, y: 610, key: 'bastionDeck', scaleX: 6.0 },
             { x: 6750, y: 580, key: 'bastionDeck', scaleX: 5.0 },
-            { x: 7280, y: 580, key: 'bastionDeck', scaleX: 5.6 },
-            { x: 7920, y: 560, key: 'bastionDeck', scaleX: 5.6 },
+            { x: 7100, y: 580, key: 'bastionDeck', scaleX: 3.0 },
+            { x: 7380, y: 452, key: 'bastionGrate', scaleX: 2.4 },
+            { x: 7150, y: 330, key: 'bastionGrate', scaleX: 2.4 },
+            { x: 7440, y: 208, key: 'bastionGrate', scaleX: 2.6 },
+            { x: 7750, y: 470, key: 'bastionDeck', scaleX: 3.0 },
+            { x: 8200, y: 540, key: 'bastionDeck', scaleX: 2.4 },
             { x: 8560, y: 580, key: 'bastionDeck', scaleX: 5.6 },
             { x: 9200, y: 560, key: 'bastionDeck', scaleX: 5.6 },
             { x: 9840, y: 540, key: 'bastionDeck', scaleX: 5.0 },
             { x: 10460, y: 540, key: 'bastionDeck', scaleX: 5.0 },
-            { x: 8100, y: 426, key: 'bastionGrate', scaleX: 3.0 },
             { x: 10000, y: 406, key: 'bastionGrate', scaleX: 2.6 },
             { x: 4650, y: 520, key: 'bastionGrate', scaleX: 4.0 },
             { x: 6050, y: 470, key: 'bastionGrate', scaleX: 4.0 },
@@ -81,8 +84,11 @@ export const level = {
         checkpoints: [
             { x: 1800, y: 588 },
             { x: 3451, y: 588 },
+            { x: 4400, y: 632 },
             { x: 6000, y: 582 },
-            { x: 7280, y: 552 },
+            { x: 7100, y: 540 },
+            { x: 7520, y: 168 },
+            { x: 9840, y: 512 },
             { x: 10900, y: 500 },
         ],
         rescues: [
@@ -95,7 +101,7 @@ export const level = {
             { x: 1400, y: 398, gun: 'tempest' },
             { x: 4650, y: 450, gun: 'tempest' },
             { x: 11050, y: 460, gun: 'hail' },
-            { x: 7920, y: 448, gun: 'tempest' },
+            { x: 7440, y: 146, gun: 'tempest' },
         ],
         boarderWaves: [
             { wave: 1, x: 0 },
@@ -103,7 +109,7 @@ export const level = {
             { wave: 3, x: 2900 },
             { wave: 4, x: 3500 },
             { wave: 5, x: 5000 },
-            { wave: 6, x: 7100 },
+            { wave: 6, x: 6800 },
         ],
         dynamic: [
             { type: 'boarder', key: 'spireWarden', x: 700, y: 540, wave: 1 },
@@ -288,9 +294,9 @@ export const level = {
             },
             {
                 type: 'roller',
-                x: 7850,
-                y: 544,
-                patrol: { x: 7970, duration: 1400 },
+                x: 8600,
+                y: 564,
+                patrol: { x: 8720, duration: 1400 },
                 spinDuration: 640,
             },
             {
@@ -311,7 +317,16 @@ export const level = {
                 delay: 390,
                 hold: 280,
             },
-            { type: 'boarder', key: 'spireWarden', x: 7920, y: 514, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 7380, y: 398, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 7150, y: 276, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 7750, y: 416, wave: 6 },
+            {
+                type: 'drone',
+                key: 'voltOrb',
+                x: 7620,
+                y: 320,
+                patrol: { y: 220, duration: 2000 },
+            },
             { type: 'boarder', key: 'spireWarden', x: 10000, y: 384, wave: 6 },
             {
                 type: 'shrike',

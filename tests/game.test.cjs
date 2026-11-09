@@ -641,7 +641,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         bastionBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 6, 6]
     );
     assert.ok(bastionBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -5141,7 +5141,7 @@ test('iron vault branch leaves the womb and rejoins the foundry', async () => {
         vault.hazards.dynamic
             .filter((hazard) => hazard.type === 'boarder')
             .map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6, 6]
+        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6, 6, 6, 6, 6, 6]
     );
     // The wave-7 guard pair is the Tumbler boss, the crown guard.
     const vaultBosses = vault.hazards.dynamic.filter((hazard) => hazard.type === 'boss');
