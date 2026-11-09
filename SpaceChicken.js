@@ -77,8 +77,13 @@ function motionDirection(vx, vy) {
 // eslint-disable-next-line complexity
 function listGroupBodies(group, now = 0, defaults = {}, timeScale = 1) {
     // getChildren() in both Phaser 3 and 4; group.children.entries died
-    // with Struct.Set in v4 (native Set has no .entries array).
-    const entries = typeof group?.getChildren === 'function' ? group.getChildren() : [];
+    // with Struct.Set in v4 (native Set has no .entries array). The
+    // .children guard matters: on a destroyed group the method survives
+    // but Array.from(undefined) throws inside Phaser.
+    const entries =
+        group && group.children && typeof group.getChildren === 'function'
+            ? group.getChildren()
+            : [];
     if (!Array.isArray(entries)) {
         return [];
     }
@@ -2064,7 +2069,7 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     recycleAllBombs() {
-        if (!this.bombs) {
+        if (!this.bombs?.children) {
             return;
         }
         const children = this.bombs.getChildren?.() || [];
