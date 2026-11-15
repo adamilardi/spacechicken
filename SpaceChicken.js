@@ -237,6 +237,8 @@ export class SpaceChicken extends Phaser.Scene {
                 ? Math.floor(requestedDeathCount)
                 : 0;
         this.levelStartDeaths = this.deathCount;
+        this.lastDeathKind = null;
+        this.coachMemory = null;
         this.runElapsedMs = Number.isFinite(data.runElapsedMs) ? data.runElapsedMs : 0;
         this.runRescues =
             Number.isFinite(data.runRescues) && data.runRescues >= 0
