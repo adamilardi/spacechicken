@@ -53,6 +53,14 @@ export function installSimulation(clockFactory) {
     }
     function reset({ seed = 1, draw = false } = {}) {
         window.__spaceChickenPilotStop?.();
+        // Episodes share one browser context: persisted profile state (coach
+        // banners, generated player names) would otherwise leak across resets
+        // and shift the seeded RNG stream (coaches mint Text UUIDs on show).
+        try {
+            window.localStorage?.clear?.();
+        } catch {
+            // Storage may be unavailable; episodes just start dirty.
+        }
         window.__spaceChickenPilotInstalled = false;
         window.__spaceChickenPilotOutcome = null;
         window.__spaceChickenPilotError = null;

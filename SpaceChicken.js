@@ -237,6 +237,9 @@ export class SpaceChicken extends Phaser.Scene {
                 ? Math.floor(requestedDeathCount)
                 : 0;
         this.levelStartDeaths = this.deathCount;
+        this.lastDeathKind = null;
+        this.coachMemory = null;
+        this.removeNewsPlateTexture();
         this.runElapsedMs = Number.isFinite(data.runElapsedMs) ? data.runElapsedMs : 0;
         this.runRescues =
             Number.isFinite(data.runRescues) && data.runRescues >= 0
@@ -447,13 +450,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.worldHeight = this.levelConfig.world.height;
         this.killZoneFallY = this.levelConfig.killZoneY + this.levelConfig.killZoneHeight;
         this.backgroundRenderer.renderProgressive(this.worldWidth, this.worldHeight);
-        const newsPlate = NEWS_PLATES[this.level];
-        if (newsPlate && this.textures.exists(newsPlate)) {
-            const plate = this.add.tileSprite(0, 0, this.worldWidth, this.worldHeight, newsPlate);
-            plate.setOrigin(0, 0);
-            plate.setDepth(-20);
-            plate.setAlpha(0.55);
-        }
+        this.createNewsPlate();
 
         this.player = this.physics.add.sprite(
             this.levelConfig.playerStart.x,
@@ -1068,6 +1065,30 @@ export class SpaceChicken extends Phaser.Scene {
             this.audioManager?.playStartSound?.();
         }
         this.fadeCameraIn();
+    }
+
+    createNewsPlate() {
+        const newsPlate = NEWS_PLATES[this.level];
+        this.newsPlateDisplayKey = null;
+        if (!newsPlate || !this.textures.exists(newsPlate)) {
+            return;
+        }
+        const plate = this.add.tileSprite(0, 0, this.worldWidth, this.worldHeight, newsPlate);
+        plate.setOrigin(0, 0);
+        plate.setDepth(-20);
+        plate.setAlpha(0.55);
+        this.newsPlateDisplayKey = plate.displayTexture?.key || null;
+    }
+
+    removeNewsPlateTexture() {
+        // Phaser's TileSprite never removes its UUID-keyed display texture on
+        // destroy, so it leaks past scene restarts — and a reseeded RNG (fast
+        // mode) mints the same UUID again and crashes in addCanvas. Our
+        // shutdown cleanup does not run on restarts, so this runs from init().
+        if (this.newsPlateDisplayKey && this.textures?.exists?.(this.newsPlateDisplayKey)) {
+            this.textures.remove(this.newsPlateDisplayKey);
+        }
+        this.newsPlateDisplayKey = null;
     }
 
     getMainCamera() {
@@ -3041,6 +3062,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.cameras.remove(this.uiCamera);
             this.uiCamera = null;
         }
+        this.removeNewsPlateTexture();
 
         if (this.uiManager) {
             this.uiManager.cleanup();

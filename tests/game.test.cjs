@@ -3187,6 +3187,58 @@ test('the opening scene waits for a title start on a fresh run only', async () =
     assert.equal(scene.awaitingStart, true);
 });
 
+test('scene restarts clear the last death kind', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+
+    scene.init({});
+    assert.equal(scene.lastDeathKind, null);
+
+    scene.lastDeathKind = 'laser';
+    scene.init({ level: 8, deathCount: 1 });
+    assert.equal(scene.lastDeathKind, null);
+});
+
+test('scene restarts clear the coach memory', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+
+    scene.init({});
+    assert.equal(scene.coachMemory, null);
+
+    scene.coachMemory = new Set(['spaceChickenCoachPhaser']);
+    scene.init({ level: 8, deathCount: 1 });
+    assert.equal(scene.coachMemory, null);
+});
+
+test('scene restarts remove the news-plate display texture', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const removed = [];
+    scene.textures = {
+        exists: (key) => key === 'plate-display-uuid',
+        remove: (key) => removed.push(key),
+    };
+    scene.newsPlateDisplayKey = 'plate-display-uuid';
+    scene.init({ level: 18, deathCount: 0 });
+    assert.deepEqual(removed, ['plate-display-uuid']);
+    assert.equal(scene.newsPlateDisplayKey, null);
+});
+
+test('scene cleanup removes the news-plate display texture', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const removed = [];
+    scene.newsPlateDisplayKey = 'plate-display-uuid';
+    scene.textures = {
+        exists: (key) => key === 'plate-display-uuid',
+        remove: (key) => removed.push(key),
+    };
+    scene.cleanup();
+    assert.deepEqual(removed, ['plate-display-uuid']);
+    assert.equal(scene.newsPlateDisplayKey, null);
+});
+
 test('the chicken faces the direction it is moving', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();
