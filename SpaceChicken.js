@@ -31,6 +31,7 @@ import {
     normalizeDifficulty,
     normalizeJumpMode,
     rescueBonusMs,
+    weaponsForLevel,
     WEAPON_DEFS,
 } from './GameUtils.js';
 import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
@@ -322,6 +323,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.rightPressed = false;
         this.jumpRequested = false;
         this.botJumpWasDown = false;
+        this.botSwitchWasDown = false;
         this.jumpPointerId = null;
         this.touchJumpReleased = false;
         this.touchAimUpHeld = false;
@@ -3098,6 +3100,7 @@ export class SpaceChicken extends Phaser.Scene {
                 : null;
         if (!bot) {
             this.botJumpWasDown = false;
+            this.botSwitchWasDown = false;
             return state;
         }
         if (bot.start && this.awaitingStart) {
@@ -3119,6 +3122,9 @@ export class SpaceChicken extends Phaser.Scene {
             this.jumpRequested = true;
         }
         this.botJumpWasDown = botJumpDown;
+        const switchDown = Boolean(bot.switchWeapon);
+        state.p1SwitchJustPressed ||= switchDown && !this.botSwitchWasDown;
+        this.botSwitchWasDown = switchDown;
         return state;
     }
 
@@ -3252,6 +3258,8 @@ export class SpaceChicken extends Phaser.Scene {
             ready: msUntilReady <= 0,
             msUntilReady,
             boltsInFlight: bolts.filter((bolt) => bolt?.active).length,
+            weapon: this.baseWeaponOf(this.player),
+            availableWeapons: weaponsForLevel(this.level),
         };
     }
 

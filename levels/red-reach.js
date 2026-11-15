@@ -16,8 +16,9 @@ export const level = {
     },
     content: {
         instructions:
-            'RED REACH - Gold shells are springs. Stomp the marked beetle to cross the canyon. Dust, boulders, and steam are not. (M toggles music)',
-        touchInstructions: 'RED REACH - Stomp a gold shell to bounce. Arrows move, jump leaps.',
+            'RED REACH - Gold shells are springs. Jump onto the marked beetle to spring across the canyon. Dust, boulders, and steam are not. (M toggles music)',
+        touchInstructions:
+            'RED REACH - Jump onto the first gold shell to spring across the canyon.',
         background: {
             type: 'mars',
             style: 'redReach',
@@ -36,7 +37,7 @@ export const level = {
         },
         staticPlatforms: [
             { x: 200, y: 620, key: 'mesa', scaleX: 3.6, scaleY: 1 },
-            { x: 1334, y: 648, key: 'mesa', scaleX: 2.8, scaleY: 1 },
+            { x: 1660, y: 648, key: 'mesa', scaleX: 2.8, scaleY: 1 },
             { x: 1700, y: 560, key: 'mesa', scaleX: 2.2, scaleY: 1 },
             { x: 2060, y: 470, key: 'mesa', scaleX: 2.2, scaleY: 1 },
             { x: 2400, y: 380, key: 'mesa', scaleX: 2.0, scaleY: 1 },
@@ -45,16 +46,16 @@ export const level = {
         ],
         floor: null,
         moving: [],
-        rocks: [{ x: 1450, y: 620, key: 'marsSpike' }],
+        rocks: [{ x: 1740, y: 620, key: 'marsSpike' }],
         props: [{ x: 120, y: 586, key: 'bonkSign' }],
         dynamic: [
             {
                 type: 'bonk',
                 enemy: 'beetle',
                 key: 'beetle',
-                x: 480,
+                x: 820,
                 y: 657,
-                patrol: { x: 540, duration: 2100 },
+                patrol: { x: 860, duration: 2100 },
                 bodyWidth: 44,
                 bodyHeight: 34,
             },

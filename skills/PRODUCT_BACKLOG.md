@@ -8,7 +8,7 @@ Seeded from the cross-repo skills review, 2026-10-08.
 
 ## P1 — do next
 
-- **SCB-1 Port the QA skills (reviewer + personas).** NovaWing's `game-reviewer` and `persona-panel` already document Space Chicken's capture tooling, but live only in `/home/adam/rtype-prototype/skills`. Level reviews here are ad hoc (`docs/level-builds/contra-pass.md`, `*-proreview.md`). Copy and adapt: entry routes (`?level=N`, seeded suite), gate section, persona sessions rewritten for jumps, bonk, phaser, and the co-op race. (Mirrors NVB-4.)
+- **SCB-1 Port the QA skills (reviewer + personas).** NovaWing's `game-reviewer` and `persona-panel` already document Space Chicken's capture tooling, but live only in `/home/adam/GameDevelopment/NovaWing/skills`. Level reviews here are ad hoc (`docs/level-builds/contra-pass.md`, `*-proreview.md`). Copy and adapt: entry routes (`?level=N`, seeded suite), gate section, persona sessions rewritten for jumps, bonk, phaser, and the co-op race. (Mirrors NVB-4.)
 - **SCB-2 Reconcile weapon-creator with the contra gun rack.** The 9-gun rack (`weaponsForLevel`: Scatter through Halo) is documented only in `level-creator/references/spacechicken.md`; the weapon skill still describes "an extra choice". Promote rack rules, switch persistence, and per-level unlocks into the skill so agents don't under-build.
 - **SCB-3 Add evidence folders to level build reports.** Follow NovaWing's `docs/level-builds/evidence/` (screenshots + JSON per level) so contra-arc claims stay checkable without replaying.
 

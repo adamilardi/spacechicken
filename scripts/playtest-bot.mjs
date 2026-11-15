@@ -15,6 +15,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildPilotSource } from './pilot-brain.mjs';
+import { LEVEL_IDS, LEVEL_DEFINITIONS } from '../levels/index.js';
+import { FastSession } from './fast/session.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.SPACE_CHICKEN_URL || 'http://127.0.0.1:3000/';
@@ -31,13 +33,18 @@ const BOT_WIDTH = Math.max(320, Number(process.env.BOT_WIDTH) || 1280);
 const BOT_HEIGHT = Math.max(200, Number(process.env.BOT_HEIGHT) || 720);
 
 export const SCENARIOS = {
-    'l1-play': { level: 1, durationMs: 25000, description: 'Play toward the level 1 crown' },
-    'l2-play': { level: 2, durationMs: 30000, description: 'Play toward the level 2 crown' },
-    'l3-play': { level: 3, durationMs: 30000, description: 'Ride lifts and dodge lasers' },
-    'l4-play': { level: 4, durationMs: 30000, description: 'Moon platforms, rovers, rays' },
-    'l5-play': { level: 5, durationMs: 30000, description: 'Research facility, bonk, beams, acid' },
-    'l6-play': { level: 6, durationMs: 30000, description: 'Mars mesas, beetles, dust devils' },
-    'l7-play': { level: 7, durationMs: 30000, description: 'Station hull, boarders, space phaser' },
+    ...Object.fromEntries(
+        LEVEL_IDS.map((level) => [
+            `l${level}-play`,
+            {
+                level,
+                durationMs: 120000,
+                finishBudgetMs: 120000,
+                requireWin: true,
+                description: `Finish ${LEVEL_DEFINITIONS[level].TITLE} within two minutes`,
+            },
+        ])
+    ),
     'death-gap': {
         level: 1,
         durationMs: 12000,
@@ -60,6 +67,7 @@ export const SCENARIOS = {
 
 function parseScenarioList() {
     const raw = String(process.env.SCENARIO || process.env.SCENARIOS || 'all');
+    if (raw === 'levels') return LEVEL_IDS.map((level) => `l${level}-play`);
     if (raw === 'all') {
         return Object.keys(SCENARIOS);
     }
@@ -244,7 +252,7 @@ function applyChaos(page, scenario, started) {
     return Promise.resolve();
 }
 
-function scenarioResult(name, scenario, result, shot) {
+export function scenarioResult(name, scenario, result, shot) {
     const unique = [...new Set(result.bugs.map((bug) => bug.kind))];
     const finished = result.outcome === 'win' || result.outcome === 'advance';
     if (scenario.requireWin && !finished) {
@@ -259,6 +267,13 @@ function scenarioResult(name, scenario, result, shot) {
         });
         unique.push('did_not_finish');
     }
+    if (finished && scenario.finishBudgetMs && result.elapsedMs > scenario.finishBudgetMs) {
+        result.bugs.push({
+            kind: 'slow_finish',
+            detail: { elapsedMs: result.elapsedMs, budgetMs: scenario.finishBudgetMs },
+        });
+        unique.push('slow_finish');
+    }
     return {
         name,
         description: scenario.description,
@@ -266,6 +281,9 @@ function scenarioResult(name, scenario, result, shot) {
         bugs: result.bugs,
         kinds: unique,
         outcome: result.outcome,
+        finished,
+        elapsedMs: result.elapsedMs,
+        finishBudgetMs: scenario.finishBudgetMs ?? null,
         level: result.snap && result.snap.level,
         deaths: result.snap && result.snap.deaths,
         x: result.snap && result.snap.player && Math.round(result.snap.player.x),
@@ -330,6 +348,7 @@ async function runScenario(browser, name, scenario) {
         outcome: window.__spaceChickenPilotOutcome,
     }));
     result.pageErrors = pageErrors;
+    result.elapsedMs = Date.now() - started;
     if (pageErrors.length) {
         result.bugs.push({ kind: 'pageerror', detail: pageErrors[0] });
     }
@@ -340,6 +359,48 @@ async function runScenario(browser, name, scenario) {
     return scenarioResult(name, scenario, result, shot);
 }
 
+async function runFastScenario(session, name, scenario) {
+    const seed = Number(process.env.SEED || 42);
+    await session.reset(scenario.level, seed, { pilot: true });
+    const maxTicks = Math.ceil((scenario.durationMs * 60) / 1000);
+    const trace = [];
+    let status;
+    let snap;
+    while (!status?.won && (status?.ticks || 0) < maxTicks) {
+        status = await session.page.evaluate(
+            (count) => window.__spaceChickenFast.pilotBatch({ count }),
+            Math.min(600, maxTicks - (status?.ticks || 0))
+        );
+        session.checkErrors();
+        const sample = await session.page.evaluate(() => ({
+            snap: window.__spaceChickenDebug.getBotSnapshot(),
+            input: window.__spaceChickenPilotLastInput,
+        }));
+        snap = sample.snap;
+        trace.push({
+            elapsedMs: status.simulatedMs,
+            player: snap.player,
+            deaths: snap.deaths,
+            input: sample.input,
+        });
+        // The route-choice screen is only offered after collecting the crown.
+        if (snap.awaitingBranch) break;
+    }
+    const artifact = path.join(OUT_DIR, `${name}-trace.json`);
+    fs.writeFileSync(artifact, JSON.stringify({ seed, trace, snapshot: snap }, null, 2));
+    return scenarioResult(
+        name,
+        scenario,
+        {
+            bugs: [],
+            snap,
+            outcome: status.won || snap.awaitingBranch ? 'win' : null,
+            elapsedMs: status.simulatedMs,
+        },
+        null
+    );
+}
+
 async function main() {
     const names = parseScenarioList();
     console.log('Space Chicken playtester (bug hunt)');
@@ -347,12 +408,18 @@ async function main() {
     console.log(`scenarios=${names.join(',')}`);
     fs.mkdirSync(OUT_DIR, { recursive: true });
 
-    const browser = await launchBrowser();
+    const fast = process.env.FAST === '1' ? await new FastSession().open() : null;
+    const browser = names.some((name) => !fast || SCENARIOS[name].chaos)
+        ? await launchBrowser()
+        : null;
     const results = [];
     try {
         for (const name of names) {
             console.log(`\n=== ${name}: ${SCENARIOS[name].description} ===`);
-            const result = await runScenario(browser, name, SCENARIOS[name]);
+            const result =
+                fast && !SCENARIOS[name].chaos
+                    ? await runFastScenario(fast, name, SCENARIOS[name])
+                    : await runScenario(browser, name, SCENARIOS[name]);
             results.push(result);
             if (result.ok) {
                 console.log(`PASS  ${name}  deaths=${result.deaths} pos=${result.x},${result.y}`);
@@ -364,7 +431,8 @@ async function main() {
             }
         }
     } finally {
-        await browser.close();
+        await fast?.close();
+        await browser?.close();
     }
 
     const report = { when: new Date().toISOString(), results };

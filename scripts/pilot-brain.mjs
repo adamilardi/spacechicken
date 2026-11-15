@@ -19,6 +19,8 @@ export function createPilotState() {
         // jumps at maxJumps); a one-shot-per-airtime latch here wastes
         // the second air jump after a walk-off.
         lastJump: false,
+        springTargetId: null,
+        bounceClimb: null,
         // Last grounded height: air jumps wait until the fall drops past
         // takeoff (apex-burned doubles strand the pilot over wide pits).
         takeoffY: null,
@@ -1764,8 +1766,9 @@ function applyChaserBrake(input, player, dir, snap, platforms) {
         return false;
     }
     const away = aggro.x > player.x ? -1 : 1;
-    input.left = away < 0;
-    input.right = away > 0;
+    const deck = landingBelow(player, platforms, snap);
+    input.left = away < 0 && (!deck || player.x > deck.left + 24);
+    input.right = away > 0 && (!deck || player.x < deck.right - 24);
     input.shoot = true;
     input.aimDown = true;
     return true;
@@ -2541,7 +2544,44 @@ function beamLeapCommit(input, player, dir, snap, state) {
 }
 
 // Applies the beam constraint to the input; true when it handles the tick.
+function applyBeamDouble(input, player, dir, snap, state) {
+    if (player.grounded || snap.jumpCount >= snap.maxJumps) return false;
+    const gravity = snap.physics?.gravityY || 300;
+    const boostAt = Math.max(0, -player.vy / gravity);
+    const speed = dir * (snap.physics?.runSpeedX || 160);
+    for (const beam of snap.hazards || []) {
+        if (beam.type !== 'laser' || beam.w < beam.h * 2) continue;
+        const left = (beam.left ?? beam.x - beam.w / 2) - 16;
+        const right = (beam.right ?? beam.x + beam.w / 2) + 16;
+        const enter = Math.max(0, ((dir > 0 ? left : right) - player.x) / speed);
+        const exit = ((dir > 0 ? right : left) - player.x) / speed;
+        if (exit <= 0 || exit > 4 || enter > 1.5) continue;
+        const feet = player.y + 22;
+        const boostY = feet + player.vy * boostAt + (gravity * boostAt * boostAt) / 2;
+        const heightAt = (t) =>
+            t <= boostAt
+                ? feet + player.vy * t + (gravity * t * t) / 2
+                : boostY - 330 * (t - boostAt) + (gravity * (t - boostAt) ** 2) / 2;
+        const top = beam.top ?? beam.y - beam.h / 2;
+        if (Math.max(heightAt(enter), heightAt(exit)) > top - 8) continue;
+        const landing = (snap.platforms || []).some(
+            (deck) =>
+                deck.top >= heightAt(exit) - 30 &&
+                (dir > 0
+                    ? deck.right > right + 20 && deck.left < right + 260
+                    : deck.left < left - 20 && deck.right > left - 260)
+        );
+        if (!landing) continue;
+        input.left = dir < 0;
+        input.right = dir > 0;
+        input.jump = player.vy >= -20 && !state.lastJump;
+        return true;
+    }
+    return false;
+}
+
 function applyLaserMove(input, player, dir, snap, state) {
+    if (applyBeamDouble(input, player, dir, snap, state)) return true;
     if (beamLeapCommit(input, player, dir, snap, state)) {
         return true;
     }
@@ -2639,9 +2679,11 @@ function crusherSpanMove(player, dir, item, snap, state) {
     const pad = 26;
     const left = (item.left ?? item.x - halfW) - pad;
     const right = (item.right ?? item.x + halfW) + pad;
+    const canWalk =
+        player.grounded && supportAt(player.x + dir * 56, player.y + 6, snap.platforms || []);
     if (player.x > left && player.x < right) {
         if (crusherOpen(item, crusherVy(item, snap, state))) {
-            return null;
+            return canWalk ? 'walk' : null;
         }
         return player.x - left < right - player.x ? 'left' : 'right';
     }
@@ -2650,7 +2692,7 @@ function crusherSpanMove(player, dir, item, snap, state) {
         return null;
     }
     if (crusherOpen(item, crusherVy(item, snap, state))) {
-        return null;
+        return canWalk ? 'walk' : null;
     }
     if (player.grounded) {
         return 'hold';
@@ -2716,6 +2758,12 @@ function crusherMove(player, dir, snap, state) {
 // Applies the piston constraint to the input; true when it handles the tick.
 function applyCrusherMove(input, player, dir, snap, state) {
     const move = crusherMove(player, dir, snap, state);
+    if (move === 'walk') {
+        input.left = dir < 0;
+        input.right = dir > 0;
+        input.jump = false;
+        return true;
+    }
     if (move === 'hold') {
         return true;
     }
@@ -3233,7 +3281,24 @@ function liftDismountTarget(player, dir, snap) {
 // Deliberate spring use: height-seeking bonkable, canyon-hop bounce,
 // or tall face-blocker. Returns { spring, seek, hop } for the runway
 // and reflex logic downstream.
-function findSpringTarget(player, dir, snap, platforms, landing, crown, gap) {
+function findSpringTarget(player, dir, snap, platforms, landing, crown, gap, state) {
+    const committed = (snap.hazards || []).find(
+        (item) =>
+            item.id === state.springTargetId &&
+            item.active &&
+            item.enable !== false &&
+            item.bonkable
+    );
+    if (
+        committed &&
+        !player.grounded &&
+        snap.jumpCount > 0 &&
+        player.vy >= -400 &&
+        Math.abs(committed.x - player.x) < 450
+    ) {
+        return { spring: committed, seek: committed, hop: null };
+    }
+    state.springTargetId = null;
     const landingHigh = Boolean(landing) && landing.top < player.y - 200;
     const crownHigh = crown.y < player.y - 240;
     // The bounce only needs to reach the lowest out-of-reach subgoal —
@@ -3257,6 +3322,17 @@ function findSpringTarget(player, dir, snap, platforms, landing, crown, gap) {
     // would center back onto a passed spring forever instead of flying on.
     const pit = gap && landingBelow(player, platforms, snap) == null;
     const hop = !seek && pit && !landing ? bonkTarget(player, dir, snap, 0, true) : null;
+    const chosen = seek || hop;
+    if (
+        chosen &&
+        platforms.some(
+            (deck) =>
+                chosen.x > deck.left &&
+                chosen.x < deck.right &&
+                (chosen.top ?? chosen.y - (chosen.h || 44) / 2) - deck.top > 300
+        )
+    )
+        state.springTargetId = chosen.id;
     // A tall bonkable right in the face is a de facto spring even with no
     // height purpose: the only way past is over, and the bonk clears it.
     const tallBlocker = springBonkable(player, dir, snap);
@@ -3345,6 +3421,11 @@ function applySpringMove(input, player, snap, state, spring, falling, platforms)
             if (supportAt(player.x + away * 56, player.y + 6, platforms)) {
                 input.left = away < 0;
                 input.right = away > 0;
+            } else {
+                // A shelf edge can leave no runway behind us. Rise in place
+                // first; airborne steering approaches only above the head.
+                input.jump =
+                    runway > (spring.w || 44) / 2 + 30 && !doubleBonk(player, 0, platforms);
             }
             return;
         }
@@ -4370,6 +4451,75 @@ function bonkTarget(player, dir, snap, goalY, forDistance) {
     return best;
 }
 
+function applyBounceClimb(input, player, snap, state) {
+    let climb = state.bounceClimb;
+    if (climb && (player.grounded || snap.dying || snap.elapsedMs - climb.started > 6000)) {
+        state.bounceClimb = null;
+        climb = null;
+    }
+    if (!climb && player.vy < -400) {
+        const deck = (snap.platforms || []).find(
+            (platform) =>
+                platform.type !== 'moving_platform' &&
+                platform.top < player.y - 70 &&
+                platform.top > player.y - 450 &&
+                player.x > platform.left &&
+                player.x < platform.right
+        );
+        if (deck) {
+            const exitX =
+                player.x - deck.left < deck.right - player.x ? deck.left - 22 : deck.right + 22;
+            const gravity = snap.physics?.gravityY || 300;
+            const bottom = deck.top + (deck.h || 24) + 18;
+            const discriminant = player.vy * player.vy - 2 * gravity * (player.y - bottom);
+            const time = discriminant >= 0 ? (-player.vy - Math.sqrt(discriminant)) / gravity : 0;
+            if (time > 0 && Math.abs(exitX - player.x) / 160 < time) {
+                climb = { ...deck, exitX, started: snap.elapsedMs };
+                state.bounceClimb = climb;
+            }
+        }
+    }
+    if (!climb) return false;
+    const above = player.y + 22 < climb.top - 2;
+    const targetX = above
+        ? climb.exitX < climb.left
+            ? climb.left + 36
+            : climb.right - 36
+        : climb.exitX;
+    input.left = targetX < player.x - 5;
+    input.right = targetX > player.x + 5;
+    state.holdStill = true;
+    return true;
+}
+
+function applyAirGoal(input, player, snap, state) {
+    return (
+        applyCrownDescent(input, player, snap, state) ||
+        applyBounceClimb(input, player, snap, state)
+    );
+}
+
+function applyCrownDescent(input, player, snap, state) {
+    const crown = snap.crown;
+    const dx = crown ? crown.x - player.x : Infinity;
+    // Once above an open crown, descend onto it. Steering for a nearby
+    // landing deck instead pulls the final fall sideways past the prize.
+    if (
+        snap.crown &&
+        !snap.crown.shielded &&
+        !liveBoss(snap) &&
+        !player.grounded &&
+        player.y < crown.y &&
+        Math.abs(dx) < 90
+    ) {
+        input.left = dx < -6;
+        input.right = dx > 6;
+        state.holdStill = true;
+        return true;
+    }
+    return false;
+}
+
 // eslint-disable-next-line complexity
 export function decidePilotInput(snap, state) {
     const input = { left: false, right: false, jump: false, shoot: false, start: false };
@@ -4423,6 +4573,7 @@ export function decidePilotInput(snap, state) {
     if (applyRearDuel(input, player, dir, snap, state)) {
         return input;
     }
+    if (applyAirGoal(input, player, snap, state)) return input;
     // Shield hunt, finale zone only (see shieldHuntTarget): steer for
     // the nearest pad boarder and re-aim down the hunt direction. Jump
     // triggers below stay crown-relative (crownDx): a hunt-relative
@@ -4487,7 +4638,7 @@ export function decidePilotInput(snap, state) {
     // crowded spring gets runway treatment instead of a suicide hop. The
     // pin below says "stay, the way up is out of reach", and a usable
     // bonkable is exactly the exception.
-    const springPlan = findSpringTarget(player, dir, snap, platforms, landing, crown, gap);
+    const springPlan = findSpringTarget(player, dir, snap, platforms, landing, crown, gap, state);
     const spring = springPlan.spring;
     const seek = springPlan.seek;
     const hop = springPlan.hop;
@@ -4701,6 +4852,54 @@ export function applyStuckRecovery(snap, input, state, suppressed, now, threatSu
 // In-page installer. Runs only inside the browser via buildPilotSource;
 // references sibling brain functions as free variables, resolved by the
 // stitched source scope.
+export function applyPilotAim(input, snap) {
+    const player = snap.player;
+    if (!player) return;
+    const facing = input.right ? 1 : input.left ? -1 : player.facing === 'left' ? -1 : 1;
+    const targets = (snap.hazards || []).filter(
+        (item) =>
+            (item.type === 'boarder' || item.type === 'boss') &&
+            item.active &&
+            item.enable !== false &&
+            (item.hp == null || item.hp > 0) &&
+            (item.x - player.x) * facing >= -20 &&
+            Math.abs(item.x - player.x) < 600 &&
+            Math.abs(item.y - player.y) < 350
+    );
+    targets.sort(
+        (a, b) =>
+            Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y)
+    );
+    const target = targets[0];
+    if (!target) return;
+    const dx = Math.abs(target.x - player.x);
+    const dy = target.y - player.y;
+    const moving = input.left || input.right;
+    const aligned = moving ? Math.abs(dy) > dx * 0.55 && Math.abs(dy) < dx * 1.6 : dx < 35;
+    if (!aligned || Math.abs(dy) < 40) return;
+    if (dy < 0) input.aimUp = true;
+    if (dy > 0 && !player.grounded) input.aimDown = true;
+}
+
+export function applyPilotCombat(input, snap, state) {
+    if (
+        !snap.phaser ||
+        snap.awaitingStart ||
+        snap.dying ||
+        snap.gameOver ||
+        snap.pendingLevel != null
+    )
+        return;
+    const available = snap.combat?.availableWeapons || [];
+    const desired = ['hail', 'tempest', 'ripper', 'scatter'].find((id) => available.includes(id));
+    input.switchWeapon = Boolean(desired && snap.combat.weapon !== desired && !state.lastSwitch);
+    state.lastSwitch = input.switchWeapon;
+    // There is no ammunition cost. Cover approaches and off-height enemies
+    // with the fan instead of waiting until they are in the narrow duel lane.
+    input.shoot = true;
+    applyPilotAim(input, snap);
+}
+
 function pilotMain() {
     if (window.__spaceChickenPilotInstalled) {
         return true;
@@ -4736,6 +4935,7 @@ function pilotMain() {
                 return;
             }
             const input = decidePilotInput(snap, state);
+            applyPilotCombat(input, snap, state);
             // Recovery suppression is per-tick: threats only veto the
             // stuck-hop while they are actually near. (This used to latch
             // on first contact and disable recovery for the whole run.)
@@ -4941,6 +5141,12 @@ const BRAIN_PARTS = [
     shelfAbove,
     bonkTarget,
     createPilotState,
+    applyBeamDouble,
+    applyPilotAim,
+    applyPilotCombat,
+    applyBounceClimb,
+    applyAirGoal,
+    applyCrownDescent,
     decidePilotInput,
     stuckRecoveryFired,
     applyStuckRecovery,

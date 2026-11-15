@@ -6765,3 +6765,209 @@ test('the pilot collects past a spent boss instead of kiting her corpse', async 
     assert.equal(kite.right, true);
     assert.equal(kite.jump, true);
 });
+
+test('the pilot descends onto an open crown instead of diverting to a landing deck', async () => {
+    const { createPilotState, decidePilotInput, applyStuckRecovery } =
+        await importModule('scripts/pilot-brain.mjs');
+    const snap = makeSnap({
+        player: { x: 2544, y: 40, vx: 0, vy: 330, grounded: false },
+        crown: { x: 2550, y: 222, shielded: false },
+        platforms: [{ left: 2350, right: 2500, top: 260, x: 2425, w: 150 }],
+        jumpCount: 2,
+    });
+    const state = createPilotState();
+    const input = decidePilotInput(snap, state);
+    assert.equal(input.left, false);
+    assert.equal(input.right, false);
+    assert.equal(input.jump, false);
+    assert.equal(state.holdStill, true);
+    applyStuckRecovery(snap, input, state, state.holdStill, 1000);
+    applyStuckRecovery(snap, input, state, state.holdStill, 5000);
+    assert.equal(input.left, false, 'vertical descent must not trigger a recovery retreat');
+});
+
+test('a boosted pilot clears a solid shelf from the side before landing on it', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const state = createPilotState();
+    const base = makeSnap({
+        crown: { x: 2580, y: 130 },
+        jumpCount: 1,
+        physics: { gravityY: 330 },
+        platforms: [
+            { left: 20, right: 480, top: 730, h: 24 },
+            { left: 265, right: 515, top: 308, h: 24 },
+        ],
+    });
+    const boosted = decidePilotInput(
+        { ...base, player: { x: 350, y: 648, vx: 0, vy: -520, grounded: false } },
+        state
+    );
+    assert.equal(boosted.left, true, 'clear the nearer shelf edge while rising');
+    assert.equal(boosted.jump, false, 'preserve the remaining jump during the boost');
+    const clear = decidePilotInput(
+        { ...base, player: { x: 243, y: 270, vx: 0, vy: -80, grounded: false } },
+        state
+    );
+    assert.equal(clear.right, true, 'steer onto the shelf only after the feet clear it');
+    assert.equal(clear.left, false);
+});
+
+test('the combat pilot switches with press edges and aims across a tier gap', async () => {
+    const { applyPilotCombat, createPilotState } = await importModule('scripts/pilot-brain.mjs');
+    const state = createPilotState();
+    const snap = makeSnap({
+        phaser: true,
+        player: { x: 100, y: 300, vx: 160, vy: 50, grounded: false, facing: 'right' },
+        combat: { weapon: 'phaser', availableWeapons: ['phaser', 'scatter'] },
+        hazards: [{ type: 'boarder', x: 300, y: 500, active: true, enable: true }],
+    });
+    const first = { right: true };
+    applyPilotCombat(first, snap, state);
+    assert.equal(first.switchWeapon, true);
+    assert.equal(first.shoot, true);
+    assert.equal(first.aimDown, true);
+    const held = { right: true };
+    applyPilotCombat(held, snap, state);
+    assert.equal(held.switchWeapon, false, 'release before cycling again');
+    snap.combat.weapon = 'scatter';
+    const selected = { right: true };
+    applyPilotCombat(selected, snap, state);
+    assert.equal(selected.switchWeapon, false, 'keep the chosen unlocked gun');
+    const noncombat = {};
+    applyPilotCombat(noncombat, { ...snap, phaser: false }, state);
+    assert.deepEqual(noncombat, {});
+});
+
+test('the pilot walks under an open crusher and waits when it closes', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const crusher = {
+        id: 'piston',
+        type: 'crusher',
+        x: 220,
+        y: 400,
+        w: 72,
+        h: 30,
+        top: 385,
+        active: true,
+        enable: true,
+        origin: { y: 400 },
+        target: { y: 500 },
+    };
+    const snap = makeSnap({
+        player: { x: 100, y: 484, vx: 0, vy: 0, grounded: true },
+        platforms: [{ left: -100, right: 1000, top: 500 }],
+        hazards: [crusher],
+    });
+    const open = decidePilotInput(snap, createPilotState());
+    assert.equal(open.right, true);
+    assert.equal(open.jump, false, 'jumping during the opening enters the piston');
+    crusher.y = 480;
+    crusher.top = 465;
+    const closed = decidePilotInput(snap, createPilotState());
+    assert.equal(closed.right, false);
+    assert.equal(closed.jump, false);
+});
+
+test('the pilot prefers a tighter piercing fan over a sparse wide fan', async () => {
+    const { applyPilotCombat, createPilotState } = await importModule('scripts/pilot-brain.mjs');
+    const snap = makeSnap({
+        phaser: true,
+        combat: {
+            weapon: 'ripper',
+            availableWeapons: ['phaser', 'scatter', 'tempest', 'hail', 'ripper'],
+        },
+    });
+    const input = {};
+    applyPilotCombat(input, snap, createPilotState());
+    assert.equal(input.switchWeapon, true);
+    snap.combat.weapon = 'hail';
+    const selected = {};
+    applyPilotCombat(selected, snap, createPilotState());
+    assert.equal(selected.switchWeapon, false);
+});
+
+test('the pilot plans its remaining air jump over a beam with a landing beyond it', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const state = createPilotState();
+    const base = makeSnap({
+        physics: { gravityY: 260, runSpeedX: 160 },
+        jumpCount: 1,
+        crown: { x: 2050, y: 220 },
+        platforms: [
+            { left: 105, right: 335, top: 775 },
+            { left: 702, right: 818, top: 550 },
+        ],
+        hazards: [
+            {
+                type: 'laser',
+                x: 520,
+                y: 650,
+                w: 260,
+                h: 12,
+                top: 644,
+                active: true,
+                enable: true,
+                orientation: 'horizontal',
+                phase: 'active',
+            },
+        ],
+    });
+    const rising = decidePilotInput(
+        { ...base, player: { x: 265, y: 681, vx: 160, vy: -250, grounded: false } },
+        state
+    );
+    assert.equal(rising.right, true, 'continue the verified crossing instead of fleeing');
+    assert.equal(rising.jump, false, 'save the remaining jump until the apex');
+    const apex = decidePilotInput(
+        { ...base, player: { x: 420, y: 560, vx: 160, vy: 0, grounded: false } },
+        state
+    );
+    assert.equal(apex.right, true);
+    assert.equal(apex.jump, true);
+});
+
+test('a spring approach can rise in place when the shelf has no backing runway', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const snap = makeSnap({
+        player: { x: 9067, y: 278, vx: 0, vy: 0, grounded: true },
+        crown: { x: 12450, y: 258 },
+        platforms: [
+            { left: 9026, right: 9314, top: 294, w: 288 },
+            { left: 8721, right: 9259, top: 428, w: 538 },
+        ],
+        hazards: [
+            {
+                id: 'sentry',
+                type: 'sentry',
+                x: 9170,
+                y: 252,
+                top: 226,
+                w: 48,
+                h: 52,
+                bonkable: true,
+                active: true,
+                enable: true,
+            },
+        ],
+    });
+    const input = decidePilotInput(snap, createPilotState());
+    assert.equal(input.jump, true);
+    assert.equal(input.left, false);
+    assert.equal(input.right, false, 'rise above the head before moving toward it');
+});
+
+test('an open crown keeps priority during the rising final approach', async () => {
+    const { createPilotState, decidePilotInput } = await importModule('scripts/pilot-brain.mjs');
+    const input = decidePilotInput(
+        makeSnap({
+            player: { x: 11747, y: 338, vx: 0, vy: -100, grounded: false },
+            crown: { x: 11700, y: 400, shielded: false },
+            platforms: [],
+            jumpCount: 2,
+        }),
+        createPilotState()
+    );
+    assert.equal(input.left, true);
+    assert.equal(input.right, false);
+    assert.equal(input.jump, false);
+});

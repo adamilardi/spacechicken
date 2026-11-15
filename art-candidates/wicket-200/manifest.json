@@ -1,0 +1,103 @@
+{
+    "schema_version": 1,
+    "brief_id": "wicket-200",
+    "kind": "level",
+    "brief_path": "brief.md",
+    "candidates": [
+        {
+            "id": "level-wicket-200-a",
+            "title": "Floodlight bowl",
+            "status": "painted",
+            "summary": "Night stadium under one floodlight wash; pylon-head landmark, stands band, picket fence.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "direction-a-floodlight-bowl.png",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "stadium",
+                "palette": ["#05070f", "#101a33", "#232f45", "#ffd75a"],
+                "layer_order": ["sky", "far", "mid", "near"],
+                "composition_devices": [
+                    "sky asymmetric glow (floodlight wash)",
+                    "far even silhouette loop (stands band)",
+                    "mid one landmark (pylon head)",
+                    "near ground ridge (picket fence)"
+                ]
+            },
+            "checks": {
+                "dimensions": "pass",
+                "alpha": "pass",
+                "seams": "unverified",
+                "novelty": "pass"
+            },
+            "limitations": ["plate pylon repeats per tile; verify repeated strip at build"]
+        },
+        {
+            "id": "level-wicket-200-b",
+            "title": "Stands canyon",
+            "status": "painted",
+            "summary": "KILLED: reads pagoda, not Sharjah cricket; canyon crowds the playfield.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "direction-b-stands-canyon.png",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "stadium",
+                "palette": ["#05070f", "#1a2440"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "not-applicable" },
+            "limitations": ["killed at direction review"]
+        },
+        {
+            "id": "level-wicket-200-c",
+            "title": "Light rig diagonals",
+            "status": "painted",
+            "summary": "KILLED: symmetric truss X centers dead space; weaker landmark than the pylon.",
+            "assets": [
+                {
+                    "role": "background-layout",
+                    "path": "direction-c-light-rig.png",
+                    "width_px": null,
+                    "height_px": null,
+                    "alpha": false,
+                    "readiness": "concept",
+                    "collision": null,
+                    "motion": { "method": "code", "kind": "parallax", "animated_frames": false }
+                }
+            ],
+            "preview_paths": ["preview.html"],
+            "spec": {
+                "camera": "side-view",
+                "scroll": "horizontal",
+                "background_type": "stadium",
+                "palette": ["#05070f", "#232f45"],
+                "layer_order": ["sky", "far", "mid", "near"]
+            },
+            "checks": { "dimensions": "pass", "alpha": "pass", "seams": "not-applicable" },
+            "limitations": ["killed at direction review"]
+        }
+    ]
+}

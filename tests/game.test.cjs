@@ -6060,3 +6060,29 @@ test('the Jev pilot fallback runs the shared brain and maps its input', async ()
     );
     assert.equal(degraded, 'move_right');
 });
+
+test('debug bot weapon switching consumes one edge and remains disabled in production', async (t) => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'window');
+    t.after(() => {
+        if (descriptor) Object.defineProperty(globalThis, 'window', descriptor);
+        else delete globalThis.window;
+    });
+    const bot = { switchWeapon: true };
+    Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        writable: true,
+        value: { __spaceChickenBotInput: bot },
+    });
+    const scene = new SpaceChicken();
+    scene.debugMode = true;
+    scene.inputController = { poll: () => ({}) };
+    assert.equal(scene.handleInput().p1SwitchJustPressed, true);
+    assert.equal(scene.handleInput().p1SwitchJustPressed, false);
+    bot.switchWeapon = false;
+    assert.equal(scene.handleInput().p1SwitchJustPressed, false);
+    bot.switchWeapon = true;
+    assert.equal(scene.handleInput().p1SwitchJustPressed, true);
+    scene.debugMode = false;
+    assert.equal(scene.handleInput().p1SwitchJustPressed, undefined);
+});

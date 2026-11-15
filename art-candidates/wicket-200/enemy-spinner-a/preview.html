@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Wrong'un Spinner preview</title>
+        <style>
+            body {
+                font-family: monospace;
+                margin: 24px;
+            }
+            .row {
+                display: flex;
+                gap: 24px;
+                margin-bottom: 24px;
+            }
+            .cell {
+                padding: 16px;
+                text-align: center;
+            }
+            .black {
+                background: #000;
+                color: #cfe7ff;
+            }
+            .white {
+                background: #fff;
+                color: #333;
+            }
+            img.px1 {
+                width: 48px;
+            }
+            img.px3 {
+                width: 144px;
+                image-rendering: pixelated;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>enemy-spinner-a (1x and 3x, black and white)</h1>
+        <div class="row">
+            <div class="cell black">
+                <img class="px1" src="../enemy-spinner-a-keyed.png" alt="1x black" />
+                <p>1x black</p>
+            </div>
+            <div class="cell white">
+                <img :class="px1" src="../enemy-spinner-a-keyed.png" alt="1x white" />
+                <p>1x white</p>
+            </div>
+            <div class="cell black">
+                <img class="px3" src="../enemy-spinner-a-keyed.png" alt="3x black" />
+                <p>3x black</p>
+            </div>
+            <div class="cell white">
+                <img class="px3" src="../enemy-spinner-a-keyed.png" alt="3x white" />
+                <p>3x white</p>
+            </div>
+        </div>
+    </body>
+</html>

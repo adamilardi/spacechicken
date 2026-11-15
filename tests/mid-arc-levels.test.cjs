@@ -251,3 +251,40 @@ test('earthwatch checkpoints its combat tutorial and tests the back half', async
         assert.ok(deck, `wave-3 boarder at x=${hazard.x} still homes on a deck`);
     }
 });
+
+test('red reach opening requires a bonk even with two delayed air jumps', async () => {
+    const { LEVEL_CONTENT, LEVEL_DEFINITIONS } = await importModule('levels/index.js');
+    const { GAME_CONSTANTS: constants } = await importModule('Constants.js');
+    const content = LEVEL_CONTENT[6];
+    const gravity = LEVEL_DEFINITIONS[6].GRAVITY;
+    const start = span(content.staticPlatforms[0]);
+    const jump = Math.abs(constants.JUMP_VELOCITY_Y);
+    // Maximize freefall + two jump arcs, allowing both jumps after walking off.
+    // At the unconstrained maximum, the two post-jump flight times are equal.
+    // Ignoring the kill plane and ceiling makes this an upper bound for play.
+    for (const platform of content.staticPlatforms.slice(1)) {
+        const landing = span(platform);
+        const drop = landing.top - start.top;
+        const fallTime = Math.sqrt(
+            Math.max(0, (jump * jump + gravity * drop) / (1.5 * gravity * gravity))
+        );
+        const maxFlight = (2 * jump) / gravity + 3 * fallTime;
+        const reach = constants.PLAYER_VELOCITY_X * maxFlight;
+        // Allow body overlap at both edges plus a generous discretization margin.
+        assert.ok(
+            landing.left - start.right > reach + 48,
+            'no destination fits a jetpack-only crossing'
+        );
+    }
+    const beetle = content.dynamic.find((hazard) => hazard.type === 'bonk');
+    const landing = span(content.staticPlatforms[1]);
+    const bounce = Math.abs(constants.BONK_JUMP_VELOCITY_Y);
+    const finalSpeed = Math.sqrt(
+        (bounce * bounce + jump * jump + 2 * gravity * (landing.top - beetle.y)) / 2
+    );
+    const bounceFlight = (bounce + jump + 2 * finalSpeed) / gravity;
+    assert.ok(
+        beetle.x + constants.PLAYER_VELOCITY_X * bounceFlight > landing.left + 64,
+        'a bonk with a spare air jump has landing room'
+    );
+});
