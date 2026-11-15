@@ -625,3 +625,81 @@ test('the kill dissolves the boss summons but keeps wave boarders', async () => 
     assert.equal(summoned.gone, true);
     assert.equal(waveBoarder.gone, false);
 });
+
+test('second phase stops once, protects its opening tell, then accepts damage again', async () => {
+    const { BossDirector } = await importModule('BossDirector.js');
+    const scene = stubScene();
+    const cues = [];
+    scene.audioManager.playBossCue = (kind) => cues.push(kind);
+    const boss = stubBoss({
+        bossHp: 8,
+        bossConfig: {
+            ...CONFIG,
+            phaseTwo: {
+                title: 'SKYBREAKER',
+                battleHint: 'Read the wind-up',
+                telegraphMs: 900,
+                attackCycle: ['charge', 'leap'],
+                leap: { dx: 180, velocityY: 210, ms: 700 },
+            },
+        },
+    });
+    scene.bossList.push(boss);
+    const director = new BossDirector(scene);
+    director.damageBoss(boss);
+    assert.equal(boss.bossHp, 7);
+    assert.equal(boss.bossState.phase, 'shift');
+    director.damageBoss(boss);
+    director.touchBoss({}, boss);
+    director.updateBosses();
+    assert.equal(boss.bossHp, 7);
+    assert.equal(boss.bossState.phase, 'shift', 'a frozen game clock cannot advance the shift');
+    assert.equal(scene.calls.deaths.length, 0);
+    assert.deepEqual(cues, ['phase']);
+    scene.now += 900;
+    director.updateBosses();
+    director.updateBosses();
+    assert.equal(boss.bossState.phase, 'telegraph');
+    director.damageBoss(boss);
+    assert.equal(boss.bossHp, 7, 'opening armor covers the whole warning');
+    scene.now += 900;
+    director.updateBosses();
+    assert.equal(boss.bossState.phase, 'charge');
+    assert.equal(boss.bossState.phaseOpening, false);
+    director.damageBoss(boss);
+    assert.equal(boss.bossHp, 6);
+    director.resetBosses();
+    assert.equal(boss.bossHp, 6);
+    assert.equal(boss.bossState.enraged, true);
+    assert.equal(boss.bossState.phaseOpening, false, 'retry does not replay completed armor');
+    assert.deepEqual(cues, ['phase']);
+});
+
+test('authored second-phase sequences choose real attacks without mutating the first phase', async () => {
+    const { bossUpdate, bossPhaseConfig } = await importModule('BossDirector.js');
+    const { LEVEL_CONTENT } = await importModule('levels/index.js');
+    for (let id = 8; id <= 16; id++) {
+        const config = LEVEL_CONTENT[id].dynamic.find((entry) => entry.type === 'boss');
+        const original = JSON.stringify(config);
+        let tick = state({ phase: 'pace', nextAttackAt: 0, nextSummonAt: Infinity, enraged: true });
+        let now = 1000;
+        for (const kind of config.phaseTwo.attackCycle) {
+            const warning = bossUpdate(tick, now, config.x, config.minX, config.x, config, false);
+            assert.equal(warning.phase, 'telegraph', `L${id} warns before ${kind}`);
+            const attack = bossUpdate(
+                warning,
+                now + config.phaseTwo.telegraphMs,
+                config.x,
+                config.minX,
+                config.x,
+                config,
+                false
+            );
+            assert.equal(attack.phase, kind, `L${id} follows its authored sequence`);
+            tick = { ...attack, phase: 'pace', nextAttackAt: 0, nextSummonAt: Infinity };
+            now += 4000;
+        }
+        assert.equal(JSON.stringify(config), original);
+        assert.equal(bossPhaseConfig(config, { enraged: false }), config);
+    }
+});

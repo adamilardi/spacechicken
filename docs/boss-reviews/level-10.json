@@ -5,83 +5,125 @@
         "levelTheme": "Spire Crown: the final ascent up a golden spire in low gravity. Wardens (armored spear aliens) hold the steps; gold beams sweep the hall on a beat. Ride the lift to the crown deck.",
         "bossFiction": "The prime warden dueling on the crown deck: gold plume and pauldrons, alloy cuirass, one big cyan lens. The spire’s champion.",
         "rule": "Duel her pace, jump her charge late, keep bolts on the lens.",
-        "tell": "She crouches and flashes red for 800ms, then charges 378px across the deck.",
+        "tell": "Ground rush: red wind-up. Leap: cyan wind-up. Summon: gold wind-up. First-phase tell 800ms; second-phase tell 900ms.",
         "safeResponse": "Hold fire on the pace, strafe to room, jump as the charge leaves. Low gravity stretches every arc.",
-        "hp": 12,
-        "phases": ["fast pace", "telegraph (crouch + red flash)", "charge", "recover"],
-        "enrage": "Below half HP she charges faster with shorter rests, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, WARDEN PRIME DOWN banner, crown shield opens. Wounds persist through player death."
+        "hp": 22,
+        "phases": [
+            "fast pace",
+            "telegraph (crouch + red flash)",
+            "charge",
+            "recover",
+            "armored phase shift",
+            "leap"
+        ],
+        "enrage": "SKYBREAKER: Red: jump the rush. Cyan: get under. A 900ms transformation and the first full attack tell are armored; the first real attack drops that armor.",
+        "defeat": "Explosion, WARDEN PRIME DOWN banner, crown shield opens. Wounds persist through player death.",
+        "secondPhase": {
+            "title": "SKYBREAKER",
+            "battleHint": "Red: jump the rush. Cyan: get under",
+            "initialAttackMs": 0,
+            "telegraphMs": 900,
+            "recoverMs": 1000,
+            "enrageCooldownMs": 1200,
+            "attackCycle": ["charge", "leap"],
+            "leap": {
+                "dx": 180,
+                "velocityY": 210,
+                "ms": 700
+            }
+        }
     },
     "telemetry": {
         "level": 10,
         "boss": "Warden Prime",
         "outcome": "boss-defeated",
-        "durationSec": 12.2,
-        "deaths": 0,
-        "deathSpots": [],
-        "hpStart": 11,
+        "durationSec": 16.9,
+        "deaths": 1,
+        "deathSpots": [
+            {
+                "x": 11944,
+                "y": 210,
+                "bossX": 11826,
+                "bossHp": 6,
+                "bossPhase": "pace",
+                "addDist": 694,
+                "bombDist": null,
+                "deathKind": "boarder",
+                "likelyCause": "other"
+            }
+        ],
+        "hpStart": 22,
         "hpMin": 0,
-        "phasesSeen": ["pace", "telegraph", "charge", "recover"],
+        "phasesSeen": ["pace", "telegraph", "charge", "recover", "shift", "dormant"],
         "enraged": true,
-        "errors": []
+        "errors": [],
+        "flags": []
     },
     "reports": [
         {
             "persona": "reviewer",
             "name": "Marlowe (expert reviewer)",
-            "fun": 3,
-            "fairness": 3.05,
-            "theme": 3,
-            "verdict": "ship",
+            "fun": 1.29,
+            "fairness": 1.89,
+            "theme": 2.61,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.91,
-                "fairness": 0.77,
-                "theme": 0.87,
-                "verdict": 0.7
+                "fun": 0.66,
+                "fairness": 0.13,
+                "theme": 0.61,
+                "flaw": 0.93,
+                "verdict": 0.6
             }
         },
         {
             "persona": "veteran",
             "name": "Vic (contra veteran)",
-            "fun": 3.16,
-            "fairness": 2.85,
-            "theme": 3.03,
-            "verdict": "ship",
+            "fun": 1.75,
+            "fairness": 1.64,
+            "theme": 2.56,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.77,
-                "fairness": 0.7,
-                "theme": 0.82,
-                "verdict": 0.7
+                "fun": 0.33,
+                "fairness": 0.31,
+                "theme": 0.54,
+                "flaw": 0.86,
+                "verdict": 0.68
             }
         },
         {
             "persona": "casual",
             "name": "Sam (casual newcomer)",
-            "fun": 2.85,
-            "fairness": 2.82,
-            "theme": 2.97,
-            "verdict": "ship",
+            "fun": 1.64,
+            "fairness": 1.56,
+            "theme": 2.51,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.81,
-                "fairness": 0.68,
-                "theme": 0.85,
-                "verdict": 0.43
+                "fun": 0.43,
+                "fairness": 0.33,
+                "theme": 0.52,
+                "flaw": 0.8,
+                "verdict": 0.72
             }
         },
         {
             "persona": "speedrunner",
             "name": "Lex (speedrunner)",
-            "fun": 3.08,
-            "fairness": 2.97,
-            "theme": 3.07,
-            "verdict": "ship",
+            "fun": 1.61,
+            "fairness": 1.79,
+            "theme": 2.69,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.86,
-                "fairness": 0.78,
-                "theme": 0.82,
-                "verdict": 0.59
+                "fun": 0.43,
+                "fairness": 0.24,
+                "theme": 0.64,
+                "flaw": 0.85,
+                "verdict": 0.61
             }
         }
     ],
-    "passed": true
+    "passed": false
 }

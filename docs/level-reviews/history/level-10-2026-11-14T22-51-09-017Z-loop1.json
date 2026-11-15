@@ -1,0 +1,7145 @@
+{
+  "level": 10,
+  "run": "full",
+  "analysis": {
+    "title": "Spire Crown",
+    "gravity": 280,
+    "worldWidth": 12400,
+    "backgroundType": "spire",
+    "platformCount": 30,
+    "platformKeys": [
+      "spireAlloy",
+      "spireGlass"
+    ],
+    "dominantKeyShare": 0.7666666666666667,
+    "hazardTypes": [
+      "laser",
+      "dustDevil",
+      "drone",
+      "boarder",
+      "shrike",
+      "bonk",
+      "boss"
+    ],
+    "hazardCount": 31,
+    "hasBoss": true,
+    "movingCount": 1,
+    "propCount": 6,
+    "checkpoints": [
+      {
+        "x": 1620,
+        "y": 510
+      },
+      {
+        "x": 2750,
+        "y": 390
+      },
+      {
+        "x": 4838,
+        "y": 310
+      },
+      {
+        "x": 6750,
+        "y": 270
+      },
+      {
+        "x": 7830,
+        "y": 250
+      },
+      {
+        "x": 9758,
+        "y": 250
+      },
+      {
+        "x": 11350,
+        "y": 220
+      }
+    ],
+    "crownX": 11950,
+    "finaleHazardCount": 3,
+    "finaleVisibleHazardCount": 3,
+    "finaleVisible": true,
+    "deckLayout": [
+      0.024,
+      0.073,
+      0.109,
+      0.149,
+      0.149,
+      0.194,
+      0.194,
+      0.211,
+      0.23,
+      0.266,
+      0.302,
+      0.351,
+      0.375,
+      0.399,
+      0.448,
+      0.496,
+      0.516,
+      0.544,
+      0.593,
+      0.631,
+      0.673,
+      0.689,
+      0.715,
+      0.757,
+      0.799,
+      0.815,
+      0.841,
+      0.883,
+      0.919,
+      0.964
+    ],
+    "platformBands": [
+      11,
+      10,
+      9,
+      9,
+      8,
+      7,
+      6,
+      7,
+      6,
+      6,
+      7,
+      6,
+      6,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      4,
+      5,
+      5,
+      5,
+      3,
+      3,
+      5,
+      3,
+      4,
+      4
+    ]
+  },
+  "flags": [
+    {
+      "id": "flat-deck",
+      "kind": "visual-variety",
+      "detail": "2 deck key(s), dominant share 0.77 across 30 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)"
+    }
+  ],
+  "telemetry": {
+    "level": 10,
+    "outcome": "crown-collected",
+    "durationSec": 147.1,
+    "deaths": 3,
+    "deathSpots": [
+      9438,
+      9926,
+      10806
+    ],
+    "deathEvents": [
+      {
+        "x": 9438,
+        "cause": "laser",
+        "hazardId": "laser-41",
+        "hazardType": "laser",
+        "hazardPhase": "active",
+        "tSec": 82.6,
+        "replaySec": 0.8
+      },
+      {
+        "x": 9926,
+        "cause": "fall",
+        "hazardId": "boarder-60",
+        "hazardType": "boarder",
+        "hazardPhase": null,
+        "tSec": 99.7,
+        "replaySec": 0.6
+      },
+      {
+        "x": 10806,
+        "cause": "boarder",
+        "hazardId": "boarder-61",
+        "hazardType": "boarder",
+        "hazardPhase": null,
+        "tSec": 125.7,
+        "replaySec": 0.4
+      }
+    ],
+    "stalls": [
+      {
+        "x": 11955,
+        "durationSec": 3.2
+      }
+    ],
+    "inputHistory": [
+      {
+        "tSec": 0.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 1.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 2.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 3.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 4.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 5.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 5.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 6.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 7.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 7.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 8.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 9.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 10.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 10.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 11.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 12.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 13.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 13.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 14.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 15.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 16,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 16.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 17.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 18.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 18.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 19.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 20.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 21.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 21.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 22.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 23.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 23.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 24.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 25.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 26.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 26.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 27.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 28.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 29.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 30.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 31.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 31.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 32.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 33.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 34.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 34.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 35.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 36.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 37,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 37.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 38.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 39.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 39.9,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 40.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 41.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 42.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 43,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 43.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 44.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 45.4,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 46.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 47.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 47.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 48.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 49.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 50.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 51,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 51.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 52.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 53.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 54,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 54.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 55.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 56.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 56.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 57.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 58.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 59,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 59.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 60.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 61.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 61.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 62.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 63.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 64.2,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 64.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 65.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 66.4,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 67.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 67.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 68.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 69.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 70,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 70.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 71.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 72.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 72.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 73.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 74.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 75,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 75.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 76.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 77.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 78.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 79.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 80.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 80.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 81.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 82.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 83.9,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 84.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 85.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 86.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 86.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 87.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 88.5,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 89.2,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 89.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 90.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 91.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 92.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 93.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 94,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 94.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 95.5,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 96.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 97.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 97.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false,
+          "aimUp": true
+        }
+      },
+      {
+        "tSec": 98.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false,
+          "aimUp": true
+        }
+      },
+      {
+        "tSec": 99.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 100.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 101.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 102.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 102.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 103.6,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 104.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 105.1,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 105.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 106.6,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 107.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 108.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 108.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 109.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 110.6,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 111.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 112,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 112.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 113.5,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 114.2,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 114.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 115.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 116.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 117.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 117.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 118.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 119.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 120.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 120.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 121.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 122.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": true,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false,
+          "aimDown": true
+        }
+      },
+      {
+        "tSec": 123,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 123.7,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 124.4,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "aimDown": true,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 125.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 126.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 127.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 127.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 128.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 129.3,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 130.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 130.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false,
+          "aimDown": true
+        }
+      },
+      {
+        "tSec": 131.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 132.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 133.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 134,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 134.8,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 135.6,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 136.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 137.2,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 138.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 138.9,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 139.6,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 140.4,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 141.3,
+        "input": {
+          "left": true,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 142,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 142.7,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 143.5,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": false
+        }
+      },
+      {
+        "tSec": 144.3,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 145,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 145.8,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 146.5,
+        "input": {
+          "left": false,
+          "right": false,
+          "jump": false,
+          "shoot": false,
+          "start": false
+        }
+      },
+      {
+        "tSec": 147.1,
+        "input": {
+          "left": false,
+          "right": true,
+          "jump": false,
+          "shoot": true,
+          "start": false,
+          "switchWeapon": true
+        }
+      }
+    ],
+    "maxX": 11958,
+    "tiersVisited": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12
+    ],
+    "routeBranches": [
+      11
+    ],
+    "branchOptionsSeen": [],
+    "gateOpened": true,
+    "hazardTypesSeen": [
+      "laser",
+      "dust_devil",
+      "drone",
+      "shrike",
+      "sentry",
+      "boss",
+      "boarder",
+      "boulder",
+      "crusher"
+    ],
+    "hazardPhasesSeen": {
+      "laser-32": [
+        "active",
+        "cooldown"
+      ],
+      "laser-33": [
+        "active",
+        "cooldown"
+      ],
+      "laser-36": [
+        "active",
+        "cooldown"
+      ],
+      "laser-37": [
+        "active",
+        "cooldown"
+      ],
+      "laser-40": [
+        "active",
+        "cooldown"
+      ],
+      "laser-41": [
+        "active",
+        "cooldown"
+      ],
+      "boss-48": [
+        "dormant",
+        "pace",
+        "telegraph",
+        "charge",
+        "recover"
+      ],
+      "laser-29": [
+        "active"
+      ],
+      "laser-30": [
+        "active"
+      ],
+      "boss-34": [
+        "dormant"
+      ],
+      "laser-35": [
+        "active"
+      ],
+      "laser-42": [
+        "active"
+      ]
+    },
+    "telegraphMs": {},
+    "errors": []
+  },
+  "runs": [
+    {
+      "runId": "0e7bb0e2-d519-45e7-a8f9-f2d2084e03d1",
+      "runLabel": 1,
+      "pilotRevision": "c1e1afc71085",
+      "seed": null,
+      "phaseNote": "pilot unseeded; timing phase varies run to run",
+      "startedAt": "2026-11-14T22:45:42.632Z",
+      "telemetry": {
+        "level": 10,
+        "outcome": "crown-collected",
+        "durationSec": 145.3,
+        "deaths": 2,
+        "deathSpots": [
+          1709,
+          11102
+        ],
+        "deathEvents": [
+          {
+            "x": 1709,
+            "cause": "laser",
+            "hazardId": "laser-32",
+            "hazardType": "laser",
+            "hazardPhase": "cooldown",
+            "tSec": 36.8,
+            "replaySec": 0.9
+          },
+          {
+            "x": 11102,
+            "cause": "fall",
+            "hazardId": "sentry-47",
+            "hazardType": "sentry",
+            "hazardPhase": null,
+            "tSec": 123.2,
+            "replaySec": 0.5
+          }
+        ],
+        "stalls": [
+          {
+            "x": 1709,
+            "durationSec": 1.5
+          },
+          {
+            "x": 11955,
+            "durationSec": 3.8
+          }
+        ],
+        "inputHistory": [
+          {
+            "tSec": 0.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 1.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 2.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 3.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 4.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 5.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 6.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 7.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 8.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 9.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 10.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 11.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 12,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 13,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 13.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 14.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 15.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 16.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 17.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 18.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 19.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 20.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 22.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 23.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 24.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 25.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 26.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 26.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 28,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 29,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 29.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 30.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 31.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 32.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 33.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 34.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimUp": true
+            }
+          },
+          {
+            "tSec": 35.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimUp": true
+            }
+          },
+          {
+            "tSec": 36.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 38.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 39.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 40.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 41.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 42.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 43.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 44.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 45.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 46.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 47.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 48.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 49.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 50.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 51.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 52.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 53.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 54.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 55.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 56.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 57.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 58.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 59.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 60,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 60.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 61.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 62.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 63,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 63.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 64.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 65.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 66,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 66.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 67.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 68.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 68.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 69.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 70.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 71,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 71.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 72.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 73.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 73.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 74.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 75.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 76.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 77.1,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 77.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 78.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 79.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 80,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 80.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 81.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 82.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 82.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 83.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 84.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 85.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 85.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 86.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 87.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 87.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 88.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 89.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 90.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 91,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 91.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 92.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 93.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 93.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 94.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 95.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 96.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 96.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 97.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 98.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 98.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 99.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 100.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 101.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 102,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 102.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 103.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 104.3,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 105,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 105.8,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 106.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 107.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 107.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 108.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 109.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 110.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 110.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 111.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 112.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 113.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 114,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 114.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 115.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 116.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 116.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 117.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 118.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 119.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 120,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimUp": true
+            }
+          },
+          {
+            "tSec": 120.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 121.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 122.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 123,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 124.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 125,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 125.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 126.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 127.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 128,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 128.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 129.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 130.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 131.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 132.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 132.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 133.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 134.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 134.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 135.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 136.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 137.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 138,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 138.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 139.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 140.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 141.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 142,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 142.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 143.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 144.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 144.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          }
+        ],
+        "maxX": 11969,
+        "tiersVisited": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "routeBranches": [
+          11
+        ],
+        "branchOptionsSeen": [],
+        "gateOpened": true,
+        "hazardTypesSeen": [
+          "laser",
+          "dust_devil",
+          "drone",
+          "shrike",
+          "sentry",
+          "boss",
+          "boarder",
+          "boulder",
+          "crusher"
+        ],
+        "hazardPhasesSeen": {
+          "laser-32": [
+            "active",
+            "cooldown"
+          ],
+          "laser-33": [
+            "active",
+            "cooldown"
+          ],
+          "laser-36": [
+            "active",
+            "cooldown"
+          ],
+          "laser-37": [
+            "active",
+            "cooldown"
+          ],
+          "laser-40": [
+            "active",
+            "cooldown"
+          ],
+          "laser-41": [
+            "active",
+            "cooldown"
+          ],
+          "boss-48": [
+            "dormant",
+            "pace",
+            "telegraph",
+            "charge",
+            "recover"
+          ],
+          "laser-29": [
+            "active"
+          ],
+          "laser-30": [
+            "active"
+          ],
+          "boss-34": [
+            "dormant"
+          ],
+          "laser-35": [
+            "active"
+          ],
+          "laser-42": [
+            "active"
+          ]
+        },
+        "telegraphMs": {},
+        "errors": []
+      },
+      "shots": [
+        {
+          "id": "death-1",
+          "file": "death-1.jpg",
+          "proves": "gameplay frame at death 1 (x=1709, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "death-2",
+          "file": "death-2.jpg",
+          "proves": "gameplay frame at death 2 (x=11102, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "01-opener",
+          "file": "01-opener.jpg",
+          "proves": "spawn read and first move",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "02-hazard-boarder",
+          "file": "02-hazard-boarder.jpg",
+          "proves": "hazard beat: boarder at x=900",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "03-hazard-drone",
+          "file": "03-hazard-drone.jpg",
+          "proves": "hazard beat: drone at x=2850",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "04-hazard-bonk",
+          "file": "04-hazard-bonk.jpg",
+          "proves": "hazard beat: bonk at x=11250",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "05-hazard-boss",
+          "file": "05-hazard-boss.jpg",
+          "proves": "hazard beat: boss at x=11920",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "06-finale",
+          "file": "06-finale.jpg",
+          "proves": "crown approach and finale pressure",
+          "capture": "staged-teleport"
+        }
+      ],
+      "flaws": [
+        "cheap",
+        "cheap",
+        "cheap",
+        "cheap"
+      ],
+      "verdicts": [
+        "iterate",
+        "iterate",
+        "iterate",
+        "iterate"
+      ],
+      "screenshotsSent": true
+    },
+    {
+      "runId": "46d3667f-0a01-4f30-90d5-e0be7f07958e",
+      "runLabel": 2,
+      "pilotRevision": "c1e1afc71085",
+      "seed": null,
+      "phaseNote": "pilot unseeded; timing phase varies run to run",
+      "startedAt": "2026-11-14T22:51:09.014Z",
+      "telemetry": {
+        "level": 10,
+        "outcome": "crown-collected",
+        "durationSec": 147.1,
+        "deaths": 3,
+        "deathSpots": [
+          9438,
+          9926,
+          10806
+        ],
+        "deathEvents": [
+          {
+            "x": 9438,
+            "cause": "laser",
+            "hazardId": "laser-41",
+            "hazardType": "laser",
+            "hazardPhase": "active",
+            "tSec": 82.6,
+            "replaySec": 0.8
+          },
+          {
+            "x": 9926,
+            "cause": "fall",
+            "hazardId": "boarder-60",
+            "hazardType": "boarder",
+            "hazardPhase": null,
+            "tSec": 99.7,
+            "replaySec": 0.6
+          },
+          {
+            "x": 10806,
+            "cause": "boarder",
+            "hazardId": "boarder-61",
+            "hazardType": "boarder",
+            "hazardPhase": null,
+            "tSec": 125.7,
+            "replaySec": 0.4
+          }
+        ],
+        "stalls": [
+          {
+            "x": 11955,
+            "durationSec": 3.2
+          }
+        ],
+        "inputHistory": [
+          {
+            "tSec": 0.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 1.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 2.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 3.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 4.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 5.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 5.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 6.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 7.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 7.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 8.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 9.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 10.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 10.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 11.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 12.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 13.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 13.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 14.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 15.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 16,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 16.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 17.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 18.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 18.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 19.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 20.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 21.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 21.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 22.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 23.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 23.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 24.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 25.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 26.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 26.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 27.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 28.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 29.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 30.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 31.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 31.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 32.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 33.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 34.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 34.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 35.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 36.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 37,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 37.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 38.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 39.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 39.9,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 40.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 41.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 42.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 43,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 43.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 44.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 45.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 46.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 47.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 47.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 48.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 49.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 50.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 51,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 51.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 52.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 53.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 54,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 54.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 55.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 56.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 56.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 57.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 58.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 59,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 59.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 60.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 61.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 61.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 62.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 63.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 64.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 64.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 65.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 66.4,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 67.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 67.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 68.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 69.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 70,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 70.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 71.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 72.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 72.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 73.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 74.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 75,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 75.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 76.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 77.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 78.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 79.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 80.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 80.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 81.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 82.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 83.9,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 84.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 85.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 86.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 86.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 87.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 88.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 89.2,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 89.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 90.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 91.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 92.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 93.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 94,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 94.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 95.5,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 96.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 97.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 97.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimUp": true
+            }
+          },
+          {
+            "tSec": 98.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimUp": true
+            }
+          },
+          {
+            "tSec": 99.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 100.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 101.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 102.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 102.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 103.6,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 104.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 105.1,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 105.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 106.6,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 107.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 108.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 108.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 109.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 110.6,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 111.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 112,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 112.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 113.5,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 114.2,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 114.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 115.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 116.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 117.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 117.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 118.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 119.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 120.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 120.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 121.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 122.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": true,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimDown": true
+            }
+          },
+          {
+            "tSec": 123,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 123.7,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 124.4,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "aimDown": true,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 125.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 126.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 127.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 127.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 128.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 129.3,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 130.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 130.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false,
+              "aimDown": true
+            }
+          },
+          {
+            "tSec": 131.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 132.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 133.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 134,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 134.8,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 135.6,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 136.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 137.2,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 138.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 138.9,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 139.6,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 140.4,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 141.3,
+            "input": {
+              "left": true,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 142,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 142.7,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 143.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": false
+            }
+          },
+          {
+            "tSec": 144.3,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 145,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 145.8,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 146.5,
+            "input": {
+              "left": false,
+              "right": false,
+              "jump": false,
+              "shoot": false,
+              "start": false
+            }
+          },
+          {
+            "tSec": 147.1,
+            "input": {
+              "left": false,
+              "right": true,
+              "jump": false,
+              "shoot": true,
+              "start": false,
+              "switchWeapon": true
+            }
+          }
+        ],
+        "maxX": 11958,
+        "tiersVisited": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9,
+          10,
+          11,
+          12
+        ],
+        "routeBranches": [
+          11
+        ],
+        "branchOptionsSeen": [],
+        "gateOpened": true,
+        "hazardTypesSeen": [
+          "laser",
+          "dust_devil",
+          "drone",
+          "shrike",
+          "sentry",
+          "boss",
+          "boarder",
+          "boulder",
+          "crusher"
+        ],
+        "hazardPhasesSeen": {
+          "laser-32": [
+            "active",
+            "cooldown"
+          ],
+          "laser-33": [
+            "active",
+            "cooldown"
+          ],
+          "laser-36": [
+            "active",
+            "cooldown"
+          ],
+          "laser-37": [
+            "active",
+            "cooldown"
+          ],
+          "laser-40": [
+            "active",
+            "cooldown"
+          ],
+          "laser-41": [
+            "active",
+            "cooldown"
+          ],
+          "boss-48": [
+            "dormant",
+            "pace",
+            "telegraph",
+            "charge",
+            "recover"
+          ],
+          "laser-29": [
+            "active"
+          ],
+          "laser-30": [
+            "active"
+          ],
+          "boss-34": [
+            "dormant"
+          ],
+          "laser-35": [
+            "active"
+          ],
+          "laser-42": [
+            "active"
+          ]
+        },
+        "telegraphMs": {},
+        "errors": []
+      },
+      "shots": [
+        {
+          "id": "run2-death-1",
+          "file": "run2-death-1.jpg",
+          "proves": "gameplay frame at death 1 (x=9438, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-2",
+          "file": "run2-death-2.jpg",
+          "proves": "gameplay frame at death 2 (x=9926, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "run2-death-3",
+          "file": "run2-death-3.jpg",
+          "proves": "gameplay frame at death 3 (x=10806, cause boarder); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+          "capture": "gameplay"
+        },
+        {
+          "id": "01-opener",
+          "file": "run2-01-opener.jpg",
+          "proves": "spawn read and first move",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "02-hazard-boarder",
+          "file": "run2-02-hazard-boarder.jpg",
+          "proves": "hazard beat: boarder at x=900",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "03-hazard-drone",
+          "file": "run2-03-hazard-drone.jpg",
+          "proves": "hazard beat: drone at x=2850",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "04-hazard-bonk",
+          "file": "run2-04-hazard-bonk.jpg",
+          "proves": "hazard beat: bonk at x=11250",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "05-hazard-boss",
+          "file": "run2-05-hazard-boss.jpg",
+          "proves": "hazard beat: boss at x=11920",
+          "capture": "staged-teleport"
+        },
+        {
+          "id": "06-finale",
+          "file": "run2-06-finale.jpg",
+          "proves": "crown approach and finale pressure",
+          "capture": "staged-teleport"
+        }
+      ],
+      "flaws": [
+        "cheap",
+        "cheap",
+        "flat",
+        "flat"
+      ],
+      "verdicts": [
+        "iterate",
+        "iterate",
+        "iterate",
+        "iterate"
+      ],
+      "screenshotsSent": true
+    }
+  ],
+  "shots": [
+    {
+      "id": "run2-death-1",
+      "file": "run2-death-1.jpg",
+      "proves": "gameplay frame at death 1 (x=9438, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-2",
+      "file": "run2-death-2.jpg",
+      "proves": "gameplay frame at death 2 (x=9926, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "run2-death-3",
+      "file": "run2-death-3.jpg",
+      "proves": "gameplay frame at death 3 (x=10806, cause boarder); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay"
+    },
+    {
+      "id": "01-opener",
+      "file": "run2-01-opener.jpg",
+      "proves": "spawn read and first move",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "02-hazard-boarder",
+      "file": "run2-02-hazard-boarder.jpg",
+      "proves": "hazard beat: boarder at x=900",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "run2-03-hazard-drone.jpg",
+      "proves": "hazard beat: drone at x=2850",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "04-hazard-bonk",
+      "file": "run2-04-hazard-bonk.jpg",
+      "proves": "hazard beat: bonk at x=11250",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "05-hazard-boss",
+      "file": "run2-05-hazard-boss.jpg",
+      "proves": "hazard beat: boss at x=11920",
+      "capture": "staged-teleport"
+    },
+    {
+      "id": "06-finale",
+      "file": "run2-06-finale.jpg",
+      "proves": "crown approach and finale pressure",
+      "capture": "staged-teleport"
+    }
+  ],
+  "screenshotsSent": true,
+  "reports": [
+    {
+      "persona": "reviewer",
+      "name": "Marlowe (expert reviewer)",
+      "fun": 2.11,
+      "fairness": 1.3833333333333335,
+      "readability": 2.0833333333333335,
+      "novelty": 1.33,
+      "pacing": 2.2533333333333334,
+      "theme": 2.1999999999999997,
+      "flaw": "cheap",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "01-opener",
+        "02-hazard-boarder",
+        "03-hazard-drone",
+        "04-hazard-bonk",
+        "05-hazard-boss",
+        "06-finale"
+      ]
+    },
+    {
+      "persona": "veteran",
+      "name": "Vic (contra veteran)",
+      "fun": 2.22,
+      "fairness": 1.3733333333333333,
+      "readability": 2.2133333333333334,
+      "novelty": 1.3433333333333335,
+      "pacing": 2.296666666666667,
+      "theme": 2.3833333333333333,
+      "flaw": "cheap",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "01-opener",
+        "02-hazard-boarder",
+        "03-hazard-drone",
+        "04-hazard-bonk",
+        "05-hazard-boss",
+        "06-finale"
+      ]
+    },
+    {
+      "persona": "casual",
+      "name": "Sam (casual newcomer)",
+      "fun": 1.8366666666666667,
+      "fairness": 1.25,
+      "readability": 1.9600000000000002,
+      "novelty": 1.2966666666666666,
+      "pacing": 2.1433333333333335,
+      "theme": 2.0833333333333335,
+      "flaw": "flat",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "01-opener",
+        "02-hazard-boarder",
+        "03-hazard-drone",
+        "04-hazard-bonk",
+        "05-hazard-boss",
+        "06-finale"
+      ]
+    },
+    {
+      "persona": "speedrunner",
+      "name": "Lex (speedrunner)",
+      "fun": 1.9433333333333334,
+      "fairness": 1.3166666666666667,
+      "readability": 2.16,
+      "novelty": 1.28,
+      "pacing": 2.1966666666666668,
+      "theme": 2.3466666666666662,
+      "flaw": "flat",
+      "verdict": "iterate",
+      "evidenceSeen": [
+        "run2-death-1",
+        "run2-death-2",
+        "run2-death-3",
+        "01-opener",
+        "02-hazard-boarder",
+        "03-hazard-drone",
+        "04-hazard-bonk",
+        "05-hazard-boss",
+        "06-finale"
+      ]
+    }
+  ],
+  "fidelity": null,
+  "concept": null,
+  "newsFloorFailures": [],
+  "fixes": [
+    {
+      "rank": 1,
+      "priority": 1,
+      "flaw": "cheap",
+      "source": "quality",
+      "evidence": "2/4 personas named \"cheap\"; lone death at x=9438 (no cluster; uncorroborated); nearest shot run2-death-3.jpg (gameplay frame)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+      "recheck": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone from telemetry and shots, and no new structural flaw may appear.",
+      "confidence": "medium",
+      "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+      "alternativeCause": "Pilot skill or policy failure; a human play observation or a policy fix, not a level edit.",
+      "diagnosis": {
+        "observedBehavior": "2/4 personas named \"cheap\"; lone death at x=9438 (no cluster; uncorroborated); nearest shot run2-death-3.jpg (gameplay frame)",
+        "location": "crown x=11950",
+        "evidenceId": "run2-death-1.jpg",
+        "confidence": "medium",
+        "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+        "alternativeCause": "Pilot skill or policy failure; a human play observation or a policy fix, not a level edit.",
+        "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+        "acceptance": "Re-run the full critic (npm run critic:level); \"cheap\" must be gone from telemetry and shots, and no new structural flaw may appear.",
+        "corroborated": true,
+        "attribution": "bot-policy-defect"
+      }
+    },
+    {
+      "rank": 2,
+      "priority": 2,
+      "flaw": "flat",
+      "source": "quality",
+      "evidence": "2/4 personas named \"flat\"; run2-death-2.jpg (gameplay frame at death 2 (x=9926, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Diagnose repetitive play from route evidence (connectivity, height changes, encounter choices, waiting time, repeated decisions), not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the look as art direction.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "medium",
+      "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+      "alternativeCause": "Pilot skill or policy failure; a human play observation or a policy fix, not a level edit.",
+      "diagnosis": {
+        "observedBehavior": "2/4 personas named \"flat\"; run2-death-2.jpg (gameplay frame at death 2 (x=9926, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow)",
+        "location": "crown x=11950",
+        "evidenceId": "run2-death-1.jpg",
+        "confidence": "medium",
+        "limitations": "Single-route bot capture; unplayed branches/tiers stay unverified.",
+        "alternativeCause": "Pilot skill or policy failure; a human play observation or a policy fix, not a level edit.",
+        "smallestFix": "Diagnose repetitive play from route evidence (connectivity, height changes, encounter choices, waiting time, repeated decisions), not paint: add a route decision or set piece to the flagged stretch, and only repaint if the build report cannot justify the look as art direction.",
+        "acceptance": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+        "corroborated": true,
+        "attribution": "bot-policy-defect"
+      }
+    },
+    {
+      "rank": 3,
+      "priority": 3,
+      "flaw": "flat-deck",
+      "source": "mechanical",
+      "evidence": "2 deck key(s), dominant share 0.77 across 30 decks (visual-variety heuristic: a justified art-direction exception in the build report rebuts it; it never proves repetitive play on its own)",
+      "owner": "skills/level-creator/SKILL.md",
+      "smallestFix": "Visual-variety heuristic, not a quality proof: either justify the single-key look as art direction in the build report, or use at least three platform reads with no key above 80% of decks.",
+      "recheck": "Re-run the full critic: route evidence (not paint) must show a new decision in the flagged stretch, or the build report must carry the art-direction exception.",
+      "confidence": "low",
+      "limitations": "Texture counts diagnose paint, never play; a justified art-direction exception rebuts this flag."
+    }
+  ],
+  "nextAction": {
+    "flaw": "cheap",
+    "source": "quality",
+    "owner": "skills/level-creator/SKILL.md",
+    "smallestFix": "Fix the clustered death spot: widen the tell window or move the hazard so the death traces to a missed tell.",
+    "justification": "cheap leads (highest-confidence corroborated finding with a behavioral recheck)."
+  },
+  "statuses": {
+    "captureValidity": {
+      "status": "valid",
+      "detail": "full traversal to the crown (crown-collected)"
+    },
+    "routeCoverage": {
+      "status": "complete",
+      "detail": "crown collected; branches visited: 11; tiers visited: 2, 3, 4, 5, 6, 7, 9, 10, 11, 12",
+      "visitedBranches": [
+        11
+      ],
+      "visitedTiers": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12
+      ],
+      "unverified": []
+    },
+    "mechanical": {
+      "status": "flags-raised",
+      "detail": "non-blocking flags: flat-deck"
+    },
+    "quality": {
+      "status": "fail",
+      "detail": "quality panel did not pass"
+    },
+    "fidelity": {
+      "status": "not-applicable",
+      "detail": "campaign level; no fidelity gate"
+    },
+    "releaseEligibility": {
+      "eligible": false,
+      "blockers": [
+        "quality fail"
+      ]
+    }
+  },
+  "provenance": {
+    "level": 10,
+    "analysisHash": "0dca06868e68",
+    "pilotRevision": "c1e1afc71085",
+    "criticRevision": "534ca1f91a04",
+    "rubricVersion": "2026-11-01-evidence-validity",
+    "model": "jev-latest",
+    "runIds": [
+      "0e7bb0e2-d519-45e7-a8f9-f2d2084e03d1",
+      "46d3667f-0a01-4f30-90d5-e0be7f07958e"
+    ],
+    "captureConfig": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "pollMs": 150,
+      "budgetSec": 310,
+      "runCount": 2
+    },
+    "capturedAt": "2026-11-14T22:51:09.017Z"
+  },
+  "loop": 1,
+  "priorFlaw": "checkpoint-desert",
+  "calibrationRuns": 1,
+  "loopExceeded": false,
+  "handoff": null,
+  "priorStalePassIssues": [],
+  "pilotRuns": 2,
+  "repeatedFlaws": [
+    "cheap"
+  ],
+  "passed": false,
+  "releaseEligible": false,
+  "shipVerdict": {
+    "ship": false,
+    "blockers": [
+      "critic panels did not pass"
+    ]
+  },
+  "shotCoverage": {
+    "total": 9,
+    "seen": [
+      "run2-death-1",
+      "run2-death-2",
+      "run2-death-3",
+      "01-opener",
+      "02-hazard-boarder",
+      "03-hazard-drone",
+      "04-hazard-bonk",
+      "05-hazard-boss",
+      "06-finale"
+    ],
+    "missing": [],
+    "complete": true
+  },
+  "bossPassed": true,
+  "humanPlay": false
+}

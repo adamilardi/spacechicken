@@ -631,6 +631,7 @@ export class UIManager {
         if (this.destroyed) {
             return;
         }
+        this.bossBarName = String(name).toUpperCase();
         if (!this.bossBarText) {
             this.bossBarText = this.scene.add
                 .text(0, 0, String(name).toUpperCase(), {
@@ -658,11 +659,13 @@ export class UIManager {
         this.updateBossBar(hp, maxHp);
     }
 
-    updateBossBar(hp, maxHp) {
+    updateBossBar(hp, maxHp, armored = false) {
         if (!this.bossBarGfx) {
             return;
         }
         this.bossBarFrac = maxHp > 0 ? Math.max(0, Math.min(1, hp / maxHp)) : 0;
+        this.bossBarArmored = armored;
+        this.bossBarText?.setText(`${this.bossBarName || 'BOSS'}${armored ? ' • ARMOR' : ''}`);
         this.layoutBossBar();
     }
 
@@ -677,18 +680,32 @@ export class UIManager {
         }
         const insets = this.getSafeAreaInsets();
         const metrics = this.getLayoutMetrics();
-        const width = Math.min(320, Math.max(160, metrics.innerWidth - 64));
+        const width = Math.min(
+            metrics.width >= 1000 ? 440 : 320,
+            Math.max(160, metrics.innerWidth - 64)
+        );
         const x = metrics.width / 2 - width / 2;
-        const y = insets.top + metrics.hudPadding;
+        const y = insets.top + (metrics.width < 700 ? 110 : metrics.hudPadding);
         this.bossBarText.setPosition(metrics.width / 2, y + 8);
+        this.bossBarText.setFontSize?.(metrics.width < 700 ? 16 : 18);
         const gfx = this.bossBarGfx;
         gfx.clear();
         gfx.fillStyle(0x1a0d12, 0.85);
         gfx.fillRect(x - 2, y + 20, width + 4, 14);
         gfx.fillStyle(0x5e1440, 1);
         gfx.fillRect(x, y + 22, width, 10);
-        gfx.fillStyle(this.bossBarFrac > 0.5 ? 0xd63c8c : 0xff4a5a, 1);
+        gfx.fillStyle(
+            this.bossBarArmored ? 0x63eaff : this.bossBarFrac > 0.5 ? 0xd63c8c : 0xff4a5a,
+            1
+        );
         gfx.fillRect(x, y + 22, Math.round(width * this.bossBarFrac), 10);
+        // Segments make each volley legible; the gold midpoint marks phase II.
+        gfx.fillStyle(0x1a0d12, 0.85);
+        for (let segment = 1; segment < 20; segment++) {
+            gfx.fillRect(x + Math.round((width * segment) / 20), y + 22, 2, 10);
+        }
+        gfx.fillStyle(0xffd45a, 1);
+        gfx.fillRect(x + Math.round(width / 2) - 1, y + 19, 3, 16);
     }
 
     getSafeAreaInsets() {
@@ -1300,7 +1317,10 @@ export class UIManager {
                 : metrics.isCompact
                   ? 0.22
                   : 0.28;
-        const centerY = insets.top + metrics.innerHeight * bannerRatio;
+        const centerY = Math.max(
+            insets.top + metrics.innerHeight * bannerRatio,
+            this.bossBarGfx?.visible && metrics.width < 700 ? insets.top + 170 : 0
+        );
         const maxWidth = Math.max(160, metrics.innerWidth - 24);
         this.applyFontSize(this.bannerTitle, metrics.fonts.banner);
         if (typeof this.bannerTitle.setWordWrapWidth === 'function') {

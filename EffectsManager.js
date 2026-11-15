@@ -27,6 +27,7 @@ export class EffectsManager {
         this.crownIdleEvent = null;
         this.lastJetpackEmit = 0;
         this.destroyed = false;
+        this.bossRings = new Set();
     }
 
     burst(options = {}) {
@@ -256,6 +257,70 @@ export class EffectsManager {
         });
     }
 
+    bossRing(x, y, color, flat = false) {
+        if (this.destroyed || !this.scene.add?.graphics || !this.scene.tweens?.add) return;
+        const ring = this.scene.add.graphics();
+        ring.setPosition(x, y).setDepth(6);
+        ring.lineStyle(3, color, 0.85);
+        ring.strokeEllipse(0, 0, 70, flat ? 20 : 70);
+        this.bossRings.add(ring);
+        this.scene.tweens.add({
+            targets: ring,
+            scaleX: 3.4,
+            scaleY: 3.4,
+            alpha: 0,
+            duration: 650,
+            onComplete: () => {
+                this.bossRings.delete(ring);
+                ring.destroy();
+            },
+        });
+    }
+
+    bossBurst(x, y, kind) {
+        const color = kind === 'phase' ? 0xc44dff : kind === 'defeat' ? 0xffd45a : 0x63eaff;
+        this.bossRing(x, y, color);
+        this.burst({
+            x,
+            y,
+            count: kind === 'defeat' ? 36 : 22,
+            texture: 'particleSpark',
+            tint: [color, 0xffffff, 0xffad62],
+            speedMin: 70,
+            speedMax: kind === 'defeat' ? 260 : 170,
+            lifeMin: 380,
+            lifeMax: 800,
+            scale: 1.4,
+            endScale: 0.1,
+            blend: true,
+        });
+        if (kind === 'defeat') {
+            this.collectBurst(x, y);
+            this.scene.time?.delayedCall?.(160, () => this.bossRing(x, y, 0xffffff));
+        }
+    }
+
+    bossTell(x, y, leap) {
+        this.bossRing(x, y + (leap ? 0 : 30), leap ? 0x63eaff : 0xff5a4a, !leap);
+    }
+
+    bossTrail(x, y, enraged) {
+        this.burst({
+            x,
+            y,
+            count: 2,
+            texture: 'particleSoft',
+            tint: enraged ? [0xc44dff, 0xff65a8] : [0x63eaff, 0xffffff],
+            speedMin: 8,
+            speedMax: 26,
+            lifeMin: 120,
+            lifeMax: 240,
+            scale: 1.5,
+            endScale: 0.2,
+            blend: true,
+        });
+    }
+
     squashPlayer(player) {
         this.tweenPlayerScale(player, 1.26, 0.72, GAME_CONSTANTS.SQUASH_DURATION);
     }
@@ -357,6 +422,11 @@ export class EffectsManager {
         this.stopCrownIdle();
         this.stopPlayerScaleTween();
         this.restBody = null;
+        this.bossRings.forEach((ring) => {
+            this.scene.tweens?.killTweensOf?.(ring);
+            ring.destroy();
+        });
+        this.bossRings.clear();
         this.live.forEach((sprite) => {
             if (sprite.destroy) {
                 sprite.destroy();

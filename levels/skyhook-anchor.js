@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'SKYHOOK ANCHOR - The tether station. Wardens swarm in waves on the deck and the high panels: face them and press J to fire the space phaser — hold Up/W while firing to aim up the panel stair and at the high decks, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Take the panel stair, ride the anchor lift, cross the beam on the dark, and slip the slam on the crown pad. Shrikes swoop the station: stomp them or dodge the dive. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HALO, a piercing orb that never stops. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SKYHOOK ANCHOR - The tether station. Wardens swarm in waves on the deck and the high panels: face them and press J to fire the space phaser — hold Up/W while firing to aim up the panel stair and at the high decks, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Take the panel stair, ride the anchor lift, cross the beam on the dark, and slip the slam on the crown pad. Shrikes swoop the station: stomp them or dodge the dive. The crown is shielded: defeat the guard on the crown platform to open it. New gun: HALO, a piercing orb that never stops. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music) Phase II: Cyan: get under. Red: jump the rush.',
         touchInstructions:
-            'SKYHOOK ANCHOR - The tether station. Wardens hold the panels too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: HALO. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Ride the lift, cross on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s.',
+            'SKYHOOK ANCHOR - The tether station. Wardens hold the panels too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: HALO. The gun button swaps guns. Defeat the crown-platform guard to open the crown. Ride the lift, cross on the dark, slip the slam. Pods grant 30s guns. Free cages for −2s. Phase II: Cyan: get under. Red: jump the rush.',
         background: {
             type: 'skyhook',
             style: 'night',
@@ -101,8 +101,10 @@ export const level = {
         checkpoints: [
             { x: 2050, y: 568 },
             { x: 3300, y: 456 },
+            { x: 5010, y: 502 },
             { x: 6300, y: 502 },
             { x: 8250, y: 432 },
+            { x: 10342, y: 412 },
             { x: 11850, y: 380 },
         ],
         rescues: [
@@ -117,6 +119,7 @@ export const level = {
             { x: 5650, y: 350, gun: 'tempest' },
             { x: 11950, y: 330, gun: 'comet' },
             { x: 8890, y: 328, gun: 'halo' },
+            { x: 10920, y: 232, gun: 'tempest' },
         ],
         boarderWaves: [
             { wave: 1, x: 0 },
@@ -125,7 +128,9 @@ export const level = {
             { wave: 4, x: 3280 },
             { wave: 5, x: 3800 },
             { wave: 6, x: 5100 },
-            { wave: 7, x: 8050 },
+            { wave: 7, x: 6250 },
+            { wave: 8, x: 8240 },
+            { wave: 9, x: 9520 },
         ],
         dynamic: [
             { type: 'boarder', key: 'spireWarden', x: 550, y: 588, wave: 1 },
@@ -212,7 +217,7 @@ export const level = {
             },
             { type: 'boarder', key: 'spireWarden', x: 5650, y: 398, wave: 6 },
             { type: 'boarder', key: 'spireWarden', x: 6110, y: 450, wave: 6 },
-            { type: 'boarder', key: 'spireWarden', x: 6900, y: 420, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 6900, y: 420, wave: 7 },
             {
                 type: 'laser',
                 x: 9470,
@@ -253,9 +258,9 @@ export const level = {
                 y: 352,
                 patrol: { x: 8830, duration: 1500 },
             },
-            { type: 'boarder', key: 'spireWarden', x: 8890, y: 394, wave: 7 },
-            { type: 'boarder', key: 'spireWarden', x: 10170, y: 394, wave: 7 },
-            { type: 'boarder', key: 'spireWarden', x: 10980, y: 264, wave: 7 },
+            { type: 'boarder', key: 'spireWarden', x: 8890, y: 394, wave: 8 },
+            { type: 'boarder', key: 'spireWarden', x: 10170, y: 394, wave: 9 },
+            { type: 'boarder', key: 'spireWarden', x: 10980, y: 264, wave: 9 },
             {
                 type: 'shrike',
                 x: 3900,
@@ -291,13 +296,36 @@ export const level = {
                 bossName: 'Highroost',
                 x: 12390,
                 y: 270,
-                hp: 16,
+                hp: 28,
                 crownGuard: true,
+                phaseTwo: {
+                    title: 'STORM CROWN',
+                    battleHint: 'Cyan: get under. Red: jump the rush',
+                    initialAttackMs: 0,
+                    telegraphMs: 900,
+                    recoverMs: 1000,
+                    enrageCooldownMs: 1200,
+                    attackCycle: ['leap', 'charge'],
+                    leap: {
+                        dx: 220,
+                        velocityY: 235,
+                        ms: 800,
+                    },
+                    summon: {
+                        key: 'spireWarden',
+                        count: 1,
+                        maxAlive: 2,
+                        spread: 80,
+                        tellMs: 900,
+                        intervalMs: 6500,
+                        initialDelayMs: 3000,
+                    },
+                },
                 triggerX: 12260,
                 minX: 12320,
                 maxX: 12560,
                 paceSpeed: 60,
-                initialAttackMs: 4000,
+                initialAttackMs: 1100,
                 telegraphMs: 800,
                 chargeSpeed: 420,
                 chargeMs: 900,

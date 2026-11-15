@@ -1,0 +1,78 @@
+{
+    "seed": 42,
+    "mode": "HEAD level data only, current shared runtime and pilot, seed 42, 300 simulated seconds per level, single route",
+    "results": [
+        {
+            "level": 8,
+            "outcome": "crown-collected",
+            "simulatedMs": 98383.33333333334,
+            "deaths": 1,
+            "maxX": 11697.333333332897,
+            "errors": []
+        },
+        {
+            "level": 9,
+            "outcome": "crown-collected",
+            "simulatedMs": 112450.00000000001,
+            "deaths": 4,
+            "maxX": 10967.999999999567,
+            "errors": []
+        },
+        {
+            "level": 10,
+            "outcome": "crown-collected",
+            "simulatedMs": 96766.66666666667,
+            "deaths": 0,
+            "maxX": 11947.333333332857,
+            "errors": []
+        },
+        {
+            "level": 11,
+            "outcome": "budget-exhausted",
+            "simulatedMs": 300000,
+            "deaths": 17,
+            "maxX": 7600.80000000004,
+            "errors": []
+        },
+        {
+            "level": 12,
+            "outcome": "crown-collected",
+            "simulatedMs": 150000,
+            "deaths": 6,
+            "maxX": 12047.999999999807,
+            "errors": []
+        },
+        {
+            "level": 13,
+            "outcome": "crown-collected",
+            "simulatedMs": 118883.33333333334,
+            "deaths": 2,
+            "maxX": 12448.666666665735,
+            "errors": []
+        },
+        {
+            "level": 14,
+            "outcome": "crown-collected",
+            "simulatedMs": 124250.00000000001,
+            "deaths": 1,
+            "maxX": 12397.333333332383,
+            "errors": []
+        },
+        {
+            "level": 15,
+            "outcome": "crown-collected",
+            "simulatedMs": 160933.33333333334,
+            "deaths": 6,
+            "maxX": 12398.666666665933,
+            "errors": []
+        },
+        {
+            "level": 16,
+            "outcome": "crown-collected",
+            "simulatedMs": 99316.66666666667,
+            "deaths": 4,
+            "maxX": 9516.666666666652,
+            "errors": []
+        }
+    ]
+}

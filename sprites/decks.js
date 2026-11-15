@@ -84,6 +84,14 @@ export function paintColonyDeck(ctx) {
     for (const x of [5, 47, 89]) {
         ctx.fillRect(x, 11, 2, 2);
     }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#12161f';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#313a4e';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
 }
 
 export function paintBastionDeck(ctx) {
@@ -117,6 +125,14 @@ export function paintBastionDeck(ctx) {
     for (const x of [5, 47, 89]) {
         ctx.fillRect(x, 11, 2, 2);
     }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#161b26';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#3c485d';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
 }
 
 export function paintWombFlesh(ctx) {
@@ -143,6 +159,13 @@ export function paintWombFlesh(ctx) {
     for (let x = 0; x < 96; x += 12) {
         ctx.fillRect(x + 4, 20, 4, 4);
     }
+    ctx.fillStyle = '#33101a';
+    ctx.fillRect(28, 8, 2, 10);
+    ctx.fillRect(30, 16, 8, 2);
+    ctx.fillRect(74, 7, 2, 11);
+    ctx.fillStyle = '#a24455';
+    ctx.fillRect(31, 9, 6, 2);
+    ctx.fillRect(77, 14, 8, 2);
 }
 
 export function paintHiveChitin(ctx) {
@@ -172,6 +195,13 @@ export function paintHiveChitin(ctx) {
     for (const x of [16, 64, 88]) {
         ctx.fillRect(x, 12, 3, 1);
     }
+    ctx.fillStyle = '#24122e';
+    ctx.fillRect(28, 8, 2, 10);
+    ctx.fillRect(30, 16, 8, 2);
+    ctx.fillRect(74, 7, 2, 11);
+    ctx.fillStyle = '#704183';
+    ctx.fillRect(31, 9, 6, 2);
+    ctx.fillRect(77, 14, 8, 2);
 }
 
 export function paintSpireAlloy(ctx) {
@@ -200,6 +230,14 @@ export function paintSpireAlloy(ctx) {
     ctx.fillStyle = '#8fd4ff';
     ctx.fillRect(12, 15, 6, 3);
     ctx.fillRect(104, 15, 6, 3);
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#586478';
+    ctx.fillRect(0, 22, 128, 2);
+    ctx.fillStyle = '#b0bac7';
+    for (let x = 28; x < 128; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
 }
 
 export function paintHarborDeck(ctx) {
@@ -227,6 +265,14 @@ export function paintHarborDeck(ctx) {
     for (let x = 4; x < 96; x += 24) {
         ctx.fillRect(x, 21, 10, 3);
     }
+    ctx.fillStyle = '#46301e';
+    for (const x of [6, 38, 70]) {
+        ctx.fillRect(x, 13, 17, 1);
+        ctx.fillRect(x + 9, 15, 8, 1);
+    }
+    ctx.fillStyle = '#ad9470';
+    ctx.fillRect(24, 6, 5, 1);
+    ctx.fillRect(57, 17, 7, 1);
 }
 
 export function paintFoundryDeck(ctx) {
@@ -256,6 +302,14 @@ export function paintFoundryDeck(ctx) {
     for (let x = 6; x < 96; x += 16) {
         ctx.fillRect(x, 17, 3, 3);
     }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#241512';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#514039';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
 }
 
 export function paintSkyhookDeck(ctx) {
@@ -282,6 +336,14 @@ export function paintSkyhookDeck(ctx) {
     for (let x = 20; x < 96; x += 48) {
         ctx.fillRect(x, 9, 4, 2);
     }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#141c30';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#4a5871';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
 }
 
 export function paintColonyGirder(ctx) {
@@ -303,6 +365,14 @@ export function paintColonyGirder(ctx) {
     ctx.fillStyle = '#8a99b5';
     for (let x = 8; x < 96; x += 32) {
         ctx.fillRect(x, 7, 3, 3);
+    }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#0d1017';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#313a4e';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
     }
 }
 
@@ -326,6 +396,13 @@ export function paintHiveFang(ctx) {
     for (let x = 0; x < 96; x += 12) {
         ctx.fillRect(x + 5, 21, 3, 3);
     }
+    ctx.fillStyle = '#170a20';
+    ctx.fillRect(28, 8, 2, 10);
+    ctx.fillRect(30, 16, 8, 2);
+    ctx.fillRect(74, 7, 2, 11);
+    ctx.fillStyle = '#8e6a9e';
+    ctx.fillRect(31, 9, 6, 2);
+    ctx.fillRect(77, 14, 8, 2);
 }
 
 export function paintSpireGlass(ctx) {
@@ -376,6 +453,16 @@ export function paintBastionGrate(ctx) {
     for (let x = 0; x < 96; x += 48) {
         ctx.fillRect(x, 14, 10, 3);
     }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#0d1119';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#5a6a86';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
+    ctx.fillStyle = '#aeb9c9';
+    ctx.fillRect(0, 0, 96, 1);
 }
 
 export function paintWombBone(ctx) {
@@ -399,6 +486,13 @@ export function paintWombBone(ctx) {
     for (let x = 0; x < 96; x += 16) {
         ctx.fillRect(x + 6, 21, 4, 3);
     }
+    ctx.fillStyle = '#1c060d';
+    ctx.fillRect(28, 8, 2, 10);
+    ctx.fillRect(30, 16, 8, 2);
+    ctx.fillRect(74, 7, 2, 11);
+    ctx.fillStyle = '#8e2f3f';
+    ctx.fillRect(31, 9, 6, 2);
+    ctx.fillRect(77, 14, 8, 2);
 }
 
 export function paintHarborPlank(ctx) {
@@ -425,6 +519,14 @@ export function paintHarborPlank(ctx) {
     for (let x = 4; x < 96; x += 16) {
         ctx.fillRect(x, 20, 8, 4);
     }
+    ctx.fillStyle = '#46301e';
+    for (const x of [6, 38, 70]) {
+        ctx.fillRect(x, 13, 17, 1);
+        ctx.fillRect(x + 9, 15, 8, 1);
+    }
+    ctx.fillStyle = '#ad9470';
+    ctx.fillRect(24, 6, 5, 1);
+    ctx.fillRect(57, 17, 7, 1);
 }
 
 export function paintFoundryChain(ctx) {
@@ -446,6 +548,14 @@ export function paintFoundryChain(ctx) {
     ctx.fillStyle = '#e8fff0';
     for (let x = 4; x < 96; x += 24) {
         ctx.fillRect(x + 1, 18, 2, 2);
+    }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#140d0a';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#45362e';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
     }
 }
 
@@ -472,6 +582,14 @@ export function paintSkyhookPanel(ctx) {
     for (let x = 0; x < 96; x += 48) {
         ctx.fillRect(x, 9, 3, 12);
     }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#0a0f1c';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#2c3a52';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
+    }
 }
 
 export function paintVaultDeck(ctx) {
@@ -496,6 +614,14 @@ export function paintVaultDeck(ctx) {
     ctx.fillStyle = '#8a6a2a';
     for (let x = 4; x < 96; x += 16) {
         ctx.fillRect(x, 19, 5, 5);
+    }
+    // Recessed body bevels leave the walkable top edge untouched.
+    ctx.fillStyle = '#1c140c';
+    ctx.fillRect(0, 22, 96, 2);
+    ctx.fillStyle = '#59432b';
+    for (let x = 28; x < 96; x += 32) {
+        ctx.fillRect(x, 7, 2, 7);
+        ctx.fillRect(x - 5, 7, 5, 1);
     }
 }
 

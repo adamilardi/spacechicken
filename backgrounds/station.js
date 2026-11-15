@@ -176,7 +176,7 @@ export function createStationBackgroundLayout(background, worldWidth, worldHeigh
         const width = Phaser.Math.Between(180, 260);
         const height = Phaser.Math.Between(140, 220);
         const x = i * moduleStride + Phaser.Math.Between(-20, 40);
-        const y = Phaser.Math.Between(80, Math.max(120, worldHeight - height - 160));
+        const y = worldHeight * 0.87 - height;
         const module = createStationModule(
             x,
             y,
@@ -224,11 +224,11 @@ export function createStationBackgroundLayout(background, worldWidth, worldHeigh
             height: 18,
             fill: palette.metalAlt,
             strokeColor: palette.highlight,
-            alpha: 0.8,
+            alpha: 0.55,
             lights,
         });
 
-        const supportHeight = Phaser.Math.Between(60, 140);
+        const supportHeight = Math.max(24, worldHeight - y);
         struts.push({
             points: [
                 { x: x + 22, y: y + 18 },
@@ -473,7 +473,7 @@ export function renderStationBackground(
             .fillStyle(catwalk.fill, catwalk.alpha)
             .fillRect(catwalk.x, catwalk.y, catwalk.width, catwalk.height);
         renderer.graphics
-            .lineStyle(2, catwalk.strokeColor, 0.55)
+            .lineStyle(1, catwalk.strokeColor, 0.18)
             .strokeRect(catwalk.x, catwalk.y, catwalk.width, catwalk.height);
         (catwalk.lights || []).forEach((light) => {
             renderer.graphics

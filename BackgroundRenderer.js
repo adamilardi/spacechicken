@@ -67,6 +67,16 @@ function twinkleTint(backgroundType) {
     return TWINKLE_TINT[backgroundType] || 0xffffff;
 }
 
+const BASTION_ACCENT_TINT = {
+    vault: 0xffb15a,
+    coldstore: 0x9cecff,
+    relay: 0xff6a5a,
+};
+
+function bastionAccentTint(style) {
+    return BASTION_ACCENT_TINT[style] || BASTION_ACCENT_TINT.relay;
+}
+
 export class BackgroundRenderer {
     static layoutCache = new Map();
 
@@ -77,6 +87,8 @@ export class BackgroundRenderer {
         this.layerSprites = [];
         this.twinkles = [];
         this.twinkleTweens = [];
+        this.accents = [];
+        this.accentTweens = [];
         this.worldWidth = 0;
         this.worldHeight = 0;
         this.viewKey = '';
@@ -122,6 +134,7 @@ export class BackgroundRenderer {
             this.renderLayer(layers[i], background, layoutKey, worldWidth, worldHeight);
         }
         this.createTwinkleStars();
+        this.createBastionAccents();
         this.viewKey = '';
         this.syncToCamera();
         return this.image || this.graphics;
@@ -148,6 +161,7 @@ export class BackgroundRenderer {
             pending.push(layer);
         }
         this.createTwinkleStars();
+        this.createBastionAccents();
         this.viewKey = '';
         this.syncToCamera();
         if (pending.length) {
@@ -198,7 +212,11 @@ export class BackgroundRenderer {
                 this.textures.remove(key);
             }
         }
-        return { background, layoutKey, layers: parallaxLayersForLevel(this.level) };
+        return {
+            background,
+            layoutKey,
+            layers: parallaxLayersForLevel(this.level, background.type),
+        };
     }
 
     renderLayer(layer, background, layoutKey, worldWidth, worldHeight) {
@@ -352,6 +370,18 @@ export class BackgroundRenderer {
             twinkle.star.x = twinkle.u * width;
             twinkle.star.y = twinkle.v * height;
         }
+        this.layoutAccents();
+    }
+
+    layoutAccents() {
+        const mid = this.layerSprites.find((layer) => layer.id === 'mid');
+        const width = mid?.spanWidth || this.worldWidth;
+        const height = mid?.spanHeight || this.worldHeight;
+        for (let i = 0; i < this.accents.length; i++) {
+            const accent = this.accents[i];
+            accent.mote.x = accent.u * width;
+            accent.mote.y = accent.v * height;
+        }
     }
 
     createScratchGraphics() {
@@ -389,7 +419,22 @@ export class BackgroundRenderer {
         const layout = this.ensureLayout(background, layoutKey, worldWidth, worldHeight);
         this.graphics.clear();
         const renderBiome = BIOME_RENDERERS[background.type] || BIOME_RENDERERS.space;
+        const layer = parallaxLayersForLevel(this.level, background.type).find(
+            (entry) => entry.id === layerId
+        );
+        const cameras = this.worldCameras();
+        const span = cameras.length
+            ? Math.max(
+                  ...cameras.map((camera) =>
+                      this.axisSpan(worldWidth, camera.width, camera.zoom, layer?.scrollX ?? 1)
+                  )
+              )
+            : this.parallaxSpan(worldWidth, this.resolveView().width, layer?.scrollX ?? 1);
+        this.paintAspectRatio = worldWidth / span;
         renderBiome(this, background, layout, worldWidth, worldHeight, layerId);
+        if (layerId === 'sky') {
+            this.renderCosmicSky(background, worldWidth, worldHeight);
+        }
     }
 
     tryBakeTexture(textureKey, bake) {
@@ -472,6 +517,15 @@ export class BackgroundRenderer {
             }
         }
         this.twinkleTweens = [];
+        for (let i = 0; i < this.accentTweens.length; i++) {
+            const tween = this.accentTweens[i];
+            if (tween?.stop) {
+                tween.stop();
+            } else {
+                this.tweens?.killTweensOf?.(tween?.targets || tween);
+            }
+        }
+        this.accentTweens = [];
         for (let i = 0; i < this.layerSprites.length; i++) {
             this.layerSprites[i].image?.destroy?.();
         }
@@ -482,8 +536,16 @@ export class BackgroundRenderer {
                 star.destroy?.();
             }
         }
+        for (let i = 0; i < this.accents.length; i++) {
+            const mote = this.accents[i].mote;
+            if (mote) {
+                this.tweens?.killTweensOf?.(mote);
+                mote.destroy?.();
+            }
+        }
         this.layerSprites = [];
         this.twinkles = [];
+        this.accents = [];
         this.image = null;
         this.destroyScratchGraphics();
         this.viewKey = '';
@@ -502,7 +564,9 @@ export class BackgroundRenderer {
         if (!this.add?.image) {
             return;
         }
-        const far = parallaxLayersForLevel(this.level).find((layer) => layer.id === 'far');
+        const far = parallaxLayersForLevel(this.level, this.levelConfig?.background?.type).find(
+            (layer) => layer.id === 'far'
+        );
         const count = GAME_CONSTANTS.TWINKLE_STAR_COUNT;
         for (let i = 0; i < count; i++) {
             const star = this.add.image(0, 0, 'particleSoft');
@@ -534,6 +598,46 @@ export class BackgroundRenderer {
         }
     }
 
+    createBastionAccents() {
+        if (this.levelConfig?.background?.type !== 'bastion' || !this.add?.image) {
+            return;
+        }
+        const layers = parallaxLayersForLevel(this.level, this.levelConfig?.background?.type);
+        const mid = layers.find((layer) => layer.id === 'mid') || layers[0] || {};
+        const count = GAME_CONSTANTS.BASTION_ACCENT_COUNT;
+        const tint = bastionAccentTint(this.levelConfig?.background?.style);
+        for (let i = 0; i < count; i++) {
+            const mote = this.add.image(0, 0, 'particleSoft');
+            mote.setDepth((mid.depth ?? -28) + 1);
+            mote.setScale(0.3 + ((i * 37) % 40) / 100);
+            mote.setScrollFactor?.(mid.scrollX ?? 0.32, 0.32);
+            mote.setTint?.(tint);
+            if (mote.setBlendMode && Phaser.BlendModes) {
+                mote.setBlendMode(Phaser.BlendModes.ADD);
+            }
+            mote.setAlpha(0.28);
+            this.accents.push({
+                mote,
+                u: (i * 0.61803) % 1,
+                v: ((i * 0.38197) % 1) * 0.8,
+            });
+            const drift = this.tweens?.add?.({
+                targets: mote,
+                x: `+=${60 + ((i * 53) % 100)}`,
+                y: `-=${30 + ((i * 29) % 60)}`,
+                alpha: { from: 0.12, to: 0.42 },
+                duration: 2600 + ((i * 211) % 2200),
+                yoyo: true,
+                repeat: -1,
+                delay: (i * 137) % 900,
+                ease: 'Sine.easeInOut',
+            });
+            if (drift) {
+                this.accentTweens.push(drift);
+            }
+        }
+    }
+
     renderVerticalGradient(x, y, width, height, colors, steps = 32) {
         if (!Array.isArray(colors) || colors.length === 0) {
             return;
@@ -555,6 +659,62 @@ export class BackgroundRenderer {
             const rectY = y + Math.floor((i / safeSteps) * height);
             const nextY = y + Math.ceil(((i + 1) / safeSteps) * height);
             this.graphics.fillStyle(color, 1).fillRect(x, rectY, width, Math.max(1, nextY - rectY));
+        }
+    }
+
+    renderCosmicSky(background, width, height) {
+        const palette = background.palette || {};
+        const enclosed = ['facility', 'bastion', 'hive', 'womb', 'foundry'].includes(
+            background.type
+        );
+        const strength = enclosed ? 0.32 : 1;
+        const blue = blendColor(palette.haze ?? palette.glow ?? 0x6caeff, 0x557ee8, 0.55);
+        const violet = blendColor(palette.accent ?? 0xb374ed, 0x7845b8, 0.6);
+        // Stable per-level detail: resizing and rebaking never rearrange the sky.
+        let seed = (this.level || 1) * 7919;
+        const random = () => {
+            seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+            return seed / 4294967296;
+        };
+        const phase = random() * Math.PI * 2;
+        // A winding, asymmetric dust river. Broad overlapping lobes are baked
+        // once behind the existing architecture and parallax silhouettes.
+        for (let i = 0; i < 34; i++) {
+            const u = i / 33;
+            const x = u * width;
+            const y = height * (0.24 + Math.sin(u * 7 + phase) * 0.13);
+            const radius = height * (0.13 + random() * 0.13);
+            this.drawGlow(x, y, radius, i % 3 ? blue : violet, 0.065 * strength, 10);
+            this.drawGlow(
+                x + radius * 0.2,
+                y - radius * 0.3,
+                radius * 0.4,
+                violet,
+                0.05 * strength,
+                8
+            );
+        }
+        // Tiny cool/warm stars give the distant sky depth without competing
+        // with the existing brighter stars on the moving far layer.
+        const count = Math.min(460, Math.round(width / 9));
+        for (let i = 0; i < count; i++) {
+            const x = random() * width;
+            const y = random() * height * 0.78;
+            const radius = 0.55 + random() * 0.9;
+            const alpha = (0.2 + random() * 0.42) * strength;
+            const color = i % 7 === 0 ? 0xffd6ad : i % 3 === 0 ? 0xadcaff : 0xe4eaff;
+            this.graphics.fillStyle(color, alpha).fillCircle(x, y, radius);
+            if (i % 41 === 0) {
+                this.drawGlow(x, y, 10, color, 0.12 * strength, 6);
+                this.graphics.fillStyle(color, alpha * 0.6);
+                this.graphics.fillRect(x - 3, y - 0.5, 6, 1);
+                this.graphics.fillRect(x - 0.5, y - 4, 1, 8);
+            }
+        }
+        // Fade the lower sky into deep space so route silhouettes stay clear.
+        for (let i = 0; i < 32; i++) {
+            this.graphics.fillStyle(0x030817, (i / 31) * 0.22 * strength);
+            this.graphics.fillRect(0, height * (0.56 + (i / 32) * 0.44), width, height / 72 + 1);
         }
     }
 
@@ -646,7 +806,27 @@ export class BackgroundRenderer {
         });
     }
 
+    // Layer images compress a world-wide painting into their parallax span.
+    // Undo that compression locally for round celestial bodies.
+    paintRoundBody(x, y, paint) {
+        const g = this.graphics;
+        if (!g?.save || !g?.scaleCanvas || !g?.translateCanvas || !g?.restore) {
+            paint();
+            return;
+        }
+        g.save();
+        g.translateCanvas(x, y);
+        g.scaleCanvas(this.paintAspectRatio || 1, 1);
+        g.translateCanvas(-x, -y);
+        paint();
+        g.restore();
+    }
+
     renderPlanet(planet) {
+        this.paintRoundBody(planet.x, planet.y, () => this.paintPlanet(planet));
+    }
+
+    paintPlanet(planet) {
         const alpha = valueOrDefault(planet.alpha, 1);
         const size = valueOrDefault(planet.size, 40);
         const glowColor = valueOrDefault(planet.glowColor, planet.color);
@@ -670,33 +850,40 @@ export class BackgroundRenderer {
         this.graphics.fillStyle(planet.color, alpha).fillCircle(planet.x, planet.y, size);
         const shadow = valueOrDefault(planet.shadowColor, adjustColor(planet.color, -70));
         const highlight = valueOrDefault(planet.highlightColor, adjustColor(planet.color, 50));
-        // Each latitude stays within the sphere, with a curved day/night boundary.
-        for (let row = -size; row < size; row += 2) {
+        // Shade the sphere in clipped latitude strips; the crescent curves
+        // with its surface, and muted cloud belts never spill into the sky.
+        for (let row = -size; row < size; row += 1) {
+            const latitude = row / size;
             const halfWidth = Math.sqrt(Math.max(0, size * size - row * row));
-            const terminator = halfWidth * 0.08 + row * 0.12;
-            this.graphics.fillStyle(shadow, 0.65 * alpha);
-            this.graphics.fillRect(
-                planet.x + terminator,
-                planet.y + row,
-                Math.max(0, halfWidth - terminator),
-                2
-            );
+            const cloud = Math.sin(latitude * 24 + Math.sin(latitude * 9) * 2);
+            const color = blendColor(planet.color, highlight, 0.12 + Math.max(0, cloud) * 0.14);
+            this.graphics.fillStyle(color, alpha);
+            this.graphics.fillRect(planet.x - halfWidth, planet.y + row, halfWidth * 2, 1);
+            for (let band = 0; band < 32; band++) {
+                const t = band / 32;
+                const left = halfWidth * (-0.42 + t * 1.42);
+                const right = halfWidth * (-0.42 + ((band + 1) / 32) * 1.42);
+                this.graphics.fillStyle(shadow, Math.pow(t, 0.65) * 0.88 * alpha);
+                this.graphics.fillRect(planet.x + left, planet.y + row, right - left + 0.2, 1);
+            }
         }
-        for (let layer = 0; layer < 12; layer++) {
-            const t = layer / 12;
-            this.graphics.fillStyle(highlight, 0.025 * alpha);
-            this.graphics.fillCircle(
-                planet.x - size * 0.22,
-                planet.y - size * 0.2,
-                size * (0.68 - t * 0.42)
+        // Bring the near half of a ring in front of the sphere.
+        if (planet.ringWidth && planet.ringHeight) {
+            this.graphics.lineStyle(
+                2,
+                valueOrDefault(planet.ringColor, glowColor),
+                valueOrDefault(planet.ringAlpha, 0.4) * alpha
             );
+            this.graphics.beginPath();
+            for (let i = 0; i <= 40; i++) {
+                const angle = (i / 40) * Math.PI;
+                const x = planet.x + Math.cos(angle) * planet.ringWidth * 0.5;
+                const y = planet.y + Math.sin(angle) * planet.ringHeight * 0.5;
+                if (i === 0) this.graphics.moveTo(x, y);
+                else this.graphics.lineTo(x, y);
+            }
+            this.graphics.strokePath();
         }
-        this.graphics.fillStyle(
-            valueOrDefault(planet.detailColor, adjustColor(planet.color, -28)),
-            0.15 * alpha
-        );
-        this.graphics.fillCircle(planet.x - size * 0.08, planet.y + size * 0.14, size * 0.18);
-        this.graphics.fillCircle(planet.x + size * 0.3, planet.y - size * 0.2, size * 0.12);
         this.graphics.lineStyle(
             1.5,
             valueOrDefault(planet.atmosphereColor, glowColor),

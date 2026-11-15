@@ -5,52 +5,152 @@
         "levelTheme": "Skyhook Anchor: the tether station, the final climb. Wardens swarm the decks, a timed beam sweeps the pad approach, and a crusher slams the crown pad itself on a beat.",
         "bossFiction": "The roost-mother of the skyhook nesting on the crown pad: a colossal cyber-hen with tether-cable plumage, anchor spurs, a red comb, and one big cyan lens. The last guardian of the tether crown.",
         "rule": "Jump her charge late between slam beats, duel each summoned warden, keep bolts on the lens.",
-        "tell": "Crouch and red flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one warden.",
+        "tell": "Ground rush: red wind-up. Leap: cyan wind-up. Summon: gold wind-up. First-phase tell 800ms; second-phase tell 900ms.",
         "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads, never stand under a rising slam.",
-        "hp": 16,
+        "hp": 28,
         "phases": [
             "pace",
             "telegraph (crouch + red flash)",
             "charge",
             "summon tell (gold)",
-            "recover"
+            "recover",
+            "armored phase shift",
+            "leap"
         ],
-        "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, HIGHROOST DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death."
+        "enrage": "STORM CROWN: Cyan: get under. Red: jump the rush. A 900ms transformation and the first full attack tell are armored; the first real attack drops that armor.",
+        "defeat": "Explosion, HIGHROOST DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death.",
+        "secondPhase": {
+            "title": "STORM CROWN",
+            "battleHint": "Cyan: get under. Red: jump the rush",
+            "initialAttackMs": 0,
+            "telegraphMs": 900,
+            "recoverMs": 1000,
+            "enrageCooldownMs": 1200,
+            "attackCycle": ["leap", "charge"],
+            "leap": {
+                "dx": 220,
+                "velocityY": 235,
+                "ms": 800
+            },
+            "summon": {
+                "key": "spireWarden",
+                "count": 1,
+                "maxAlive": 2,
+                "spread": 80,
+                "tellMs": 900,
+                "intervalMs": 6500,
+                "initialDelayMs": 3000
+            }
+        }
     },
     "telemetry": {
         "level": 15,
         "boss": "Highroost",
         "outcome": "boss-defeated",
-        "durationSec": 44.3,
-        "deaths": 2,
+        "durationSec": 94,
+        "deaths": 8,
         "deathSpots": [
             {
-                "x": 12407,
+                "x": 12290,
                 "y": 298,
-                "bossX": 12273,
-                "bossHp": 11,
-                "bossPhase": "recover",
-                "addDist": 45,
-                "bombDist": 2615,
+                "bossX": 12390,
+                "bossHp": 26,
+                "bossPhase": "pace",
+                "addDist": 190,
+                "bombDist": 6373,
                 "deathKind": "boarder",
-                "likelyCause": "add"
+                "likelyCause": "other"
             },
             {
-                "x": 12282,
-                "y": 298,
-                "bossX": 12362,
-                "bossHp": 9,
+                "x": 12071,
+                "y": 259,
+                "bossX": 12390,
+                "bossHp": 26,
+                "bossPhase": "dormant",
+                "addDist": 329,
+                "bombDist": 6428,
+                "deathKind": "laser",
+                "likelyCause": "other"
+            },
+            {
+                "x": 12393,
+                "y": 688,
+                "bossX": 12556,
+                "bossHp": 25,
                 "bossPhase": "pace",
-                "addDist": 182,
+                "addDist": 402,
+                "bombDist": 6006,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            },
+            {
+                "x": 12053,
+                "y": 268,
+                "bossX": 12390,
+                "bossHp": 25,
+                "bossPhase": "dormant",
+                "addDist": 308,
+                "bombDist": 6894,
+                "deathKind": "laser",
+                "likelyCause": "other"
+            },
+            {
+                "x": 12293,
+                "y": 298,
+                "bossX": 12374,
+                "bossHp": 24,
+                "bossPhase": "pace",
+                "addDist": 187,
+                "bombDist": 10839,
+                "deathKind": "boarder",
+                "likelyCause": "other"
+            },
+            {
+                "x": 12393,
+                "y": 704,
+                "bossX": 12583,
+                "bossHp": 21,
+                "bossPhase": "pace",
+                "addDist": 490,
+                "bombDist": 8543,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            },
+            {
+                "x": 12151,
+                "y": 160,
+                "bossX": 12390,
+                "bossHp": 21,
+                "bossPhase": "dormant",
+                "addDist": 150,
                 "bombDist": null,
+                "deathKind": "laser",
+                "likelyCause": "other"
+            },
+            {
+                "x": 12333,
+                "y": 298,
+                "bossX": 12436,
+                "bossHp": 14,
+                "bossPhase": "shift",
+                "addDist": 176,
+                "bombDist": 12066,
                 "deathKind": "boarder",
                 "likelyCause": "other"
             }
         ],
-        "hpStart": 16,
+        "hpStart": 28,
         "hpMin": 0,
-        "phasesSeen": ["dormant", "pace", "telegraph", "charge", "recover", "summonTell"],
+        "phasesSeen": [
+            "dormant",
+            "pace",
+            "telegraph",
+            "charge",
+            "recover",
+            "summonTell",
+            "shift",
+            "leap"
+        ],
         "enraged": true,
         "errors": [],
         "flags": []
@@ -59,65 +159,65 @@
         {
             "persona": "reviewer",
             "name": "Marlowe (expert reviewer)",
-            "fun": 1.56,
-            "fairness": 1.81,
-            "theme": 3.18,
+            "fun": 1.32,
+            "fairness": 1.48,
+            "theme": 3.06,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.5,
-                "fairness": 0.3,
-                "theme": 0.66,
-                "flaw": 0.96,
-                "verdict": 0.73
+                "fun": 0.65,
+                "fairness": 0.37,
+                "theme": 0.7,
+                "flaw": 0.91,
+                "verdict": 0.56
             }
         },
         {
             "persona": "veteran",
             "name": "Vic (contra veteran)",
-            "fun": 1.87,
-            "fairness": 1.8,
-            "theme": 3.14,
+            "fun": 1.58,
+            "fairness": 1.2,
+            "theme": 3.08,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.46,
-                "fairness": 0.32,
-                "theme": 0.63,
+                "fun": 0.4,
+                "fairness": 0.48,
+                "theme": 0.68,
                 "flaw": 0.87,
-                "verdict": 0.64
+                "verdict": 0.62
             }
         },
         {
             "persona": "casual",
             "name": "Sam (casual newcomer)",
-            "fun": 1.79,
-            "fairness": 1.47,
-            "theme": 3.21,
+            "fun": 1.33,
+            "fairness": 0.97,
+            "theme": 3,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.54,
-                "fairness": 0.55,
-                "theme": 0.64,
-                "flaw": 0.84,
-                "verdict": 0.73
+                "fun": 0.48,
+                "fairness": 0.65,
+                "theme": 0.72,
+                "flaw": 0.77,
+                "verdict": 0.67
             }
         },
         {
             "persona": "speedrunner",
             "name": "Lex (speedrunner)",
-            "fun": 1.7,
-            "fairness": 1.68,
-            "theme": 3.23,
+            "fun": 1.52,
+            "fairness": 1.19,
+            "theme": 3.04,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.35,
-                "fairness": 0.39,
-                "theme": 0.68,
-                "flaw": 0.89,
-                "verdict": 0.66
+                "fun": 0.43,
+                "fairness": 0.48,
+                "theme": 0.7,
+                "flaw": 0.86,
+                "verdict": 0.61
             }
         }
     ],

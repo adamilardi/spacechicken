@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: J — hold Up/W while firing to aim up the shaft and at the high fangs, Down/S to fire down from the air. Gnawers hold the fangs as well as the floor. Shrikes swoop between tiers: stomp them or dodge the dive. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music)',
+            'HIVE WARRENS - The nest. Stomp the gold-capped beetle to launch up to the catwalk. Jaw doors slam on a beat: cross between slams. Acid drips fall in the low tunnel. Climb the fang shaft to the crown deck. Waves still answer to the space phaser: J — hold Up/W while firing to aim up the shaft and at the high fangs, Down/S to fire down from the air. Gnawers hold the fangs as well as the floor. Shrikes swoop between tiers: stomp them or dodge the dive. The HIVE MOTHER nests on the deck and births gnawers: burn her lens, duel the young. New gun: PIERCER, a thin bolt that punches through the wave. Press G to swap guns. Pods grant 30s of heavy fire. (M toggles music) Phase II: Move under the queen; shoot the brood.',
         touchInstructions:
-            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires; hold the up-arrow to aim up the shaft, the down-arrow to fire down from the air. Gnawers hold the fangs too. Stomp swooping shrikes. New gun: PIERCER. The gun button swaps guns. The HIVE MOTHER guards the crown: burn her, duel her young. Pods grant 30s guns.',
+            'HIVE WARRENS - Stomp the beetle to launch up. Time the jaw doors. The bolt button fires; hold the up-arrow to aim up the shaft, the down-arrow to fire down from the air. Gnawers hold the fangs too. Stomp swooping shrikes. New gun: PIERCER. The gun button swaps guns. The HIVE MOTHER guards the crown: burn her, duel her young. Pods grant 30s guns. Phase II: Move under the queen; shoot the brood.',
         background: {
             type: 'hive',
             style: 'warrens',
@@ -82,8 +82,11 @@ export const level = {
         checkpoints: [
             { x: 1600, y: 672 },
             { x: 2550, y: 512 },
+            { x: 3538, y: 532 },
+            { x: 5298, y: 612 },
             { x: 6050, y: 532 },
             { x: 6520, y: 512 },
+            { x: 8232, y: 422 },
             { x: 10250, y: 420 },
         ],
         rescues: [
@@ -96,6 +99,7 @@ export const level = {
             { x: 4850, y: 490, gun: 'hail' },
             { x: 6050, y: 350, gun: 'nova' },
             { x: 7160, y: 398, gun: 'piercer' },
+            { x: 9190, y: 236, gun: 'hail' },
         ],
         boarderWaves: [
             { wave: 1, x: 0 },
@@ -103,7 +107,9 @@ export const level = {
             { wave: 3, x: 2380 },
             { wave: 4, x: 3350 },
             { wave: 5, x: 4600 },
-            { wave: 6, x: 6500 },
+            { wave: 6, x: 5300 },
+            { wave: 7, x: 6510 },
+            { wave: 8, x: 8550 },
         ],
         dynamic: [
             {
@@ -192,7 +198,7 @@ export const level = {
             { type: 'boarder', key: 'gnawer', x: 4150, y: 560, wave: 4 },
             { type: 'boarder', key: 'gnawer', x: 5000, y: 620, wave: 5 },
             { type: 'boarder', key: 'gnawer', x: 5450, y: 560, wave: 5 },
-            { type: 'boarder', key: 'gnawer', x: 5950, y: 398, wave: 5 },
+            { type: 'boarder', key: 'gnawer', x: 5950, y: 398, wave: 6 },
             { type: 'drip', x: 8350, y: 310, interval: 1600, delay: 0 },
             { type: 'drip', x: 8500, y: 310, interval: 1600, delay: 750 },
             {
@@ -229,8 +235,8 @@ export const level = {
                 bodyWidth: 46,
                 bodyHeight: 36,
             },
-            { type: 'boarder', key: 'gnawer', x: 7160, y: 464, wave: 6 },
-            { type: 'boarder', key: 'gnawer', x: 9200, y: 268, wave: 6 },
+            { type: 'boarder', key: 'gnawer', x: 7160, y: 464, wave: 7 },
+            { type: 'boarder', key: 'gnawer', x: 9200, y: 268, wave: 8 },
             {
                 type: 'shrike',
                 x: 1950,
@@ -255,8 +261,31 @@ export const level = {
                 bossName: 'Hive Mother',
                 x: 10990,
                 y: 215,
-                hp: 16,
+                hp: 24,
                 crownGuard: true,
+                phaseTwo: {
+                    title: 'HIVE ERUPTION',
+                    battleHint: 'Move under the queen; shoot the brood',
+                    initialAttackMs: 0,
+                    telegraphMs: 900,
+                    recoverMs: 1000,
+                    enrageCooldownMs: 1200,
+                    attackCycle: ['leap'],
+                    leap: {
+                        dx: 160,
+                        velocityY: 225,
+                        ms: 750,
+                    },
+                    summon: {
+                        key: 'gnawer',
+                        count: 2,
+                        maxAlive: 2,
+                        spread: 80,
+                        tellMs: 900,
+                        intervalMs: 6500,
+                        initialDelayMs: 3000,
+                    },
+                },
                 triggerX: 10500,
                 minX: 10870,
                 maxX: 11130,
@@ -268,7 +297,7 @@ export const level = {
                 // Summoner first: births carry the fight, but when pressed
                 // she heaves her bulk across the deck — a slow short
                 // charge (165px) on a long clock, after the first birth.
-                initialAttackMs: 6000,
+                initialAttackMs: 1100,
                 cooldownMs: 5200,
                 enrageCooldownMs: 4200,
                 enrageChargeMult: 1.15,

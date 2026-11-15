@@ -1,0 +1,203 @@
+[
+    {
+        "level": 8,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 0,
+        "simulatedSeconds": 14.8,
+        "phaseTwoAttacks": ["charge", "summon", "charge"],
+        "phases": [
+            "trigger",
+            "telegraph",
+            "charge",
+            "recover",
+            "pace",
+            "shift",
+            "summonTell",
+            "summon"
+        ],
+        "maxAdds": 1,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/8-phase-shift.png",
+            ".bot-runs/epic-bosses/8-phase-two-charge.png",
+            ".bot-runs/epic-bosses/8-defeat.png"
+        ]
+    },
+    {
+        "level": 9,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 0,
+        "simulatedSeconds": 7.8,
+        "phaseTwoAttacks": ["leap"],
+        "phases": [
+            "trigger",
+            "telegraph",
+            "charge",
+            "recover",
+            "pace",
+            "summonTell",
+            "shift",
+            "leap"
+        ],
+        "maxAdds": 0,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/9-phase-shift.png",
+            ".bot-runs/epic-bosses/9-defeat.png"
+        ]
+    },
+    {
+        "level": 10,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 0,
+        "simulatedSeconds": 9.5,
+        "phaseTwoAttacks": ["charge", "leap"],
+        "phases": ["trigger", "telegraph", "shift", "charge", "recover", "pace", "leap"],
+        "maxAdds": 0,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/10-phase-shift.png",
+            ".bot-runs/epic-bosses/10-phase-two-charge.png",
+            ".bot-runs/epic-bosses/10-phase-two-leap.png",
+            ".bot-runs/epic-bosses/10-defeat.png"
+        ]
+    },
+    {
+        "level": 11,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 0,
+        "simulatedSeconds": 9.3,
+        "phaseTwoAttacks": ["charge", "summon", "charge"],
+        "phases": [
+            "trigger",
+            "shift",
+            "telegraph",
+            "charge",
+            "recover",
+            "pace",
+            "summonTell",
+            "summon"
+        ],
+        "maxAdds": 2,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/11-phase-shift.png",
+            ".bot-runs/epic-bosses/11-phase-two-charge.png",
+            ".bot-runs/epic-bosses/11-defeat.png"
+        ]
+    },
+    {
+        "level": 12,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 2,
+        "simulatedSeconds": 14.3,
+        "phaseTwoAttacks": ["leap", "leap", "leap"],
+        "phases": ["trigger", "telegraph", "shift", "leap", "recover"],
+        "maxAdds": 0,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/12-phase-shift.png",
+            ".bot-runs/epic-bosses/12-phase-two-leap.png",
+            ".bot-runs/epic-bosses/12-defeat.png"
+        ]
+    },
+    {
+        "level": 13,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 2,
+        "simulatedSeconds": 22.3,
+        "phaseTwoAttacks": ["charge", "charge", "charge", "charge", "leap"],
+        "phases": ["trigger", "telegraph", "shift", "charge", "recover", "pace", "leap"],
+        "maxAdds": 0,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/13-phase-shift.png",
+            ".bot-runs/epic-bosses/13-phase-two-charge.png",
+            ".bot-runs/epic-bosses/13-phase-two-leap.png",
+            ".bot-runs/epic-bosses/13-defeat.png"
+        ]
+    },
+    {
+        "level": 14,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 1,
+        "simulatedSeconds": 12.3,
+        "phaseTwoAttacks": ["leap", "leap", "summon"],
+        "phases": [
+            "trigger",
+            "telegraph",
+            "charge",
+            "recover",
+            "pace",
+            "summonTell",
+            "shift",
+            "leap",
+            "summon"
+        ],
+        "maxAdds": 1,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/14-phase-shift.png",
+            ".bot-runs/epic-bosses/14-phase-two-leap.png",
+            ".bot-runs/epic-bosses/14-defeat.png"
+        ]
+    },
+    {
+        "level": 15,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 0,
+        "simulatedSeconds": 15.3,
+        "phaseTwoAttacks": ["leap", "summon"],
+        "phases": [
+            "trigger",
+            "telegraph",
+            "charge",
+            "recover",
+            "pace",
+            "shift",
+            "leap",
+            "summonTell",
+            "summon"
+        ],
+        "maxAdds": 0,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/15-phase-shift.png",
+            ".bot-runs/epic-bosses/15-phase-two-leap.png",
+            ".bot-runs/epic-bosses/15-defeat.png"
+        ]
+    },
+    {
+        "level": 16,
+        "mode": "arena approach",
+        "seed": 42,
+        "completed": true,
+        "deaths": 4,
+        "simulatedSeconds": 16.5,
+        "phaseTwoAttacks": ["leap", "leap"],
+        "phases": ["trigger", "telegraph", "charge", "recover", "pace", "shift", "leap"],
+        "maxAdds": 0,
+        "errors": [],
+        "screenshots": [
+            ".bot-runs/epic-bosses/16-phase-shift.png",
+            ".bot-runs/epic-bosses/16-phase-two-leap.png",
+            ".bot-runs/epic-bosses/16-defeat.png"
+        ]
+    }
+]

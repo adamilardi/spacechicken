@@ -5,56 +5,56 @@
     {
       "id": "death-1",
       "file": "death-1.jpg",
-      "x": 2446,
+      "x": 1958,
       "y": 400,
-      "proves": "gameplay frame at death 1 (x=2446, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "proves": "gameplay frame at death 1 (x=1958, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
       "capture": "gameplay",
-      "hash": "b66e871ff01c"
+      "hash": "f52d0df0f1e5"
     },
     {
       "id": "death-2",
       "file": "death-2.jpg",
-      "x": 3141,
+      "x": 2121,
       "y": 400,
-      "proves": "gameplay frame at death 2 (x=3141, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "proves": "gameplay frame at death 2 (x=2121, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
       "capture": "gameplay",
-      "hash": "de5464b8e903"
+      "hash": "1bcbee8b1706"
     },
     {
       "id": "death-3",
       "file": "death-3.jpg",
-      "x": 6856,
+      "x": 2477,
       "y": 400,
-      "proves": "gameplay frame at death 3 (x=6856, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "proves": "gameplay frame at death 3 (x=2477, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
       "capture": "gameplay",
-      "hash": "caf7cf119ffa"
+      "hash": "6f8f848f77df"
     },
     {
       "id": "death-4",
       "file": "death-4.jpg",
-      "x": 7606,
+      "x": 2120,
       "y": 400,
-      "proves": "gameplay frame at death 4 (x=7606, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "proves": "gameplay frame at death 4 (x=2120, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
       "capture": "gameplay",
-      "hash": "5c3b9db330ae"
+      "hash": "f88ecd35fe11"
     },
     {
       "id": "death-5",
       "file": "death-5.jpg",
-      "x": 7619,
+      "x": 2123,
       "y": 400,
-      "proves": "gameplay frame at death 5 (x=7619, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "proves": "gameplay frame at death 5 (x=2123, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
       "capture": "gameplay",
-      "hash": "0de29b111aec"
+      "hash": "54a0fc8d7735"
     },
     {
       "id": "death-6",
       "file": "death-6.jpg",
-      "x": 7619,
+      "x": 2128,
       "y": 400,
-      "proves": "gameplay frame at death 6 (x=7619, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "proves": "gameplay frame at death 6 (x=2128, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
       "capture": "gameplay",
-      "hash": "058f682014f0"
+      "hash": "e770ae8366e5"
     },
     {
       "id": "01-opener",
@@ -63,7 +63,7 @@
       "y": 480,
       "proves": "spawn read and first move",
       "capture": "staged-teleport",
-      "hash": "79448356067b"
+      "hash": "468ed33772f8"
     },
     {
       "id": "02-hazard-boarder",
@@ -72,7 +72,7 @@
       "y": 540,
       "proves": "hazard beat: boarder at x=700",
       "capture": "staged-teleport",
-      "hash": "7f41665b7ef7"
+      "hash": "d49a6c30f4f4"
     },
     {
       "id": "03-hazard-drone",
@@ -81,7 +81,7 @@
       "y": 360,
       "proves": "hazard beat: drone at x=1400",
       "capture": "staged-teleport",
-      "hash": "4e753628c541"
+      "hash": "b7a77673dfcb"
     },
     {
       "id": "04-hazard-bonk",
@@ -90,7 +90,7 @@
       "y": 500,
       "proves": "hazard beat: bonk at x=11100",
       "capture": "staged-teleport",
-      "hash": "7102cf9784c9"
+      "hash": "3e2ddc9c32b6"
     },
     {
       "id": "05-hazard-boss",
@@ -99,7 +99,7 @@
       "y": 427,
       "proves": "hazard beat: boss at x=11640",
       "capture": "staged-teleport",
-      "hash": "50eac77ec95d"
+      "hash": "86b7ebb36c25"
     },
     {
       "id": "06-finale",
@@ -108,7 +108,7 @@
       "y": 400,
       "proves": "crown approach and finale pressure",
       "capture": "staged-teleport",
-      "hash": "377a00353c99"
+      "hash": "d6f36ad475f3"
     }
   ]
 }

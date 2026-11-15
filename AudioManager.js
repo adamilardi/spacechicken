@@ -75,6 +75,10 @@ export class AudioManager {
         return this.sfx.playBonkSound(...args);
     }
 
+    playBossCue(...args) {
+        return this.sfx.playBossCue(...args);
+    }
+
     playFallDeathSound(...args) {
         return this.sfx.playFallDeathSound(...args);
     }

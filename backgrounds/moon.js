@@ -8,6 +8,7 @@ export function createMoonBackgroundLayout(background, worldWidth, worldHeight) 
             x: Math.random() * worldWidth,
             y: Math.random() * (worldHeight * 0.75),
             size: Math.random() * 2.2 + 0.6,
+            color: 0xcfd8ff,
             alpha: Math.random() * 0.6 + 0.4,
         });
     }

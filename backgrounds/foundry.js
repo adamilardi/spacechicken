@@ -115,6 +115,11 @@ export function renderFoundryBackground(
             );
             renderer.graphics.fillStyle(palette.molten, 0.95);
             renderer.graphics.fillRect(ladle.x + 20, railY + 70, 40, 5);
+            renderer.graphics.fillStyle(palette.rail, 1);
+            renderer.graphics.fillRect(ladle.x + 12, railY + 76, 56, 5);
+            renderer.graphics.fillRect(ladle.x + 30, railY - 4, 20, 18);
+            renderer.graphics.fillStyle(palette.ember, 0.3);
+            renderer.graphics.fillRect(ladle.x + 28, railY + 86, 3, 10);
         });
         return;
     }

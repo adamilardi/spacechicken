@@ -16,13 +16,18 @@ function drawEarth(renderer, earth) {
         graphics.fillEllipse(earth.x + cloud.dx, earth.y + cloud.dy, cloud.rx * 2, cloud.ry * 2);
     });
     graphics.fillStyle(0x071422, 0.62);
-    graphics.fillCircle(earth.x + earth.r * 1.35, earth.y - earth.r * 0.05, earth.r * 0.72);
+    for (let row = -earth.r; row < earth.r; row += 2) {
+        const edge = Math.sqrt(Math.max(0, earth.r * earth.r - row * row));
+        graphics.fillRect(earth.x + edge * 0.5, earth.y + row, edge * 0.5, 2);
+    }
     graphics.lineStyle(12, 0x9ad7ff, 0.5);
     graphics.strokeCircle(earth.x, earth.y, earth.r + 8);
 }
 
-function renderIssArrays(graphics, arrays) {
+function renderIssArrays(graphics, arrays, worldHeight) {
     (arrays || []).forEach((panel) => {
+        graphics.fillStyle(0x26384d, 0.8);
+        graphics.fillRect(panel.x + panel.w * 0.46, panel.y, 8, worldHeight * 0.86 - panel.y);
         graphics.fillStyle(0x8d97a6, 0.9);
         graphics.fillRect(panel.x, panel.y + panel.h * 0.4, panel.w, 3);
         graphics.fillStyle(0x163e78, 0.92);
@@ -106,7 +111,7 @@ export function createIssBackgroundLayout(background, worldWidth, worldHeight) {
         ],
     };
     const arrays = [];
-    for (let x = 40; x < worldWidth; x += 280) {
+    for (let x = 80; x < worldWidth; x += 740) {
         arrays.push({ x, y: Math.round(worldHeight * 0.5), w: 168, h: 22 });
     }
     const modules = [];
@@ -147,11 +152,13 @@ export function renderIssBackground(
     }
     if (layerId === 'far') {
         renderer.renderStars(starsFor(layout, 'far'));
-        drawEarth(renderer, layout.earth);
+        renderer.paintRoundBody(layout.earth.x, layout.earth.y, () =>
+            drawEarth(renderer, layout.earth)
+        );
         return;
     }
     if (layerId === 'mid') {
-        renderIssArrays(renderer.graphics, layout.arrays);
+        renderIssArrays(renderer.graphics, layout.arrays, worldHeight);
         return;
     }
     if (layerId === 'near') {

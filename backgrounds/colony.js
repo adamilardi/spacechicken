@@ -13,20 +13,23 @@ export function createColonyBackgroundLayout(background, worldWidth, worldHeight
         });
     }
     const domes = [];
-    for (let x = 120; x < worldWidth; x += 480) {
-        domes.push({ x, y: worldHeight * 0.62, r: 90 + (x % 60) });
+    for (let x = 160, i = 0; x < worldWidth; i++) {
+        domes.push({ x, y: worldHeight * 0.62, r: 65 + ((i * 43) % 85) });
+        x += 640 + ((i * 173) % 420);
     }
     const towers = [];
-    for (let x = 20; x < worldWidth; x += 180) {
+    for (let x = 20, i = 0; x < worldWidth; i++) {
         towers.push({
             x,
-            w: 46,
-            h: worldHeight * (0.18 + ((x * 7) % 10) / 100),
+            w: 40 + ((i * 37) % 100),
+            h: worldHeight * (0.09 + ((i * 7) % 13) / 65),
         });
+        x += 130 + ((i * 79) % 260);
     }
     const beams = [];
-    for (let x = 300; x < worldWidth; x += 900) {
-        beams.push({ x, top: worldHeight * 0.08, spread: 60 + (x % 40) });
+    for (let x = 600, i = 0; x < worldWidth; i++) {
+        beams.push({ x, top: worldHeight * (0.05 + (i % 3) * 0.06), spread: 90 });
+        x += 1800 + ((i * 233) % 700);
     }
     return {
         stars,
@@ -121,6 +124,14 @@ export function renderColonyBackground(
             renderer.graphics.fillRect(tower.x, horizon - tower.h, tower.w, tower.h);
             renderer.graphics.fillStyle(palette.tower, 1);
             renderer.graphics.fillRect(tower.x - 4, horizon - tower.h, tower.w + 8, 6);
+            renderer.graphics.fillStyle(palette.strip, 0.12);
+            renderer.graphics.fillRect(
+                tower.x + tower.w - 8,
+                horizon - tower.h + 10,
+                2,
+                tower.h - 10
+            );
+            renderer.graphics.fillRect(tower.x + 4, horizon - tower.h + 38, tower.w - 8, 2);
             renderer.graphics.fillStyle(palette.signal, 0.9);
             renderer.graphics.fillRect(tower.x + 8, horizon - tower.h + 14, 8, 4);
             renderer.graphics.fillStyle(palette.strip, 0.5);

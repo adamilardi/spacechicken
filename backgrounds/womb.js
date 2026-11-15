@@ -1,7 +1,8 @@
 export function createWombBackgroundLayout(background, worldWidth, worldHeight) {
     const ribs = [];
-    for (let x = 140; x < worldWidth; x += 460) {
-        ribs.push({ x, r: worldHeight * (0.34 + ((x * 7) % 10) / 120) });
+    for (let x = 140, i = 0; x < worldWidth; i++) {
+        ribs.push({ x, r: worldHeight * (0.3 + (i % 4) * 0.035) });
+        x += 640 + ((i * 157) % 330);
     }
     const heart = { x: worldWidth * 0.55, y: worldHeight * 0.34, r: 64 };
     const sacs = [];
@@ -82,6 +83,8 @@ export function renderWombBackground(
         return;
     }
     if (layerId === 'far') {
+        renderer.graphics.fillStyle(palette.fold, 0.65);
+        renderer.graphics.fillRect(0, horizon, worldWidth, worldHeight - horizon);
         (layout.ribs || []).forEach((rib) => {
             const points = [];
             const steps = 14;
@@ -143,6 +146,12 @@ export function renderWombBackground(
             renderer.graphics.fillCircle(heart.x - heart.r * 0.1, heart.y - heart.r * 0.1, 3);
         }
         (layout.sacs || []).forEach((sac) => {
+            renderer.graphics.lineStyle(4, palette.fold, 0.85);
+            renderer.graphics.beginPath();
+            renderer.graphics.moveTo(sac.x - sac.r, 0);
+            renderer.graphics.lineTo(sac.x + sac.r * 0.4, sac.y * 0.6);
+            renderer.graphics.lineTo(sac.x, sac.y);
+            renderer.graphics.strokePath();
             renderer.graphics.fillStyle(palette.flesh, 0.95);
             renderer.graphics.fillCircle(sac.x, sac.y, sac.r);
             renderer.graphics.fillStyle(palette.core, 0.85);
@@ -157,6 +166,9 @@ export function renderWombBackground(
     if (layerId !== 'near') {
         return;
     }
+    renderer.graphics.fillStyle(palette.ground, 1);
+    renderer.graphics.fillRect(0, 0, worldWidth, 16);
+    renderer.graphics.fillRect(0, worldHeight - 16, worldWidth, 16);
     (layout.teethTop || []).forEach((tooth) => {
         renderer.renderPolygon(
             [
@@ -180,7 +192,6 @@ export function renderWombBackground(
         );
     });
     (layout.wisps || []).forEach((wisp) => {
-        renderer.graphics.fillStyle(palette.vein, 0.18);
-        renderer.graphics.fillEllipse(wisp.x, wisp.y, wisp.rx * 2, wisp.ry * 2);
+        renderer.drawGlow(wisp.x, wisp.y, wisp.rx, palette.vein, 0.04, 8);
     });
 }

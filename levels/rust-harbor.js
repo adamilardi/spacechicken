@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves on the deck and the high planks: face them and press J to fire the space phaser — hold Up/W while firing to aim up the plank stair and at the high decks, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Shrikes swoop the yard: stomp them or dodge the dive. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'RUST HARBOR - The breaker yard. Skitterlings swarm in waves on the deck and the high planks: face them and press J to fire the space phaser — hold Up/W while firing to aim up the plank stair and at the high decks, Down/S to fire down from the air. Gamepad: left stick Y aims, left face button fires. Drips fall on the low run, a sentry bobs over the high shelf. Climb the plank stair past the high decks. Shrikes swoop the yard: stomp them or dodge the dive. Cargo slams guard the crown deck: cross between slams. SCRAPJAW holds the crown deck: jump her charge between the slams, burn the lens. New gun: RIPPER, a wide fan that punches through one. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music) Phase II: Jump the rushes; pass under the vault.',
         touchInstructions:
-            'RUST HARBOR - The breaker yard. Skitterlings hold the planks too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: RIPPER. SCRAPJAW holds the deck: jump her charge between the slams. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s.',
+            'RUST HARBOR - The breaker yard. Skitterlings hold the planks too: the bolt button fires, the up-arrow aims up the stair, the down-arrow fires down from the air. Stomp swooping shrikes. New gun: RIPPER. SCRAPJAW holds the deck: jump her charge between the slams. Cross the slams between drops. Pods grant 30s guns. Free cages for −2s. Phase II: Jump the rushes; pass under the vault.',
         background: {
             type: 'harbor',
             style: 'dusk',
@@ -87,8 +87,10 @@ export const level = {
         checkpoints: [
             { x: 1900, y: 560 },
             { x: 3300, y: 460 },
+            { x: 4530, y: 472 },
             { x: 6400, y: 502 },
             { x: 8350, y: 432 },
+            { x: 10042, y: 412 },
             { x: 11750, y: 390 },
         ],
         rescues: [
@@ -103,6 +105,7 @@ export const level = {
             { x: 5750, y: 350, gun: 'ripper' },
             { x: 7850, y: 380, gun: 'hail' },
             { x: 8990, y: 328, gun: 'ripper' },
+            { x: 11020, y: 232, gun: 'comet' },
         ],
         boarderWaves: [
             { wave: 1, x: 0 },
@@ -111,7 +114,9 @@ export const level = {
             { wave: 4, x: 3300 },
             { wave: 5, x: 3900 },
             { wave: 6, x: 5200 },
-            { wave: 7, x: 8150 },
+            { wave: 7, x: 6450 },
+            { wave: 8, x: 8340 },
+            { wave: 9, x: 9800 },
         ],
         dynamic: [
             { type: 'boarder', key: 'skitterling', x: 550, y: 588, wave: 1 },
@@ -194,7 +199,7 @@ export const level = {
             { type: 'boarder', key: 'skitterling', x: 4900, y: 450, wave: 5 },
             { type: 'boarder', key: 'skitterling', x: 5600, y: 480, wave: 6 },
             { type: 'boarder', key: 'skitterling', x: 6210, y: 450, wave: 6 },
-            { type: 'boarder', key: 'skitterling', x: 7100, y: 338, wave: 6 },
+            { type: 'boarder', key: 'skitterling', x: 7100, y: 338, wave: 7 },
             { type: 'drip', x: 10200, y: 284, interval: 1600, delay: 300 },
             { type: 'drip', x: 10350, y: 284, interval: 1600, delay: 1050 },
             {
@@ -221,9 +226,9 @@ export const level = {
                 y: 372,
                 patrol: { x: 9710, duration: 1500 },
             },
-            { type: 'boarder', key: 'skitterling', x: 8990, y: 394, wave: 7 },
-            { type: 'boarder', key: 'skitterling', x: 10450, y: 394, wave: 7 },
-            { type: 'boarder', key: 'skitterling', x: 11080, y: 264, wave: 7 },
+            { type: 'boarder', key: 'skitterling', x: 8990, y: 394, wave: 8 },
+            { type: 'boarder', key: 'skitterling', x: 10450, y: 394, wave: 9 },
+            { type: 'boarder', key: 'skitterling', x: 11080, y: 264, wave: 9 },
             {
                 type: 'shrike',
                 x: 3350,
@@ -248,13 +253,27 @@ export const level = {
                 bossName: 'Scrapjaw',
                 x: 12440,
                 y: 270,
-                hp: 12,
+                hp: 24,
                 crownGuard: true,
+                phaseTwo: {
+                    title: 'BREAKER RAGE',
+                    battleHint: 'Jump the rushes; pass under the vault',
+                    initialAttackMs: 0,
+                    telegraphMs: 900,
+                    recoverMs: 1000,
+                    enrageCooldownMs: 1200,
+                    attackCycle: ['charge', 'charge', 'leap'],
+                    leap: {
+                        dx: 210,
+                        velocityY: 225,
+                        ms: 700,
+                    },
+                },
                 triggerX: 12100,
                 minX: 12320,
                 maxX: 12580,
                 paceSpeed: 60,
-                initialAttackMs: 4000,
+                initialAttackMs: 600,
                 telegraphMs: 800,
                 chargeSpeed: 420,
                 chargeMs: 900,

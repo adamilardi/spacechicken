@@ -1217,3 +1217,37 @@ test('news brief resolves through the art selection fallback', async () => {
     assert.deepEqual(resolved.brief.elements, ['rising water', 'sandbag stacks', 'rescue boats']);
     assert.equal(resolveBriefFromSelection(18, root), null);
 });
+
+test('quality requests bound input history without losing deaths or mutating retained runs', async () => {
+    const { qualityPanelTelemetry } = await loadCritic();
+    const inputHistory = Array.from({ length: 2000 }, (_, tSec) => ({
+        tSec,
+        input: { right: true, shoot: true, jump: tSec % 5 === 0 },
+    }));
+    const telemetry = {
+        outcome: 'crown-collected',
+        deathEvents: [
+            { tSec: 123.5, x: 2000, cause: 'hazard' },
+            { tSec: 1500, x: 8000, cause: 'fall' },
+        ],
+        inputHistory,
+        deathSpots: [2000, 8000],
+        stalls: [{ x: 1000, durationSec: 3 }],
+        maxX: 12000,
+    };
+    const compact = qualityPanelTelemetry(telemetry);
+    assert.equal(telemetry.inputHistory.length, 2000);
+    assert.deepEqual(
+        compact.inputHistory.map((entry) => entry.tSec),
+        [0, 123, 1500, 1999]
+    );
+    assert.deepEqual(compact.deathEvents, telemetry.deathEvents);
+    assert.deepEqual(compact.stalls, telemetry.stalls);
+    assert.deepEqual(compact.deathSpots, telemetry.deathSpots);
+    assert.equal(compact.maxX, telemetry.maxX);
+    assert.equal(compact.outcome, 'crown-collected');
+    assert.equal(compact.inputHistoryCoverage.totalSamples, 2000);
+    assert.ok(JSON.stringify(compact).length < 2000);
+    assert.equal(qualityPanelTelemetry(null), null);
+    assert.deepEqual(qualityPanelTelemetry({ inputHistory: [] }).inputHistory, []);
+});

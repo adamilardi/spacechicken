@@ -75,3 +75,16 @@ None yet.
 - Feedback: “Can you do a full level validate and improvement loop for the contra style levels. Increase the lenght of the level to a normal contra stage length”
 - Context: local extension of levels 8–16, preserving the existing working-tree changes.
 - Disposition: implemented — every contra world grew one more act (+3600px: 10,000–12,800px total) with a new wave, themed hazards, a gun pod, a rescue, and a fourth checkpoint; finales moved intact. Full suite matches baseline (190 pass, same 8 pre-existing infra failures); all level/pacing/polish gates green. No browser was available in the build environment, so start-to-crown playthroughs still need a real browser. Report: docs/level-builds/contra-length.md.
+
+## 2026-11-14 — Contra arc — pacing and rewards
+
+- Feedback: “Can you make the contra style levels more fun”
+- Scope: Iron Front campaign, levels 8–16.
+- Changes: 16 recovery checkpoints across the seven long-gap levels, local reinforcement groups using the existing enemies, and a heavy-gun reward on each final defended upper route. Broodmother gets a wider landing deck, Crimson Heart a telegraphed pulse leap, and Scrapjaw an earlier first attack. No stage-length increase.
+- Evidence and remaining play-review findings: [Contra momentum](level-builds/contra-momentum.md). Human feel validation remains open.
+
+## 2026-11-15 — More epic bosses
+
+- Feedback: “Make the bosses MORE EPIC”.
+- Changes: all nine Iron Front bosses gain named phase-two patterns, a short armored transformation/opening tell, arrival and defeat effects, distinct synth stings, and a segmented health bar with an armor indicator. Existing level momentum improvements remain.
+- Validation: all nine arena fights and all nine full routes clear in the fixed-step pilot; desktop and phone HUD/pause checks pass. Boss quality panels still request more attack-family variety. Details: [epic boss build](boss-builds/contra-epic.md).

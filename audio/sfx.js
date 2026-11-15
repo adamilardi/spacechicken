@@ -5,6 +5,39 @@ export class SfxSynth {
         this.stepAt = new WeakMap();
     }
 
+    playBossCue(kind) {
+        if (!this.voice.canUseWebAudio()) return;
+        const now = this.voice.scene.sound.context.currentTime;
+        const notes =
+            kind === 'defeat'
+                ? [220, 330, 440, 554, 660]
+                : kind === 'phase'
+                  ? [110, 165, 220, 330]
+                  : [130, 98, 65];
+        notes.forEach((frequency, index) => {
+            this.voice.playTone({
+                freqStart: frequency,
+                freqEnd: frequency * 0.99,
+                duration: kind === 'defeat' ? 0.4 : 0.22,
+                type: 'triangle',
+                volume: 0.075,
+                attackTime: 0.005,
+                releaseTime: 0.16,
+                harmonics: [{ ratio: 2, gain: 0.18, type: 'sine' }],
+                startTime: now + index * 0.07,
+            });
+        });
+        this.voice.playNoise({
+            duration: 0.24,
+            volume: 0.08,
+            attackTime: 0.002,
+            releaseTime: 0.2,
+            filter: { type: 'lowpass', frequency: 900, endFrequency: 120, Q: 0.5 },
+            startTime: now,
+        });
+        this.music.duckMusic?.(250);
+    }
+
     playBonkSound() {
         if (!this.voice.canUseWebAudio()) {
             return;

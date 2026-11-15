@@ -20,8 +20,25 @@ export function createFacilityBackgroundLayout(_background, worldWidth, worldHei
     return { vats, lights, windows, pipes: Math.round(worldHeight * 0.14) };
 }
 
-function renderFacilityVats(graphics, vats, palette) {
+function renderFacilityVats(graphics, vats, palette, worldHeight) {
     (vats || []).forEach((vat) => {
+        // Feed pipe to the ceiling and feet to the floor anchor the tanks.
+        graphics.fillStyle(palette.metal, 0.7);
+        graphics.fillRect(
+            vat.x + vat.w * 0.5 - 4,
+            worldHeight * 0.14,
+            8,
+            vat.y - worldHeight * 0.14
+        );
+        const footY = vat.y + vat.h;
+        for (const offset of [0.18, 0.78]) {
+            graphics.fillRect(
+                vat.x + vat.w * offset,
+                footY,
+                8,
+                Math.max(0, worldHeight - 70 - footY)
+            );
+        }
         graphics.fillStyle(palette.metal, 0.95).fillRect(vat.x, vat.y, vat.w, vat.h);
         graphics
             .fillStyle(palette.shadow, 1)
@@ -90,7 +107,7 @@ export function renderFacilityBackground(
         return;
     }
     if (layerId === 'mid') {
-        renderFacilityVats(renderer.graphics, layout.vats, palette);
+        renderFacilityVats(renderer.graphics, layout.vats, palette, worldHeight);
         return;
     }
     if (layerId !== 'near') {

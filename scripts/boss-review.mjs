@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { choice, score, TypeSafeClient } from '@typesafe-ai/sdk';
 import { readTypeSafeApiKey } from './jev-playtest.mjs';
+import { LEVEL_CONTENT } from '../levels/index.js';
 
 const require = createRequire(import.meta.url);
 
@@ -119,14 +120,14 @@ const BRIEFS = {
         levelTheme:
             'Crimson Womb: the heart of the enemy. Gnawers swarm the flesh, drips fall in the low run, devils patrol, and a spore-beam guards the last gap before the crown deck.',
         bossFiction:
-            'The beating heart of the womb itself on the crown deck: twin crimson lobes, artery stubs, glow sacs, and one cyan lens. She paces and slam-charges with the heartbeat.',
-        rule: 'Jump her slam-charge late, keep bolts on the lens between slams.',
-        tell: 'Heartbeat double-thump, crouch and red flash for 800ms means a 378px charge.',
+            'The beating heart of the womb itself on the crown deck: twin crimson lobes, artery stubs, glow sacs, and one cyan lens. She compresses, pulses into a short leap, and exposes the lens on landing.',
+        rule: 'Move underneath the pulse leap and shoot the lens during grounded recovery.',
+        tell: 'Crouch and red flash for 900ms before a short 200px pulse leap.',
         safeResponse:
-            'Plant on the pace, strafe the telegraph, jump as the charge leaves, burn the lens between slams.',
-        hp: 12,
-        phases: ['pace', 'telegraph (crouch + red flash)', 'charge', 'recover'],
-        enrage: 'Below half HP she rests shorter and charges 20% faster, tinted purple with an ENRAGED banner.',
+            'Read the wind-up, move under the airborne Heart, and use its 1200ms recovery to shoot.',
+        hp: 18,
+        phases: ['pace', 'telegraph (crouch + red flash)', 'leap', 'recover'],
+        enrage: 'Below half HP her horizontal leap accelerates and she rests less between attacks, tinted purple with an ENRAGED banner.',
         defeat: 'Explosion, CRIMSON HEART DOWN banner, crown shield opens. Wounds persist through player death.',
     },
     13: {
@@ -510,8 +511,25 @@ export function telemetryFlags(telemetry) {
 // reviews cannot see staleness on their own, so the state carries it in.
 // Count the family THIS boss belongs to: a leap boss judged against the
 // charge family's headcount reads as stale no matter how new it is.
+export function currentBossBrief(level) {
+    const base = BRIEFS[level];
+    if (!base) return null;
+    const actor = LEVEL_CONTENT[level]?.dynamic?.find((entry) => entry.type === 'boss');
+    if (!actor?.phaseTwo) return base;
+    return {
+        ...base,
+        hp: actor.hp,
+        phases: [
+            ...new Set([...base.phases, 'armored phase shift', ...actor.phaseTwo.attackCycle]),
+        ],
+        secondPhase: actor.phaseTwo,
+        enrage: `${actor.phaseTwo.title}: ${actor.phaseTwo.battleHint}. A 900ms transformation and the first full attack tell are armored; the first real attack drops that armor.`,
+        tell: `Ground rush: red wind-up. Leap: cyan wind-up. Summon: gold wind-up. First-phase tell ${actor.telegraphMs}ms; second-phase tell ${actor.phaseTwo.telegraphMs}ms.`,
+    };
+}
+
 export function varietyNote(brief) {
-    const briefs = Object.values(BRIEFS);
+    const briefs = Object.keys(BRIEFS).map(currentBossBrief);
     const phaseText = (entry) => (entry.phases || []).join(' ').toLowerCase();
     const familyOf = (entry) => {
         const text = phaseText(entry);
@@ -596,7 +614,7 @@ export async function reviewBoss(client, brief, telemetry) {
 
 async function main() {
     const level = Number(process.argv[2] || 8);
-    const brief = BRIEFS[level];
+    const brief = currentBossBrief(level);
     if (!brief) {
         throw new Error(`no boss brief for level ${level} yet`);
     }

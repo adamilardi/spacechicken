@@ -2297,6 +2297,32 @@ function qualityQuestions(persona) {
     };
 }
 
+// Keep the full input history in the retained run, but send the panel only
+// boundary inputs and the input immediately preceding each death. Long
+// traversals otherwise exceed the service context limit in every image batch.
+export function qualityPanelTelemetry(telemetry) {
+    if (!telemetry || !Array.isArray(telemetry.inputHistory)) return telemetry;
+    const history = telemetry.inputHistory;
+    const selected = new Set([0, history.length - 1]);
+    for (const death of telemetry.deathEvents || []) {
+        let before = -1;
+        for (let i = 0; i < history.length && history[i].tSec <= death.tSec; i++) before = i;
+        if (before >= 0) selected.add(before);
+    }
+    return {
+        ...telemetry,
+        inputHistory: [...selected]
+            .sort((a, b) => a - b)
+            .map((i) => history[i])
+            .filter(Boolean),
+        inputHistoryCoverage: {
+            totalSamples: history.length,
+            selection:
+                'first, last, and last input before each death; full history retained in run report',
+        },
+    };
+}
+
 export async function runQualityPanel(
     client,
     { levelId, analysis, telemetry, flags, roster, shots = [] }
@@ -2324,7 +2350,7 @@ export async function runQualityPanel(
                 {
                     state: {
                         level: { id: levelId, ...analysis },
-                        telemetry,
+                        telemetry: qualityPanelTelemetry(telemetry),
                         mechanicalFlags: flags,
                         roster,
                         screenshotsSent,

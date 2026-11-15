@@ -5,41 +5,66 @@
         "levelTheme": "Bastion Relay: inside the enemy base. Wardens hold the line, red gates sweep on a beat, crushers slam the halls. The crown deck sits past the gatehouse.",
         "bossFiction": "The base gatekeeper on the crown deck: a treaded relay-dome with antennae, conduit seams, and one alert-red lens. She paces, charges, and calls wardens to the guard.",
         "rule": "Jump her charge late, duel each summoned warden, keep bolts on the lens.",
-        "tell": "Crouch and red flash for 800ms means a 378px charge; gold flash and rear-up for 600ms births one warden.",
+        "tell": "Ground rush: red wind-up. Leap: cyan wind-up. Summon: gold wind-up. First-phase tell 800ms; second-phase tell 900ms.",
         "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, gun down the newborn before it spreads.",
-        "hp": 12,
+        "hp": 26,
         "phases": [
             "pace",
             "telegraph (crouch + red flash)",
             "charge",
             "summon tell (gold)",
-            "recover"
+            "recover",
+            "armored phase shift",
+            "leap"
         ],
-        "enrage": "Below half HP she rests shorter and births 30% faster with the same charge speed, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, GATEKEEPER DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death."
+        "enrage": "SIEGE PROTOCOL: Two rushes, then a vault; clear the guards. A 900ms transformation and the first full attack tell are armored; the first real attack drops that armor.",
+        "defeat": "Explosion, GATEKEEPER DOWN banner, crown shield opens. Summoned adds dissolve. Wounds persist through player death.",
+        "secondPhase": {
+            "title": "SIEGE PROTOCOL",
+            "battleHint": "Two rushes, then a vault; clear the guards",
+            "initialAttackMs": 0,
+            "telegraphMs": 900,
+            "recoverMs": 1000,
+            "enrageCooldownMs": 1200,
+            "attackCycle": ["charge", "charge", "leap"],
+            "leap": {
+                "dx": 190,
+                "velocityY": 220,
+                "ms": 750
+            },
+            "summon": {
+                "key": "spireWarden",
+                "count": 2,
+                "maxAlive": 2,
+                "spread": 80,
+                "tellMs": 900,
+                "intervalMs": 6500,
+                "initialDelayMs": 3000
+            }
+        }
     },
     "telemetry": {
         "level": 11,
         "boss": "Gatekeeper",
         "outcome": "boss-defeated",
-        "durationSec": 16.4,
+        "durationSec": 24.8,
         "deaths": 1,
         "deathSpots": [
             {
-                "x": 11529,
-                "y": 427,
-                "bossX": 11495,
-                "bossHp": 3,
+                "x": 11483,
+                "y": 392,
+                "bossX": 11477,
+                "bossHp": 18,
                 "bossPhase": "pace",
-                "addDist": 433,
-                "bombDist": 5776,
+                "addDist": 129,
+                "bombDist": 5247,
                 "deathKind": "boarder",
-                "likelyCause": "fall"
+                "likelyCause": "other"
             }
         ],
-        "hpStart": 12,
+        "hpStart": 26,
         "hpMin": 0,
-        "phasesSeen": ["pace", "telegraph", "charge", "recover", "summonTell", "dormant"],
+        "phasesSeen": ["pace", "telegraph", "charge", "recover", "summonTell", "dormant", "shift"],
         "enraged": true,
         "errors": [],
         "flags": []
@@ -48,65 +73,65 @@
         {
             "persona": "reviewer",
             "name": "Marlowe (expert reviewer)",
-            "fun": 1.35,
-            "fairness": 1.03,
-            "theme": 2.31,
+            "fun": 1.37,
+            "fairness": 1.88,
+            "theme": 2.41,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.64,
-                "fairness": 0.57,
-                "theme": 0.4,
-                "flaw": 0.96,
-                "verdict": 0.52
+                "fun": 0.63,
+                "fairness": 0.01,
+                "theme": 0.48,
+                "flaw": 0.95,
+                "verdict": 0.6
             }
         },
         {
             "persona": "veteran",
             "name": "Vic (contra veteran)",
-            "fun": 1.61,
-            "fairness": 1.01,
-            "theme": 2.53,
+            "fun": 1.79,
+            "fairness": 1.57,
+            "theme": 2.58,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.39,
-                "fairness": 0.56,
-                "theme": 0.55,
+                "fun": 0.29,
+                "fairness": 0.34,
+                "theme": 0.59,
                 "flaw": 0.92,
-                "verdict": 0.53
+                "verdict": 0.64
             }
         },
         {
             "persona": "casual",
             "name": "Sam (casual newcomer)",
-            "fun": 1.58,
-            "fairness": 1.18,
-            "theme": 2.46,
+            "fun": 1.81,
+            "fairness": 1.52,
+            "theme": 2.55,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.45,
-                "fairness": 0.49,
-                "theme": 0.52,
-                "flaw": 0.86,
-                "verdict": 0.76
+                "fun": 0.28,
+                "fairness": 0.34,
+                "theme": 0.58,
+                "flaw": 0.87,
+                "verdict": 0.58
             }
         },
         {
             "persona": "speedrunner",
             "name": "Lex (speedrunner)",
-            "fun": 1.5,
-            "fairness": 1.22,
-            "theme": 2.51,
+            "fun": 1.76,
+            "fairness": 1.71,
+            "theme": 2.59,
             "flaw": "stale",
             "verdict": "iterate",
             "confidence": {
-                "fun": 0.49,
-                "fairness": 0.41,
-                "theme": 0.57,
-                "flaw": 0.92,
-                "verdict": 0.56
+                "fun": 0.33,
+                "fairness": 0.26,
+                "theme": 0.61,
+                "flaw": 0.91,
+                "verdict": 0.68
             }
         }
     ],

@@ -39,7 +39,12 @@ export function bossSpeeds(config, hard) {
 // Pure boss tick. state: { phase, phaseAt, nextAttackAt, dir, enraged }.
 // x is the boss sprite's current x. Returns the next state plus the
 // velocity to apply and events for banners, bar, and audio.
+export function bossPhaseConfig(config, state) {
+    return state?.enraged && config.phaseTwo ? { ...config, ...config.phaseTwo } : config;
+}
+
 export function bossUpdate(state, now, x, targetX, leadX, config, hard, minionsAlive = 0) {
+    config = bossPhaseConfig(config, state);
     const speeds = bossSpeeds(config, hard);
     const tune = {
         triggerX: config.triggerX ?? 0,
@@ -61,7 +66,9 @@ export function bossUpdate(state, now, x, targetX, leadX, config, hard, minionsA
         summonDelayMs: config.summon?.initialDelayMs ?? 2500,
         initialAttackMs: config.initialAttackMs ?? Math.min(speeds.cooldownMs, 1200),
         minionsAlive,
+        attackCycle: config.attackCycle,
     };
+    if (state.phase === 'shift') return bossShiftStep(state, now, config);
     if (state.phase === 'dormant') {
         return bossDormantStep(state, now, leadX, tune);
     }
@@ -81,6 +88,20 @@ export function bossUpdate(state, now, x, targetX, leadX, config, hard, minionsA
         return bossSummonStep(state, now, tune);
     }
     return bossRecoverStep(state, now, tune);
+}
+
+function bossShiftStep(state, now, config) {
+    if (now - state.phaseAt < (config.phaseShiftMs ?? 900)) {
+        return { ...state, velocityX: 0, events: [] };
+    }
+    return {
+        ...state,
+        phase: 'pace',
+        phaseAt: now,
+        nextAttackAt: now,
+        velocityX: 0,
+        events: [],
+    };
 }
 
 function bossDormantStep(state, now, leadX, tune) {
@@ -122,12 +143,17 @@ function bossPaceStep(state, now, x, targetX, tune) {
         };
     }
     if (now >= state.nextAttackAt) {
+        const index = state.attackIndex || 0;
         return {
             ...state,
             phase: 'telegraph',
             phaseAt: now,
             dir,
             velocityX: 0,
+            attackKind:
+                tune.attackCycle?.[index % tune.attackCycle.length] ||
+                (tune.leap ? 'leap' : 'charge'),
+            attackIndex: index + 1,
             events: ['telegraph'],
         };
     }
@@ -144,6 +170,7 @@ function bossSummonStep(state, now, tune) {
         phaseAt: now,
         nextSummonAt: now + tune.summonIntervalMs,
         velocityX: 0,
+        phaseOpening: false,
         events: ['summon', 'recover'],
     };
 }
@@ -153,7 +180,7 @@ function bossTelegraphStep(state, now, x, targetX, tune) {
         return { ...state, velocityX: 0, events: [] };
     }
     const dir = targetX == null ? state.dir : Math.sign(targetX - x) || state.dir || 1;
-    if (tune.leap) {
+    if (tune.leap && (state.attackKind || 'leap') === 'leap') {
         // Knight-leap: displace through the air in an L to a square chosen
         // at the telegraph. The director applies velocityY once on the
         // leap event; gravity flies the arc while velocityX carries the
@@ -169,6 +196,7 @@ function bossTelegraphStep(state, now, x, targetX, tune) {
             leapVelocityX,
             velocityX: leapVelocityX,
             velocityY: -tune.leapVelocityY,
+            phaseOpening: false,
             events: ['leap'],
         };
     }
@@ -178,6 +206,7 @@ function bossTelegraphStep(state, now, x, targetX, tune) {
         phaseAt: now,
         dir,
         velocityX: dir * tune.chargeSpeed,
+        phaseOpening: false,
         events: ['charge'],
     };
 }
@@ -225,6 +254,9 @@ export function bossInitialState() {
         dir: -1,
         leapTargetX: 0,
         leapVelocityX: 0,
+        attackIndex: 0,
+        attackKind: null,
+        phaseOpening: false,
     };
 }
 
@@ -312,33 +344,49 @@ export class BossDirector {
                 hard,
                 this.countSummoned(boss)
             );
-            boss.bossState = {
-                phase: out.phase,
-                phaseAt: out.phaseAt,
-                nextAttackAt: out.nextAttackAt,
-                nextSummonAt: out.nextSummonAt,
-                dir: out.dir,
-                leapTargetX: out.leapTargetX || 0,
-                leapVelocityX: out.leapVelocityX || 0,
-                enraged: boss.bossState.enraged === true,
-            };
-            boss.setVelocityX?.(out.velocityX);
-            // velocityY is a one-shot impulse: state spread carries it on
-            // later ticks, so apply it only on the leap event itself or
-            // the boss re-launches every frame and never lands.
-            if (out.events?.includes('leap') && Number.isFinite(out.velocityY)) {
-                boss.setVelocityY?.(out.velocityY);
-            }
-            if (out.dir !== 0) {
-                boss.setFlipX?.(out.dir > 0);
-            }
-            if (boss.testMeta) {
-                boss.testMeta.phase = out.phase;
-                boss.testMeta.nextChangeAt = this.nextChangeAt(out, now, boss.bossConfig || {});
-            }
-            for (const event of out.events) {
-                this.onBossEvent(boss, event);
-            }
+            this.applyBossStep(boss, out, now);
+        }
+    }
+
+    applyBossStep(boss, out, now) {
+        const scene = this.scene;
+        boss.bossState = {
+            phase: out.phase,
+            phaseAt: out.phaseAt,
+            nextAttackAt: out.nextAttackAt,
+            nextSummonAt: out.nextSummonAt,
+            dir: out.dir,
+            leapTargetX: out.leapTargetX || 0,
+            leapVelocityX: out.leapVelocityX || 0,
+            attackIndex: out.attackIndex || 0,
+            attackKind: out.attackKind || null,
+            phaseOpening: out.phaseOpening === true,
+            enraged: boss.bossState.enraged === true,
+        };
+        boss.setVelocityX?.(out.velocityX);
+        // velocityY is a one-shot impulse: state spread carries it on
+        // later ticks, so apply it only on the leap event itself or
+        // the boss re-launches every frame and never lands.
+        if (out.events?.includes('leap') && Number.isFinite(out.velocityY)) {
+            boss.setVelocityY?.(out.velocityY);
+        }
+        if (out.dir !== 0) {
+            boss.setFlipX?.(out.dir > 0);
+        }
+        if (boss.testMeta) {
+            boss.testMeta.phase = out.phase;
+            boss.testMeta.nextChangeAt = this.nextChangeAt(
+                out,
+                now,
+                bossPhaseConfig(boss.bossConfig || {}, boss.bossState)
+            );
+        }
+        for (const event of out.events) {
+            this.onBossEvent(boss, event);
+        }
+        if ((out.phase === 'charge' || out.phase === 'leap') && now >= (boss.nextTrailAt || 0)) {
+            scene.effectsManager?.bossTrail?.(boss.x, boss.y, boss.bossState.enraged);
+            boss.nextTrailAt = now + 90;
         }
     }
 
@@ -355,13 +403,16 @@ export class BossDirector {
 
     spawnSummoned(boss) {
         const scene = this.scene;
-        const summon = boss.bossConfig?.summon;
+        const summon = bossPhaseConfig(boss.bossConfig || {}, boss.bossState).summon;
         if (!summon || !scene?.boardersGroup || !scene?.worldBuilder) {
             return;
         }
         const now = scene.getGameTime?.() ?? 0;
         const spread = summon.spread ?? 90;
-        const count = summon.count ?? 1;
+        const count = Math.min(
+            summon.count ?? 1,
+            Math.max(0, (summon.maxAlive ?? 2) - this.countSummoned(boss))
+        );
         const lo = (boss.bossConfig?.minX ?? boss.x - 200) + 30;
         const hi = (boss.bossConfig?.maxX ?? boss.x + 200) - 30;
         for (let i = 0; i < count; i++) {
@@ -398,6 +449,7 @@ export class BossDirector {
     }
 
     nextChangeAt(out, now, config) {
+        if (out.phase === 'shift') return out.phaseAt + (config.phaseShiftMs ?? 900);
         if (out.phase === 'summonTell') return now + (config.summon?.tellMs ?? 600);
         if (out.phase === 'telegraph') return now + (config.telegraphMs ?? 700);
         if (out.phase === 'leap') return now + (config.leap?.ms ?? 520);
@@ -409,16 +461,36 @@ export class BossDirector {
 
     onBossEvent(boss, event) {
         const scene = this.scene;
+        const config = bossPhaseConfig(boss.bossConfig || {}, boss.bossState);
+        if (['charge', 'leap', 'summon'].includes(event)) {
+            scene.uiManager?.updateBossBar?.(
+                boss.bossHp,
+                boss.bossMaxHp,
+                boss.bossState.phaseOpening === true
+            );
+        }
         if (event === 'trigger') {
             scene.uiManager?.showBossBar?.(boss.bossName || 'Boss', boss.bossHp, boss.bossMaxHp);
+            scene.uiManager?.updateBossBar?.(
+                boss.bossHp,
+                boss.bossMaxHp,
+                boss.bossState.phaseOpening === true
+            );
             scene.uiManager?.showLevelBanner?.(
                 (boss.bossName || 'Boss').toUpperCase(),
-                'Dodge the charge — hold fire'
+                config.battleHint ||
+                    (config.leap
+                        ? 'Cyan wind-up — move under the leap'
+                        : 'Red wind-up — jump the rush')
             );
-            scene.audioManager?.playWaveSound?.();
+            scene.effectsManager?.bossBurst?.(boss.x, boss.y, 'arrival');
+            scene.audioManager?.playBossCue?.('arrival');
         } else if (event === 'telegraph') {
             this.setBossCrouch(boss, true);
-            boss.setTint?.(0xff5a4a)?.setTintMode?.(tintMultiplyMode());
+            const leap =
+                boss.bossState.attackKind === 'leap' || (!boss.bossState.attackKind && config.leap);
+            boss.setTint?.(leap ? 0x63eaff : 0xff5a4a)?.setTintMode?.(tintMultiplyMode());
+            scene.effectsManager?.bossTell?.(boss.x, boss.y, leap);
             scene.audioManager?.playBoarderThud?.();
         } else if (event === 'charge') {
             this.setBossCrouch(boss, false);
@@ -486,7 +558,7 @@ export class BossDirector {
         if (!boss?.active || boss.bossDefeated || boss.body?.enable === false) {
             return;
         }
-        if (boss.bossState?.phase === 'dormant') {
+        if (boss.bossState?.phase === 'dormant' || boss.bossState?.phase === 'shift') {
             return;
         }
         scene.failFromHazard('boarder');
@@ -498,6 +570,9 @@ export class BossDirector {
             return;
         }
         if (boss.bossState?.phase === 'dormant') {
+            return;
+        }
+        if (boss.bossState?.phaseOpening) {
             return;
         }
         boss.bossHp = Math.max(0, (boss.bossHp ?? 1) - 1);
@@ -514,11 +589,37 @@ export class BossDirector {
         if (!boss.bossState.enraged && boss.bossHp <= boss.bossMaxHp / 2) {
             boss.bossState.enraged = true;
             boss.setTint?.(0xc44dff)?.setTintMode?.(tintMultiplyMode());
-            scene.uiManager?.showLevelBanner?.('ENRAGED', 'Faster charges — keep moving');
+            this.beginSecondPhase(boss);
         }
         if (boss.bossHp <= 0) {
             this.defeatBoss(boss);
         }
+    }
+
+    beginSecondPhase(boss) {
+        const scene = this.scene;
+        const phase = boss.bossConfig?.phaseTwo;
+        if (phase) {
+            const now = scene.getGameTime?.() ?? 0;
+            boss.bossState = {
+                ...boss.bossState,
+                phase: 'shift',
+                phaseAt: now,
+                phaseOpening: true,
+                attackIndex: 0,
+                attackKind: null,
+                nextSummonAt: now + (phase.summon?.initialDelayMs ?? 3000),
+            };
+            boss.setVelocity?.(0, 0);
+            this.setBossCrouch(boss, false);
+            scene.uiManager?.updateBossBar?.(boss.bossHp, boss.bossMaxHp, true);
+        }
+        scene.effectsManager?.bossBurst?.(boss.x, boss.y, 'phase');
+        scene.audioManager?.playBossCue?.('phase');
+        scene.uiManager?.showLevelBanner?.(
+            phase?.title || 'ENRAGED',
+            phase?.battleHint || 'Faster charges — keep moving'
+        );
     }
 
     defeatBoss(boss) {
@@ -537,19 +638,18 @@ export class BossDirector {
         }
         scene.tweens?.killTweensOf?.(boss);
         boss.clearTint?.();
-        scene.audioManager?.playBoarderPop?.();
-        scene.effectsManager?.emitJumpPuff?.(boss.x, boss.y);
-        scene.effectsManager?.collectBurst?.(boss.x, boss.y);
+        scene.audioManager?.playBossCue?.('defeat');
+        scene.effectsManager?.bossBurst?.(boss.x, boss.y, 'defeat');
         scene.uiManager?.hideBossBar?.();
+        scene.releaseCrownShieldIfCleared?.();
         scene.uiManager?.showLevelBanner?.(
             `${boss.bossName || 'Boss'} down`.toUpperCase(),
             'The crown is open'
         );
-        scene.releaseCrownShieldIfCleared?.();
         scene.tweens?.add?.({
             targets: boss,
             alpha: 0,
-            duration: 300,
+            duration: 650,
             onComplete: () => {
                 boss.setActive?.(false);
                 boss.setVisible?.(false);
@@ -581,7 +681,11 @@ export class BossDirector {
                 continue;
             }
             this.dissolveSummons(boss);
-            boss.bossState = { ...bossInitialState(), enraged: boss.bossHp <= boss.bossMaxHp / 2 };
+            boss.bossState = {
+                ...bossInitialState(),
+                enraged: boss.bossHp <= boss.bossMaxHp / 2,
+                phaseOpening: boss.bossState?.phaseOpening === true,
+            };
             boss.setVelocity?.(0, 0);
             boss.setAlpha?.(1);
             boss.setScale?.(1, 1);

@@ -18,9 +18,9 @@ export const level = {
     },
     content: {
         instructions:
-            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press J to fire — hold Up/W while firing to aim up the stair and at the glass tiers, Down/S to fire down from the air. Wardens hold the glass as well as the alloy. Shrikes swoop the stair: stomp them or dodge the dive. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music)',
+            'SPIRE CROWN - The final ascent. Gold beams sweep the hall on a beat: cross on the dark. Plasma devils guard the plaza, wardens hold the crown steps. Take the glass stair, ride the lift, take the crown. WARDEN PRIME holds the crown deck: duel her pace, jump her charge, burn the lens. Face them and press J to fire — hold Up/W while firing to aim up the stair and at the glass tiers, Down/S to fire down from the air. Wardens hold the glass as well as the alloy. Shrikes swoop the stair: stomp them or dodge the dive. New gun: NOVA, a wide orb with a fat hitbox. Press G to swap guns. Pods grant 30s of heavy fire. Free caged crew for −2s each. (M toggles music) Phase II: Red: jump the rush. Cyan: get under.',
         touchInstructions:
-            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. WARDEN PRIME holds the deck: jump her charge, burn the lens. The bolt button fires; hold the up-arrow to aim up the stair, the down-arrow to fire down from the air. Wardens hold the glass too. Stomp swooping shrikes. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s.',
+            'SPIRE CROWN - Cross the beams on the dark. Ride the lift to the crown. WARDEN PRIME holds the deck: jump her charge, burn the lens. The bolt button fires; hold the up-arrow to aim up the stair, the down-arrow to fire down from the air. Wardens hold the glass too. Stomp swooping shrikes. New gun: NOVA. The gun button swaps guns. Pods grant 30s guns. Free cages for −2s. Phase II: Red: jump the rush. Cyan: get under.',
         background: {
             type: 'spire',
             style: 'crown',
@@ -93,8 +93,10 @@ export const level = {
         checkpoints: [
             { x: 1620, y: 510 },
             { x: 2750, y: 390 },
+            { x: 4838, y: 310 },
             { x: 6750, y: 270 },
             { x: 7830, y: 250 },
+            { x: 9758, y: 250 },
             { x: 11350, y: 220 },
         ],
         rescues: [
@@ -108,6 +110,7 @@ export const level = {
             { x: 4650, y: 210, gun: 'comet' },
             { x: 7350, y: 200, gun: 'halo' },
             { x: 8870, y: 166, gun: 'nova' },
+            { x: 10040, y: 126, gun: 'comet' },
         ],
         boarderWaves: [
             { wave: 1, x: 0 },
@@ -115,8 +118,11 @@ export const level = {
             { wave: 3, x: 2500 },
             { wave: 4, x: 3300 },
             { wave: 5, x: 4600 },
-            { wave: 6, x: 7600 },
-            { wave: 7, x: 11000 },
+            { wave: 6, x: 5750 },
+            { wave: 7, x: 7700 },
+            { wave: 8, x: 9400 },
+            { wave: 9, x: 10300 },
+            { wave: 10, x: 11000 },
         ],
         dynamic: [
             {
@@ -202,7 +208,7 @@ export const level = {
             },
             { type: 'boarder', key: 'spireWarden', x: 5000, y: 260, wave: 5 },
             { type: 'boarder', key: 'spireWarden', x: 5600, y: 220, wave: 5 },
-            { type: 'boarder', key: 'spireWarden', x: 6400, y: 178, wave: 5 },
+            { type: 'boarder', key: 'spireWarden', x: 6400, y: 178, wave: 6 },
             {
                 type: 'laser',
                 x: 9250,
@@ -247,8 +253,8 @@ export const level = {
                 y: 220,
                 patrol: { x: 8380, duration: 1500 },
             },
-            { type: 'boarder', key: 'spireWarden', x: 8350, y: 252, wave: 6 },
-            { type: 'boarder', key: 'spireWarden', x: 10050, y: 158, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 8350, y: 252, wave: 7 },
+            { type: 'boarder', key: 'spireWarden', x: 10050, y: 158, wave: 8 },
             {
                 type: 'shrike',
                 x: 2100,
@@ -267,7 +273,7 @@ export const level = {
                 swoopDY: 60,
                 startDelay: 1300,
             },
-            { type: 'boarder', key: 'spireWarden', x: 10950, y: 232, wave: 6 },
+            { type: 'boarder', key: 'spireWarden', x: 10950, y: 232, wave: 9 },
             {
                 type: 'bonk',
                 enemy: 'sentry',
@@ -279,15 +285,29 @@ export const level = {
                 bodyWidth: 30,
                 bodyHeight: 30,
             },
-            { type: 'boarder', key: 'spireWarden', x: 11500, y: 220, wave: 7 },
+            { type: 'boarder', key: 'spireWarden', x: 11500, y: 220, wave: 10 },
             {
                 type: 'boss',
                 key: 'wardenPrime',
                 bossName: 'Warden Prime',
                 x: 11920,
                 y: 194,
-                hp: 12,
+                hp: 22,
                 crownGuard: true,
+                phaseTwo: {
+                    title: 'SKYBREAKER',
+                    battleHint: 'Red: jump the rush. Cyan: get under',
+                    initialAttackMs: 0,
+                    telegraphMs: 900,
+                    recoverMs: 1000,
+                    enrageCooldownMs: 1200,
+                    attackCycle: ['charge', 'leap'],
+                    leap: {
+                        dx: 180,
+                        velocityY: 210,
+                        ms: 700,
+                    },
+                },
                 triggerX: 11400,
                 minX: 11900,
                 maxX: 12100,

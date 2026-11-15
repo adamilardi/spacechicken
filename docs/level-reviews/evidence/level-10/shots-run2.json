@@ -1,0 +1,87 @@
+{
+  "level": 10,
+  "runLabel": 2,
+  "shots": [
+    {
+      "id": "run2-death-1",
+      "file": "run2-death-1.jpg",
+      "x": 9438,
+      "y": 400,
+      "proves": "gameplay frame at death 1 (x=9438, cause laser); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "f40895bd80a8"
+    },
+    {
+      "id": "run2-death-2",
+      "file": "run2-death-2.jpg",
+      "x": 9926,
+      "y": 400,
+      "proves": "gameplay frame at death 2 (x=9926, cause fall); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "5028c4a107b7"
+    },
+    {
+      "id": "run2-death-3",
+      "file": "run2-death-3.jpg",
+      "x": 10806,
+      "y": 400,
+      "proves": "gameplay frame at death 3 (x=10806, cause boarder); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "752ddf845042"
+    },
+    {
+      "id": "01-opener",
+      "file": "run2-01-opener.jpg",
+      "x": 150,
+      "y": 480,
+      "proves": "spawn read and first move",
+      "capture": "staged-teleport",
+      "hash": "0fed7b13f9aa"
+    },
+    {
+      "id": "02-hazard-boarder",
+      "file": "run2-02-hazard-boarder.jpg",
+      "x": 900,
+      "y": 560,
+      "proves": "hazard beat: boarder at x=900",
+      "capture": "staged-teleport",
+      "hash": "2c7d47ae5bcc"
+    },
+    {
+      "id": "03-hazard-drone",
+      "file": "run2-03-hazard-drone.jpg",
+      "x": 2850,
+      "y": 330,
+      "proves": "hazard beat: drone at x=2850",
+      "capture": "staged-teleport",
+      "hash": "a3ba5a3d844c"
+    },
+    {
+      "id": "04-hazard-bonk",
+      "file": "run2-04-hazard-bonk.jpg",
+      "x": 11250,
+      "y": 210,
+      "proves": "hazard beat: bonk at x=11250",
+      "capture": "staged-teleport",
+      "hash": "07a1e6d1c0e7"
+    },
+    {
+      "id": "05-hazard-boss",
+      "file": "run2-05-hazard-boss.jpg",
+      "x": 11920,
+      "y": 194,
+      "proves": "hazard beat: boss at x=11920",
+      "capture": "staged-teleport",
+      "hash": "8a5a8fbf43f2"
+    },
+    {
+      "id": "06-finale",
+      "file": "run2-06-finale.jpg",
+      "x": 11750,
+      "y": 400,
+      "proves": "crown approach and finale pressure",
+      "capture": "staged-teleport",
+      "hash": "72430b979458"
+    }
+  ]
+}

@@ -153,6 +153,8 @@ export const GAME_CONSTANTS = {
     MIN_LEVEL_TIME_MS: 1000,
     TITLE_PROMPT_PULSE_MS: 900,
     TWINKLE_STAR_COUNT: 6,
+    // Drifting mote sprites that sell the air inside bastion shafts.
+    BASTION_ACCENT_COUNT: 10,
     BACKGROUND_BAKE_MAX_WIDTH: 2048,
     BACKGROUND_BAKE_MAX_HEIGHT: 1024,
     // Extra pixels so camera rounding cannot expose a gap at the layer edge.
@@ -162,6 +164,16 @@ export const GAME_CONSTANTS = {
         Object.freeze({ id: 'far', scrollX: 0.16, scrollY: 1, depth: -32 }),
         Object.freeze({ id: 'mid', scrollX: 0.4, scrollY: 1, depth: -24 }),
         Object.freeze({ id: 'near', scrollX: 0.7, scrollY: 1, depth: -16 }),
+    ]),
+    // Bastion interiors (iron levels) gain a fifth foreground-frame layer so the
+    // shaft reads as deep space with drifting frames ahead of the playfield.
+    // Vertical factors stay locked so the floor never tears from the platforms.
+    BACKGROUND_PARALLAX_LAYERS_BASTION: Object.freeze([
+        Object.freeze({ id: 'sky', scrollX: 0.04, scrollY: 1, depth: -44 }),
+        Object.freeze({ id: 'far', scrollX: 0.13, scrollY: 1, depth: -36 }),
+        Object.freeze({ id: 'mid', scrollX: 0.32, scrollY: 1, depth: -28 }),
+        Object.freeze({ id: 'near', scrollX: 0.62, scrollY: 1, depth: -20 }),
+        Object.freeze({ id: 'fore', scrollX: 0.92, scrollY: 1, depth: -9 }),
     ]),
     // Dawn Run and Arcade Orbit drift much closer to the playfield.
     // Vertical factor stays locked so the floor does not slide against the platforms.
@@ -208,10 +220,14 @@ export const GAME_CONSTANTS = {
     MUSIC_BUTTON_SIZE_COMPACT: 52,
 };
 
-export function parallaxLayersForLevel(level) {
-    return Number(level) <= 2
-        ? GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS_GENTLE
-        : GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS;
+export function parallaxLayersForLevel(level, backgroundType) {
+    if (Number(level) <= 2) {
+        return GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS_GENTLE;
+    }
+    if (backgroundType === 'bastion') {
+        return GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS_BASTION;
+    }
+    return GAME_CONSTANTS.BACKGROUND_PARALLAX_LAYERS;
 }
 
 export const KEY_CODES = {

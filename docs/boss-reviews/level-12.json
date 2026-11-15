@@ -3,85 +3,127 @@
         "name": "Crimson Heart",
         "level": 12,
         "levelTheme": "Crimson Womb: the heart of the enemy. Gnawers swarm the flesh, drips fall in the low run, devils patrol, and a spore-beam guards the last gap before the crown deck.",
-        "bossFiction": "The beating heart of the womb itself on the crown deck: twin crimson lobes, artery stubs, glow sacs, and one cyan lens. She paces and slam-charges with the heartbeat.",
-        "rule": "Jump her slam-charge late, keep bolts on the lens between slams.",
-        "tell": "Heartbeat double-thump, crouch and red flash for 800ms means a 378px charge.",
-        "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, burn the lens between slams.",
-        "hp": 12,
-        "phases": ["pace", "telegraph (crouch + red flash)", "charge", "recover"],
-        "enrage": "Below half HP she rests shorter and charges 20% faster, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, CRIMSON HEART DOWN banner, crown shield opens. Wounds persist through player death."
+        "bossFiction": "The beating heart of the womb itself on the crown deck: twin crimson lobes, artery stubs, glow sacs, and one cyan lens. She compresses, pulses into a short leap, and exposes the lens on landing.",
+        "rule": "Move underneath the pulse leap and shoot the lens during grounded recovery.",
+        "tell": "Ground rush: red wind-up. Leap: cyan wind-up. Summon: gold wind-up. First-phase tell 900ms; second-phase tell 900ms.",
+        "safeResponse": "Read the wind-up, move under the airborne Heart, and use its 1200ms recovery to shoot.",
+        "hp": 24,
+        "phases": [
+            "pace",
+            "telegraph (crouch + red flash)",
+            "leap",
+            "recover",
+            "armored phase shift",
+            "charge"
+        ],
+        "enrage": "PULSE STORM: Two pulse leaps, then jump the red rush. A 900ms transformation and the first full attack tell are armored; the first real attack drops that armor.",
+        "defeat": "Explosion, CRIMSON HEART DOWN banner, crown shield opens. Wounds persist through player death.",
+        "secondPhase": {
+            "title": "PULSE STORM",
+            "battleHint": "Two pulse leaps, then jump the red rush",
+            "initialAttackMs": 0,
+            "telegraphMs": 900,
+            "recoverMs": 1000,
+            "enrageCooldownMs": 1200,
+            "attackCycle": ["leap", "leap", "charge"],
+            "leap": {
+                "dx": 200,
+                "velocityY": 250,
+                "ms": 750
+            }
+        }
     },
     "telemetry": {
         "level": 12,
         "boss": "Crimson Heart",
         "outcome": "boss-defeated",
-        "durationSec": 8.6,
-        "deaths": 0,
-        "deathSpots": [],
-        "hpStart": 10,
+        "durationSec": 16,
+        "deaths": 1,
+        "deathSpots": [
+            {
+                "x": 11953,
+                "y": 92,
+                "bossX": 11994,
+                "bossHp": 8,
+                "bossPhase": "leap",
+                "addDist": 1185,
+                "bombDist": 10131,
+                "deathKind": "boarder",
+                "likelyCause": "other"
+            }
+        ],
+        "hpStart": 24,
         "hpMin": 0,
-        "phasesSeen": ["pace", "telegraph", "charge", "recover"],
+        "phasesSeen": ["pace", "telegraph", "shift", "leap", "recover", "dormant"],
         "enraged": true,
-        "errors": []
+        "errors": [],
+        "flags": []
     },
     "reports": [
         {
             "persona": "reviewer",
             "name": "Marlowe (expert reviewer)",
-            "fun": 2.99,
-            "fairness": 3.15,
-            "theme": 2.98,
-            "verdict": "ship",
+            "fun": 1.27,
+            "fairness": 1.84,
+            "theme": 2.72,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.88,
-                "fairness": 0.74,
-                "theme": 0.67,
-                "verdict": 0.73
+                "fun": 0.68,
+                "fairness": 0.12,
+                "theme": 0.66,
+                "flaw": 0.94,
+                "verdict": 0.62
             }
         },
         {
             "persona": "veteran",
             "name": "Vic (contra veteran)",
-            "fun": 3.17,
-            "fairness": 3,
-            "theme": 3.1,
-            "verdict": "ship",
+            "fun": 1.71,
+            "fairness": 1.65,
+            "theme": 2.78,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.73,
-                "fairness": 0.71,
-                "theme": 0.62,
-                "verdict": 0.64
+                "fun": 0.36,
+                "fairness": 0.26,
+                "theme": 0.67,
+                "flaw": 0.87,
+                "verdict": 0.67
             }
         },
         {
             "persona": "casual",
             "name": "Sam (casual newcomer)",
-            "fun": 2.88,
-            "fairness": 2.86,
-            "theme": 2.88,
-            "verdict": "ship",
+            "fun": 1.67,
+            "fairness": 1.52,
+            "theme": 2.58,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.78,
-                "fairness": 0.68,
-                "theme": 0.62,
-                "verdict": 0.51
+                "fun": 0.4,
+                "fairness": 0.34,
+                "theme": 0.58,
+                "flaw": 0.85,
+                "verdict": 0.6
             }
         },
         {
             "persona": "speedrunner",
             "name": "Lex (speedrunner)",
-            "fun": 3.15,
-            "fairness": 3.06,
-            "theme": 3.16,
-            "verdict": "ship",
+            "fun": 1.82,
+            "fairness": 1.86,
+            "theme": 2.67,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.77,
-                "fairness": 0.79,
-                "theme": 0.65,
-                "verdict": 0.72
+                "fun": 0.28,
+                "fairness": 0.02,
+                "theme": 0.6,
+                "flaw": 0.86,
+                "verdict": 0.62
             }
         }
     ],
-    "passed": true
+    "passed": false
 }

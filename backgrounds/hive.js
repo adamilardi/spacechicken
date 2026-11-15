@@ -1,12 +1,17 @@
 export function createHiveBackgroundLayout(background, worldWidth, worldHeight) {
+    // Connected cavern buttresses, with open chambers between them.
     const ribs = [];
-    for (let x = 60; x < worldWidth; x += 200) {
-        ribs.push({ x, w: 30 + (x % 40), h: worldHeight * (0.3 + ((x * 3) % 10) / 50) });
+    for (let x = -100, i = 0; x < worldWidth + 400; i++) {
+        ribs.push({ x, w: 180 + ((i * 71) % 130), lean: (i % 2 ? 1 : -1) * 65 });
+        x += 680 + ((i * 137) % 290);
     }
-    const teeth = [];
-    for (let x = 100; x < worldWidth; x += 140) {
-        teeth.push({ x, y: worldHeight * 0.3, h: 50 + (x % 40) });
-    }
+    const nests = ribs
+        .filter((_, i) => i % 2 === 0)
+        .map((rib, i) => ({
+            x: rib.x + rib.w * 0.4,
+            y: worldHeight * (0.22 + (i % 3) * 0.07),
+            r: 24 + (i % 3) * 8,
+        }));
     const motes = [];
     const moteCount = 60;
     for (let i = 0; i < moteCount; i++) {
@@ -20,7 +25,7 @@ export function createHiveBackgroundLayout(background, worldWidth, worldHeight) 
     for (let x = 200; x < worldWidth; x += 560) {
         pools.push({ x, y: worldHeight * 0.86, w: 130 + (x % 70) });
     }
-    return { ribs, teeth, motes, pools };
+    return { ribs, nests, motes, pools };
 }
 
 export function renderHiveBackground(
@@ -65,11 +70,47 @@ export function renderHiveBackground(
         return;
     }
     if (layerId === 'far') {
+        // Both ends meet a continuous ceiling/floor; nothing floats like a hazard.
+        renderer.graphics.fillStyle(palette.chitinDark, 0.95);
+        renderer.graphics.fillRect(0, 0, worldWidth, worldHeight * 0.1);
+        renderer.graphics.fillRect(0, floorY, worldWidth, worldHeight - floorY);
         (layout.ribs || []).forEach((rib) => {
-            renderer.graphics.fillStyle(palette.chitinDark, 0.9);
-            renderer.graphics.fillEllipse(rib.x, worldHeight * 0.5, rib.w, rib.h);
-            renderer.graphics.fillStyle(palette.chitin, 0.5);
-            renderer.graphics.fillEllipse(rib.x - 4, worldHeight * 0.5, rib.w * 0.6, rib.h * 0.8);
+            const x = rib.x;
+            const w = rib.w;
+            renderer.renderPolygon(
+                [
+                    { x: x - w, y: 0 },
+                    { x: x + w * 1.5, y: 0 },
+                    { x: x + w, y: worldHeight * 0.13 },
+                    { x: x + w * 0.48 + rib.lean, y: worldHeight * 0.3 },
+                    { x: x + w * 0.32, y: floorY - 90 },
+                    { x: x + w, y: floorY + 30 },
+                    { x: x - w * 0.6, y: floorY + 30 },
+                    { x: x - w * 0.12, y: floorY - 100 },
+                    { x: x + rib.lean, y: worldHeight * 0.28 },
+                    { x: x - w * 0.5, y: worldHeight * 0.12 },
+                ],
+                palette.chitinDark,
+                0.9
+            );
+            renderer.renderPolygon(
+                [
+                    { x: x + w * 0.95, y: worldHeight * 0.12 },
+                    { x: x + w * 0.48 + rib.lean, y: worldHeight * 0.3 },
+                    { x: x + w * 0.32, y: floorY - 90 },
+                    { x: x + w * 0.13, y: floorY - 70 },
+                    { x: x + w * 0.28 + rib.lean, y: worldHeight * 0.29 },
+                ],
+                palette.chitin,
+                0.25
+            );
+        });
+        (layout.nests || []).forEach((nest) => {
+            renderer.drawGlow(nest.x, nest.y, nest.r * 2, palette.spore, 0.06, 5);
+            renderer.graphics.fillStyle(palette.flesh, 0.9);
+            renderer.graphics.fillEllipse(nest.x, nest.y, nest.r * 2, nest.r * 1.3);
+            renderer.graphics.fillStyle(palette.glow, 0.2);
+            renderer.graphics.fillEllipse(nest.x, nest.y + 2, nest.r, nest.r * 0.5);
         });
         return;
     }
@@ -79,19 +120,6 @@ export function renderHiveBackground(
             renderer.graphics.fillStyle(palette.glow, 0.5);
             renderer.graphics.fillCircle(mote.x, mote.y, mote.r);
         });
-        (layout.teeth || []).forEach((tooth) => {
-            renderer.renderPolygon(
-                [
-                    { x: tooth.x - 18, y: tooth.y },
-                    { x: tooth.x + 18, y: tooth.y },
-                    { x: tooth.x, y: tooth.y + tooth.h },
-                ],
-                palette.chitin,
-                0.95
-            );
-            renderer.graphics.fillStyle(palette.glow, 0.85);
-            renderer.graphics.fillRect(tooth.x - 2, tooth.y + tooth.h - 8, 4, 4);
-        });
         return;
     }
     if (layerId !== 'near') {
@@ -99,8 +127,7 @@ export function renderHiveBackground(
     }
     renderer.graphics.fillStyle(palette.flesh, 1);
     renderer.graphics.fillRect(0, floorY, worldWidth, worldHeight - floorY);
-    renderer.graphics.fillStyle(palette.glow, 0.9);
-    renderer.graphics.fillRect(0, floorY, worldWidth, 3);
+
     renderer.graphics.fillStyle(palette.chitinDark, 1);
     for (let x = 0; x < worldWidth; x += 48) {
         renderer.graphics.fillRect(x, floorY + 24, 24, 10);

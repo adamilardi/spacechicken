@@ -151,7 +151,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         harborBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 9]
     );
     assert.ok(harborBoarders.every((hazard) => hazard.key === 'skitterling'));
     // The wave-8 guard is the Scrapjaw boss, the crown guard.
@@ -173,7 +173,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         foundryBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 9]
     );
     assert.ok(foundryBoarders.every((hazard) => hazard.key === 'gnawer'));
     // The wave-8 pack is the Embermaw boss, the crown guard.
@@ -196,7 +196,7 @@ function assertArcTwoLevels(LevelConfig) {
     );
     assert.deepEqual(
         skyhookBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 7]
+        [1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 9]
     );
     assert.ok(skyhookBoarders.every((hazard) => hazard.key === 'spireWarden'));
     // The wave-8 guard is the Highroost boss, the crown guard.
@@ -567,9 +567,9 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         colonyBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9]
     );
-    // Wave 8 is the Broodmother boss, the crown guard.
+    // The Broodmother boss guards the crown independently of route waves.
     const colonyBosses = new LevelConfig(8).hazards.dynamic.filter(
         (hazard) => hazard.type === 'boss'
     );
@@ -586,7 +586,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         hiveBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8]
     );
     assert.ok(hiveBoarders.every((hazard) => hazard.key === 'gnawer'));
     // The finale wave is the Hive Mother boss, the crown guard.
@@ -616,7 +616,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         spireBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10]
     );
     assert.ok(spireBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -641,7 +641,7 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         bastionBoarders.map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 6, 6]
+        [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 7, 7, 8, 8]
     );
     assert.ok(bastionBoarders.every((hazard) => hazard.key === 'spireWarden'));
     assert.ok(
@@ -663,10 +663,10 @@ test('level configuration exposes every playable level', async () => {
     );
     assert.deepEqual(
         wombBoarders.map((hazard) => hazard.wave),
-        [1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6]
+        [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 8]
     );
     assert.ok(wombBoarders.every((hazard) => hazard.key === 'gnawer'));
-    // The wave-7 guard pack is the Crimson Heart boss, the crown guard.
+    // The Crimson Heart boss guards the crown independently of route waves.
     const wombBosses = new LevelConfig(12).hazards.dynamic.filter(
         (hazard) => hazard.type === 'boss'
     );
@@ -5071,7 +5071,7 @@ test('contra levels expose rescues, pods, and no branch by default', async () =>
     const { LevelConfig } = await importModule('LevelConfig.js');
     const eight = new LevelConfig(8);
     assert.equal(eight.rescues.length, 3);
-    assert.equal(eight.pods.length, 5);
+    assert.equal(eight.pods.length, 6);
     assert.equal(eight.pods[0].gun, 'piercer');
     assert.equal(eight.branch, null);
     assert.equal(new LevelConfig(1).rescues.length, 0);
@@ -5134,16 +5134,16 @@ test('iron vault branch leaves the womb and rejoins the foundry', async () => {
     assert.match(womb.branchInstructions, /IRON VAULT/);
     const vault = new LevelConfig(16);
     assert.equal(vault.rescues.length, 3);
-    assert.equal(vault.pods.length, 5);
+    assert.equal(vault.pods.length, 6);
     assert.equal(vault.pods[0].gun, 'comet');
     assert.equal(vault.crownShield, true);
     assert.deepEqual(
         vault.hazards.dynamic
             .filter((hazard) => hazard.type === 'boarder')
             .map((hazard) => hazard.wave),
-        [1, 1, 2, 2, 3, 4, 5, 5, 5, 6, 6, 6, 6, 6, 6]
+        [1, 1, 2, 2, 3, 4, 5, 5, 6, 7, 7, 7, 8, 8, 9]
     );
-    // The wave-7 guard pair is the Tumbler boss, the crown guard.
+    // The Tumbler boss guards the crown independently of route waves.
     const vaultBosses = vault.hazards.dynamic.filter((hazard) => hazard.type === 'boss');
     assert.equal(vaultBosses.length, 1);
     assert.equal(vaultBosses[0].bossName, 'Tumbler');

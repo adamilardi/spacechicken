@@ -127,6 +127,8 @@ export function renderHarborBackground(
             renderer.graphics.strokePath();
             renderer.graphics.fillStyle(palette.crane, 1);
             renderer.graphics.fillRect(crane.x + 110, horizon - 60, 30, 26);
+            renderer.graphics.fillStyle(palette.porthole, 0.25);
+            renderer.graphics.fillCircle(crane.x + 50, horizon - 120, 4);
         });
         (layout.stacks || []).forEach((stack, index) => {
             const colors = [palette.box, 0x3f6e5a, 0x8a5a2a, 0x54607a];
@@ -134,6 +136,10 @@ export function renderHarborBackground(
             renderer.graphics.fillRect(stack.x, stack.y, 60, 28);
             renderer.graphics.fillStyle(0x000000, 0.3);
             renderer.graphics.fillRect(stack.x, stack.y + 12, 60, 3);
+            renderer.graphics.fillRect(stack.x + 3, stack.y + 3, 3, 22);
+            renderer.graphics.fillRect(stack.x + 54, stack.y + 3, 3, 22);
+            renderer.graphics.fillStyle(palette.porthole, 0.16);
+            renderer.graphics.fillRect(stack.x + 7, stack.y + 2, 46, 2);
         });
         return;
     }

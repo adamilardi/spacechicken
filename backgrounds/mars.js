@@ -22,8 +22,9 @@ export function createMarsBackgroundLayout(background, worldWidth, worldHeight) 
         });
     }
     const buttes = [];
-    for (let x = 60; x < worldWidth; x += 520) {
-        buttes.push({ x, y: worldHeight * 0.42, w: 280 });
+    for (let x = -80, i = 0; x < worldWidth; i++) {
+        buttes.push({ x, y: worldHeight * (0.38 + (i % 4) * 0.075), w: 240 + ((i * 137) % 300) });
+        x += 460 + ((i * 179) % 320);
     }
     const rocks = [];
     for (let x = 200; x < worldWidth; x += 360) {

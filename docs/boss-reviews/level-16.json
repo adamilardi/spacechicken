@@ -5,83 +5,180 @@
         "levelTheme": "Iron Vault: the sealed branch off the womb that rejoins the foundry. Skitterlings swarm the vault decks, a red beam sweeps the pad approach, and a crusher slams the crown pad itself.",
         "bossFiction": "The vault’s living lock on the crown pad: a lockplate crab with brass pin tumblers, glowing keyway seams, shackle horns, and one red lens, bred from skitterling stock.",
         "rule": "Jump his charge late between slam beats, keep bolts on the lens.",
-        "tell": "Crouch and red flash for 800ms means a 378px charge.",
+        "tell": "Ground rush: red wind-up. Leap: cyan wind-up. Summon: gold wind-up. First-phase tell 800ms; second-phase tell 900ms.",
         "safeResponse": "Plant on the pace, strafe the telegraph, jump as the charge leaves, never stand under a rising slam.",
-        "hp": 12,
-        "phases": ["pace", "telegraph (crouch + red flash)", "charge", "recover"],
-        "enrage": "Below half HP he rests much shorter and charges 20% faster, tinted purple with an ENRAGED banner.",
-        "defeat": "Explosion, TUMBLER DOWN banner, crown shield opens. Wounds persist through player death."
+        "hp": 30,
+        "phases": [
+            "pace",
+            "telegraph (crouch + red flash)",
+            "charge",
+            "recover",
+            "armored phase shift",
+            "leap"
+        ],
+        "enrage": "VAULT BREACH: Get under the vault, then jump two rushes. A 900ms transformation and the first full attack tell are armored; the first real attack drops that armor.",
+        "defeat": "Explosion, TUMBLER DOWN banner, crown shield opens. Wounds persist through player death.",
+        "secondPhase": {
+            "title": "VAULT BREACH",
+            "battleHint": "Get under the vault, then jump two rushes",
+            "initialAttackMs": 0,
+            "telegraphMs": 900,
+            "recoverMs": 1000,
+            "enrageCooldownMs": 1200,
+            "attackCycle": ["leap", "charge", "charge"],
+            "leap": {
+                "dx": 210,
+                "velocityY": 215,
+                "ms": 700
+            }
+        }
     },
     "telemetry": {
         "level": 16,
         "boss": "Tumbler",
         "outcome": "boss-defeated",
-        "durationSec": 15.5,
-        "deaths": 0,
-        "deathSpots": [],
-        "hpStart": 12,
+        "durationSec": 43.1,
+        "deaths": 6,
+        "deathSpots": [
+            {
+                "x": 9470,
+                "y": 418,
+                "bossX": 9540,
+                "bossHp": 30,
+                "bossPhase": "dormant",
+                "addDist": 173,
+                "bombDist": 5541,
+                "deathKind": "boarder",
+                "likelyCause": "fall"
+            },
+            {
+                "x": 9562,
+                "y": 681,
+                "bossX": 9513,
+                "bossHp": 22,
+                "bossPhase": "pace",
+                "addDist": 355,
+                "bombDist": null,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            },
+            {
+                "x": 9559,
+                "y": 593,
+                "bossX": 9547,
+                "bossHp": 18,
+                "bossPhase": "pace",
+                "addDist": 191,
+                "bombDist": null,
+                "deathKind": "fall",
+                "likelyCause": "fall"
+            },
+            {
+                "x": 9541,
+                "y": 663,
+                "bossX": 9631,
+                "bossHp": 11,
+                "bossPhase": "charge",
+                "addDist": 343,
+                "bombDist": null,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            },
+            {
+                "x": 9559,
+                "y": 619,
+                "bossX": 9608,
+                "bossHp": 7,
+                "bossPhase": "telegraph",
+                "addDist": 304,
+                "bombDist": null,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            },
+            {
+                "x": 9538,
+                "y": 613,
+                "bossX": 9617,
+                "bossHp": 2,
+                "bossPhase": "telegraph",
+                "addDist": 279,
+                "bombDist": null,
+                "deathKind": "fall",
+                "likelyCause": "pit"
+            }
+        ],
+        "hpStart": 30,
         "hpMin": 0,
-        "phasesSeen": ["dormant", "pace", "telegraph", "recover"],
+        "phasesSeen": ["dormant", "pace", "telegraph", "charge", "recover", "shift", "leap"],
         "enraged": true,
-        "errors": []
+        "errors": [],
+        "flags": []
     },
     "reports": [
         {
             "persona": "reviewer",
             "name": "Marlowe (expert reviewer)",
-            "fun": 2.88,
-            "fairness": 2.73,
-            "theme": 3.11,
-            "verdict": "ship",
+            "fun": 0.99,
+            "fairness": 1.63,
+            "theme": 2.55,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.8,
-                "fairness": 0.56,
-                "theme": 0.75,
-                "verdict": 0.35
+                "fun": 0.69,
+                "fairness": 0.16,
+                "theme": 0.55,
+                "flaw": 0.95,
+                "verdict": 0.42
             }
         },
         {
             "persona": "veteran",
             "name": "Vic (contra veteran)",
-            "fun": 2.93,
-            "fairness": 2.5,
-            "theme": 3.06,
-            "verdict": "ship",
+            "fun": 1.25,
+            "fairness": 1.43,
+            "theme": 2.66,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.7,
-                "fairness": 0.44,
-                "theme": 0.73,
-                "verdict": 0.27
+                "fun": 0.55,
+                "fairness": 0.29,
+                "theme": 0.59,
+                "flaw": 0.91,
+                "verdict": 0.61
             }
         },
         {
             "persona": "casual",
             "name": "Sam (casual newcomer)",
-            "fun": 2.71,
-            "fairness": 2.68,
-            "theme": 3.04,
-            "verdict": "ship",
+            "fun": 0.95,
+            "fairness": 1.04,
+            "theme": 2.4,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.7,
-                "fairness": 0.55,
-                "theme": 0.79,
-                "verdict": 0.37
+                "fun": 0.52,
+                "fairness": 0.42,
+                "theme": 0.43,
+                "flaw": 0.8,
+                "verdict": 0.67
             }
         },
         {
             "persona": "speedrunner",
             "name": "Lex (speedrunner)",
-            "fun": 2.94,
-            "fairness": 2.68,
-            "theme": 3.08,
-            "verdict": "ship",
+            "fun": 1.18,
+            "fairness": 1.47,
+            "theme": 2.65,
+            "flaw": "stale",
+            "verdict": "iterate",
             "confidence": {
-                "fun": 0.77,
-                "fairness": 0.57,
-                "theme": 0.77,
-                "verdict": 0.38
+                "fun": 0.51,
+                "fairness": 0.27,
+                "theme": 0.59,
+                "flaw": 0.88,
+                "verdict": 0.6
             }
         }
     ],
-    "passed": true
+    "passed": false
 }

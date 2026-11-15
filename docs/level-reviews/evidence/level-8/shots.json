@@ -1,59 +1,114 @@
 {
   "level": 8,
+  "runLabel": 1,
   "shots": [
     {
-      "slug": "opener",
+      "id": "death-1",
+      "file": "death-1.jpg",
+      "x": 2459,
+      "y": 400,
+      "proves": "gameplay frame at death 1 (x=2459, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "70da93264e7b"
+    },
+    {
+      "id": "death-2",
+      "file": "death-2.jpg",
+      "x": 2527,
+      "y": 400,
+      "proves": "gameplay frame at death 2 (x=2527, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "678a5af236f9"
+    },
+    {
+      "id": "death-3",
+      "file": "death-3.jpg",
+      "x": 2567,
+      "y": 400,
+      "proves": "gameplay frame at death 3 (x=2567, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "a0e9fcfdacab"
+    },
+    {
+      "id": "death-4",
+      "file": "death-4.jpg",
+      "x": 2893,
+      "y": 400,
+      "proves": "gameplay frame at death 4 (x=2893, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "d507e09bd678"
+    },
+    {
+      "id": "death-5",
+      "file": "death-5.jpg",
+      "x": 2519,
+      "y": 400,
+      "proves": "gameplay frame at death 5 (x=2519, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "6f713f8afc34"
+    },
+    {
+      "id": "death-6",
+      "file": "death-6.jpg",
+      "x": 2559,
+      "y": 400,
+      "proves": "gameplay frame at death 6 (x=2559, cause hazard); the poll may catch the pilot already respawned, so the frame shows the aftermath, not necessarily the killing blow",
+      "capture": "gameplay",
+      "hash": "892caeebd3c3"
+    },
+    {
+      "id": "01-opener",
+      "file": "01-opener.jpg",
       "x": 150,
       "y": 480,
       "proves": "spawn read and first move",
-      "id": "01-opener",
-      "file": "01-opener.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-8/01-opener.jpg"
+      "capture": "staged-teleport",
+      "hash": "db57dcd6bef7"
     },
     {
-      "slug": "hazard-boarder",
+      "id": "02-hazard-boarder",
+      "file": "02-hazard-boarder.jpg",
       "x": 700,
       "y": 540,
       "proves": "hazard beat: boarder at x=700",
-      "id": "02-hazard-boarder",
-      "file": "02-hazard-boarder.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-8/02-hazard-boarder.jpg"
+      "capture": "staged-teleport",
+      "hash": "75050ff8cf80"
     },
     {
-      "slug": "hazard-drone",
+      "id": "03-hazard-drone",
+      "file": "03-hazard-drone.jpg",
       "x": 1400,
       "y": 360,
       "proves": "hazard beat: drone at x=1400",
-      "id": "03-hazard-drone",
-      "file": "03-hazard-drone.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-8/03-hazard-drone.jpg"
+      "capture": "staged-teleport",
+      "hash": "fe375a672f09"
     },
     {
-      "slug": "hazard-bonk",
+      "id": "04-hazard-bonk",
+      "file": "04-hazard-bonk.jpg",
       "x": 2800,
       "y": 428,
       "proves": "hazard beat: bonk at x=2800",
-      "id": "04-hazard-bonk",
-      "file": "04-hazard-bonk.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-8/04-hazard-bonk.jpg"
+      "capture": "staged-teleport",
+      "hash": "211287adc471"
     },
     {
-      "slug": "hazard-boss",
+      "id": "05-hazard-boss",
+      "file": "05-hazard-boss.jpg",
       "x": 11600,
       "y": 420,
       "proves": "hazard beat: boss at x=11600",
-      "id": "05-hazard-boss",
-      "file": "05-hazard-boss.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-8/05-hazard-boss.jpg"
+      "capture": "staged-teleport",
+      "hash": "a8e02ba9723e"
     },
     {
-      "slug": "finale",
+      "id": "06-finale",
+      "file": "06-finale.jpg",
       "x": 11500,
       "y": 400,
       "proves": "crown approach and finale pressure",
-      "id": "06-finale",
-      "file": "06-finale.jpg",
-      "path": "/home/adam/GameDevelopment/spacechicken/docs/level-reviews/evidence/level-8/06-finale.jpg"
+      "capture": "staged-teleport",
+      "hash": "9004b55fc1a8"
     }
   ]
 }

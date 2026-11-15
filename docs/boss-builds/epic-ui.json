@@ -1,0 +1,106 @@
+[
+    {
+        "width": 1280,
+        "height": 720,
+        "bounds": {
+            "boss": {
+                "x": 526,
+                "y": 12.2,
+                "width": 228,
+                "height": 23.599999999999998
+            },
+            "leaderboard": {
+                "x": 1044,
+                "y": 16,
+                "width": 156,
+                "height": 32
+            },
+            "timer": {
+                "x": 16,
+                "y": 16,
+                "width": 273,
+                "height": 36.9
+            }
+        },
+        "pauseFrozen": true,
+        "errors": []
+    },
+    {
+        "width": 800,
+        "height": 450,
+        "bounds": {
+            "boss": {
+                "x": 286,
+                "y": 6.199999999999999,
+                "width": 228,
+                "height": 23.6
+            },
+            "leaderboard": {
+                "x": 584,
+                "y": 10,
+                "width": 144,
+                "height": 30
+            },
+            "timer": {
+                "x": 10,
+                "y": 10,
+                "width": 172,
+                "height": 25.9
+            }
+        },
+        "pauseFrozen": true,
+        "errors": []
+    },
+    {
+        "width": 640,
+        "height": 360,
+        "bounds": {
+            "boss": {
+                "x": 218.5,
+                "y": 107.2,
+                "width": 203,
+                "height": 21.60000000000001
+            },
+            "leaderboard": {
+                "x": 424,
+                "y": 10,
+                "width": 144,
+                "height": 30
+            },
+            "timer": {
+                "x": 10,
+                "y": 10,
+                "width": 164,
+                "height": 22.9
+            }
+        },
+        "pauseFrozen": true,
+        "errors": []
+    },
+    {
+        "width": 390,
+        "height": 844,
+        "bounds": {
+            "boss": {
+                "x": 93.5,
+                "y": 107.2,
+                "width": 203,
+                "height": 21.60000000000001
+            },
+            "leaderboard": {
+                "x": 174,
+                "y": 10,
+                "width": 144,
+                "height": 50
+            },
+            "timer": {
+                "x": 10,
+                "y": 10,
+                "width": 156,
+                "height": 22.9
+            }
+        },
+        "pauseFrozen": true,
+        "errors": []
+    }
+]

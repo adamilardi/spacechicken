@@ -84,6 +84,11 @@ export function renderSkyhookBackground(
             renderer.graphics.moveTo(tower.x + 70, horizon);
             renderer.graphics.lineTo(tower.x, horizon - tower.h);
             renderer.graphics.strokePath();
+            renderer.graphics.fillStyle(palette.pylon, 0.65);
+            for (let y = horizon - tower.h + 30; y < horizon - 10; y += 60) {
+                renderer.graphics.fillRect(tower.x - 3, y, 12, 6);
+                renderer.graphics.fillRect(tower.x + 61, y, 12, 6);
+            }
             renderer.graphics.fillStyle(palette.beacon, 0.9);
             renderer.graphics.fillRect(tower.x + 32, horizon - tower.h - 6, 6, 6);
         });

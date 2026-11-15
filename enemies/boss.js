@@ -43,6 +43,9 @@ export function spawn(builder, group, config) {
         enrageChargeMult: config.enrageChargeMult ?? 1.2,
         summon: config.summon ? { ...config.summon } : null,
         leap: config.leap ? { ...config.leap } : null,
+        attackCycle: config.attackCycle ? [...config.attackCycle] : null,
+        phaseTwo: config.phaseTwo ? { ...config.phaseTwo } : null,
+        battleHint: config.battleHint,
     };
     builder.scene?.bossesGroup?.add?.(boss);
 }

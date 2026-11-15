@@ -13,8 +13,9 @@ export function createSpireBackgroundLayout(background, worldWidth, worldHeight)
         });
     }
     const fins = [];
-    for (let x = 200; x < worldWidth; x += 620) {
-        fins.push({ x, w: 90 + (x % 60), h: worldHeight * (0.2 + ((x * 5) % 10) / 80) });
+    for (let x = 240, i = 0; x < worldWidth; i++) {
+        fins.push({ x, w: 130 + ((i * 43) % 80), h: worldHeight * (0.1 + (i % 3) * 0.04) });
+        x += 980 + ((i * 271) % 600);
     }
     return {
         stars,
@@ -94,15 +95,18 @@ export function renderSpireBackground(
             renderer.graphics.fillCircle(spire.x, tipY, 5);
         }
         (layout.fins || []).forEach((fin) => {
-            renderer.renderPolygon(
-                [
-                    { x: fin.x - fin.w * 0.5, y: worldHeight * 0.78 },
-                    { x: fin.x, y: worldHeight * 0.78 - fin.h },
-                    { x: fin.x + fin.w * 0.5, y: worldHeight * 0.78 },
-                ],
-                palette.hull,
-                0.92
-            );
+            const baseY = worldHeight * 0.78;
+            const topY = baseY - fin.h;
+            // Solar collectors have a mast and segmented panels, not generic spikes.
+            renderer.graphics.fillStyle(palette.hull, 0.9);
+            renderer.graphics.fillRect(fin.x - 8, topY, 16, fin.h);
+            renderer.graphics.fillRect(fin.x - fin.w * 0.5, topY, fin.w, 36);
+            renderer.graphics.lineStyle(1, palette.ring, 0.25);
+            renderer.graphics.strokeRect(fin.x - fin.w * 0.5, topY, fin.w, 36);
+            for (let i = 1; i < 6; i++) {
+                renderer.graphics.fillStyle(palette.ring, 0.18);
+                renderer.graphics.fillRect(fin.x - fin.w * 0.5 + (i / 6) * fin.w, topY, 1, 36);
+            }
         });
         return;
     }

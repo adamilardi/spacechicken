@@ -33,3 +33,44 @@ test('pooled glow particles reset blending when reused for landing dust', async 
         global.Phaser = previousPhaser;
     }
 });
+
+test('boss rings follow scene tweens and are cleaned up before delayed defeat echoes', async () => {
+    const { EffectsManager } = await import('../EffectsManager.js');
+    const rings = [];
+    const delayed = [];
+    const tweens = [];
+    const scene = {
+        add: {
+            graphics() {
+                const ring = {
+                    destroyed: false,
+                    setPosition() {
+                        return this;
+                    },
+                    setDepth() {
+                        return this;
+                    },
+                    lineStyle() {},
+                    strokeEllipse() {},
+                    destroy() {
+                        this.destroyed = true;
+                    },
+                };
+                rings.push(ring);
+                return ring;
+            },
+        },
+        tweens: { add: (tween) => tweens.push(tween), killTweensOf() {} },
+        time: { delayedCall: (_delay, callback) => delayed.push(callback) },
+    };
+    const effects = new EffectsManager(scene);
+    effects.bossBurst(200, 300, 'defeat');
+    assert.equal(rings.length, 1);
+    assert.equal(tweens.length, 1);
+    assert.equal(delayed.length, 1);
+    effects.cleanup();
+    delayed[0]();
+    assert.equal(rings.length, 1, 'shutdown cannot create an orphaned echo');
+    assert.equal(rings[0].destroyed, true);
+    assert.equal(effects.bossRings.size, 0);
+});

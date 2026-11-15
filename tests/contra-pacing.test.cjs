@@ -121,3 +121,27 @@ test('director uses level encounter triggers instead of the legacy global schedu
     director.updateBoarderWaves();
     assert.equal(scene.boarderWave, 2);
 });
+
+test('long contra acts keep recoveries within 2500px and reinforcements local', async () => {
+    const { LEVEL_CONTENT, LEVEL_DEFINITIONS } = await import('../levels/index.js');
+    for (let id = 8; id <= 16; id++) {
+        const content = LEVEL_CONTENT[id];
+        const points = [0, ...content.checkpoints.map((p) => p.x), LEVEL_DEFINITIONS[id].CROWN_X];
+        for (let i = 1; i < points.length; i++) {
+            assert.ok(
+                points[i] - points[i - 1] <= 2500,
+                `level ${id} replay stretch at ${points[i]}`
+            );
+        }
+        for (const trigger of content.boarderWaves) {
+            const homes = content.dynamic.filter(
+                (h) => h.type === 'boarder' && h.wave === trigger.wave
+            );
+            assert.ok(homes.length > 0, `level ${id} wave ${trigger.wave} has targets`);
+            assert.ok(
+                Math.max(...homes.map((h) => h.x)) - trigger.x <= 1500,
+                `level ${id} wave ${trigger.wave} does not release distant fights early`
+            );
+        }
+    }
+});
