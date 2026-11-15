@@ -137,6 +137,15 @@ export const GAME_CONSTANTS = {
     CAMERA_FLASH_COLLECT: 280,
     CAMERA_WIN_ZOOM: 1.12,
     CAMERA_WIN_ZOOM_DURATION: 520,
+    // Fullscreen bloom (WebGL only): only pixels brighter than the threshold
+    // feed the glow, so bolts, the crown, and lasers bloom, not the scenery.
+    BLOOM_THRESHOLD: 0.55,
+    BLOOM_BLEND_AMOUNT: 0.8,
+    // Finale vignette (WebGL only): pulses in as a player closes on the crown.
+    VIGNETTE_RADIUS: 0.62,
+    VIGNETTE_FINALE_RADIUS_PX: 900,
+    VIGNETTE_MAX_STRENGTH: 0.6,
+    VIGNETTE_PULSE_PERIOD_MS: 900,
     SQUASH_DURATION: 80,
     STRETCH_DURATION: 90,
     LAND_DUST_COUNT: 8,

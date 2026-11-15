@@ -17,6 +17,11 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { CombatSystem } from './CombatSystem.js';
+import {
+    setupWorldCameraFilters,
+    teardownWorldCameraFilters,
+    updateFinaleVignette,
+} from './CameraFilters.js';
 import { BoarderDirector, crownGuardsDefeated } from './BoarderDirector.js';
 import { BossDirector } from './BossDirector.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
@@ -638,6 +643,7 @@ export class SpaceChicken extends Phaser.Scene {
         camera.roundPixels = true;
         this.setupUiCamera();
         this.updateCameraForViewport();
+        this.forEachWorldCamera((worldCamera) => setupWorldCameraFilters(this, worldCamera));
     }
 
     setupUiCamera() {
@@ -2186,6 +2192,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.syncBonkMarkers();
         this.updateBombTrails();
         this.cleanupOffscreenBombs();
+        updateFinaleVignette(this);
     }
 
     syncBonkMarkers() {
@@ -2648,6 +2655,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.bringUiCameraToFront();
         this.bindExistingCameraFilters();
         this.updateCameraForViewport();
+        setupWorldCameraFilters(this, this.player2Camera);
     }
 
     beginRaceFinale(winner) {
@@ -3010,6 +3018,7 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
         this.hasCleanedUp = true;
+        teardownWorldCameraFilters(this);
         this.inputController?.destroy?.();
         if (this.events) {
             this.events.off('shutdown', this.cleanup, this);
