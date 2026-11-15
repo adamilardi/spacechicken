@@ -3211,6 +3211,34 @@ test('scene restarts clear the coach memory', async () => {
     assert.equal(scene.coachMemory, null);
 });
 
+test('scene restarts remove the news-plate display texture', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const removed = [];
+    scene.textures = {
+        exists: (key) => key === 'plate-display-uuid',
+        remove: (key) => removed.push(key),
+    };
+    scene.newsPlateDisplayKey = 'plate-display-uuid';
+    scene.init({ level: 18, deathCount: 0 });
+    assert.deepEqual(removed, ['plate-display-uuid']);
+    assert.equal(scene.newsPlateDisplayKey, null);
+});
+
+test('scene cleanup removes the news-plate display texture', async () => {
+    const { SpaceChicken } = await importModule('SpaceChicken.js');
+    const scene = new SpaceChicken();
+    const removed = [];
+    scene.newsPlateDisplayKey = 'plate-display-uuid';
+    scene.textures = {
+        exists: (key) => key === 'plate-display-uuid',
+        remove: (key) => removed.push(key),
+    };
+    scene.cleanup();
+    assert.deepEqual(removed, ['plate-display-uuid']);
+    assert.equal(scene.newsPlateDisplayKey, null);
+});
+
 test('the chicken faces the direction it is moving', async () => {
     const { SpaceChicken } = await importModule('SpaceChicken.js');
     const scene = new SpaceChicken();
