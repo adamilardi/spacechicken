@@ -9,7 +9,7 @@ All sound is synthesized in code: no audio files. Read [the authoring reference]
 
 ## Create
 
-A level track is a `music/<id>.js` module exporting `buildTrack` with tone helpers from `music/score.js`, registered in `music/index.js` `MUSIC_DEFINITIONS` so the level does not fall through to level 1's track. Register the new file in `config/runtime-assets.cjs` `rootFiles` or the local server 404s it and the Cloudflare build omits it.
+A level track is a `music/<slug>.js` module exporting `buildTrack` with tone helpers from `music/score.js`, registered in `music/index.js` `MUSIC_DEFINITIONS` so the level does not fall through to level 1's track. Register the new file in `config/runtime-assets.cjs` `rootFiles` or the local server 404s it and the Cloudflare build omits it.
 
 Match the level's mood and arc: opener-readable, pressure in the middle, rest before the crown. Effects go through the synth: one call site per game event (jump, bonk, shot, hit, crown), short, and distinct from the music's lead voice. Keep the WebAudio unlock path intact: music starts only after the unlock handler runs.
 

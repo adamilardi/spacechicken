@@ -13,7 +13,7 @@ Help choose a coherent — and genuinely new — set of painted scenery and acto
 
 Read the level brief and the candidate manifests or `art-candidates/` folders. Manifests are named `manifest.json`, `enemy-manifest.json`, or `level-manifest.json`; check all three names before concluding a folder has no manifest. For each manifest, read `schema_version`, `kind`, and each candidate's `id`, `assets`, `preview_paths`, `spec`, `checks`, `limitations`, and `animation_handoff_path`. Resolve paths from the manifest's folder.
 
-If two candidates share an id, qualify them with the manifest path. If a shipped paint has no manifest, catalog it in the selection folder with its `SpriteFactory` or `BackgroundRenderer` function name and leave the source file as it is.
+If two candidates share an id, qualify them with the manifest path. If a shipped paint has no manifest, catalog it in the selection folder with its `sprites/` or `backgrounds/` module and function name and leave the source file as it is.
 
 Open `paint.js` and the preview HTML. A spec-only entry can be discussed. It cannot fill a selected slot. Compare:
 

@@ -17,7 +17,7 @@ The view is side-on. Facing is usually right, and patrol code flips the sprite. 
 
 ## How to move it
 
-- Pose frames: add a pose argument to the same paint function, the way `drawChicken` takes wing and leg angles. Export one function and a list of pose names. Keep the canvas size, scale, and pivot identical on every pose. Do not recrop each frame to its visible pixels.
+- Pose frames: add a pose argument to the same paint function, the way `drawChicken` in `sprites/chicken.js` takes wing and leg angles. Export one function and a list of pose names. Keep the canvas size, scale, and pivot identical on every pose. Do not recrop each frame to its visible pixels.
 - Tweens: for a rigid slide, bob, spin, or recoil, write duration, easing, and the property that moves. Gameplay still owns the body's position when the actor is a hazard.
 - A separate paint for a drip, spark, or muzzle flash when that effect has its own timing.
 

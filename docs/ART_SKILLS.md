@@ -2,7 +2,7 @@
 
 The art and pipeline skills in `skills/` are Markdown instructions for this game. Ask an agent to read the relevant `SKILL.md`. Putting them in this folder does not install them globally. Role skills for design, code, audio, story, production, QA, and UI live alongside them and are indexed in [ROLE_SKILLS.md](ROLE_SKILLS.md).
 
-They follow the NovaWing skill set in `/home/adam/rtype-prototype/skills`, rewritten for Space Chicken. Pictures are generated images (Muse Image, saved and registered as game textures) or canvas paint functions in `SpriteFactory.js` and layouts in `BackgroundRenderer.js`. Either way the art style stays the one already on screen.
+They follow the NovaWing skill set in `/home/adam/GameDevelopment/NovaWing/skills`, rewritten for Space Chicken. Pictures are generated images (Muse Image, saved and registered as game textures) or canvas paint functions in `sprites/` and layouts in `backgrounds/`. Either way the art style stays the one already on screen.
 
 Shared paths, hazard rules, and the phaser live in [the authoring reference](../skills/level-creator/references/spacechicken.md).
 
@@ -20,7 +20,7 @@ Shared paths, hazard rules, and the phaser live in [the authoring reference](../
 
 Example sequence:
 
-1. Read `skills/level-art-creator/SKILL.md`. Paint two directions for a new side-view place. Stage them under `art-candidates/<brief-id>/`. Leave the running game alone.
+1. Read `skills/level-art-creator/SKILL.md`. Paint three divergent directions for a new side-view place and keep one survivor. Stage them under `art-candidates/<brief-id>/`. Leave the running game alone.
 2. Read `skills/enemy-art-creator/SKILL.md`. Paint two actors for that place, each with a handoff.
 3. Read `skills/level-art-selector/SKILL.md`. Recommend a set and record the choice.
 4. Read `skills/enemy-animation-creator/SKILL.md`. Animate the chosen actors from their paint functions.

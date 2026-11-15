@@ -6,14 +6,14 @@ Inspection map for this repository. Read the current files before editing. Numbe
 
 Space Chicken pictures are generated images (Muse Image) or canvas drawings. Generated PNG/WebP/sprite-sheet files must live under the level's asset folder, be registered in `config/runtime-assets.cjs`, and be loaded as Phaser textures before use; unregistered files will 404 locally and be omitted from the Cloudflare build.
 
-A new picture is a `paint(ctx)` function. Actors and props go through `SpriteFactory.addCanvasTexture`. Places go through a `BackgroundRenderer` layout. Match the pictures already in the game:
+A new picture is a `paint(ctx, width, height)` function in `sprites/<area>.js` (decks, enemies, hazards, guns, props), registered in that module's `*_SPRITES` array, which `SpriteFactory.createExpeditionSprites` loads through `addCanvasTexture`. Places go through a `backgrounds/<biome>.js` module registered in `BackgroundRenderer`'s `BIOME_LAYOUTS`/`BIOME_RENDERERS` maps. Match the pictures already in the game:
 
 - Keep canvases small. Chicken frames are 32×32. Expedition actors are roughly 18–128 px on a side. Paint at gameplay size. Do not paint a large plate and scale it down.
 - Set `imageSmoothingEnabled` to false. Use flat fills, short strokes, and at most a couple of linear gradients.
 - The silhouette has to read at the size the sprite is shown.
 - A bonkable actor calls `paintBonkPad`. A shootable actor shows a contrasting lens, the way `paintBoarder` paints the cyan chest ring. Acid, boulders, dust devils, crushers, lasers, and rocks stay unmarked.
 - Backgrounds are four baked parallax layers: sky, far, mid, near. Scenery stays quieter than platforms, the chicken, and hazards.
-- A new background must differ from every shipped type in at least two composition devices (see the level-art-creator skill). Shipped devices, from `BackgroundRenderer.js`:
+- A new background must differ from every shipped type in at least two composition devices (see the level-art-creator skill). Shipped devices, from `backgrounds/`:
     - `space` (1, 2): sunrise gradient and glow; star bands, nebulas, planets; polygon silhouette ranges; near tower city with lit windows.
     - `station` (3): orbital frames; module structures with braces, panels, and lit windows.
     - `moon` (4): starfield bands; crater-field near layer.
@@ -31,7 +31,7 @@ A new picture is a `paint(ctx)` function. Actors and props go through `SpriteFac
     - `bastion` vault style (16): same renderer, sealed-bulkhead palette; bronze decks carry the new place read.
 - Recoloring an existing paint is not a new actor or place. A new one needs a new silhouette.
 
-Stage unused paints under `art-candidates/<brief-id>/` as `paint.js` modules that export `paint(ctx, width, height)`. Copy a chosen paint into `SpriteFactory.js` or `BackgroundRenderer.js` only when an integration skill or the user asks for it in the running game.
+Stage unused paints under `art-candidates/<brief-id>/` as `paint.js` modules that export `paint(ctx, width, height)`. Copy a chosen paint into `sprites/*.js` (plus its `*_SPRITES` array) or `backgrounds/*.js` (plus the `BIOME_*` maps) only when an integration skill or the user asks for it in the running game.
 
 ## Where the game is authored
 
@@ -40,8 +40,9 @@ Stage unused paints under `art-candidates/<brief-id>/` as `paint.js` modules tha
 - `levels/index.js`: `LEVEL_DEFINITIONS`, `LEVEL_CONTENT`, and `LEVEL_IDS`. Register a new level here.
 - `levels/shared.js`: default instructions and the Dawn Run palette.
 - `LevelConfig.js`: the `LevelConfig` constructor. It reads the level registry.
-- `SpriteFactory.js`: `paint*` functions, `addCanvasTexture`, `createChickenFrames`, `createExpeditionSprites`.
-- `BackgroundRenderer.js`: `ensureLayout`, `drawLayer`, and `create*BackgroundLayout`. Texture keys look like `space-chicken-bg-${layoutKey}_${layerId}`.
+- `sprites/*.js`: `paint*` functions plus the `DECK_SPRITES` / `ENEMY_SPRITES` / `HAZARD_SPRITES` / `GUN_SPRITES` / `PROP_SPRITES` registry arrays.
+- `SpriteFactory.js`: thin registry — `addCanvasTexture`, `createChickenFrames`, `createExpeditionSprites` (loads the `*_SPRITES` arrays).
+- `backgrounds/*.js`: one module per biome (`create*BackgroundLayout` + `render*Background`), registered in `BackgroundRenderer.js` `BIOME_LAYOUTS` / `BIOME_RENDERERS`. Texture keys look like `space-chicken-bg-${layoutKey}_${layerId}`.
 - `enemies/<type>.js`: one hazard spawn function. `enemies/index.js` maps type names to those functions.
 - `WorldBuilder.js`: platforms, props, and calls into the enemy registry. Boarders stay in their own gravity group.
 - `SpaceChicken.js`: `resolveHazardContact`, `setupPhaser`, `createAnimations`, pause, and the debug API.
@@ -61,6 +62,8 @@ Each definition carries title, gravity, world size, kill zone, start, crown, bom
 
 The run ends when a chicken overlaps the crown. Boss levels run a real boss encounter first (see Hazards): a `type: 'boss'` dynamic entry driven by `BossDirector`, and `CROWN_SHIELD` levels gate the crown behind a wave/boss clear. There is no segment graph. Shipped places, in order: Dawn Run (`space`), Arcade Orbit (`space`), Orbital Gauntlet (`station`), Moonfall Citadel (`moon`), Specimen Wing (`facility`), Red Reach (`mars`), Earthwatch (`iss`, phaser on), Colony Drop (`colony`, phaser on), Hive Warrens (`hive`, phaser on), Spire Crown (`spire`, phaser on), Bastion Relay (`bastion`, phaser on), Crimson Womb (`womb`, phaser on), Rust Harbor (`harbor`, phaser on), Ember Foundry (`foundry`, phaser on), Skyhook Anchor (`skyhook`, phaser on), Iron Vault (`bastion` vault style, phaser on, branch off 12 rejoining 14). World height is per level. Do not assume 700. Levels 8-16 are the contra-style run-and-gun arc; crown gates vary per level (8: `CROWN_SHIELD` wave clear, 9: spore-beam, 10: lift ride, 11: gatehouse crushers, 12: shield plus beam, 13: slams plus shield, 14: tram ride plus beam, 15: lift plus beam plus slam plus shield, 16: beam plus slam plus shield).
 
+News levels continue the numbering past 16 (17, 18, …) with `content.news` set; they live outside the campaign chain and form their own story chain instead (see the level-creator skill).
+
 Platforms use a texture key such as `cliff`, `stationPanel`, `labDeck`, `mesa`, or `issHull`. The floor and static platforms are created in `WorldBuilder`. A decorative prop is not solid unless it is also a platform.
 
 ## Hazards
@@ -76,7 +79,7 @@ A new hazard type needs an `enemies/` spawn module, a `DYNAMIC_SPAWNERS` entry, 
 Contra-style levels (campaign 8–16, plus any level whose brief declares `Combat profile: contra`) stack standable height bands (**tiers**) and split the route across them. The tier, spacing, action, and split-path design rules live in [the level-creator skill](../SKILL.md) ("Stacked tiers and split paths"); the facts below are what the engine actually does, so designs stay inside them:
 
 - **Fire aims Contra-style.** `aimVector` (`GameUtils.js`) resolves each chicken's aim per frame in `CombatSystem.syncChickenAim`: forward, up, diagonal-up while moving, down/diagonal-down while airborne; grounded aim-down fires forward (no crouch/prone anywhere). Inputs: hold ↑/W while firing for up (Up/W then aim instead of jumping; Space/K always jump), ↓/S for down, gamepad left-stick Y (D-pad down too), touch ▲/▼ buttons, co-op mirrors per chicken. `tryFirePhaser` fires along the aim at `PHASER_BOLT_SPEED`; fan spreads from `WEAPON_DEFS` apply perpendicular to the aim, so a horizontal volley keeps its exact shipped velocities and other directions are that volley rotated. Bolts expire by distance traveled in any direction (`stepPhaserBolts`). Cross-height hits come from aimed fire, fan drift over range (a ±140 spread crosses ~140px of height per ~560px of travel), standing on the target's tier, jump alignment, drops, or bonks.
-- **Jump budget.** `JUMP_VELOCITY_Y` is −330; single-jump rise is `330² / 2g` for the level's `GRAVITY` (≈181px at 300, ≈136px at 400, ≈363px at 150). `MAX_JUMPS` is 2 — the second jump is the jetpack stage and roughly doubles the climb when spent at the apex. Level gravity varies (150–400 shipped), so tier spacing is always computed per level, never copied as pixels from a sibling.
+- **Jump budget.** `JUMP_VELOCITY_Y` is −330; single-jump rise is `330² / 2g` for the level's `GRAVITY` (≈181px at 300, ≈136px at 400, ≈363px at 150). `MAX_JUMPS` is 2 — the second jump is the jetpack stage and roughly doubles the climb when spent at the apex. Tier spacing in the level-creator skill uses `R = floor(330² / 2g) − 5` (≈176px at gravity 300): the same physics minus a 5px landing margin. Level gravity varies (150–400 shipped), so tier spacing is always computed per level, never copied as pixels from a sibling.
 - **Decks are solid from all sides.** `WorldBuilder` static and moving platforms have no one-way flag; vertical travel uses stairs, staggered decks, side gaps, drops, and moving platforms/lifts (`platforms.moving` with tweens). Moving platforms are immovable, gravity-free bodies — they are route edges, not elevators with doors.
 - **World height is per level.** `WORLD_HEIGHT` ships at 700–900; physics bounds and camera bounds use it (`SpaceChicken.js`), the camera lerps in Y as well as X, and `BackgroundRenderer` bakes to the level's width/height (max bake 2048×1024, `BACKGROUND_BAKE_MAX_WIDTH/HEIGHT`). Taller tier stacks raise `WORLD_HEIGHT` and re-place `KILLZONE_Y`, checkpoints, and the crown; the kill zone is a y line, so pit tiers must sit above it with a deck.
 - **Boarders are grounded actors.** They spawn in their own gravity group (`setupBoarders`), steer and hop on decks (`boarderSteering`: hop clearance 48, hop velocity −320, peaks ~112px, aggro 280×260), and pack-alert nearby allies. A boarder fights on the tier whose deck it stands on; stationing a wave on a high tier is deliberate placement over that tier's deck at or past its wave release x, not a shelf decoration. `BoarderDirector`/`BoarderNavigation` move them along decks only — they never climb tier gaps beyond a hop.

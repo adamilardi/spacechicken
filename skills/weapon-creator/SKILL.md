@@ -13,7 +13,7 @@ The space phaser is the gun that already ships. It stays the weapon a pilot fire
 
 Switching is once per press, per chicken. Below a level that enables weapons, the control does nothing useful. Name the selected weapon in the existing HUD field. One label is enough.
 
-Paint the gun and the shot with `paint` functions in `SpriteFactory.js`, in the same small flat style as `paintSpacePhaser` and `paintPhaserBolt`. Do not generate images. Register the texture keys next to the current ones.
+Paint the gun and the shot with `paint` functions in `sprites/guns.js`, in the same small flat style as `paintSpacePhaser` and `paintPhaserBolt`. Do not generate images. Register the texture keys in `GUN_SPRITES` next to the current ones.
 
 ## One fire path
 

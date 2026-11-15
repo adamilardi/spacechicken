@@ -25,7 +25,7 @@ Write a short brief and keep going on routine choices. Name the level, the paint
 
 Put encounter behavior in that level's `levels/<name>.js` module and `LEVEL_CONTENT` entry. Add an `enemies/<name>.js` spawn function registered in `enemies/index.js` only when the encounter needs a hazard the registry cannot express. Register any new file in `config/runtime-assets.cjs` `rootFiles`.
 
-Paint the actor or machine with a `paint` function and register it through `SpriteFactory`, following the painted-art rules. If a selected paint or generated image already exists, use that file. Do not redraw a new identity over it.
+Paint the actor or machine with a `paint` function in `sprites/` and register it in the matching `*_SPRITES` array, following the painted-art rules. If a selected paint or generated image already exists, use that file. Do not redraw a new identity over it.
 
 Bonk actors get `paintBonkPad`. Shootable actors get a lens and go through the phaser overlap only when this level sets `PHASER`. Unmarked hazards get neither. Animate with extra poses of the same paint or with tweens. Tie the tell to the same state that turns the hitbox on. Pause freezes that state.
 

@@ -9,7 +9,7 @@ Paint a new Space Chicken actor with the same canvas style as the actors already
 
 ## Look at the current pictures
 
-Read `SpriteFactory.js` paints for the nearest role: bonk actors (`paintLabTech`, `paintSentryOrb`, `paintBeetle`, `paintHopper`), the shootable boarder (`paintBoarder`), and unmarked hazards (`paintAcidDrop`, `paintBoulder`, `paintDustDevil`, `paintCrusher`). Note canvas size, facing, and whether the actor wears `paintBonkPad` or a lens.
+Read the `sprites/enemies.js` and `sprites/hazards.js` paints for the nearest role: bonk actors (`paintLabTech`, `paintSentryOrb`, `paintBeetle`, `paintHopper`), the shootable boarder (`paintBoarder`), and unmarked hazards (`paintAcidDrop`, `paintBoulder`, `paintDustDevil`, `paintCrusher`). Note canvas size, facing, and whether the actor wears `paintBonkPad` or a lens.
 
 Decide the role before painting. A bonk actor is stomped from above. A shootable actor is a phaser target. An unmarked hazard is only lethal. State the camera as side view, facing right, at the size it will appear on a platform.
 
@@ -19,7 +19,7 @@ When the brief is a story or a place, the actor must read as that story at gamep
 
 Paint **three divergent silhouettes** for a themed enemy (different body plan and signature prop, not three tints), kill two with reasons in `brief.md`, and hand off the survivor. The survivor's behaviour verb must be visible in the pose (a digger crouches over its tool, a broadcaster rears toward the player); a neutral standing blob with a themed hat will fail the fidelity critic's screenshot check, because the critic judges the actor from in-game shots, not from this handoff. Keep the killed silhouettes on disk — the selector and critic may resurrect one.
 
-## Paint, do not generate
+## Paint the actor
 
 Write `paint.js` that exports `paint(ctx, width, height)`. Follow the art rules in the authoring reference. A generated raster is allowed: generate the actor isolated on a flat solid background for cutout, save it, and record it in the manifest.
 

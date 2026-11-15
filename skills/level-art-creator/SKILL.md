@@ -9,7 +9,7 @@ Paint scenery that can sit behind a Space Chicken level — and that no shipped 
 
 ## Read the place
 
-Read the user's brief and the nearest `create*BackgroundLayout` in `BackgroundRenderer.js`, plus the platform paints in `SpriteFactory.js` (`paintLabDeck`, `paintMesa`, `paintIssHull`, `cliff`, `stationPanel`). Record theme, palette, world height, and which edges the chicken stands on.
+Read the user's brief and the nearest `create*BackgroundLayout` in `backgrounds/`, plus the platform paints in `sprites/decks.js` (`paintLabDeck`, `paintMesa`, `paintIssHull`) and the `cliff` / `stationPanel` textures. Record theme, palette, world height, and which edges the chicken stands on.
 
 The view is a side-scrolling platformer. Background layers are sky, far, mid, and near. They scroll horizontally. `scrollFactorY` stays 1 so the floor does not tear away from the platforms. Keep distant paint quieter than the chicken, hazards, and platform edges.
 
@@ -108,4 +108,4 @@ Stage under `art-candidates/<brief-id>/`. Leave shipped levels alone. Write `bri
 }
 ```
 
-Paths are relative to the manifest. `status` is `painted` or `spec-only`. `collision` is null for a non-solid layer. Check values are `pass`, `fail`, `unverified`, or `not-applicable`. Do not edit `LevelConfig.js` or `BackgroundRenderer.js` in this task.
+Paths are relative to the manifest. `status` is `painted` or `spec-only`. `collision` is null for a non-solid layer. Check values are `pass`, `fail`, `unverified`, or `not-applicable`. Do not edit `LevelConfig.js`, `backgrounds/`, or `BackgroundRenderer.js` in this task.
