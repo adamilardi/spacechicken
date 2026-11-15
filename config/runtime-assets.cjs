@@ -144,6 +144,7 @@ const rootFiles = Object.freeze([
     // intentionally excluded from prod deploys.
     'GameTestInterface.js',
     'CombatSystem.js',
+    'CameraFilters.js',
     'BoarderDirector.js',
     'BossDirector.js',
     'BoarderNavigation.js',
