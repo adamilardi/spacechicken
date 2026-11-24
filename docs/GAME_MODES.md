@@ -18,7 +18,7 @@ Two modes only. No Easy: levels 1–3 already teach gently, and double jump plus
 3. **Selection lives on the title screen**, mirroring the jump-style toggle: a `DIFFICULTY` button (`Now: Normal` / `Now: Hard`), persisted to localStorage, default Normal. Keyboard shortcut `H`; gamepad `B` (the only free title-screen button); touch taps the button.
 4. **Assists are not modes.** Jump style, checkpoints, and touch controls never affect eligibility and are never gated by mode.
 5. **Hard is always visible.** The level banner and HUD level field carry a `HARD` marker so recordings and screenshots are unambiguous.
-6. **Hard is global, not per-level.** All 16 levels playable; combines freely with co-op race (already ineligible, just harder).
+6. **Hard is global, not per-level.** All 26 levels playable; combines freely with co-op race (already ineligible, just harder).
 
 ## Sign-off record (2026-10-09)
 

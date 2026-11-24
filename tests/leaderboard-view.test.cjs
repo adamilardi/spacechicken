@@ -147,6 +147,29 @@ test('callouts celebrate crowns and chase the lead', async () => {
     assert.match(offline.callout.text, /Offline/);
 });
 
+test('opening course boards target the next faster rival outside the visible rows', async () => {
+    const { buildLeaderboardModel } = await importModule('LeaderboardPresentation.js');
+    const course = {
+        level: 2,
+        visibleCount: 1,
+        remoteTimes: [
+            { time: 7000, name: 'Rook' },
+            { time: 8200, name: 'Luna' },
+            { time: 9000, name: 'Bex' },
+        ],
+    };
+    assert.equal(
+        buildLeaderboardModel(course).courseChallenge.text,
+        'Time to beat · 00:07.00 by Rook'
+    );
+    assert.equal(
+        buildLeaderboardModel({ ...course, best: 9000 }).courseChallenge.text,
+        'Catch #2 Luna · 00:00.80 away'
+    );
+    assert.equal(buildLeaderboardModel({ ...course, best: 6500 }).courseChallenge, null);
+    assert.equal(buildLeaderboardModel({ ...course, level: 4 }).courseChallenge, null);
+});
+
 test('plain-text fallback keeps section order and row format', async () => {
     const { buildLeaderboardModel, formatLeaderboardPlainText } = await importModule(
         'LeaderboardPresentation.js'

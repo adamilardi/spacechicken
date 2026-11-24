@@ -30,7 +30,10 @@ try {
     const page = await context.newPage();
     const errors = [];
     page.on('dialog', (dialog) => dialog.dismiss());
-    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('pageerror', (e) => {
+        errors.push(e.message);
+        console.error(e);
+    });
     const scene = () =>
         page.evaluate(() => {
             const s = window.SPACE_CHICKEN_GAME.scene.getScenes(false)[0];
@@ -63,6 +66,10 @@ try {
     await page.waitForFunction(() => window.__spaceChickenDebug?.ready());
     await openRaceSetup();
     assert.equal(await page.locator('#race-setup-dialog').evaluate((d) => d.open), true);
+    assert.equal(
+        await page.locator('[aria-current="true"][data-mode]').getAttribute('data-mode'),
+        'solo'
+    );
     assert.equal((await scene()).awaiting, true);
     await page.screenshot({ path: `${out}/race-phone.png` });
     await press(13);
@@ -72,7 +79,14 @@ try {
     );
     assert.equal((await scene()).awaiting, true);
     await openRaceSetup();
-    await page.locator('[data-mode="controllers"]').click();
+    assert.equal(
+        await page.locator('[aria-current="true"][data-mode]').getAttribute('data-mode'),
+        'keyboard'
+    );
+    await page.locator('[data-mode="controllers"]').focus();
+    await press(0);
+    assert.match(await page.locator('#race-status').textContent(), /Connect the required/);
+    assert.match(await page.locator('#race-controls').textContent(), /P1: A\/D/);
     assert.equal(await page.locator('#race-setup-dialog').evaluate((d) => d.open), true);
     await page.locator('[data-mode="solo"]').click();
     await page.waitForFunction(

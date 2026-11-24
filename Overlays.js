@@ -179,8 +179,9 @@ export class Overlays {
         this.leaderboardTextObject = null;
         this.leaderboardBackdrop = null;
         this.leaderboardExtras = [];
-        this.leaderboardTapZone = null;
         this.leaderboardLayout = null;
+        this.leaderboardCompetition = null;
+        this.leaderboardLoading = false;
         this.leaderboardModel = null;
         this.leaderboardPlainText = '';
         this.leaderboardTextContent = '';
@@ -193,6 +194,9 @@ export class Overlays {
         this.finishSummary = null;
         this.finishRetryButton = null;
         this.finishNewGameButton = null;
+        this.finishBoardButton = null;
+        this.finishSprintTime = null;
+        this.sprintResult = null;
         this.finishMenuIndex = 0;
         this.finishLevelTime = 0;
         this.completionSummary = '';
@@ -210,71 +214,7 @@ export class Overlays {
     }
 
     layoutLeaderboard() {
-        if (!this.leaderboardVisible) {
-            return;
-        }
-        if (this.leaderboardModel) {
-            // Rich board: re-render so every row, medal, and pill follows
-            // the new metrics. Resize-only cost; input state is untouched.
-            this.renderLeaderboard(this.leaderboardModel, this.leaderboardPlainText);
-            return;
-        }
-        if (!this.leaderboardTextObject) {
-            return;
-        }
-        const insets = this.ui.getSafeAreaInsets();
-        const metrics = this.ui.getLayoutMetrics();
-        const width = metrics.width;
-        const height = metrics.height;
-        const availableWidth = Math.max(180, metrics.innerWidth - (metrics.isCompact ? 24 : 48));
-        this.leaderboardTextObject.setWordWrapWidth(availableWidth, true);
-        this.ui.applyFontSize(this.leaderboardTextObject, metrics.fonts.leaderboard);
-        const centerX = insets.left + metrics.innerWidth / 2;
-        const top = this.leaderboardTop(metrics, insets);
-        this.leaderboardTextObject.setPosition(centerX, top);
-        this.drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets);
-    }
-
-    leaderboardTop(metrics, insets) {
-        const bottoms = [insets.top + (metrics.isCompact ? 56 : 80)];
-        if (this.ui.deathText) {
-            bottoms.push(this.ui.deathText.y + (this.ui.deathText.height || 0));
-        }
-        if (this.ui.playerNameText) {
-            bottoms.push(
-                this.ui.playerNameText.y + (this.ui.playerNameText.displayHeight || 0) * 0.5
-            );
-        }
-        if (this.ui.musicToggleButton) {
-            bottoms.push(
-                this.ui.musicToggleButton.y + (this.ui.musicToggleButton.displayHeight || 0) * 0.5
-            );
-        }
-        if (this.ui.text && this.ui.text.visible && this.ui.text.alpha > 0.2) {
-            bottoms.push(this.ui.text.y + (this.ui.text.height || 0));
-        }
-        return Math.max(...bottoms) + (metrics.isCompact ? 14 : 28);
-    }
-
-    drawLeaderboardBackdrop(centerX, top, availableWidth, width, height, insets) {
-        if (!this.leaderboardBackdrop) {
-            return;
-        }
-        if (this.leaderboardLayout) {
-            this.paintLeaderboardPanel();
-            return;
-        }
-        this.leaderboardBackdrop.clear();
-        this.leaderboardBackdrop.fillStyle(0x000000, 0.45);
-        this.leaderboardBackdrop.fillRect(0, 0, width, height);
-        const panelWidth = Math.min(availableWidth, 520);
-        const panelHeight = Math.min(
-            this.leaderboardTextObject.height + 36,
-            height - insets.top - insets.bottom - 120
-        );
-        const panelX = centerX - panelWidth / 2;
-        const panelY = top - 18;
-        this.fillLeaderboardPanel(panelX, panelY, panelWidth, panelHeight);
+        if (this.leaderboardVisible) this.refreshLeaderboard();
     }
 
     fillLeaderboardPanel(panelX, panelY, panelWidth, panelHeight) {
@@ -311,14 +251,14 @@ export class Overlays {
             layout.panelWidth,
             layout.panelHeight
         );
-        const innerX = layout.panelX + 8;
-        const innerWidth = layout.panelWidth - 16;
+        const innerX = layout.panelX + layout.pad;
+        const innerWidth = layout.panelWidth - 2 * layout.pad;
         backdrop.fillStyle(0xffe566, 0.25);
-        backdrop.fillRect(layout.panelX + layout.pad, layout.dividerY, innerWidth - 8, 2);
+        backdrop.fillRect(innerX, layout.dividerY, innerWidth, 1);
         for (let i = 0; i < layout.rows.length; i++) {
             const row = layout.rows[i];
-            const rowY = row.y - 2;
-            const rowHeight = row.height + 4;
+            const rowY = row.y;
+            const rowHeight = row.height;
             if (row.isPlayer) {
                 backdrop.fillStyle(0xffe566, 0.1);
                 backdrop.fillRect(innerX, rowY, innerWidth, rowHeight);
@@ -353,23 +293,39 @@ export class Overlays {
         }
     }
 
-    showLevelResult(title, time, submission, rescueMs = 0) {
-        const rescueLabel = rescueMs > 0 ? ` · −${Math.round(rescueMs / 1000)}s crew` : '';
-        this.completionSummary = `${title} · ${formatElapsedTime(time)}${rescueLabel}`;
-        if (this.scene.levelConfig.nextLevel) {
-            this.ui.showLevelBanner(title, `${formatElapsedTime(time)}${rescueLabel}`, 2800);
-            this.ui.bannerTitle?.setAlpha(1);
-            this.ui.bannerSubtitle?.setAlpha(1);
-        }
+    // Shared online-submit resolution: failure appends a local-save note,
+    // ranked results run onRank, then the finish screen refreshes.
+    resolveSubmission(submission, summaryKey, onRank) {
         Promise.resolve(submission).then((result) => {
             if (this.ui.destroyed) return;
             if (submission != null && result == null) {
-                this.completionSummary += '\nOnline submit failed — saved locally';
+                this[summaryKey] += '\nOnline submit failed — saved locally';
                 this.updateFinishSummary();
                 return;
             }
             if (!result?.rank) return;
-            const bestTime = result.personalBest?.time || time;
+            onRank(result);
+            this.updateFinishSummary();
+            if (this.leaderboardVisible) this.displayLeaderboard();
+        });
+    }
+
+    showLevelResult(title, time, submission, rescueMs = 0) {
+        const rescueLabel = rescueMs > 0 ? ` · −${Math.round(rescueMs / 1000)}s crew` : '';
+        this.completionSummary = `${title} · ${formatElapsedTime(time)}${rescueLabel}`;
+        if (this.scene.levelConfig.nextLevel && !this.sprintResult) {
+            this.ui.showLevelBanner(title, `${formatElapsedTime(time)}${rescueLabel}`, 2800);
+            this.ui.bannerTitle?.setAlpha(1);
+            this.ui.bannerSubtitle?.setAlpha(1);
+        }
+        this.resolveSubmission(submission, 'completionSummary', (result) => {
+            const bestTime = result.personalBest?.time ?? time;
+            if (this.sprintResult) {
+                this.sprintResult.rank = result.rank;
+                this.sprintResult.nextTarget = result.next;
+                this.sprintResult.bestTime = bestTime;
+                return;
+            }
             const next = result.next
                 ? ` · ${formatElapsedTime(bestTime - result.next.time)} behind ${result.next.name}`
                 : ' · YOU ARE #1';
@@ -379,8 +335,6 @@ export class Overlays {
                 this.ui.bannerSubtitle.setText(`${formatElapsedTime(time)} · ${ranks}${next}`);
                 this.ui.layoutLevelBanner();
             }
-            this.updateFinishSummary();
-            if (this.leaderboardVisible) this.displayLeaderboard();
         });
     }
 
@@ -388,17 +342,8 @@ export class Overlays {
         const deathLabel = deaths > 0 ? `${deaths} DEATHS` : 'ZERO DEATHS';
         const rescueLabel = rescues > 0 ? ` · ${rescues} SAVED` : '';
         this.fullRunSummary = `FULL RUN · ${formatElapsedTime(time)} · ${deathLabel}${rescueLabel}`;
-        Promise.resolve(submission).then((result) => {
-            if (this.ui.destroyed) return;
-            if (submission != null && result == null) {
-                this.fullRunSummary += '\nOnline submit failed — saved locally';
-                this.updateFinishSummary();
-                return;
-            }
-            if (!result?.rank) return;
+        this.resolveSubmission(submission, 'fullRunSummary', (result) => {
             this.fullRunSummary += `\nAll-time #${result.rank} · Weekly #${result.weeklyRank}`;
-            this.updateFinishSummary();
-            if (this.leaderboardVisible) this.displayLeaderboard();
         });
     }
 
@@ -420,7 +365,9 @@ export class Overlays {
         this.leaderboardPlainText = '';
         this.leaderboardTextContent = '';
         this.leaderboardVisible = false;
-        this.leaderboardRequestId = 0;
+        this.leaderboardRequestId += 1;
+        this.leaderboardCompetition = null;
+        this.leaderboardLoading = false;
         this.ui.refreshLeaderboardButtonStyle();
         this.setTitleButtonsVisible(true);
         this.setFinishVisible(this.scene.gameOver);
@@ -447,106 +394,59 @@ export class Overlays {
             this.leaderboardTextObject.destroy?.();
         }
         this.leaderboardTextObject = null;
-        if (this.leaderboardTapZone) {
-            this.leaderboardTapZone.destroy?.();
-            this.leaderboardTapZone = null;
-        }
         this.leaderboardLayout = null;
     }
 
     leaderboardFooterText() {
-        return 'Tap / ←/→: turn page · B: close';
+        return '←/→ Change board · Esc/B Close';
+    }
+
+    turnLeaderboardPage(direction) {
+        const count = this.leaderboardPageCount();
+        this.leaderboardPage = (this.leaderboardPage + direction + count) % count;
+        this.refreshLeaderboard();
     }
 
     displayLeaderboard() {
         this.ui.clearLevelBanner();
         this.setFinishVisible(false);
         this.setTitleButtonsVisible(false);
-        const requestId = Date.now() + Math.random();
+        if (this.leaderboardLoading) return;
+        const requestId = this.leaderboardRequestId + 1;
         this.leaderboardRequestId = requestId;
-        this.showLeaderboardMessage('Loading leaderboard…', requestId);
+        this.leaderboardLoading = true;
+        this.leaderboardVisible = true;
+        this.refreshLeaderboard();
 
-        this.scene.leaderboardManager
-            .fetchCompetition()
-            .then((competition) => {
-                if (this.leaderboardRequestId !== requestId) {
-                    return;
-                }
-                const model = this.createLeaderboardModel(competition);
-                this.renderLeaderboard(
-                    model,
-                    formatLeaderboardPlainText(model, this.leaderboardFooterText())
-                );
-            })
-            .catch(() => {
-                if (this.leaderboardRequestId !== requestId) {
-                    return;
-                }
-                if (!this.scene.storageAvailable) {
-                    this.showLeaderboardMessage(
-                        'Saved times unavailable (local storage disabled).',
-                        requestId
-                    );
-                    return;
-                }
-                const model = this.createLeaderboardModel(null);
-                this.renderLeaderboard(
-                    model,
-                    formatLeaderboardPlainText(model, this.leaderboardFooterText())
-                );
-            });
+        const updateCompetition = (competition) => {
+            if (this.leaderboardRequestId !== requestId) return;
+            this.leaderboardCompetition = competition;
+            this.leaderboardLoading = false;
+            this.refreshLeaderboard();
+        };
+        this.scene.leaderboardManager.fetchCompetition().then(updateCompetition, () => {
+            updateCompetition(null);
+        });
     }
 
-    showLeaderboardMessage(message, requestId) {
-        if (this.ui.destroyed || this.leaderboardRequestId !== requestId) {
-            return;
+    refreshLeaderboard() {
+        const model = this.createLeaderboardModel(this.leaderboardCompetition);
+        if (this.leaderboardLoading && !model.online) {
+            model.callout = { text: 'Loading online rankings…', tone: 'dim' };
+        } else if (model.courseChallenge) {
+            model.callout = model.courseChallenge;
         }
-        const boardMode = this.scene.leaderboardManager?.mode === 'hard' ? 'HARD' : 'NORMAL';
-        this.leaderboardTextContent = `LEADERBOARD · ${boardMode}\n${message}`;
-        this.clearLeaderboardObjects();
-        this.leaderboardModel = null;
-        if (!this.leaderboardBackdrop) {
-            this.leaderboardBackdrop = this.scene.add.graphics();
-            this.leaderboardBackdrop.setScrollFactor(0);
-            this.leaderboardBackdrop.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH - 1);
-            this.ui.markUi(this.leaderboardBackdrop);
-        }
-        const metrics = this.ui.getLayoutMetrics();
-        this.leaderboardTextObject = this.scene.add
-            .text(0, 0, this.leaderboardTextContent, {
-                fontSize: `${metrics.fonts.leaderboard}px`,
-                fontFamily: HUD_FONT,
-                fill: '#ffe566',
-                align: 'center',
-            })
-            .setOrigin(0.5, 0)
-            .setScrollFactor(0);
-        this.leaderboardTextObject.setDepth(GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH);
-        this.leaderboardTextObject.setInteractive({ useHandCursor: true });
-        this.leaderboardTextObject.on('pointerup', () => {
-            this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
-            this.displayLeaderboard();
-        });
-        this.ui.styleHudText(this.leaderboardTextObject, 4);
-        this.ui.markUi(this.leaderboardTextObject);
-        this.leaderboardVisible = true;
-        this.layoutLeaderboard();
-        this.ui.refreshLeaderboardButtonStyle();
+        this.renderLeaderboard(
+            model,
+            formatLeaderboardPlainText(model, this.leaderboardFooterText())
+        );
     }
 
     createLeaderboardModel(competition) {
         const level = this.leaderboardPage;
         const metrics = this.ui.getLayoutMetrics();
         const compactLandscape = metrics.isCompact && !metrics.isPortrait;
-        // Short landscape fits two rows per board; portrait phones have
-        // the height for three.
-        const visibleCount = metrics.isTiny
-            ? 2
-            : metrics.isCompact
-              ? metrics.isPortrait
-                  ? 3
-                  : 2
-              : 5;
+        const visibleCount = metrics.isCompact ? 3 : 5;
         const best = this.scene.leaderboardManager.getPersonalBest(level);
         const localTimes =
             level === 0
@@ -570,10 +470,6 @@ export class Overlays {
         });
     }
 
-    // Rich board: gold header, mode badge, callout pill, medal rows with
-    // gaps, and a control footer. Row geometry is measured after each text
-    // lands so zebra bands, medals, and the pill always line up, even
-    // when long names wrap on tiny screens.
     renderLeaderboard(model, plainText) {
         if (this.ui.destroyed) {
             return;
@@ -592,59 +488,67 @@ export class Overlays {
         this.renderLeaderboardCard(model, boardMode);
     }
 
-    // Two-pass card: short screens drop past winners rather than pushing
-    // the footer off the panel.
     renderLeaderboardCard(model, boardMode) {
-        let ctx = this.createLeaderboardContext();
-        this.renderLeaderboardHead(ctx, model, boardMode);
-        this.renderLeaderboardBoards(ctx, model);
-        this.renderLeaderboardPast(ctx, model);
-        if (!model.hidePast && ctx.y - ctx.panelY + ctx.pad > ctx.maxPanelH) {
+        const rowCount = Math.max(model.allTimeRows.length, model.weeklyRows.length, 1);
+        for (let limit = rowCount; limit >= 1; limit--) {
+            const ctx = this.createLeaderboardContext();
+            this.renderLeaderboardHead(ctx, model, boardMode);
+            this.renderLeaderboardBoards(ctx, model, limit);
+            const beforePast = ctx.y;
+            const beforePastObjects = this.leaderboardExtras.length;
+            this.renderLeaderboardPast(ctx, model);
+            if (ctx.y + ctx.footerSpace + ctx.pad - ctx.panelY > ctx.maxPanelH) {
+                for (const text of this.leaderboardExtras.splice(beforePastObjects)) text.destroy();
+                ctx.y = beforePast;
+            }
+            if (ctx.y + ctx.footerSpace + ctx.pad - ctx.panelY <= ctx.maxPanelH || limit === 1) {
+                this.finishLeaderboardRender(ctx);
+                return;
+            }
             this.clearLeaderboardObjects();
-            ctx = this.createLeaderboardContext();
-            const slim = { ...model, hidePast: true };
-            this.renderLeaderboardHead(ctx, slim, boardMode);
-            this.renderLeaderboardBoards(ctx, slim);
-            this.renderLeaderboardPast(ctx, slim);
         }
-        this.finishLeaderboardRender(ctx);
     }
 
     createLeaderboardContext() {
         const metrics = this.ui.getLayoutMetrics();
         const insets = this.ui.getSafeAreaInsets();
-        const availableWidth = Math.max(180, metrics.innerWidth - (metrics.isCompact ? 24 : 48));
-        const panelWidth = Math.min(availableWidth, 520);
+        const short = metrics.innerHeight < 300;
+        const pad = short ? 8 : metrics.isCompact ? 10 : 16;
+        const panelWidth = Math.min(metrics.innerWidth - 16, 640);
         const centerX = insets.left + metrics.innerWidth / 2;
-        const top = this.leaderboardTop(metrics, insets);
-        const pad = metrics.isCompact ? 10 : 14;
+        const panelX = centerX - panelWidth / 2;
+        const panelY = insets.top + 8;
         const rowSize = metrics.fonts.leaderboard;
-        const contentWidth = panelWidth - pad * 2;
-        const panelY = top - pad;
+        const left = panelX + pad;
+        const right = panelX + panelWidth - pad;
+        const gapWidth = panelWidth < 360 ? 72 : 82;
         return {
             depth: GAME_CONSTANTS.LEADERBOARD_OVERLAY_DEPTH,
             metrics,
             panelWidth,
             centerX,
             pad,
-            gap: metrics.isCompact ? 3 : 8,
-            rowGap: metrics.isCompact ? 0 : 1,
-            maxPanelH: Math.max(200, metrics.height - panelY - insets.bottom - 8),
-            panelX: centerX - panelWidth / 2,
+            gap: short ? 2 : metrics.innerHeight < 450 ? 4 : 8,
+            rowGap: 2,
+            maxPanelH: metrics.innerHeight - 16,
+            panelX,
             panelY,
             rowSize,
-            headerSize: Math.min(rowSize + 6, 26),
-            smallSize: Math.max(12, rowSize - 2),
-            tinySize: Math.max(10, rowSize - 4),
-            contentWidth,
-            rowWrap: Math.max(140, contentWidth - 60),
-            rowX: centerX + 14,
-            medalX: centerX - panelWidth / 2 + 30,
+            headerSize: rowSize + 8,
+            smallSize: rowSize - 2,
+            tinySize: rowSize - 3,
+            footerSpace: 48,
+            contentWidth: right - left,
+            left,
+            right,
+            medalX: left + 14,
+            nameX: left + 32,
+            timeX: right - gapWidth,
+            timeWidth: panelWidth < 360 ? 72 : 90,
             rows: [],
             callout: null,
-            dividerY: top,
-            footer: null,
-            y: top,
+            dividerY: panelY,
+            y: panelY + pad,
         };
     }
 
@@ -656,15 +560,16 @@ export class Overlays {
             size = ctx.rowSize,
             color = LEADERBOARD_COLORS.row,
             wrap = ctx.contentWidth,
+            origin = 0.5,
         } = {}
     ) {
         const text = this.scene.add.text(x, ctx.y, content, {
             fontSize: `${size}px`,
             fontFamily: HUD_FONT,
             fill: color,
-            align: 'center',
+            align: origin === 0 ? 'left' : origin === 1 ? 'right' : 'center',
         });
-        text.setOrigin(0.5, 0);
+        text.setOrigin(origin, 0);
         text.setScrollFactor(0);
         text.setDepth(ctx.depth);
         if (wrap) {
@@ -678,41 +583,16 @@ export class Overlays {
     }
 
     renderLeaderboardHead(ctx, model, boardMode) {
-        const header = this.addLeaderboardLine(ctx, `LEADERBOARD · ${boardMode}`, {
+        this.leaderboardTextObject = this.addLeaderboardLine(ctx, 'Leaderboard', {
             size: ctx.headerSize,
             color: LEADERBOARD_COLORS.header,
         });
-        this.leaderboardTextObject = header;
         ctx.y += 2;
-        const sub = this.addLeaderboardLine(
-            ctx,
-            `${model.label} · ${this.leaderboardPage + 1}/${this.leaderboardPageCount()}`,
-            { size: ctx.smallSize, color: LEADERBOARD_COLORS.dim }
-        );
-        ctx.y += ctx.gap;
-        ctx.dividerY = ctx.y;
-        ctx.y += ctx.gap;
-
-        // Badge rides the short level line so it never covers the header
-        // on narrow panels.
-        const hard = boardMode === 'HARD';
-        const badge = this.scene.add.text(
-            ctx.panelX + ctx.panelWidth - ctx.pad,
-            sub.y - 2,
-            boardMode,
-            {
-                fontSize: `${ctx.tinySize}px`,
-                fontFamily: HUD_FONT,
-                fill: hard ? '#ff8a7a' : '#8ce4ff',
-                backgroundColor: hard ? '#5a1f2c' : '#17334b',
-                align: 'center',
-            }
-        );
-        badge.setOrigin(1, 0).setScrollFactor(0).setDepth(ctx.depth);
-        badge.setPadding(8, 3, 8, 3);
-        this.ui.styleHudText(badge, 2);
-        this.ui.markUi(badge);
-        this.leaderboardExtras.push(badge);
+        this.addLeaderboardLine(ctx, `${model.label} · ${boardMode}`, {
+            size: ctx.smallSize,
+            color: LEADERBOARD_COLORS.dim,
+        });
+        ctx.y += ctx.gap + 5;
 
         const tone = CALLOUT_TONES[model.callout.tone] || CALLOUT_TONES.dim;
         const callout = this.addLeaderboardLine(ctx, model.callout.text, {
@@ -727,72 +607,114 @@ export class Overlays {
             height: callout.height + 10,
             tone: model.callout.tone,
         };
-        ctx.y += ctx.gap;
+        ctx.y += ctx.gap + 5;
 
         this.addLeaderboardLine(ctx, model.bestText, {
             size: ctx.smallSize,
             color: LEADERBOARD_COLORS.best,
         });
         ctx.y += ctx.gap;
+        ctx.dividerY = ctx.y;
+        ctx.y += ctx.gap;
     }
 
-    renderLeaderboardBoards(ctx, model) {
+    renderLeaderboardBoards(ctx, model, limit) {
         const sections = [
             {
                 title: model.allTimeLabel,
                 color: LEADERBOARD_COLORS.allTimeTitle,
                 rows: model.allTimeRows,
             },
-            {
-                title: model.online
-                    ? `THIS WEEK (${model.week || 'UTC'})`
-                    : 'ONLINE BOARD UNAVAILABLE',
-                color: LEADERBOARD_COLORS.weeklyTitle,
-                rows: model.online ? model.weeklyRows : null,
-            },
         ];
+        if (model.online) {
+            sections.push({
+                title: model.week ? `THIS WEEK · ${model.week}` : 'THIS WEEK',
+                color: LEADERBOARD_COLORS.weeklyTitle,
+                rows: model.weeklyRows,
+            });
+        }
         for (const section of sections) {
+            const top = ctx.y;
             this.addLeaderboardLine(ctx, section.title, {
+                x: ctx.left,
+                origin: 0,
                 size: ctx.smallSize,
                 color: section.color,
+                wrap: ctx.timeX - ctx.timeWidth - ctx.left,
             });
-            ctx.y += 2;
-            if (!section.rows || section.rows.length === 0) {
-                this.addLeaderboardLine(ctx, model.online ? 'No times yet' : 'Try again later', {
+            const headingBottom = ctx.y;
+            if (section.rows.length) {
+                ctx.y = top;
+                this.addLeaderboardLine(ctx, 'TIME', {
+                    x: ctx.timeX,
+                    origin: 1,
+                    size: ctx.tinySize,
+                    color: LEADERBOARD_COLORS.dim,
+                });
+                ctx.y = top;
+                this.addLeaderboardLine(ctx, 'GAP', {
+                    x: ctx.right,
+                    origin: 1,
+                    size: ctx.tinySize,
+                    color: LEADERBOARD_COLORS.dim,
+                });
+                ctx.y = headingBottom + 3;
+                for (const row of section.rows.slice(0, limit)) this.renderLeaderboardRow(ctx, row);
+            } else {
+                this.addLeaderboardLine(ctx, 'No times yet', {
                     size: ctx.smallSize,
                     color: LEADERBOARD_COLORS.dim,
                 });
-            } else {
-                for (const row of section.rows) {
-                    this.renderLeaderboardRow(ctx, row);
-                }
             }
             ctx.y += ctx.gap;
         }
     }
 
     renderLeaderboardRow(ctx, row) {
-        const line =
-            `${row.timeText} · ${row.name}${row.deathText} · ${row.gapText}` +
-            `${row.isPlayer ? ' · YOU' : ''}`;
         const rowTop = ctx.y;
-        this.addLeaderboardLine(ctx, line, {
-            x: ctx.rowX,
-            size: ctx.rowSize,
-            color: row.isPlayer ? LEADERBOARD_COLORS.playerRow : LEADERBOARD_COLORS.row,
-            wrap: ctx.rowWrap,
+        const color = row.isPlayer ? LEADERBOARD_COLORS.playerRow : LEADERBOARD_COLORS.row;
+        const details = `${row.isPlayer ? ' · You' : ''}${row.deathText}`;
+        const nameWidth = ctx.timeX - ctx.timeWidth - ctx.nameX - 6;
+        const name = this.addLeaderboardLine(ctx, row.name + details, {
+            x: ctx.nameX,
+            origin: 0,
+            color,
+            wrap: 0,
         });
-        ctx.rows.push({
-            y: rowTop,
-            height: ctx.y - rowTop,
-            rank: row.rank,
-            isPlayer: row.isPlayer,
-        });
-        ctx.y += ctx.rowGap;
+        if (name.width > nameWidth) {
+            const glyphs = Array.from(row.name);
+            const fullLength = glyphs.length;
+            const measure = (value) => name.context.measureText(value).width + 3;
+            while (glyphs.length && measure(glyphs.join('') + '…') > nameWidth) glyphs.pop();
+            const playerName =
+                glyphs.length < fullLength ? glyphs.join('').trimEnd() + '…' : row.name;
+            name.setText(details ? `${playerName}\n${details.slice(3)}` : playerName);
+        }
+        const cells = [
+            { text: row.timeText, x: ctx.timeX, origin: 1, color },
+            {
+                text: row.isLeader ? '—' : row.gapText,
+                x: ctx.right,
+                origin: 1,
+                color: LEADERBOARD_COLORS.dim,
+                size: ctx.smallSize,
+            },
+        ];
+        const lines = [
+            name,
+            ...cells.map(({ text, ...style }) => {
+                ctx.y = rowTop;
+                return this.addLeaderboardLine(ctx, text, style);
+            }),
+        ];
+        const height = Math.max(22, ...lines.map((line) => line.height + 4));
+        for (const line of lines) line.y = rowTop + (height - line.height) / 2;
+        ctx.rows.push({ y: rowTop, height, rank: row.rank, isPlayer: row.isPlayer });
+        ctx.y = rowTop + height + ctx.rowGap;
     }
 
     renderLeaderboardPast(ctx, model) {
-        if (model.hidePast) {
+        if (model.hidePast || model.past.length === 0) {
             return;
         }
         this.addLeaderboardLine(ctx, 'PAST WINNERS', {
@@ -800,42 +722,64 @@ export class Overlays {
             color: LEADERBOARD_COLORS.pastTitle,
         });
         ctx.y += 2;
-        if (model.past.length === 0) {
-            this.addLeaderboardLine(ctx, 'No past winners yet', {
+        for (const winner of model.past) {
+            this.addLeaderboardLine(ctx, `${winner.week} · ${winner.name} · ${winner.timeText}`, {
                 size: ctx.smallSize,
-                color: LEADERBOARD_COLORS.dim,
+                color: LEADERBOARD_COLORS.row,
             });
-        } else {
-            for (const winner of model.past) {
-                this.addLeaderboardLine(
-                    ctx,
-                    `${winner.week}: ${winner.timeText} - ${winner.name}`,
-                    {
-                        size: ctx.smallSize,
-                        color: LEADERBOARD_COLORS.row,
-                    }
-                );
-                ctx.y += ctx.rowGap;
-            }
+            ctx.y += ctx.rowGap;
         }
         ctx.y += ctx.gap;
     }
 
     finishLeaderboardRender(ctx) {
-        ctx.footer = this.addLeaderboardLine(ctx, this.leaderboardFooterText(), {
-            size: ctx.tinySize,
-            color: LEADERBOARD_COLORS.footer,
-        });
+        // Keep taps on the dimmed area from reaching title and finish buttons.
+        const shield = this.scene.add.zone(0, 0, ctx.metrics.width, ctx.metrics.height);
+        shield
+            .setOrigin(0)
+            .setScrollFactor(0)
+            .setDepth(ctx.depth - 1);
+        shield.setInteractive();
+        this.ui.markUi(shield);
+        const footerY = ctx.y + ctx.footerSpace / 2;
+        const controls = [
+            ['‹ Prev', ctx.left, 0, () => this.turnLeaderboardPage(-1)],
+            ['Close', ctx.centerX, 0.5, () => this.hideLeaderboard()],
+            ['Next ›', ctx.right, 1, () => this.turnLeaderboardPage(1)],
+        ];
+        for (const [label, x, origin, action] of controls) {
+            const button = this.scene.add.text(x, footerY, label, {
+                fontSize: `${ctx.rowSize}px`,
+                fontFamily: HUD_FONT,
+                fill: '#eaf6ff',
+                backgroundColor: '#203552',
+            });
+            button.setPadding(14, 14, 14, 14);
+            button.setOrigin(origin, 0.5).setScrollFactor(0).setDepth(ctx.depth);
+            button.setInteractive({ useHandCursor: true });
+            button.on('pointerover', () => button.setBackgroundColor('#355577'));
+            button.on('pointerout', () => button.setBackgroundColor('#203552'));
+            button.on('pointerup', action);
+            this.ui.markUi(button);
+            this.leaderboardExtras.push(button);
+        }
+        ctx.y += ctx.footerSpace;
+        const panelHeight = ctx.y - ctx.panelY + ctx.pad;
+        const shift = Math.max(0, Math.floor((ctx.maxPanelH - panelHeight) / 2));
+        for (const text of this.leaderboardExtras) text.y += shift;
+        this.leaderboardExtras.push(shield);
+        for (const row of ctx.rows) row.y += shift;
+        ctx.callout.y += shift;
 
         this.leaderboardLayout = {
             width: ctx.metrics.width,
             height: ctx.metrics.height,
             panelX: ctx.panelX,
-            panelY: ctx.panelY,
+            panelY: ctx.panelY + shift,
             panelWidth: ctx.panelWidth,
-            panelHeight: ctx.y - ctx.panelY + ctx.pad,
+            panelHeight,
             pad: ctx.pad,
-            dividerY: ctx.dividerY,
+            dividerY: ctx.dividerY + shift,
             callout: ctx.callout,
             rows: ctx.rows,
             medalX: ctx.medalX,
@@ -856,28 +800,6 @@ export class Overlays {
 
         this.paintLeaderboardPanel();
 
-        const nextPage = () => {
-            this.leaderboardPage = (this.leaderboardPage + 1) % this.leaderboardPageCount();
-            this.displayLeaderboard();
-        };
-        if (typeof this.scene.add.zone === 'function') {
-            const zone = this.scene.add.zone(
-                ctx.centerX,
-                ctx.panelY + this.leaderboardLayout.panelHeight / 2,
-                ctx.panelWidth,
-                this.leaderboardLayout.panelHeight
-            );
-            zone.setScrollFactor(0);
-            zone.setDepth(ctx.depth);
-            zone.setInteractive({ useHandCursor: true });
-            zone.on('pointerup', nextPage);
-            this.ui.markUi(zone);
-            this.leaderboardTapZone = zone;
-        } else {
-            ctx.footer.setInteractive({ useHandCursor: true });
-            ctx.footer.on('pointerup', nextPage);
-        }
-
         this.leaderboardVisible = true;
         this.ui.refreshLeaderboardButtonStyle();
     }
@@ -894,12 +816,17 @@ export class Overlays {
         this.finishBackdrop.setStrokeStyle(2, 0xffe566, 0.55);
         this.finishBackdrop.setScrollFactor(0).setDepth(depth + 1);
         this.finishTitle = this.ui.markUi(
-            this.scene.add.text(0, 0, raceWinner ? `PLAYER ${raceWinner} WINS` : 'YOU WIN', {
-                fontFamily: BANNER_FONT,
-                fontSize: '30px',
-                fill: '#ffe566',
-                align: 'center',
-            })
+            this.scene.add.text(
+                0,
+                0,
+                this.sprintResult?.title || (raceWinner ? `PLAYER ${raceWinner} WINS` : 'YOU WIN'),
+                {
+                    fontFamily: BANNER_FONT,
+                    fontSize: '30px',
+                    fill: '#ffe566',
+                    align: 'center',
+                }
+            )
         );
         this.finishTitle
             .setOrigin(0.5)
@@ -919,18 +846,36 @@ export class Overlays {
             .setOrigin(0.5, 0)
             .setScrollFactor(0)
             .setDepth(depth + 2);
+        if (this.sprintResult) {
+            this.finishSprintTime = this.ui.markUi(
+                this.scene.add.text(0, 0, formatElapsedTime(this.finishLevelTime), {
+                    fontFamily: 'monospace',
+                    fontStyle: 'bold',
+                    fontSize: '38px',
+                    fill: '#ffffff',
+                })
+            );
+            this.finishSprintTime
+                .setOrigin(0.5, 0)
+                .setScrollFactor(0)
+                .setDepth(depth + 2);
+        }
         this.finishRetryButton = this.createFinishButton(
-            `RETRY LEVEL ${this.scene.level}`,
-            this.scene.level
+            this.sprintResult ? 'Run again' : `RETRY LEVEL ${this.scene.level}`,
+            0
         );
-        this.finishNewGameButton = this.createFinishButton('NEW FULL GAME', 1);
+        this.finishNewGameButton = this.createFinishButton(
+            this.sprintResult ? `Level ${this.sprintResult.next.level} ›` : 'NEW FULL GAME',
+            1
+        );
+        if (this.sprintResult) this.finishBoardButton = this.createFinishButton('Ranks', 2);
         this.finishMenuIndex = 0;
         this.finishRetryButton.setBackgroundColor('#47738c');
         this.updateFinishSummary();
         this.layoutFinishScreen();
     }
 
-    createFinishButton(label, level) {
+    createFinishButton(label, action) {
         const button = this.ui.markUi(
             this.scene.add.text(0, 0, label, {
                 fontFamily: HUD_FONT,
@@ -943,15 +888,56 @@ export class Overlays {
         button.setOrigin(0.5).setPadding(16, 13, 16, 13);
         button.setScrollFactor(0).setDepth(GAME_CONSTANTS.OVERLAY_DEPTH + 4);
         button.setInteractive({ useHandCursor: true });
-        button.on('pointerup', () => {
-            if (!this.scene.restartDelayDone) return;
-            this.scene.scene.restart({ level, deathCount: 0, coopMode: this.scene.coopMode });
-        });
+        button.on('pointerup', () => this.chooseFinishAction(action));
         return button;
+    }
+
+    chooseFinishAction(action) {
+        if (!this.scene.restartDelayDone) return;
+        if (action === 2) {
+            this.displayLeaderboard();
+            return;
+        }
+        if (this.sprintResult && action === 1) {
+            this.scene.scene.start(this.scene.scene.key, this.sprintResult.next);
+            return;
+        }
+        this.scene.scene.restart({
+            level: action === 1 ? 1 : this.scene.level,
+            deathCount: 0,
+            coopMode: this.scene.coopMode,
+            ...(this.sprintResult && { retrySprint: true }),
+        });
     }
 
     updateFinishSummary() {
         if (!this.finishSummary) return;
+        if (this.sprintResult) {
+            const { previousBest, rank, nextTarget, bestTime, bonusMs } = this.sprintResult;
+            const time = this.finishLevelTime;
+            const format = formatElapsedTime;
+            const lines = [];
+            const delta = previousBest == null ? 0 : time - previousBest;
+            if (previousBest == null) lines.push('First time on your board');
+            else if (delta === 0) lines.push('Matched your personal best');
+            else
+                lines.push(
+                    `${format(Math.abs(delta))} ${delta < 0 ? 'faster' : 'slower'} than your best`
+                );
+            if (nextTarget) {
+                lines.push(
+                    `#${rank} · ${format(Math.max(0, bestTime - nextTarget.time))} to catch ${nextTarget.name}`
+                );
+            } else if (rank === 1) {
+                lines.push('Course record · You’re #1');
+            } else {
+                lines.push(`Target to beat · ${format(Math.min(time, previousBest ?? time))}`);
+            }
+            if (bonusMs) lines.push(`Crew rescue bonus · −${format(bonusMs)}`);
+            this.finishSummary.setText(lines.join('\n'));
+            this.layoutFinishScreen();
+            return;
+        }
         const lines = [
             `Level ${this.scene.level} · ${formatElapsedTime(this.finishLevelTime)} · Deaths ${this.scene.deathCount}`,
         ];
@@ -974,10 +960,16 @@ export class Overlays {
             this.finishBackdrop,
             this.finishTitle,
             this.finishSummary,
+            this.finishSprintTime,
             this.finishRetryButton,
             this.finishNewGameButton,
+            this.finishBoardButton,
         ].forEach((element) => element?.setVisible?.(visible));
-        for (const button of [this.finishRetryButton, this.finishNewGameButton]) {
+        for (const button of [
+            this.finishRetryButton,
+            this.finishNewGameButton,
+            this.finishBoardButton,
+        ]) {
             if (button?.input) button.input.enabled = visible;
         }
     }
@@ -1003,7 +995,27 @@ export class Overlays {
         this.finishSummary.setPosition(centerX, panelTop + 70);
         this.finishSummary.setFontSize(landscape || metrics.isTiny ? 14 : 16);
         this.finishSummary.setWordWrapWidth(panelWidth - 28, true);
-        if (landscape) {
+        if (this.sprintResult) {
+            const sprintTop = insets.top + Math.max(8, (metrics.innerHeight - panelHeight) / 2);
+            this.finishBackdrop.y = sprintTop + panelHeight / 2;
+            this.finishTitle.y = sprintTop + 31;
+            this.finishTitle.setFontSize(panelWidth < 360 ? 20 : 25);
+            this.finishSprintTime.setPosition(centerX, sprintTop + 50);
+            this.finishSprintTime.setFontSize(landscape ? 30 : 38);
+            this.finishSummary.y = sprintTop + (landscape ? 87 : 106);
+            const buttons = [
+                this.finishRetryButton,
+                this.finishBoardButton,
+                this.finishNewGameButton,
+            ];
+            buttons.forEach((button, index) => {
+                button.setFontSize(panelWidth < 360 ? 14 : 16).setPadding(9, 14, 9, 14);
+                button.setPosition(
+                    centerX + (index - 1) * (panelWidth / 3),
+                    sprintTop + panelHeight - 32
+                );
+            });
+        } else if (landscape) {
             this.finishRetryButton.setPosition(centerX - panelWidth / 4, panelTop + 169);
             this.finishNewGameButton.setPosition(centerX + panelWidth / 4, panelTop + 169);
         } else {
@@ -1666,15 +1678,20 @@ export class Overlays {
         this.restartHeroTimer();
     }
 
+    // Fresh config per call: Phaser timers may mutate the object.
+    heroTimerConfig() {
+        return {
+            delay: 6000,
+            loop: true,
+            callback: () => this.cycleHero(1),
+        };
+    }
+
     startHeroTimer() {
         this.stopHeroTimer();
         if (!this.scene.time?.addEvent || NEWS_LEVEL_IDS.length < 2) return;
         try {
-            this.titleHeroTimer = this.scene.time.addEvent({
-                delay: 6000,
-                loop: true,
-                callback: () => this.cycleHero(1),
-            });
+            this.titleHeroTimer = this.scene.time.addEvent(this.heroTimerConfig());
         } catch {
             this.titleHeroTimer = null;
         }
@@ -1683,11 +1700,7 @@ export class Overlays {
     restartHeroTimer() {
         if (this.titleHeroTimer?.reset) {
             try {
-                this.titleHeroTimer.reset({
-                    delay: 6000,
-                    loop: true,
-                    callback: () => this.cycleHero(1),
-                });
+                this.titleHeroTimer.reset(this.heroTimerConfig());
                 return;
             } catch {
                 /* fall through */
@@ -2463,49 +2476,109 @@ export class Overlays {
         this.applyTitleView();
     }
 
+    // Title-screen DOM buttons share one shape: a .game-button holding a
+    // kicker span plus a mode span, stacked under the title prompt.
+    createDomButton(id, onClick) {
+        const button = document.createElement('button');
+        button.id = id;
+        button.className = 'game-button';
+        button.type = 'button';
+        button.addEventListener('click', onClick);
+        document.body.append(button);
+        return button;
+    }
+
+    setDomToggleLabel(button, kickerClass, kickerText, modeClass, modeText, ariaLabel) {
+        if (!button) {
+            return;
+        }
+        const kicker = document.createElement('span');
+        kicker.className = kickerClass;
+        kicker.textContent = kickerText;
+        const mode = document.createElement('span');
+        mode.className = modeClass;
+        mode.textContent = modeText;
+        button.replaceChildren(kicker, mode);
+        button.setAttribute('aria-label', ariaLabel);
+    }
+
+    domButtonBottom(button, minHeight) {
+        return (parseFloat(button.style.top) || 0) + Math.max(button.offsetHeight || 0, minHeight);
+    }
+
+    stackDomButton(button, anchorBottom, gapAbove, gapBelow, minHeight) {
+        button.style.top = `${Math.round(anchorBottom + gapAbove)}px`;
+        const height = Math.max(button.offsetHeight || 0, minHeight);
+        return gapAbove + height + gapBelow;
+    }
+
+    titlePromptBottom() {
+        return this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2;
+    }
+
     positionRaceSetupButton(metrics) {
         const button = this.raceSetupButton;
         if (!button || !this.titlePrompt) {
             return 0;
         }
-        const gapAbove = metrics.isTiny ? 8 : 10;
-        const gapBelow = metrics.isTiny ? 8 : 8;
-        const top = this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2 + gapAbove;
-        button.style.top = `${Math.round(top)}px`;
-        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 50 : 68);
-        return gapAbove + height + gapBelow;
+        return this.stackDomButton(
+            button,
+            this.titlePromptBottom(),
+            metrics.isTiny ? 8 : 10,
+            8,
+            metrics.isCompact ? 50 : 68
+        );
     }
 
     setRaceSetupLabel() {
-        const button = this.raceSetupButton;
-        if (!button) {
-            return;
-        }
         const coop = Boolean(this.scene.coopMode);
-        const kicker = document.createElement('span');
-        kicker.className = 'race-setup-kicker';
-        kicker.textContent = 'OTHER MODES';
-        const mode = document.createElement('span');
-        mode.className = 'race-setup-mode';
-        mode.textContent = coop ? 'Now: 2 players' : 'Now: solo · 2-player race';
-        button.replaceChildren(kicker, mode);
-        button.setAttribute(
-            'aria-label',
+        this.setDomToggleLabel(
+            this.raceSetupButton,
+            'race-setup-kicker',
+            'OTHER MODES',
+            'race-setup-mode',
+            coop ? 'Now: 2 players' : 'Now: solo · 2-player race',
             coop
                 ? 'Other modes. Current game is 2 players.'
                 : 'Other modes. Current game is solo. Choose a 2-player race.'
         );
     }
 
+    // A race mode is pickable only when its input exists: controller
+    // races need connected pads, and keyboard races need a keyboard —
+    // co-op hides the touch buttons, so a touch-only device that picks a
+    // keyboard race would be stuck with no input.
+    raceModeReady(mode, dialog) {
+        const pads = Array.from(readBrowserGamepads()).filter(
+            (pad) => pad && pad.connected !== false
+        );
+        if (
+            (mode === 'controllers' && pads.length < 2) ||
+            (mode === 'keyboard-controller' && pads.length < 1)
+        ) {
+            dialog.querySelector('#race-status').textContent =
+                'Connect the required controller(s), then press a button on each.';
+            return false;
+        }
+        if (
+            (mode === 'keyboard' || mode === 'keyboard-controller') &&
+            !canRaceWithKeyboard({
+                matchMedia: (query) => window.matchMedia(query),
+                keyboardApi: typeof navigator !== 'undefined' && 'keyboard' in navigator,
+            })
+        ) {
+            dialog.querySelector('#race-status').textContent =
+                'Keyboard race needs a connected keyboard.';
+            return false;
+        }
+        return true;
+    }
+
     createRaceSetup() {
-        const button = document.createElement('button');
-        button.id = 'race-setup-button';
-        button.className = 'game-button';
-        button.type = 'button';
         const dialog = document.createElement('dialog');
         dialog.id = 'race-setup-dialog';
-        dialog.setAttribute('aria-label', 'Race setup');
-        dialog.innerHTML = `<h2>Other modes</h2>
+        dialog.setAttribute('aria-labelledby', 'race-setup-heading');
+        dialog.innerHTML = `<h2 id="race-setup-heading">Game mode</h2>
             <p>Race modes split the screen. First to the crown wins.</p>
             <button data-mode="solo">Solo</button>
             <button data-mode="keyboard">Two players · keyboard</button>
@@ -2513,38 +2586,24 @@ export class Overlays {
             <button data-mode="controllers">Two controllers</button>
             <p id="race-controls">P1: A/D + Space/K, J fires, G swaps. P2: arrows + ↑, numpad 1 fires, numpad 2 swaps.</p>
             <p>Controller: D-pad selects · A confirms · B closes</p>
-            <button class="game-button" data-close>Back</button>`;
+            <p id="race-status" role="status"></p>
+            <button class="game-button" type="button" data-close>Back</button>`;
         const options = [...dialog.querySelectorAll('[data-mode]')];
-        options.forEach((option, index) => {
+        const status = dialog.querySelector('#race-status');
+        const back = dialog.querySelector('[data-close]');
+        [...options, back].forEach((option, index) => {
+            option.addEventListener('focus', () => {
+                this.raceMenuIndex = index;
+            });
+        });
+        options.forEach((option) => {
             option.className = 'game-button';
-            option.style.cssText = 'display:block;position:static;width:100%;margin:8px 0';
+            option.type = 'button';
             option.addEventListener('click', () => {
                 const mode = option.dataset.mode;
-                const pads = Array.from(readBrowserGamepads()).filter(
-                    (pad) => pad && pad.connected !== false
-                );
-                if (
-                    (mode === 'controllers' && pads.length < 2) ||
-                    (mode === 'keyboard-controller' && pads.length < 1)
-                ) {
-                    dialog.querySelector('#race-controls').textContent =
-                        'Connect the required controller(s), then press a button on each.';
+                if (!this.raceModeReady(mode, dialog)) {
                     return;
                 }
-                if (
-                    (mode === 'keyboard' || mode === 'keyboard-controller') &&
-                    !canRaceWithKeyboard({
-                        matchMedia: (query) => window.matchMedia(query),
-                        keyboardApi: typeof navigator !== 'undefined' && 'keyboard' in navigator,
-                    })
-                ) {
-                    // Co-op hides the touch buttons, so a touch-only device
-                    // that picks a keyboard race would be stuck with no input.
-                    dialog.querySelector('#race-controls').textContent =
-                        'Keyboard race needs a connected keyboard.';
-                    return;
-                }
-                this.raceMenuIndex = index;
                 dialog.close();
                 this.scene.scene.restart({
                     level: 1,
@@ -2553,51 +2612,39 @@ export class Overlays {
                 });
             });
         });
-        button.addEventListener('click', () => {
+        back.addEventListener('click', () => dialog.close());
+        const button = this.createDomButton('race-setup-button', () => {
+            status.textContent = '';
+            const currentMode = this.scene.coopMode || 'solo';
+            for (const option of options) {
+                if (option.dataset.mode === currentMode)
+                    option.setAttribute('aria-current', 'true');
+                else option.removeAttribute('aria-current');
+            }
             dialog.showModal();
-            this.raceMenuIndex = Math.max(
-                0,
-                options.findIndex(
-                    (option) => option.dataset.mode === (this.scene.coopMode || 'solo')
-                )
-            );
-            options[this.raceMenuIndex].focus();
+            (options.find((option) => option.dataset.mode === currentMode) || options[0]).focus();
         });
-        dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
-        document.body.append(button, dialog);
+        document.body.append(dialog);
         this.raceSetupButton = button;
         this.raceSetupDialog = dialog;
         this.setRaceSetupLabel();
     }
 
     createJumpToggle() {
-        const button = document.createElement('button');
-        button.id = 'jump-toggle-button';
-        button.className = 'game-button';
-        button.type = 'button';
-        button.addEventListener('click', () => {
+        this.jumpToggleButton = this.createDomButton('jump-toggle-button', () => {
             this.scene.toggleJumpMode();
         });
-        document.body.append(button);
-        this.jumpToggleButton = button;
         this.setJumpToggleLabel();
     }
 
     setJumpToggleLabel() {
-        const button = this.jumpToggleButton;
-        if (!button) {
-            return;
-        }
         const mode = normalizeJumpMode(this.scene.jumpMode);
-        const kicker = document.createElement('span');
-        kicker.className = 'jump-toggle-kicker';
-        kicker.textContent = 'JUMP STYLE';
-        const label = document.createElement('span');
-        label.className = 'jump-toggle-mode';
-        label.textContent = `Now: ${JUMP_MODE_LABEL[mode]}`;
-        button.replaceChildren(kicker, label);
-        button.setAttribute(
-            'aria-label',
+        this.setDomToggleLabel(
+            this.jumpToggleButton,
+            'jump-toggle-kicker',
+            'JUMP STYLE',
+            'jump-toggle-mode',
+            `Now: ${JUMP_MODE_LABEL[mode]}`,
             mode === 'fine'
                 ? 'Jump style. Fine control on: release early for short hops. Switch to max jump.'
                 : 'Jump style. Max jump on: every jump is full height. Switch to fine control.'
@@ -2610,46 +2657,29 @@ export class Overlays {
             return 0;
         }
         button.style.left = '';
-        const gapAbove = metrics.isTiny ? 6 : 10;
-        const gapBelow = metrics.isTiny ? 6 : 10;
         const race = this.raceSetupButton;
-        const raceBottom = race
-            ? (parseFloat(race.style.top) || 0) +
-              Math.max(race.offsetHeight || 0, metrics.isCompact ? 50 : 68)
-            : this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2;
-        button.style.top = `${Math.round(raceBottom + gapAbove)}px`;
-        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 46 : 60);
-        return gapAbove + height + gapBelow;
+        const anchor = race
+            ? this.domButtonBottom(race, metrics.isCompact ? 50 : 68)
+            : this.titlePromptBottom();
+        const gap = metrics.isTiny ? 6 : 10;
+        return this.stackDomButton(button, anchor, gap, gap, metrics.isCompact ? 46 : 60);
     }
 
     createDifficulty() {
-        const button = document.createElement('button');
-        button.id = 'difficulty-button';
-        button.className = 'game-button';
-        button.type = 'button';
-        button.addEventListener('click', () => {
+        this.difficultyButton = this.createDomButton('difficulty-button', () => {
             this.scene.toggleDifficulty();
         });
-        document.body.append(button);
-        this.difficultyButton = button;
         this.setDifficultyLabel();
     }
 
     setDifficultyLabel() {
-        const button = this.difficultyButton;
-        if (!button) {
-            return;
-        }
         const mode = normalizeDifficulty(this.scene.difficulty);
-        const kicker = document.createElement('span');
-        kicker.className = 'difficulty-kicker';
-        kicker.textContent = 'DIFFICULTY';
-        const label = document.createElement('span');
-        label.className = 'difficulty-mode';
-        label.textContent = `Now: ${DIFFICULTY_LABEL[mode]}`;
-        button.replaceChildren(kicker, label);
-        button.setAttribute(
-            'aria-label',
+        this.setDomToggleLabel(
+            this.difficultyButton,
+            'difficulty-kicker',
+            'DIFFICULTY',
+            'difficulty-mode',
+            `Now: ${DIFFICULTY_LABEL[mode]}`,
             mode === 'hard'
                 ? 'Difficulty. Hard on: faster hazards, separate records. Switch to normal.'
                 : 'Difficulty. Normal on. Switch to hard.'
@@ -2676,21 +2706,17 @@ export class Overlays {
             button.style.top = this.jumpToggleButton.style.top;
             return 0;
         }
-        const gapAbove = metrics.isTiny ? 6 : 10;
-        const gapBelow = metrics.isTiny ? 6 : 10;
         const above = this.jumpToggleButton || this.raceSetupButton;
-        let aboveBottom = this.titlePrompt.y + (this.titlePrompt.displayHeight || 0) / 2;
+        let anchor = this.titlePromptBottom();
         if (above) {
             let minHeight = metrics.isCompact ? 46 : 60;
             if (above === this.raceSetupButton) {
                 minHeight = metrics.isCompact ? 50 : 68;
             }
-            aboveBottom =
-                (parseFloat(above.style.top) || 0) + Math.max(above.offsetHeight || 0, minHeight);
+            anchor = this.domButtonBottom(above, minHeight);
         }
-        button.style.top = `${Math.round(aboveBottom + gapAbove)}px`;
-        const height = Math.max(button.offsetHeight || 0, metrics.isCompact ? 46 : 60);
-        return gapAbove + height + gapBelow;
+        const gap = metrics.isTiny ? 6 : 10;
+        return this.stackDomButton(button, anchor, gap, gap, metrics.isCompact ? 46 : 60);
     }
 
     handleMenuInput(input) {
@@ -2711,10 +2737,7 @@ export class Overlays {
         if (this.leaderboardVisible) {
             if (menu.back || menu.board) this.hideLeaderboard();
             else if (menu.left || menu.right || menu.confirm) {
-                const pageCount = this.leaderboardPageCount();
-                this.leaderboardPage =
-                    ((this.leaderboardPage || 0) + (menu.left ? -1 : 1) + pageCount) % pageCount;
-                this.displayLeaderboard();
+                this.turnLeaderboardPage(menu.left ? -1 : 1);
             }
             return this.scene.awaitingStart || this.scene.gameOver;
         }
@@ -2804,21 +2827,22 @@ export class Overlays {
 
     handleFinishMenu(menu) {
         if (!this.scene.gameOver) return false;
+        const buttons = this.sprintResult
+            ? [this.finishRetryButton, this.finishBoardButton, this.finishNewGameButton]
+            : [this.finishRetryButton, this.finishNewGameButton];
         if (menu.left || menu.right || menu.up || menu.down) {
-            this.finishMenuIndex = this.finishMenuIndex === 1 ? 0 : 1;
-        }
-        this.finishRetryButton?.setBackgroundColor(
-            this.finishMenuIndex === 1 ? '#244c65' : '#47738c'
-        );
-        this.finishNewGameButton?.setBackgroundColor(
-            this.finishMenuIndex === 1 ? '#47738c' : '#244c65'
-        );
-        if (menu.confirm && this.scene.restartDelayDone) {
-            this.scene.scene.restart({
-                level: this.finishMenuIndex === 1 ? 1 : this.scene.level,
-                deathCount: 0,
-                coopMode: this.scene.coopMode,
+            const direction = menu.left || menu.up ? -1 : 1;
+            this.finishMenuIndex =
+                (this.finishMenuIndex + direction + buttons.length) % buttons.length;
+            buttons.forEach((button, index) => {
+                button?.setBackgroundColor(index === this.finishMenuIndex ? '#47738c' : '#244c65');
             });
+        }
+        if (menu.confirm && this.scene.restartDelayDone) {
+            const action = this.sprintResult
+                ? [0, 2, 1][this.finishMenuIndex]
+                : this.finishMenuIndex;
+            this.chooseFinishAction(action);
             return true;
         }
         return false;
@@ -2960,17 +2984,19 @@ export class Overlays {
 
     cleanup() {
         this.leaderboardRequestId += 1;
+        this.clearLeaderboardObjects();
         this.hideTitleScreen();
         this.hideBranchChoice();
         const elements = [
-            this.leaderboardTextObject,
             this.leaderboardBackdrop,
             this.finishDim,
             this.finishBackdrop,
             this.finishTitle,
             this.finishSummary,
+            this.finishSprintTime,
             this.finishRetryButton,
             this.finishNewGameButton,
+            this.finishBoardButton,
         ];
         elements.forEach((element) => {
             if (element && element.destroy) {

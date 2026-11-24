@@ -2186,6 +2186,13 @@ test('title view buttons never fall through to campaign start', async () => {
     scene.onTitlePointerUp({ id: 11, x: 170, y: 122 });
     assert.equal(began, 2);
 
+    // Closing the leaderboard during pointerup must consume the original tap.
+    scene.uiManager.overlays.leaderboardVisible = true;
+    scene.onTitlePointerDown({ id: 13, x: 20, y: 20 });
+    scene.uiManager.overlays.leaderboardVisible = false;
+    scene.onTitlePointerUp({ id: 13, x: 20, y: 20 });
+    assert.equal(began, 2);
+
     // Background taps still start.
     scene.onTitlePointerDown({ id: 12, x: 20, y: 20 });
     scene.onTitlePointerUp({ id: 12, x: 20, y: 20 });

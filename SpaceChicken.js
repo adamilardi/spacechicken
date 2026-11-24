@@ -17,11 +17,8 @@ import { WorldBuilder } from './WorldBuilder.js';
 import { InputController } from './InputController.js';
 import { Viewport } from './Viewport.js';
 import { CombatSystem } from './CombatSystem.js';
-import {
-    setupWorldCameraFilters,
-    teardownWorldCameraFilters,
-    updateFinaleVignette,
-} from './CameraFilters.js';
+import { teardownWorldCameraFilters, updateFinaleVignette } from './CameraFilters.js';
+import { SceneCameras } from './SceneCameras.js';
 import { BoarderDirector, crownGuardsDefeated } from './BoarderDirector.js';
 import { BossDirector } from './BossDirector.js';
 import { GameTestInterface, normalizeTestSeed } from './GameTestInterface.js';
@@ -39,7 +36,6 @@ import {
     weaponsForLevel,
     WEAPON_DEFS,
 } from './GameUtils.js';
-import { paneZoom, SPLIT_GAP, splitPanes } from './SplitScreen.js';
 
 const NEWS_PLATES = {
     17: 'tickerBg',
@@ -53,6 +49,70 @@ const NEWS_PLATES = {
     25: 'artemisBg',
     27: 'freezerBg',
 };
+
+// News-level art loaded up front so level select never waits on textures.
+const NEWS_ASSETS = [
+    ['tickerBg', 'assets/news-ticker-plunge/bg.jpg'],
+    ['tickerBot', 'assets/news-ticker-plunge/ticker-bot.png'],
+    ['fearBg', 'assets/news-fear-spike/bg.jpg'],
+    ['bearRaider', 'assets/news-fear-spike/bear-raider.png'],
+    ['hubbleBg', 'assets/news-hubble-rescue/bg.jpg'],
+    ['servicerTug', 'assets/news-hubble-rescue/servicer-tug.png'],
+    ['rfiEnvelope', 'assets/news-hubble-rescue/rfi-envelope.png'],
+    ['danceBg', 'assets/news-robot-dance-sync/bg.jpg'],
+    ['dancerBot', 'assets/news-robot-dance-sync/dancer-bot.png'],
+    ['countdownBoard', 'assets/news-robot-dance-sync/countdown-board.png'],
+    ['phobosBg', 'assets/news-phobos-sample-run/bg.png'],
+    ['surveyOrbiter', 'assets/news-phobos-sample-run/survey-orbiter.png'],
+    ['h3Rocket', 'assets/news-phobos-sample-run/h3-rocket.png'],
+    ['falconBg', 'assets/news-booster-homecoming/bg.jpg'],
+    ['starlinkSprite', 'assets/news-booster-homecoming/starlink-sprite.png'],
+    ['boosterProp', 'assets/news-booster-homecoming/booster-prop.png'],
+    ['tracersBg', 'assets/news-reconnection/bg.jpg'],
+    ['spriteBot', 'assets/news-reconnection/sprite-bot.png'],
+    ['cuspArc', 'assets/news-reconnection/cusp-arc.png'],
+    ['clutchBg', 'assets/news-clutch-crown/bg.jpg'],
+    ['championKing', 'assets/news-clutch-crown/champion-king.png'],
+    ['knightProp', 'assets/news-clutch-crown/knight-prop.png'],
+    ['artemisBg', 'assets/news-artemis-loop/bg.jpg'],
+    ['integritySprite', 'assets/news-artemis-loop/integrity-sprite.png'],
+    ['shieldGlow', 'assets/news-artemis-loop/shield-glow.png'],
+    ['chuteProp', 'assets/news-artemis-loop/chute-prop.png'],
+    ['freezerBg', 'assets/news-freezer-breach/bg.jpg'],
+    ['defrosterDrone', 'assets/news-freezer-breach/defroster-drone.png'],
+    ['thermoProp', 'assets/news-freezer-breach/thermo-prop.png'],
+    ['freezerCaseProp', 'assets/news-freezer-breach/freezer-case-prop.png'],
+    ['shelfProp', 'assets/news-freezer-breach/shelf-prop.png'],
+    ['crateProp', 'assets/news-freezer-breach/crate-prop.png'],
+];
+
+const SPRITE_FACTORY_STEPS = [
+    'createChickenFrames',
+    'createCrown',
+    'createCliff',
+    'createRock',
+    'createBomb',
+    'createStationPanel',
+    'createLiftPlatform',
+    'createLaserBeam',
+    'createLaserEmitter',
+    'createDrone',
+    'createRover',
+    'createExpeditionSprites',
+    'createVirtualButtons',
+    'createParticleTextures',
+];
+
+function readStored(key) {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return null;
+    }
+    try {
+        return window.localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
 
 function readLaunchQuery() {
     if (typeof location === 'undefined' || !location.search) {
@@ -225,6 +285,7 @@ export class SpaceChicken extends Phaser.Scene {
     constructor() {
         super();
         this.viewport = new Viewport(this);
+        this.cameraRig = new SceneCameras(this);
         this.combat = new CombatSystem(this);
         this.boarders = new BoarderDirector(this);
         this.bosses = new BossDirector(this);
@@ -273,7 +334,7 @@ export class SpaceChicken extends Phaser.Scene {
             ? requestedCoop
             : null;
         this.player2 = null;
-        this.player2Camera = null;
+        this.cameraRig.reset();
         this.player2JumpCount = 0;
         this.player2WasGrounded = false;
         this.raceFinale = false;
@@ -282,8 +343,6 @@ export class SpaceChicken extends Phaser.Scene {
         this.raceLevelTime = 0;
         this.raceFinaleEvent = null;
         this.levelTransitionEvent = null;
-        this.splitDivider = null;
-        this.splitLabels = null;
         this.startTime = 0;
         this.bonkHitStopUntil = 0;
         this.gameOver = false;
@@ -315,7 +374,10 @@ export class SpaceChicken extends Phaser.Scene {
         this.respawnPoint2 = null;
         this.hasCleanedUp = false;
         this.awaitingStart =
-            this.level === LEVEL_IDS[0] && this.deathCount === 0 && !this.launchBot;
+            this.level === LEVEL_IDS[0] &&
+            this.deathCount === 0 &&
+            !this.launchBot &&
+            !data.retrySprint;
         this.wasGrounded = false;
         this.airborneSince = 0;
         this.maxAirSpeedY = 0;
@@ -324,8 +386,6 @@ export class SpaceChicken extends Phaser.Scene {
         this.hasStartedPlay = false;
         this.titleUiPressIds = new Set();
         this.selectedLevel = 1;
-        this.uiCamera = null;
-        this.playCameraZoom = 1;
 
         this.leftPressed = false;
         this.rightPressed = false;
@@ -359,56 +419,23 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('tickerBg', 'assets/news-ticker-plunge/bg.jpg');
-        this.load.image('tickerBot', 'assets/news-ticker-plunge/ticker-bot.png');
-        this.load.image('fearBg', 'assets/news-fear-spike/bg.jpg');
-        this.load.image('bearRaider', 'assets/news-fear-spike/bear-raider.png');
-        this.load.image('hubbleBg', 'assets/news-hubble-rescue/bg.jpg');
-        this.load.image('servicerTug', 'assets/news-hubble-rescue/servicer-tug.png');
-        this.load.image('rfiEnvelope', 'assets/news-hubble-rescue/rfi-envelope.png');
-        this.load.image('danceBg', 'assets/news-robot-dance-sync/bg.jpg');
-        this.load.image('dancerBot', 'assets/news-robot-dance-sync/dancer-bot.png');
-        this.load.image('countdownBoard', 'assets/news-robot-dance-sync/countdown-board.png');
-        this.load.image('phobosBg', 'assets/news-phobos-sample-run/bg.png');
-        this.load.image('surveyOrbiter', 'assets/news-phobos-sample-run/survey-orbiter.png');
-        this.load.image('h3Rocket', 'assets/news-phobos-sample-run/h3-rocket.png');
-        this.load.image('falconBg', 'assets/news-booster-homecoming/bg.jpg');
-        this.load.image('starlinkSprite', 'assets/news-booster-homecoming/starlink-sprite.png');
-        this.load.image('boosterProp', 'assets/news-booster-homecoming/booster-prop.png');
-        this.load.image('tracersBg', 'assets/news-reconnection/bg.jpg');
-        this.load.image('spriteBot', 'assets/news-reconnection/sprite-bot.png');
-        this.load.image('cuspArc', 'assets/news-reconnection/cusp-arc.png');
-        this.load.image('clutchBg', 'assets/news-clutch-crown/bg.jpg');
-        this.load.image('championKing', 'assets/news-clutch-crown/champion-king.png');
-        this.load.image('knightProp', 'assets/news-clutch-crown/knight-prop.png');
-        this.load.image('artemisBg', 'assets/news-artemis-loop/bg.jpg');
-        this.load.image('integritySprite', 'assets/news-artemis-loop/integrity-sprite.png');
-        this.load.image('shieldGlow', 'assets/news-artemis-loop/shield-glow.png');
-        this.load.image('chuteProp', 'assets/news-artemis-loop/chute-prop.png');
-        this.load.image('freezerBg', 'assets/news-freezer-breach/bg.jpg');
-        this.load.image('defrosterDrone', 'assets/news-freezer-breach/defroster-drone.png');
-        this.load.image('thermoProp', 'assets/news-freezer-breach/thermo-prop.png');
-        this.load.image('freezerCaseProp', 'assets/news-freezer-breach/freezer-case-prop.png');
-        this.load.image('shelfProp', 'assets/news-freezer-breach/shelf-prop.png');
-        this.load.image('crateProp', 'assets/news-freezer-breach/crate-prop.png');
+        for (const [key, url] of NEWS_ASSETS) {
+            this.load.image(key, url);
+        }
         this.spriteFactory = new SpriteFactory(this);
-        this.spriteFactory.createChickenFrames();
-        this.spriteFactory.createCrown();
-        this.spriteFactory.createCliff();
-        this.spriteFactory.createRock();
-        this.spriteFactory.createBomb();
-        this.spriteFactory.createStationPanel();
-        this.spriteFactory.createLiftPlatform();
-        this.spriteFactory.createLaserBeam();
-        this.spriteFactory.createLaserEmitter();
-        this.spriteFactory.createDrone();
-        this.spriteFactory.createRover();
-        this.spriteFactory.createExpeditionSprites();
-        this.spriteFactory.createVirtualButtons();
-        this.spriteFactory.createParticleTextures();
+        for (const step of SPRITE_FACTORY_STEPS) {
+            this.spriteFactory[step]();
+        }
     }
 
     create() {
+        this.createManagers();
+        this.buildWorld();
+        this.bindKeys();
+        this.finishSetup();
+    }
+
+    createManagers() {
         this.levelConfig = new LevelConfig(this.level);
         this.storageAvailable = this.checkStorageAvailability();
         this.audioManager = new AudioManager(this);
@@ -431,7 +458,9 @@ export class SpaceChicken extends Phaser.Scene {
         this.audioManager.musicMuted = this.musicMuted;
         this.audioManager.configureLevelMusic();
         this.bindBotDebugApi();
+    }
 
+    buildWorld() {
         this.physics.world.gravity.y = this.levelConfig.gravity;
         this.physics.resume();
         this.applyTestTimeScale();
@@ -564,7 +593,9 @@ export class SpaceChicken extends Phaser.Scene {
         this.applyStartWeapons();
 
         this.createAnimations();
+    }
 
+    bindKeys() {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,S,A,D');
         this.space = this.input.keyboard.addKey(KEY_CODES.SPACE);
@@ -599,7 +630,9 @@ export class SpaceChicken extends Phaser.Scene {
             keyboardController: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE),
             controllers: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR),
         };
+    }
 
+    finishSetup() {
         this.audioManager.setupAudioPipeline();
         this.audioManager.setMusicMuted(this.musicMuted, { skipSave: true });
 
@@ -621,247 +654,123 @@ export class SpaceChicken extends Phaser.Scene {
         this.startSession();
     }
 
+    // Camera state owned by the rig; forwarded so managers, bots, and
+    // tests keep reading scene.uiCamera / scene.player2Camera unchanged.
+    get uiCamera() {
+        return this.cameraRig.uiCamera;
+    }
+
+    set uiCamera(value) {
+        this.cameraRig.uiCamera = value;
+    }
+
+    get player2Camera() {
+        return this.cameraRig.player2Camera;
+    }
+
+    set player2Camera(value) {
+        this.cameraRig.player2Camera = value;
+    }
+
+    get splitDivider() {
+        return this.cameraRig.splitDivider;
+    }
+
+    set splitDivider(value) {
+        this.cameraRig.splitDivider = value;
+    }
+
+    get splitLabels() {
+        return this.cameraRig.splitLabels;
+    }
+
+    set splitLabels(value) {
+        this.cameraRig.splitLabels = value;
+    }
+
+    get playCameraZoom() {
+        return this.cameraRig.playCameraZoom;
+    }
+
+    set playCameraZoom(value) {
+        this.cameraRig.playCameraZoom = value;
+    }
+
+    // Thin camera delegates: logic lives in SceneCameras.
     setupCamera() {
-        const camera = this.getMainCamera();
-        if (!camera) {
-            return;
-        }
-        if (camera.startFollow) {
-            camera.startFollow(
-                this.player,
-                true,
-                GAME_CONSTANTS.CAMERA_LERP_X,
-                GAME_CONSTANTS.CAMERA_LERP_Y
-            );
-        }
-        if (camera.setBounds) {
-            camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
-        }
-        camera.roundPixels = true;
-        this.setupUiCamera();
-        this.updateCameraForViewport();
-        this.forEachWorldCamera((worldCamera) => setupWorldCameraFilters(this, worldCamera));
+        this.cameraRig.setupCamera();
     }
 
     setupUiCamera() {
-        if (!this.cameras?.add || this.uiCamera) {
-            return;
-        }
-        this.uiCamera = this.cameras.add(0, 0, this.getViewportWidth(), this.getViewportHeight());
-        if (this.uiCamera.setName) {
-            this.uiCamera.setName('ui');
-        }
-        if (this.uiCamera.setScroll) {
-            this.uiCamera.setScroll(0, 0);
-        }
-        this.uiCamera.roundPixels = true;
-        this.uiCamera.transparent = true;
-        if (this.uiCamera.setBackgroundColor) {
-            this.uiCamera.setBackgroundColor({ r: 0, g: 0, b: 0, a: 0 });
-        }
-        this.addedToSceneHandler = (gameObject) => this.assignCameraFilter(gameObject);
-        if (this.events?.on) {
-            this.events.on('addedtoscene', this.addedToSceneHandler, this);
-        }
-        this.bindExistingCameraFilters();
+        this.cameraRig.setupUiCamera();
     }
 
     bindExistingCameraFilters() {
-        this.uiManager?.markAllUiObjects?.();
-        const list = Array.isArray(this.children?.list) ? this.children.list : [];
-        for (let i = 0; i < list.length; i++) {
-            this.assignCameraFilter(list[i]);
-        }
+        this.cameraRig.bindExistingCameraFilters();
     }
 
     assignCameraFilter(gameObject) {
-        if (!gameObject || !this.uiCamera || !this.cameras?.main) {
-            return;
-        }
-        const main = this.cameras.main;
-        const uiCamera = this.uiCamera;
-        const worldCameras = [main, this.player2Camera].filter(Boolean);
-        if (typeof gameObject.cameraFilter !== 'number') {
-            if (gameObject.spaceChickenUi) {
-                worldCameras.forEach((camera) => camera.ignore?.(gameObject));
-            } else if (uiCamera.ignore) {
-                uiCamera.ignore(gameObject);
-            }
-            return;
-        }
-        const uiId = typeof uiCamera.id === 'number' ? uiCamera.id : 2;
-        let filter = gameObject.cameraFilter;
-        if (gameObject.spaceChickenUi) {
-            worldCameras.forEach((camera) => {
-                if (typeof camera.id === 'number') {
-                    filter |= camera.id;
-                }
-            });
-            filter &= ~uiId;
-        } else {
-            filter |= uiId;
-            worldCameras.forEach((camera) => {
-                if (typeof camera.id === 'number') {
-                    filter &= ~camera.id;
-                }
-            });
-        }
-        gameObject.cameraFilter = filter;
+        this.cameraRig.assignCameraFilter(gameObject);
     }
 
     bringUiCameraToFront() {
-        const list = this.cameras?.cameras;
-        if (!Array.isArray(list) || !this.uiCamera) {
-            return;
-        }
-        const index = list.indexOf(this.uiCamera);
-        if (index >= 0 && index < list.length - 1) {
-            list.splice(index, 1);
-            list.push(this.uiCamera);
-        }
+        this.cameraRig.bringUiCameraToFront();
     }
 
     layoutSplitCameras(width, height) {
-        const layout = splitPanes(width, height);
-        this.applyWorldPane(this.getMainCamera(), layout.panes[0]);
-        this.applyWorldPane(this.player2Camera, layout.panes[1]);
-        this.layoutSplitChrome(layout);
-        this.uiManager?.setTouchControlsVisible?.(false);
+        this.cameraRig.layoutSplitCameras(width, height);
     }
 
     applyWorldPane(camera, pane) {
-        if (!camera || !pane) {
-            return;
-        }
-        if (camera.setViewport) {
-            camera.setViewport(pane.x, pane.y, pane.width, pane.height);
-        }
-        if (this.worldWidth && this.worldHeight && camera.setBounds) {
-            camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
-        }
-        camera.setZoom?.(paneZoom(pane, this.worldHeight));
-        camera.setFollowOffset?.(0, 0);
-        this.playCameraZoom = paneZoom(pane, this.worldHeight);
+        this.cameraRig.applyWorldPane(camera, pane);
     }
 
     layoutSplitChrome(layout) {
-        if (!this.add?.graphics || !layout) {
-            return;
-        }
-        if (!this.splitDivider) {
-            this.splitDivider = this.add.graphics();
-            this.splitDivider.setScrollFactor?.(0);
-            this.splitDivider.setDepth?.(GAME_CONSTANTS.OVERLAY_DEPTH - 3);
-            this.uiManager?.markUi?.(this.splitDivider);
-        }
-        const width = this.getViewportWidth();
-        const height = this.getViewportHeight();
-        this.splitDivider.clear?.();
-        this.splitDivider.fillStyle?.(0x07101c, 1);
-        if (layout.sideBySide) {
-            const x = layout.panes[0].width;
-            this.splitDivider.fillRect?.(x, 0, SPLIT_GAP, height);
-        } else {
-            const y = layout.panes[0].height;
-            this.splitDivider.fillRect?.(0, y, width, SPLIT_GAP);
-        }
-        this.layoutSplitLabels(layout);
+        this.cameraRig.layoutSplitChrome(layout);
     }
 
     layoutSplitLabels(layout) {
-        if (!this.add?.text) {
-            return;
-        }
-        if (!this.splitLabels) {
-            this.splitLabels = [
-                this.createSplitLabel('P1', '#ffe566'),
-                this.createSplitLabel('P2', '#b7e4ff'),
-            ];
-        }
-        this.splitLabels.forEach((label, index) => {
-            const pane = layout.panes[index];
-            if (!label || !pane) {
-                return;
-            }
-            const labelWidth = label.displayWidth || 36;
-            const labelHeight = label.displayHeight || 24;
-            const x = layout.sideBySide
-                ? index === 0
-                    ? pane.x + pane.width - labelWidth - 12
-                    : pane.x + 12
-                : pane.x + 12;
-            const y = layout.sideBySide ? pane.y + 10 : pane.y + pane.height - labelHeight - 14;
-            label.setPosition?.(x, y);
-        });
+        this.cameraRig.layoutSplitLabels(layout);
     }
 
     createSplitLabel(name, fill) {
-        const label = this.add.text(0, 0, name, {
-            fontFamily: 'Trebuchet MS, Courier New, monospace',
-            fontSize: '16px',
-            fill,
-            backgroundColor: '#07101ccc',
-            padding: { x: 8, y: 3 },
-        });
-        label.setScrollFactor?.(0);
-        label.setDepth?.(GAME_CONSTANTS.OVERLAY_DEPTH);
-        this.uiManager?.markUi?.(label);
-        return label;
+        return this.cameraRig.createSplitLabel(name, fill);
     }
 
     updateCameraForViewport() {
-        const camera = this.getMainCamera();
-        if (!camera) {
-            return;
-        }
-        const insets = this.uiManager?.getSafeAreaInsets?.() || GAME_CONSTANTS.SAFE_AREA_FALLBACK;
-        const metrics = this.viewport?.getLayoutMetrics?.(insets) || null;
-        const width = metrics ? metrics.width : this.getViewportWidth();
-        const height = metrics ? metrics.height : this.getViewportHeight();
-        if (this.uiCamera) {
-            if (this.uiCamera.setViewport) {
-                this.uiCamera.setViewport(0, 0, width, height);
-            } else if (this.uiCamera.setSize) {
-                this.uiCamera.setSize(width, height);
-            }
-            if (this.uiCamera.setScroll) {
-                this.uiCamera.setScroll(0, 0);
-            }
-        }
-        if (this.player2Camera) {
-            this.layoutSplitCameras(width, height);
-            return;
-        }
-        if (this.worldWidth && this.worldHeight && camera.setBounds) {
-            camera.setBounds(0, 0, this.worldWidth, this.worldHeight);
-        }
+        this.cameraRig.updateCameraForViewport();
+    }
 
-        let zoom = 1;
-        if (this.worldHeight > 0 && height > this.worldHeight) {
-            zoom = height / this.worldHeight;
-        }
-        const minVisibleWidth = 360;
-        if (zoom > 1 && width / zoom < minVisibleWidth) {
-            zoom = width / minVisibleWidth;
-        }
-        zoom = Phaser.Math.Clamp(zoom, 1, 1.55);
-        this.playCameraZoom = zoom;
-        if (camera.setZoom) {
-            camera.setZoom(zoom);
-        }
-        if (!camera.setFollowOffset) {
-            return;
-        }
-        const touchEnabled = Boolean(this.uiManager?.touchControlsEnabled);
-        if (touchEnabled && metrics) {
-            const reserve = (metrics.controlSize + metrics.controlMargin * 2) / zoom;
-            const ratio = metrics.isPortrait
-                ? GAME_CONSTANTS.CAMERA_TOUCH_FOLLOW_OFFSET_RATIO
-                : GAME_CONSTANTS.CAMERA_TOUCH_FOLLOW_OFFSET_LANDSCAPE_RATIO;
-            camera.setFollowOffset(0, -reserve * ratio);
-            return;
-        }
-        camera.setFollowOffset(0, 0);
+    enableSplitCamera() {
+        this.cameraRig.enableSplitCamera();
+    }
+
+    getMainCamera() {
+        return this.cameraRig.getMainCamera();
+    }
+
+    forEachWorldCamera(apply) {
+        this.cameraRig.forEachWorldCamera(apply);
+    }
+
+    flashCamera(duration, red, green, blue) {
+        this.cameraRig.flashCamera(duration, red, green, blue);
+    }
+
+    shakeCamera(duration, intensity) {
+        this.cameraRig.shakeCamera(duration, intensity);
+    }
+
+    fadeCameraIn() {
+        this.cameraRig.fadeCameraIn();
+    }
+
+    fadeCameraOut(duration, red = 0, green = 0, blue = 0) {
+        this.cameraRig.fadeCameraOut(duration, red, green, blue);
+    }
+
+    cameraFor(chicken) {
+        return this.cameraRig.cameraFor(chicken);
     }
 
     armCrownShield() {
@@ -957,7 +866,10 @@ export class SpaceChicken extends Phaser.Scene {
             pointer,
             this.inputController.controls
         );
-        if (this.inputController.isOverUiControl(targets)) {
+        if (
+            this.uiManager?.overlays?.leaderboardVisible ||
+            this.inputController.isOverUiControl(targets)
+        ) {
             this.titleUiPressIds.add(pointer?.id);
         }
     }
@@ -981,6 +893,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.titleDownButtons?.delete(pointer?.id);
         if (
             this.uiManager?.raceSetupDialog?.open ||
+            this.uiManager?.overlays?.leaderboardVisible ||
             pointer?.event?.target?.closest?.('button, dialog')
         )
             return;
@@ -1052,6 +965,9 @@ export class SpaceChicken extends Phaser.Scene {
         this.input?.off?.('pointerup', this.onTitlePointerUp, this);
         this.startTime = performance.now();
         this.uiManager?.updatePlayerName?.(this.playerName);
+        if (this.level <= GAME_CONSTANTS.SPEEDRUN_LEVEL_COUNT && this.uiManager?.overlays) {
+            this.uiManager.overlays.leaderboardPage = this.level;
+        }
         if (this.level === 1) {
             this.runElapsedMs = 0;
             this.runEligible = !this.debugMode && !this.coopMode;
@@ -1095,45 +1011,6 @@ export class SpaceChicken extends Phaser.Scene {
             this.textures.remove(this.newsPlateDisplayKey);
         }
         this.newsPlateDisplayKey = null;
-    }
-
-    getMainCamera() {
-        return this.cameras && this.cameras.main ? this.cameras.main : null;
-    }
-
-    forEachWorldCamera(apply) {
-        const main = this.getMainCamera();
-        if (main) {
-            apply(main);
-        }
-        if (this.player2Camera) {
-            apply(this.player2Camera);
-        }
-    }
-
-    flashCamera(duration, red, green, blue) {
-        this.forEachWorldCamera((camera) => camera.flash?.(duration, red, green, blue));
-    }
-
-    shakeCamera(duration, intensity) {
-        this.forEachWorldCamera((camera) => camera.shake?.(duration, intensity));
-    }
-
-    fadeCameraIn() {
-        this.forEachWorldCamera((camera) =>
-            camera.fadeIn?.(GAME_CONSTANTS.CAMERA_FADE_IN, 0, 0, 0)
-        );
-    }
-
-    fadeCameraOut(duration, red = 0, green = 0, blue = 0) {
-        this.forEachWorldCamera((camera) => camera.fadeOut?.(duration, red, green, blue));
-    }
-
-    cameraFor(chicken) {
-        if (chicken && chicken === this.player2) {
-            return this.player2Camera || this.getMainCamera();
-        }
-        return this.getMainCamera();
     }
 
     playDeathJuice() {
@@ -1241,22 +1118,16 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     createAnimations() {
-        if (!this.anims.exists('chicken-idle')) {
-            this.anims.create({
-                key: 'chicken-idle',
-                frames: [
-                    { key: 'chicken_idle', duration: 600 },
-                    { key: 'chicken_breathe', duration: 600 },
-                    { key: 'chicken_idle', duration: 600 },
-                    { key: 'chicken_breathe', duration: 600 },
-                    { key: 'chicken_blink' },
-                ],
-                frameRate: 10,
-                repeat: -1,
-            });
-        }
-        if (!this.anims.exists('chicken-walk')) {
-            this.anims.create({
+        const breathe = [
+            { key: 'chicken_idle', duration: 600 },
+            { key: 'chicken_breathe', duration: 600 },
+            { key: 'chicken_idle', duration: 600 },
+            { key: 'chicken_breathe', duration: 600 },
+            { key: 'chicken_blink' },
+        ];
+        const defs = [
+            { key: 'chicken-idle', frames: breathe, frameRate: 10, repeat: -1 },
+            {
                 key: 'chicken-walk',
                 frames: [
                     { key: 'chicken1' },
@@ -1266,31 +1137,20 @@ export class SpaceChicken extends Phaser.Scene {
                 ],
                 frameRate: GAME_CONSTANTS.WALK_FRAME_RATE,
                 repeat: -1,
-            });
-        }
-        if (!this.anims.exists('chicken-jump')) {
-            this.anims.create({
-                key: 'chicken-jump',
-                frames: [{ key: 'chicken_jump' }],
-                frameRate: 1,
-                repeat: 0,
-            });
-        }
-        if (!this.anims.exists('chicken-fall')) {
-            this.anims.create({
-                key: 'chicken-fall',
-                frames: [{ key: 'chicken_fall' }],
-                frameRate: 1,
-                repeat: 0,
-            });
-        }
-        if (!this.anims.exists('chicken-jetpack')) {
-            this.anims.create({
+            },
+            { key: 'chicken-jump', frames: [{ key: 'chicken_jump' }], frameRate: 1, repeat: 0 },
+            { key: 'chicken-fall', frames: [{ key: 'chicken_fall' }], frameRate: 1, repeat: 0 },
+            {
                 key: 'chicken-jetpack',
                 frames: [{ key: 'chicken_jetpack1' }, { key: 'chicken_jetpack2' }],
                 frameRate: GAME_CONSTANTS.JETPACK_FRAME_RATE,
                 repeat: -1,
-            });
+            },
+        ];
+        for (const def of defs) {
+            if (!this.anims.exists(def.key)) {
+                this.anims.create(def);
+            }
         }
     }
 
@@ -1466,17 +1326,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.pulsePads(GAME_CONSTANTS.HAPTIC_CROWN_MS, 0.25, 0.55);
 
         if (this.levelConfig.nextLevel) {
-            if (Array.isArray(this.levelConfig.branch) && this.levelConfig.branch.length >= 2) {
-                this.offerBranchChoice(resultTitle, levelTime, bonusMs);
-                return;
-            }
-            this.queueSceneStart(this.buildHandoffPayload(this.levelConfig.nextLevel));
-            this.uiManager?.showLevelResult?.(
-                resultTitle,
-                levelTime,
-                this.leaderboardManager.lastSubmission,
-                bonusMs
-            );
+            this.finishLevelAndAdvance(resultTitle, levelTime, bonusMs, previousBest);
             return;
         }
 
@@ -1497,6 +1347,41 @@ export class SpaceChicken extends Phaser.Scene {
             );
         }
         this.completeRun(levelTime);
+    }
+
+    finishLevelAndAdvance(resultTitle, levelTime, bonusMs, previousBest) {
+        if (Array.isArray(this.levelConfig.branch) && this.levelConfig.branch.length >= 2) {
+            this.offerBranchChoice(resultTitle, levelTime, bonusMs);
+            return;
+        }
+        if (
+            !this.debugMode &&
+            this.level <= GAME_CONSTANTS.SPEEDRUN_LEVEL_COUNT &&
+            !this.coopMode
+        ) {
+            const next = this.buildHandoffPayload(this.levelConfig.nextLevel);
+            this.uiManager.overlays.sprintResult = {
+                title: resultTitle,
+                previousBest,
+                next,
+                bonusMs,
+            };
+            this.uiManager.showLevelResult(
+                resultTitle,
+                levelTime,
+                this.leaderboardManager.lastSubmission,
+                bonusMs
+            );
+            this.completeRun(levelTime);
+            return;
+        }
+        this.queueSceneStart(this.buildHandoffPayload(this.levelConfig.nextLevel));
+        this.uiManager?.showLevelResult?.(
+            resultTitle,
+            levelTime,
+            this.leaderboardManager.lastSubmission,
+            bonusMs
+        );
     }
 
     buildHandoffPayload(level) {
@@ -1765,12 +1650,13 @@ export class SpaceChicken extends Phaser.Scene {
         if (!audio) {
             return;
         }
-        if (reason === 'fall' && typeof audio.playFallDeathSound === 'function') {
-            audio.playFallDeathSound();
-        } else if (reason === 'laser' && typeof audio.playLaserDeathSound === 'function') {
-            audio.playLaserDeathSound();
-        } else if (reason === 'boarder' && typeof audio.playBoarderThud === 'function') {
-            audio.playBoarderThud();
+        const stinger = {
+            fall: 'playFallDeathSound',
+            laser: 'playLaserDeathSound',
+            boarder: 'playBoarderThud',
+        }[reason];
+        if (stinger && typeof audio[stinger] === 'function') {
+            audio[stinger]();
         } else {
             audio.playHazardHitSound?.();
         }
@@ -2110,6 +1996,39 @@ export class SpaceChicken extends Phaser.Scene {
         }
     }
 
+    updateGameOver(inputState) {
+        const overlays = this.uiManager?.overlays;
+        if (overlays?.sprintResult) {
+            if (
+                !overlays.leaderboardVisible &&
+                this.retryKey &&
+                Phaser.Input.Keyboard.JustDown(this.retryKey)
+            ) {
+                overlays.chooseFinishAction(0);
+            }
+            this.jumpRequested = false;
+            return;
+        }
+        if (
+            this.restartDelayDone &&
+            this.retryKey &&
+            Phaser.Input.Keyboard.JustDown(this.retryKey)
+        ) {
+            this.scene.restart({
+                level: this.level,
+                deathCount: 0,
+                coopMode: this.coopMode,
+            });
+            return;
+        }
+        if (this.restartDelayDone && (inputState.spaceJustPressed || this.jumpRequested)) {
+            this.jumpRequested = false;
+            this.scene.restart({ level: 1, deathCount: 0, coopMode: this.coopMode });
+        } else {
+            this.jumpRequested = false;
+        }
+    }
+
     update(_time, delta) {
         this.backgroundRenderer?.syncToCamera?.();
         this.updatePhaserSprites();
@@ -2144,24 +2063,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
 
         if (this.gameOver) {
-            if (
-                this.restartDelayDone &&
-                this.retryKey &&
-                Phaser.Input.Keyboard.JustDown(this.retryKey)
-            ) {
-                this.scene.restart({
-                    level: this.level,
-                    deathCount: 0,
-                    coopMode: this.coopMode,
-                });
-                return;
-            }
-            if (this.restartDelayDone && (inputState.spaceJustPressed || this.jumpRequested)) {
-                this.jumpRequested = false;
-                this.scene.restart({ level: 1, deathCount: 0, coopMode: this.coopMode });
-            } else {
-                this.jumpRequested = false;
-            }
+            this.updateGameOver(inputState);
             return;
         }
 
@@ -2270,26 +2172,24 @@ export class SpaceChicken extends Phaser.Scene {
         return this.time?.now > 0 ? this.time.now : performance.now();
     }
 
-    loadJumpMode() {
+    storePreference(key, value) {
         if (typeof window === 'undefined' || !window.localStorage) {
-            return 'max';
+            return;
         }
         try {
-            return normalizeJumpMode(window.localStorage.getItem(GAME_CONSTANTS.JUMP_MODE_KEY));
+            window.localStorage.setItem(key, value);
         } catch {
-            return 'max';
+            this.storageAvailable = false;
         }
+    }
+
+    loadJumpMode() {
+        return normalizeJumpMode(readStored(GAME_CONSTANTS.JUMP_MODE_KEY));
     }
 
     setJumpMode(mode) {
         this.jumpMode = normalizeJumpMode(mode);
-        if (typeof window !== 'undefined' && window.localStorage) {
-            try {
-                window.localStorage.setItem(GAME_CONSTANTS.JUMP_MODE_KEY, this.jumpMode);
-            } catch {
-                this.storageAvailable = false;
-            }
-        }
+        this.storePreference(GAME_CONSTANTS.JUMP_MODE_KEY, this.jumpMode);
         this.uiManager?.updateJumpToggleLabel?.();
         return this.jumpMode;
     }
@@ -2299,25 +2199,12 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     loadDifficulty() {
-        if (typeof window === 'undefined' || !window.localStorage) {
-            return 'normal';
-        }
-        try {
-            return normalizeDifficulty(window.localStorage.getItem(GAME_CONSTANTS.DIFFICULTY_KEY));
-        } catch {
-            return 'normal';
-        }
+        return normalizeDifficulty(readStored(GAME_CONSTANTS.DIFFICULTY_KEY));
     }
 
     setDifficulty(mode) {
         this.difficulty = normalizeDifficulty(mode);
-        if (typeof window !== 'undefined' && window.localStorage) {
-            try {
-                window.localStorage.setItem(GAME_CONSTANTS.DIFFICULTY_KEY, this.difficulty);
-            } catch {
-                this.storageAvailable = false;
-            }
-        }
+        this.storePreference(GAME_CONSTANTS.DIFFICULTY_KEY, this.difficulty);
         this.uiManager?.updateDifficultyLabel?.();
         return this.difficulty;
     }
@@ -2338,17 +2225,7 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     coachSeen(key) {
-        if (this.coachMemory?.has(key)) {
-            return true;
-        }
-        if (typeof window === 'undefined' || !window.localStorage) {
-            return false;
-        }
-        try {
-            return window.localStorage.getItem(key) === '1';
-        } catch {
-            return false;
-        }
+        return this.coachMemory?.has(key) === true || readStored(key) === '1';
     }
 
     markCoach(key) {
@@ -2356,14 +2233,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.coachMemory = new Set();
         }
         this.coachMemory.add(key);
-        if (typeof window === 'undefined' || !window.localStorage) {
-            return;
-        }
-        try {
-            window.localStorage.setItem(key, '1');
-        } catch {
-            this.storageAvailable = false;
-        }
+        this.storePreference(key, '1');
     }
 
     maybeShowCoach() {
@@ -2456,24 +2326,22 @@ export class SpaceChicken extends Phaser.Scene {
         this.startFromTitle();
     }
 
-    titleSelectLeft(inputState) {
-        const left = this.cursors?.left;
-        const keyA = this.wasd?.A;
+    titleSelectPressed(inputState, side) {
+        const arrow = side === 'left' ? this.cursors?.left : this.cursors?.right;
+        const key = side === 'left' ? this.wasd?.A : this.wasd?.D;
         return Boolean(
-            (left && Phaser.Input.Keyboard.JustDown(left)) ||
-            (keyA && Phaser.Input.Keyboard.JustDown(keyA)) ||
-            inputState?.menu?.left
+            (arrow && Phaser.Input.Keyboard.JustDown(arrow)) ||
+            (key && Phaser.Input.Keyboard.JustDown(key)) ||
+            inputState?.menu?.[side]
         );
     }
 
+    titleSelectLeft(inputState) {
+        return this.titleSelectPressed(inputState, 'left');
+    }
+
     titleSelectRight(inputState) {
-        const right = this.cursors?.right;
-        const keyD = this.wasd?.D;
-        return Boolean(
-            (right && Phaser.Input.Keyboard.JustDown(right)) ||
-            (keyD && Phaser.Input.Keyboard.JustDown(keyD)) ||
-            inputState?.menu?.right
-        );
+        return this.titleSelectPressed(inputState, 'right');
     }
 
     cycleTitleSelection(direction) {
@@ -2648,35 +2516,6 @@ export class SpaceChicken extends Phaser.Scene {
             this.player2.phaserSprite?.setTexture?.(WEAPON_DEFS[this.player2.weapon].gun);
         }
         this.enableSplitCamera();
-    }
-
-    enableSplitCamera() {
-        if (this.player2Camera || !this.player2 || !this.cameras?.add) {
-            return;
-        }
-        const width = this.getViewportWidth();
-        const height = this.getViewportHeight();
-        const pane = splitPanes(width, height).panes[1];
-        this.player2Camera = this.cameras.add(
-            pane.x,
-            pane.y,
-            pane.width,
-            pane.height,
-            false,
-            'player2'
-        );
-        this.player2Camera.roundPixels = true;
-        this.player2Camera.startFollow?.(
-            this.player2,
-            true,
-            GAME_CONSTANTS.CAMERA_LERP_X,
-            GAME_CONSTANTS.CAMERA_LERP_Y
-        );
-        this.player2Camera.setBounds?.(0, 0, this.worldWidth, this.worldHeight);
-        this.bringUiCameraToFront();
-        this.bindExistingCameraFilters();
-        this.updateCameraForViewport();
-        setupWorldCameraFilters(this, this.player2Camera);
     }
 
     beginRaceFinale(winner) {
@@ -3049,10 +2888,7 @@ export class SpaceChicken extends Phaser.Scene {
             this.scale.off('resize', this.boundHandleResize, this);
             this.boundHandleResize = null;
         }
-        if (this.events && this.addedToSceneHandler && this.events.off) {
-            this.events.off('addedtoscene', this.addedToSceneHandler, this);
-            this.addedToSceneHandler = null;
-        }
+        this.cameraRig.destroy();
         this.input?.off?.('pointerdown', this.onTitlePointerDown, this);
         this.input?.off?.('pointerup', this.onTitlePointerUp, this);
         if (this.raceFinaleEvent?.remove) {
@@ -3062,14 +2898,6 @@ export class SpaceChicken extends Phaser.Scene {
         if (this.levelTransitionEvent?.remove) {
             this.levelTransitionEvent.remove(false);
             this.levelTransitionEvent = null;
-        }
-        if (this.player2Camera && this.cameras?.remove) {
-            this.cameras.remove(this.player2Camera);
-            this.player2Camera = null;
-        }
-        if (this.uiCamera && this.cameras?.remove) {
-            this.cameras.remove(this.uiCamera);
-            this.uiCamera = null;
         }
         this.removeNewsPlateTexture();
 

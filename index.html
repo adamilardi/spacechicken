@@ -265,6 +265,31 @@
                 width: min(480px, calc(100% - 32px));
                 padding: 20px 24px 24px;
             }
+            #race-setup-heading {
+                margin: 0;
+                color: #ffe566;
+            }
+            #race-setup-dialog [data-mode] {
+                display: block;
+                width: 100%;
+                margin: 8px 0;
+            }
+            #race-setup-dialog [aria-current='true'] {
+                border-color: #ffe566;
+                background: #394027;
+            }
+            #race-setup-dialog [aria-current='true']::after {
+                content: '✓';
+                margin-left: 0.5em;
+                color: #ffe566;
+            }
+            #race-status {
+                margin: 0;
+                color: #ffc48e;
+            }
+            #race-status:not(:empty) {
+                margin: 8px 0;
+            }
             #pause-dialog[open] {
                 display: flex;
                 flex-direction: column;

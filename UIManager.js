@@ -257,8 +257,10 @@ export class UIManager {
             this.overlays.finishDim,
             this.overlays.finishTitle,
             this.overlays.finishSummary,
+            this.overlays.finishSprintTime,
             this.overlays.finishRetryButton,
             this.overlays.finishNewGameButton,
+            this.overlays.finishBoardButton,
         ].filter(Boolean);
     }
 

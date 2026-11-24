@@ -1,5 +1,6 @@
 import { formatElapsedTime } from './GameUtils.js';
 import { normalizePlayerName } from './LeaderboardManager.js';
+import { GAME_CONSTANTS } from './Constants.js';
 
 // Pure leaderboard presentation: ranked rows, gaps, and callouts. Phaser
 // rendering lives in Overlays.js; everything here is unit-testable without
@@ -139,6 +140,20 @@ function leaderName(entries) {
     return name;
 }
 
+function courseChallenge(entries, best) {
+    const rows = rankBoardRows(entries, { max: entries.length });
+    if (!rows.length) return null;
+    if (validTime(best) === null) {
+        return { text: `Time to beat · ${rows[0].timeText} by ${rows[0].name}`, tone: 'cyan' };
+    }
+    const rival = rows.findLast((row) => row.time < best);
+    if (!rival) return null;
+    return {
+        text: `Catch #${rival.rank} ${rival.name} · ${formatElapsedTime(best - rival.time)} away`,
+        tone: 'cyan',
+    };
+}
+
 // Structured model for one leaderboard page. Mirrors the data rules in
 // Overlays.buildSections: remote boards win when present, level 0 shows
 // only the local full-run best, past winners hide on short landscape.
@@ -207,6 +222,10 @@ export function buildLeaderboardModel({
         weeklyGapMs,
         weeklyLeaderName: leaderName(weekList),
         remoteHolding: remote.length > 0,
+        courseChallenge:
+            numericLevel >= 1 && numericLevel <= GAME_CONSTANTS.SPEEDRUN_LEVEL_COUNT
+                ? courseChallenge(remote, best)
+                : null,
         hidePast: Boolean(hidePast),
     };
     model.callout = buildLeaderboardCallout(model);

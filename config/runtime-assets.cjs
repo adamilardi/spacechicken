@@ -145,6 +145,7 @@ const rootFiles = Object.freeze([
     'GameTestInterface.js',
     'CombatSystem.js',
     'CameraFilters.js',
+    'SceneCameras.js',
     'BoarderDirector.js',
     'BossDirector.js',
     'BoarderNavigation.js',

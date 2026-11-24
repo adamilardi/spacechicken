@@ -29,4 +29,20 @@ Use `npx wrangler whoami` before Cloudflare operations. NovaWing is deployed sep
 
 This file is for Codex, Grok, and other coding assistants. The game itself should not gain navigation/setup links unless explicitly requested. Cross-project context belongs here and in the Ailardi Arcade hub. Preserve unrelated existing working-tree changes when editing this repository.
 
+## Code map
+
+`SpaceChicken.js` is the Phaser scene and thin orchestrator; system logic lives in manager modules constructed in its `constructor()` and phased in `create()` (`createManagers` → `buildWorld` → `bindKeys` → `finishSetup`). Managers own their state and the scene keeps one-line delegates plus forwarding accessors, so external callers (`GameTestInterface.js`, bots, tests, other managers) keep using `scene.*` unchanged.
+
+- `SceneCameras.js` — follow/UI/split cameras, camera-filter routing, split chrome.
+- `CombatSystem.js` — phaser, temp guns, weapon switching.
+- `BoarderDirector.js` / `BossDirector.js` — boarders, bosses, crown shield.
+- `WorldBuilder.js` — platforms, hazards, boarders/rescue/pod groups.
+- `UIManager.js` — HUD state; `Overlays.js` — title/leaderboard/finish/branch/race overlays.
+- `BackgroundRenderer.js`, `EffectsManager.js`, `AudioManager.js` — presentation.
+- `InputController.js`, `GamepadController.js`, `TouchController.js`, `PauseController.js` — input.
+- `Viewport.js`, `SplitScreen.js`, `HudLayout.js`, `CameraFilters.js` — layout/camera helpers.
+- `GameUtils.js`, `Constants.js`, `LevelConfig.js`, `levels/`, `enemies/`, `sprites/`, `backgrounds/` — data and pure helpers.
+
+Conventions: keep the scene's public method/field surface stable when extracting (managers, scripts, and `tests/game.test.cjs` reach into it); prefer data tables plus loops over repeated blocks; put shared DOM/test helpers next to their cluster. Verify with `npm run check` (tests + lint + format).
+
 Level, enemy, animation, and weapon work goes through `skills/`. Read `docs/ART_SKILLS.md` and the matching `SKILL.md`. Art may be generated images (Muse Image) or canvas paint code; generated images must be saved into the repo, registered for serving, loaded as real game textures, and style-matched to the shipped game. Canvas paint stays the fallback when image generation is unavailable.

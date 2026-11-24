@@ -91,6 +91,7 @@ export const GAME_CONSTANTS = {
     // calling navigator.getGamepads() every frame (touch devices pay ~nothing).
     GAMEPAD_SLOW_POLL_FRAMES: 30,
     RESTART_DELAY: 500,
+    SPEEDRUN_LEVEL_COUNT: 3,
     DEATH_TRANSITION_DELAY: 320,
     LEVEL_TRANSITION_DELAY: 640,
     RACE_FINALE_MS: 1700,

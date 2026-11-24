@@ -69,7 +69,7 @@ resets/page loads; it excludes browser/server launch and teardown.
 
 ## Validation and measured performance
 
-- 16 levels replayed identical recorded pilot inputs with drawing enabled and
+- 26 levels replayed identical recorded pilot inputs with drawing enabled and
   disabled, up to 1,800 ticks per level, stopping at completion. Compared complete
   exposed snapshots every frame, plus projectile state and objective checks.
 - Policy parity covers encoded observations, legal masks, sampled actions,
