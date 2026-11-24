@@ -10,6 +10,7 @@ import { AudioManager } from './AudioManager.js';
 import { LevelConfig } from './LevelConfig.js';
 import { UIManager } from './UIManager.js';
 import { LeaderboardManager } from './LeaderboardManager.js';
+import { AnalyticsManager } from './AnalyticsManager.js';
 import { SpriteFactory } from './SpriteFactory.js';
 import { EffectsManager } from './EffectsManager.js';
 import { BackgroundRenderer } from './BackgroundRenderer.js';
@@ -441,6 +442,7 @@ export class SpaceChicken extends Phaser.Scene {
         this.audioManager = new AudioManager(this);
         this.uiManager = new UIManager(this);
         this.leaderboardManager = new LeaderboardManager(this);
+        this.analyticsManager = new AnalyticsManager(this);
         this.playerId = this.leaderboardManager.getPlayerId();
         if (this.fullRunToken) this.leaderboardManager.runTokens.set(0, this.fullRunToken);
         this.effectsManager = new EffectsManager(this);
@@ -824,6 +826,7 @@ export class SpaceChicken extends Phaser.Scene {
     }
 
     startSession() {
+        this.analyticsManager?.trackSessionStart();
         if (this.awaitingStart) {
             this.titleStartFired = false;
             if (this.uiManager) {
@@ -959,6 +962,7 @@ export class SpaceChicken extends Phaser.Scene {
             return;
         }
         this.hasStartedPlay = true;
+        this.analyticsManager?.trackLevelStart(this.level);
         const wasWaiting = this.awaitingStart;
         this.awaitingStart = false;
         this.input?.off?.('pointerdown', this.onTitlePointerDown, this);
@@ -1267,6 +1271,7 @@ export class SpaceChicken extends Phaser.Scene {
 
     recordLevelCompletion(levelTime, playerName) {
         const levelDeaths = Math.max(0, (this.deathCount || 0) - (this.levelStartDeaths || 0));
+        this.analyticsManager?.trackLevelComplete(this.level, levelTime, levelDeaths);
         this.leaderboardManager.saveTime(this.level, levelTime, playerName, levelDeaths);
         // News levels are always available and sit outside the campaign
         // chain; finishing one must not advance campaign unlocks.
@@ -1640,6 +1645,7 @@ export class SpaceChicken extends Phaser.Scene {
         const kind =
             reason === 'fall' || reason === 'laser' || reason === 'boarder' ? reason : 'hazard';
         this.lastDeathKind = kind;
+        this.analyticsManager?.trackDeath(this.level, kind);
         this.playDeathStinger(kind);
         this.pulsePads(GAME_CONSTANTS.HAPTIC_DEATH_MS, 0.85, 0.4);
         this.restartLevel();
@@ -2879,6 +2885,7 @@ export class SpaceChicken extends Phaser.Scene {
         }
         this.hasCleanedUp = true;
         teardownWorldCameraFilters(this);
+        this.analyticsManager?.cleanup();
         this.inputController?.destroy?.();
         if (this.events) {
             this.events.off('shutdown', this.cleanup, this);

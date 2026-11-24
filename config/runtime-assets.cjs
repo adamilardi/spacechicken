@@ -1,5 +1,7 @@
 const rootFiles = Object.freeze([
     'index.html',
+    'analytics.html',
+    'AnalyticsManager.js',
     'GameConfig.js',
     'Constants.js',
     'GameUtils.js',

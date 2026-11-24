@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Space Chicken Analytics</title>
+        <style>
+            :root {
+                color-scheme: dark;
+            }
+            body {
+                margin: 0;
+                padding: 24px 16px 48px;
+                background: #05070f;
+                color: #dce7ff;
+                font-family: 'Trebuchet MS', Verdana, sans-serif;
+            }
+            main {
+                max-width: 920px;
+                margin: 0 auto;
+            }
+            h1 {
+                margin: 0 0 4px;
+                color: #ffe566;
+                font-size: 26px;
+            }
+            .subtitle {
+                margin: 0 0 16px;
+                color: #9fb2d8;
+                font-size: 14px;
+            }
+            .controls {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+                margin-bottom: 16px;
+            }
+            .controls button,
+            .controls select {
+                min-height: 40px;
+                padding: 8px 14px;
+                border: 1px solid #617dad;
+                border-radius: 10px;
+                background: #14233e;
+                color: #fff;
+                font:
+                    bold 14px 'Trebuchet MS',
+                    sans-serif;
+                cursor: pointer;
+            }
+            .controls button[aria-pressed='true'] {
+                border-color: #ffe566;
+                background: #394027;
+            }
+            .cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            .card {
+                padding: 14px;
+                border: 1px solid #2a3a5c;
+                border-radius: 14px;
+                background: #101b30;
+            }
+            .card .value {
+                color: #fff;
+                font-size: 24px;
+                font-weight: bold;
+            }
+            .card .label {
+                margin-top: 4px;
+                color: #9fb2d8;
+                font-size: 13px;
+            }
+            section {
+                margin-bottom: 24px;
+            }
+            h2 {
+                margin: 0 0 8px;
+                color: #8ce4ff;
+                font-size: 18px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+            th,
+            td {
+                padding: 8px 10px;
+                border-bottom: 1px solid #22314f;
+                text-align: right;
+            }
+            th:first-child,
+            td:first-child {
+                text-align: left;
+            }
+            th {
+                color: #9fb2d8;
+                font-weight: bold;
+            }
+            .bar-row {
+                display: grid;
+                grid-template-columns: 110px 1fr 48px;
+                gap: 8px;
+                align-items: center;
+                margin: 4px 0;
+                font-size: 13px;
+            }
+            .bar-track {
+                height: 14px;
+                border-radius: 7px;
+                background: #1a2745;
+                overflow: hidden;
+            }
+            .bar-fill {
+                height: 100%;
+                border-radius: 7px;
+                background: #8ce4ff;
+            }
+            .error {
+                display: none;
+                padding: 12px 16px;
+                border: 1px solid #ff8a7a;
+                border-radius: 12px;
+                background: #2e1414;
+                color: #ffd9d4;
+                margin-bottom: 16px;
+            }
+            .empty {
+                color: #9fb2d8;
+                font-size: 14px;
+            }
+            footer {
+                color: #5c6f96;
+                font-size: 12px;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Space Chicken analytics</h1>
+            <p class="subtitle" id="subtitle">Anonymous gameplay stats from Cloudflare D1.</p>
+            <div class="error" id="error"></div>
+            <div class="controls" role="group" aria-label="Date range">
+                <button data-days="7" aria-pressed="false">7 days</button>
+                <button data-days="30" aria-pressed="true">30 days</button>
+                <button data-days="90" aria-pressed="false">90 days</button>
+                <button id="refresh">Refresh</button>
+            </div>
+            <div class="cards">
+                <div class="card">
+                    <div class="value" id="stat-sessions">–</div>
+                    <div class="label">Sessions</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="stat-playtime">–</div>
+                    <div class="label">Total playtime</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="stat-avg">–</div>
+                    <div class="label">Avg session</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="stat-median">–</div>
+                    <div class="label">Median session</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="stat-played">–</div>
+                    <div class="label">Sessions that played</div>
+                </div>
+            </div>
+            <section>
+                <h2>Levels</h2>
+                <div id="levels-empty" class="empty">No level data yet.</div>
+                <table id="levels-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Starts</th>
+                            <th>Finishes</th>
+                            <th>Finish %</th>
+                            <th>Avg time</th>
+                            <th>Avg deaths</th>
+                            <th>Deaths</th>
+                        </tr>
+                    </thead>
+                    <tbody id="levels-body"></tbody>
+                </table>
+            </section>
+            <section>
+                <h2>Sessions per day</h2>
+                <div id="daily-empty" class="empty">No daily data yet.</div>
+                <div id="daily"></div>
+            </section>
+            <section>
+                <h2>Deaths by cause</h2>
+                <div id="deaths-empty" class="empty">
+                    No deaths recorded. Suspiciously peaceful.
+                </div>
+                <table id="deaths-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>Cause</th>
+                            <th>Deaths</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deaths-body"></tbody>
+                </table>
+            </section>
+            <section>
+                <h2>Input type</h2>
+                <div id="inputs-empty" class="empty">No input data yet.</div>
+                <table id="inputs-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>Input</th>
+                            <th>Sessions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inputs-body"></tbody>
+                </table>
+            </section>
+            <footer>
+                Anonymous only: random per-visit session ids, no names, no IPs, 120-day retention.
+                Debug and bot sessions are excluded.
+            </footer>
+        </main>
+        <script>
+            const state = { days: 30 };
+
+            function formatDuration(ms) {
+                if (ms == null) return '–';
+                const totalSeconds = Math.round(ms / 1000);
+                if (totalSeconds < 60) return `${totalSeconds}s`;
+                const minutes = Math.floor(totalSeconds / 60);
+                if (minutes < 60) return `${minutes}m ${totalSeconds % 60}s`;
+                const hours = Math.floor(minutes / 60);
+                return `${hours}h ${minutes % 60}m`;
+            }
+
+            function showError(message) {
+                const box = document.getElementById('error');
+                box.textContent = message;
+                box.style.display = 'block';
+            }
+
+            function render(payload) {
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('subtitle').textContent =
+                    `Anonymous gameplay stats · last ${payload.days} days · since ${payload.from}.`;
+                document.getElementById('stat-sessions').textContent = payload.sessions;
+                document.getElementById('stat-playtime').textContent = formatDuration(
+                    payload.totalPlayMs
+                );
+                document.getElementById('stat-avg').textContent = formatDuration(
+                    payload.avgSessionMs
+                );
+                document.getElementById('stat-median').textContent = formatDuration(
+                    payload.medianSessionMs
+                );
+                document.getElementById('stat-played').textContent = payload.sessionsWithPlay;
+
+                const levelIds = Object.keys(payload.levels || {})
+                    .map(Number)
+                    .sort((a, b) => a - b);
+                const levelsTable = document.getElementById('levels-table');
+                document.getElementById('levels-empty').style.display = levelIds.length
+                    ? 'none'
+                    : 'block';
+                levelsTable.hidden = levelIds.length === 0;
+                document.getElementById('levels-body').innerHTML = levelIds
+                    .map((level) => {
+                        const row = payload.levels[level];
+                        const rate = row.starts
+                            ? `${Math.round((row.completions / row.starts) * 100)}%`
+                            : '–';
+                        return `<tr><td>${level}</td><td>${row.starts}</td><td>${row.completions}</td><td>${rate}</td><td>${formatDuration(row.avgMs)}</td><td>${row.avgDeaths ?? '–'}</td><td>${row.deaths}</td></tr>`;
+                    })
+                    .join('');
+
+                const daily = payload.daily || [];
+                document.getElementById('daily-empty').style.display = daily.length
+                    ? 'none'
+                    : 'block';
+                const maxDaily = Math.max(1, ...daily.map((row) => row.sessions));
+                document.getElementById('daily').innerHTML = daily
+                    .map(
+                        (row) =>
+                            `<div class="bar-row"><span>${row.day}</span><span class="bar-track"><span class="bar-fill" style="display:block;width:${Math.round((row.sessions / maxDaily) * 100)}%"></span></span><span>${row.sessions}</span></div>`
+                    )
+                    .join('');
+
+                renderMap(payload.deathsByKind, 'deaths');
+                renderMap(payload.inputs, 'inputs');
+            }
+
+            function renderMap(map, prefix) {
+                const entries = Object.entries(map || {}).sort((a, b) => b[1] - a[1]);
+                document.getElementById(`${prefix}-empty`).style.display = entries.length
+                    ? 'none'
+                    : 'block';
+                document.getElementById(`${prefix}-table`).hidden = entries.length === 0;
+                document.getElementById(`${prefix}-body`).innerHTML = entries
+                    .map(([key, value]) => `<tr><td>${key}</td><td>${value}</td></tr>`)
+                    .join('');
+            }
+
+            async function load() {
+                try {
+                    const response = await fetch(`./api/analytics?days=${state.days}`);
+                    if (!response.ok) {
+                        throw new Error(`Request failed (${response.status})`);
+                    }
+                    render(await response.json());
+                } catch (error) {
+                    showError(`Could not load analytics: ${error.message}`);
+                }
+            }
+
+            document.querySelectorAll('[data-days]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    state.days = Number(button.dataset.days);
+                    document
+                        .querySelectorAll('[data-days]')
+                        .forEach((other) =>
+                            other.setAttribute(
+                                'aria-pressed',
+                                String(other === button ? 'true' : 'false')
+                            )
+                        );
+                    load();
+                });
+            });
+            document.getElementById('refresh').addEventListener('click', load);
+            load();
+        </script>
+    </body>
+</html>
